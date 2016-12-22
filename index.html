@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>DNCL実行</title>
+	<link href="./jquery/jquery-linedtextarea.css" type="text/css" rel="stylesheet"/>
+	<link href="./dncl.css" type="text/css" rel="stylesheet"/>
+	<script src="./jquery/jquery-3.1.1.min.js" type="text/javascript"></script>
+	<script src="./jquery/jquery-linedtextarea.js" type="text/javascript"></script>
+	<script src="./dncl.js" type="text/javascript"></script>
+	<script src="./disp.js" type="text/javascript"></script>
+	<script src="./run.js"  type="text/javascript"></script>
+	<script type="text/javascript">
+		onload = function(){
+			var sourceTextArea = document.getElementById("sourceTextarea");
+			var parseTextArea = document.getElementById("parseTextarea");
+			var resultTextArea = document.getElementById("resultTextarea");
+//			var inputTextArea = document.getElementById("inputTextarea");
+			var parseButton   = document.getElementById("parseButton");
+			var runButton     = document.getElementById("runButton");
+			var resetButton   = document.getElementById("resetButton");
+			var stepButton    = document.getElementById("stepButton");
+			var source, parse;
+			$("#sourceTextarea").linedtextarea();
+			parseButton.onclick = function(){
+				source = sourceTextArea.value+"\n";
+				try{
+					parseTextArea.value = '';
+					parse = dncl.parse(source);
+					parseTextArea.value = toString(parse);
+				}
+				catch(e){
+					parseTextArea.value += "構文エラーです\n" + e.message;
+				}
+			};
+			runButton.onclick = function(){
+				source = sourceTextArea.value+"\n";
+				try{
+					parseTextArea.innerHTML = '';
+					parse = dncl.parse(source);
+//					parseTextArea.value = toString(parse);
+					try{
+						run(parse, resultTextArea, false);
+					}
+					catch(e)
+					{
+						resultTextArea.value += "実行時エラーです\n" + 
+						e.loc.first_line + "行目:" + e.message+"\n";
+					}
+				}
+				catch(e){
+					resultTextArea.value += "構文エラーです\n" + e.message + "\n";
+				}
+			};
+			resetButton.onclick = function(){
+				reset(resultTextArea);
+			};
+			stepButton.onclick = function()
+			{
+				source = sourceTextArea.value+"\n";
+				try{
+					parseTextArea.innerHTML = '';
+					parse = dncl.parse(source);
+//					parseTextArea.value = toString(parse);
+					try{
+						run(parse, resultTextArea, true);
+					}
+					catch(e)
+					{
+						resultTextArea.value += "実行時エラーです\n" + 
+						e.loc.first_line + "行目:" + e.message+"\n";
+					}
+				}
+				catch(e){
+					resultTextArea.value += "構文エラーです\n" + e.message + "\n";
+				}
+			}
+		}
+
+	</script>
+</head>
+<body>
+<p>配列はまだ使えない<br>
+random,sin,cos,tan,abs,sqrt,powを使えるようにした</p>
+	<button   id="parseButton" type="button">Parse</button>
+	<button   id="runButton" type="button">Run</button>
+	<button   id="resetButton" type="button">Reset</button>
+	<button   id="stepButton" type="button">Step</button><br/>
+	<textarea id="sourceTextarea" rows="20" cols="50">
+整数 a,b,n
+aを1から40まで増やしながら
+｜もしa%3=0またはa%10=3またはa/10=3ならば
+｜｜「(´・ω・｀)」を表示する
+｜を実行し，そうでなければ
+｜｜aを表示する
+｜を実行する
+を繰り返す</textarea>
+	<textarea id="resultTextarea" rows="20" cols="50" readonly></textarea>
+	<textarea id="parseTextarea"  rows="20" cols="50" readonly></textarea>
+</body>
+</html>
