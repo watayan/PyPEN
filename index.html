@@ -20,6 +20,7 @@
 			var runButton     = document.getElementById("runButton");
 			var resetButton   = document.getElementById("resetButton");
 			var stepButton    = document.getElementById("stepButton");
+			var loadButton    = document.getElementById("loadButton");
 			var source, parse;
 			$("#sourceTextarea").linedtextarea();
 			parseButton.onclick = function(){
@@ -75,17 +76,48 @@
 					resultTextArea.value += "構文エラーです\n" + e.message + "\n";
 				}
 			}
+			loadButton.addEventListener("change", function(ev)
+			{
+				let file = ev.target.files;
+				let reader = new FileReader();
+				reader.readAsText(file[0], "UTF-8");
+				reader.onload = function(ev)
+				{
+					sourceTextArea.value = reader.result;
+				}
+			}
+			,false);
+			downloadLink.onclick = function()
+			{
+				let now = new Date();
+				let filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
+					('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + 
+					('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2) + 
+					'.PEN';
+				let blob = new Blob([sourceTextArea.value], {type:"text/plain"});
+				if(window.navigator.msSaveBlob)
+				{
+					window.navigator.msSaveBlob(blob, filename);
+				}
+				else
+				{
+					window.URL = window.URL || window.webkitURL;
+					downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
+					downloadLink.setAttribute("download", filename);
+				}
+			};
 		}
 
 	</script>
 </head>
 <body>
-<p>配列はまだ使えない<br>
-random,sin,cos,tan,abs,sqrt,powを使えるようにした</p>
+<p>配列はまだ使えない</p>
 	<button   id="parseButton" type="button">Parse</button>
 	<button   id="runButton" type="button">Run</button>
 	<button   id="resetButton" type="button">Reset</button>
 	<button   id="stepButton" type="button">Step</button><br/>
+	Upload <input    id="loadButton" type="file"/><br/>
+	<a href="#" id="downloadLink">Download</a><br/>
 	<textarea id="sourceTextarea" rows="20" cols="50">
 整数 a,b,n
 aを1から40まで増やしながら
