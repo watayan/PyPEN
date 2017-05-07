@@ -105,7 +105,7 @@ e
 	| e '*' e	{ $$ = new Mul($1, $3, new Location(@1, @3));}
 	| e '/' e	{ $$ = new Div($1, $3, new Location(@1, @3));}
 	| e '%' e	{ $$ = new Mod($1, $3, new Location(@1, @3));}
-	| '-' e		%prec UMINUS { $$ = new Minus($2, new Location(@1, @2));}
+	| '-' e		%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
 	| '(' e ')'	{$$ = $2;}
 	| e '=' e			{$$ = new EQ($1, $3, new Location(@1, @3));}
 	| e '!=' e			{$$ = new NE($1, $3, new Location(@1, @3));}
@@ -119,11 +119,13 @@ e
 	| e 'APPEND' e	{$$ = new Append($1, $3, new Location(@1, @3));}
 	| INTEGER	{$$ = new IntValue(Number(yytext), new Location(@1,@1));}
 	| FLOAT		{$$ = new FloatValue(Number(yytext), new Location(@1,@1));}
-	| STRING	{$$ = new StringValue(yytext, new Location(@1, @1));}
+	| STRING	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
 	| TRUE		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| FALSE		{$$ = new BooleanValue(false, new Location(@1,@1));}
-	| IDENTIFIER'('parameterlist')' 
+	| IDENTIFIER'('parameterlist')'
 				{$$ = new CallFunction($1, $3, new Location(@1,@1));}
+	| IDENTIFIER'['parameterlist']'
+				{$$ = new ArrayIdentifier();}
 	| IDENTIFIER{$$ = new Identifier(yytext, new Location(@1, @1));}
 	;
 	
@@ -159,10 +161,10 @@ EmptyStatement
 	;
 
 DefineStatement
-	: DEFINT variablelist 'NEWLINE'		{$$ = new Definition($2, INTTYPE, new Location(@1,@2));}
-	| DEFFLOAT variablelist 'NEWLINE'	{$$ = new Definition($2, FLOATTYPE, new Location(@1,@2));}
-	| DEFSTR variablelist 'NEWLINE'		{$$ = new Definition($2, STRINGTYPE, new Location(@1,@2));}
-	| DEFBOOL variablelist 'NEWLINE'	{$$ = new Definition($2, BOOLEANTYPE, new Location(@1,@2));}
+	: DEFINT variablelist 'NEWLINE'		{$$ = new DefinitionInt($2, new Location(@1,@2));}
+	| DEFFLOAT variablelist 'NEWLINE'	{$$ = new DefinitionFloat($2, new Location(@1,@2));}
+	| DEFSTR variablelist 'NEWLINE'		{$$ = new DefinitionString($2, new Location(@1,@2));}
+	| DEFBOOL variablelist 'NEWLINE'	{$$ = new DefinitionBoolean($2, new Location(@1,@2));}
 	;
 
 IfStatement
@@ -182,14 +184,14 @@ ForStatement
 	| IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' e 'FOR4' 'FORDEC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
 		{$$ = new ForDec($1, $3, $5, $7,$11, new Location(@1,@12));}
 	| IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' 'FORINC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
-		{$$ = new ForInc($1, $3, $5, new IntValue(1),$9, new Location(@1,@10));}
+		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
 	| IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' 'FORDEC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
-		{$$ = new ForDec($1, $3, $5, new IntValue(1),$9, new Location(@1,@10));}
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
 	;
 
 LoopStatement
 	: 'LOOP' 'NEWLINE' statementlist 'UNTIL1' e 'UNTIL2' 'NEWLINE'
-		{$$ = new Loop($3, $5, new Location(@1, @7));}
+		{$$ = new Until($3, $5, new Location(@1, @7));}
 	;
 
 WhileStatement
@@ -204,8 +206,8 @@ AssignStatement
 	;
 
 PrintStatement
-	: e 'PRINT' 'NEWLINE' {$$ = new Print($1, false, new Location(@1,@2));}
-	| e 'PRINTLN' 'NEWLINE' {$$ = new Print($1, true, new Location(@1,@2));}
+	: e 'PRINT' 'NEWLINE' {$$ = new Output($1, false, new Location(@1,@2));}
+	| e 'PRINTLN' 'NEWLINE' {$$ = new Output($1, true, new Location(@1,@2));}
 	;
 
 InputStatement

@@ -9,7 +9,7 @@
 	<script src="./jquery/jquery-linedtextarea.js" type="text/javascript"></script>
 	<script src="./dncl.js" type="text/javascript"></script>
 	<script src="./disp.js" type="text/javascript"></script>
-	<script src="./run.js"  type="text/javascript"></script>
+	<script src="./run1.js"  type="text/javascript"></script>
 	<script type="text/javascript">
 		onload = function(){
 			var sourceTextArea = document.getElementById("sourceTextarea");
@@ -23,6 +23,7 @@
 			var loadButton    = document.getElementById("loadButton");
 			var source, parse;
 			$("#sourceTextarea").linedtextarea();
+			reset(resultTextArea);
 			parseButton.onclick = function(){
 				source = sourceTextArea.value+"\n";
 				try{
@@ -41,12 +42,12 @@
 					parse = dncl.parse(source);
 //					parseTextArea.value = toString(parse);
 					try{
-						run(parse, resultTextArea, false);
+						run(parse, false);
 					}
 					catch(e)
 					{
 						resultTextArea.value += "実行時エラーです\n" + 
-						e.loc.first_line + "行目:" + e.message+"\n";
+						e.line + "行目:" + e.message+"\n";
 					}
 				}
 				catch(e){
@@ -64,12 +65,12 @@
 					parse = dncl.parse(source);
 //					parseTextArea.value = toString(parse);
 					try{
-						run(parse, resultTextArea, true);
+						run(parse, true);
 					}
 					catch(e)
 					{
 						resultTextArea.value += "実行時エラーです\n" + 
-						e.loc.first_line + "行目:" + e.message+"\n";
+						e.line + "行目:" + e.message+"\n";
 					}
 				}
 				catch(e){
@@ -119,14 +120,7 @@
 	Upload <input    id="loadButton" type="file"/><br/>
 	<a href="#" id="downloadLink">Download</a><br/>
 	<textarea id="sourceTextarea" rows="20" cols="50">
-整数 a,b,n
-aを1から40まで増やしながら
-｜もしa%3=0またはa%10=3またはa/10=3ならば
-｜｜「(´・ω・｀)」を表示する
-｜を実行し，そうでなければ
-｜｜aを表示する
-｜を実行する
-を繰り返す</textarea>
+1+2を表示する</textarea>
 	<textarea id="resultTextarea" rows="20" cols="50" readonly></textarea>
 	<textarea id="parseTextarea"  rows="20" cols="50" readonly></textarea>
 </body>

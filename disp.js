@@ -1,6 +1,5 @@
 const INTTYPE = 1, FLOATTYPE = 2, STRINGTYPE = 3, BOOLEANTYPE = 4;
 
-
 function toString (obj, indent) {
   var key, s, val;
   indent = indent || '';

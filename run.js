@@ -505,5 +505,6 @@ function run(parse, textarea, step_flag)
 	{
 		this.loc = o.loc;
 		this.message = mes;
+		run_flag = false;
 	}
 }
