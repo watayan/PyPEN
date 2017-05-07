@@ -21,6 +21,7 @@
 			var resetButton   = document.getElementById("resetButton");
 			var stepButton    = document.getElementById("stepButton");
 			var loadButton    = document.getElementById("loadButton");
+			var file_prefix   = document.getElementById("file_prefix");
 			var source, parse;
 			$("#sourceTextarea").linedtextarea();
 			reset(resultTextArea);
@@ -91,10 +92,12 @@
 			downloadLink.onclick = function()
 			{
 				let now = new Date();
-				let filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
+				let filename = file_prefix.value.trim();
+				if(filename.length < 1)
+					filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
 					('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + 
-					('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2) + 
-					'.PEN';
+					('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
+				filename +=	'.PEN';
 				let blob = new Blob([sourceTextArea.value], {type:"text/plain"});
 				if(window.navigator.msSaveBlob)
 				{
@@ -118,9 +121,17 @@
 	<button   id="resetButton" type="button">Reset</button>
 	<button   id="stepButton" type="button">Step</button><br/>
 	Upload <input    id="loadButton" type="file"/><br/>
-	<a href="#" id="downloadLink">Download</a><br/>
+	<a href="#" id="downloadLink">Download</a>
+	ファイル名：<input    id="file_prefix" type="text"></input><br/>
 	<textarea id="sourceTextarea" rows="20" cols="50">
-1+2を表示する</textarea>
+整数 a
+aを1から40まで1ずつ増やしながら
+｜もしa%3=0またはa%10=3またはa/10=3ならば
+｜｜「アヒャヒャ」を表示する
+｜を実行し，そうでなければ
+｜｜aを表示する
+｜を実行する
+を繰り返す</textarea>
 	<textarea id="resultTextarea" rows="20" cols="50" readonly></textarea>
 	<textarea id="parseTextarea"  rows="20" cols="50" readonly></textarea>
 </body>
