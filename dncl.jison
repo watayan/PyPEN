@@ -9,7 +9,7 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 
 Integer			[0] | ({NonZeroDigit}{DecimalDigit}*)
 Float			{Integer}"."{DecimalDigit}+
-String			"「".*"」"
+String			"「"[^」]*"」"
 Comma			[，,、]
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　|｜]
@@ -124,19 +124,26 @@ e
 	| FALSE		{$$ = new BooleanValue(false, new Location(@1,@1));}
 	| IDENTIFIER'('parameterlist')'
 				{$$ = new CallFunction($1, $3, new Location(@1,@1));}
-	| IDENTIFIER'['parameterlist']'
-				{$$ = new ArrayIdentifier();}
-	| IDENTIFIER{$$ = new Identifier(yytext, new Location(@1, @1));}
+	| variable
+	;
+
+variable
+	: IDENTIFIER'['parameterlist']'
+			{$$ = new Variable($1, $3, new Location(@1,@1));}
+	| IDENTIFIER{$$ = new Variable($1, null, new Location(@1, @1));}
 	;
 	
 variablelist
-	: variablelist ',' IDENTIFIER {$$ = $1.concat($3);}
-	| IDENTIFIER {$$ = [$1];}
+	: variablelist ',' IDENTIFIER '['parameterlist']' {$$ = $1.concat({varname:$3, parameter:$5});}
+	| variablelist ',' IDENTIFIER {$$ = $1.concat({varname:$3});}
+	| IDENTIFIER'['parameterlist']' {$$ = [{varname:$1, parameter:$3}];}
+	| IDENTIFIER {$$ = [{varname:$1}];}
 	;
 
 parameterlist
 	: parameterlist ',' e {$$ = $1.concat($3);}
 	| e { $$ = [$1];}
+	|   { $$ = [];}
 	;
 
 statementlist
@@ -179,13 +186,13 @@ IfStatement
 	;
 
 ForStatement
-	: IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' e 'FOR4' 'FORINC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
+	: variable 'FOR1' e 'FOR2' e 'FOR3' e 'FOR4' 'FORINC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
 		{$$ = new ForInc($1, $3, $5, $7,$11, new Location(@1,@12));}
-	| IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' e 'FOR4' 'FORDEC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
+	| variable 'FOR1' e 'FOR2' e 'FOR3' e 'FOR4' 'FORDEC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
 		{$$ = new ForDec($1, $3, $5, $7,$11, new Location(@1,@12));}
-	| IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' 'FORINC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
+	| variable 'FOR1' e 'FOR2' e 'FOR3' 'FORINC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
 		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
-	| IDENTIFIER 'FOR1' e 'FOR2' e 'FOR3' 'FORDEC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
+	| variable 'FOR1' e 'FOR2' e 'FOR3' 'FORDEC' 'NEWLINE' statementlist 'ENDLOOP' 'NEWLINE'
 		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
 	;
 
@@ -201,8 +208,7 @@ WhileStatement
 
 
 AssignStatement
-	: IDENTIFIER '<-' e 'NEWLINE'		{$$ = new Assign($1, $3, new Location(@1,@3));}
-	| IDENTIFIER '<-' condition 'NEWLINE' {$$ = new Assign($1, $3, new Location(@1,@3));}
+	: variable '<-' e 'NEWLINE'		{$$ = new Assign($1, $3, new Location(@1,@3));}
 	;
 
 PrintStatement
@@ -211,7 +217,7 @@ PrintStatement
 	;
 
 InputStatement
-	: IDENTIFIER 'INPUT' 'NEWLINE'	{$$ = new Input($1, new Location(@1, @2));}
+	: variable 'INPUT' 'NEWLINE'	{$$ = new Input($1, new Location(@1, @2));}
 	;
 
 Program

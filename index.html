@@ -13,7 +13,6 @@
 	<script type="text/javascript">
 		onload = function(){
 			var sourceTextArea = document.getElementById("sourceTextarea");
-			var parseTextArea = document.getElementById("parseTextarea");
 			var resultTextArea = document.getElementById("resultTextarea");
 //			var inputTextArea = document.getElementById("inputTextarea");
 			var parseButton   = document.getElementById("parseButton");
@@ -28,18 +27,18 @@
 			parseButton.onclick = function(){
 				source = sourceTextArea.value+"\n";
 				try{
-					parseTextArea.value = '';
+					resultTextArea.value = '';
 					parse = dncl.parse(source);
-					parseTextArea.value = toString(parse);
+					resultTextArea.value = toString(parse);
 				}
 				catch(e){
-					parseTextArea.value += "構文エラーです\n" + e.message;
+					resultTextArea.value += "構文エラーです\n" + e.message;
 				}
 			};
 			runButton.onclick = function(){
 				source = sourceTextArea.value+"\n";
 				try{
-					parseTextArea.innerHTML = '';
+					resultTextArea.innerHTML = '';
 					parse = dncl.parse(source);
 //					parseTextArea.value = toString(parse);
 					try{
@@ -62,7 +61,7 @@
 			{
 				source = sourceTextArea.value+"\n";
 				try{
-					parseTextArea.innerHTML = '';
+					resultTextArea.innerHTML = '';
 					parse = dncl.parse(source);
 //					parseTextArea.value = toString(parse);
 					try{
@@ -123,7 +122,7 @@
 	Upload <input    id="loadButton" type="file"/><br/>
 	<a href="#" id="downloadLink">Download</a>
 	ファイル名：<input    id="file_prefix" type="text"></input><br/>
-	<textarea id="sourceTextarea" rows="20" cols="50">
+	<textarea id="sourceTextarea" rows="20" cols="70">
 整数 a
 aを1から40まで1ずつ増やしながら
 ｜もしa%3=0またはa%10=3またはa/10=3ならば
@@ -133,6 +132,5 @@ aを1から40まで1ずつ増やしながら
 ｜を実行する
 を繰り返す</textarea>
 	<textarea id="resultTextarea" rows="20" cols="50" readonly></textarea>
-	<textarea id="parseTextarea"  rows="20" cols="50" readonly></textarea>
 </body>
 </html>

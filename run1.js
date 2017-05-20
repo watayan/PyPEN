@@ -42,7 +42,14 @@ class Value
 	}
 }
 
-class IntValue extends Value {}
+class IntValue extends Value 
+{
+	constructor(v, loc)
+	{
+		 super(v, loc);
+		 if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない数です");
+	}
+}
 class FloatValue extends Value {}
 class StringValue extends Value {}
 class BooleanValue extends Value {}
@@ -133,7 +140,7 @@ class Div extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-		if(v2.value == 0) throw RuntimeError(this.first_line, "0でわり算をしました");
+		if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
 		if(v1 instanceof IntValue && v2 instanceof IntValue)
 		{
 			let v = (v1.value - v1.value % v2.value) / v2.value
@@ -184,7 +191,7 @@ class Minus extends Value
 			let v = -v1.value;
 			if(v instanceof IntValue && !Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			if(v instanceof FloatValue && !Number.isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-			return new IntValue(v, this.loc);
+			return v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
 		}
 		else
 			throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
@@ -283,16 +290,35 @@ class LE extends Value
 	}
 }
 
-class Identifier extends Value
+class Variable extends Value
 {
-	constructor(x, loc){super(x,loc);}
+	constructor(x, y, loc){super([x,y],loc);}
+	get varname()
+	{
+		let vn = this.value[0];
+		let pm = this.value[1];
+		if(pm != null)
+		{
+			let ag = new Array(pm.length);
+			for(let i = 0; i < pm.length; i++)
+			{
+				let v = pm[i].getValue();
+				if(v instanceof IntValue) ag[i] = v.value;
+				else if(v instanceof FloatValue) ag[i] = Math.round(v.value);
+				else throw new RuntimeError(this.first_line, "配列の添字に" + v.value + "は使えません");
+			}
+			vn += '['+ag.join(',')+']';
+		}
+		return vn;
+	}
 	getValue()
 	{
-		if(varsInt[this.value] != undefined) return new IntValue(varsInt[this.value], this.loc);
-		else if(varsFloat[this.value] != undefined) return new FloatValue(varsFloat[this.value], this.loc);
-		else if(varsString[this.value] != undefined) return new StringValue(varsString[this.value], this.loc);
-		else if(varsBoolean[this.value] != undefined) return new BooleanValue(varsBoolean[this.value], this.loc);
-		else throw new RuntimeError(this.first_line, this.value + "は宣言されていません");
+		let vn = this.varname;
+		if(varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);
+		else if(varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);
+		else if(varsString[vn] != undefined) return new StringValue(varsString[n], this.loc);
+		else if(varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);
+		else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
 	}
 }
 
@@ -301,94 +327,138 @@ class CallFunction extends Value
 	constructor(funcname, parameter, loc){super({funcname: funcname, parameter:parameter}, loc);}
 	getValue()
 	{
-		let func = value.funcname, param = value.parameter;
+		let func = this.value.funcname, param = this.value.parameter;
 		if(func == 'abs')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
-			if(par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);
-			else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);
-			else throw new RuntimeError(first_line, func + "は数値にしか使えません");
+			if(par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), this.loc);
+			else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'random')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
-			return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), loc);
+			if(par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
 		}
 		if(func == 'ceil')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
-			return new IntValue(Math.ceil(par1.value), loc);
+			if(par1 instanceof IntValue) return par1;
+			else if(par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'floor')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.floor(par1.value), type: INTTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue) return par1;
+			else if(par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'round')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.round(par1.value), type: INTTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue) return par1;
+			else if(par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'int')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: par1.value >= 0 ? Math.ceil(par1.value) : Math.floor(par1.value), type: INTTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue) return par1;
+			else if(par1 instanceof FloatValue)	return new IntValue(par1.value < 0 ? Math.ceil(par1.value) : Math.floor(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'sin')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.sin(par1.value), type: FLOATTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'cos')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.cos(par1.value), type: FLOATTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'tan')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.tan(par1.value), type: FLOATTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue || par1 instanceof FloatValue) 
+			{
+				let v = Math.tan(par1.value);
+				if(Number.isFinite(v)) return new FloatValue(Math.tan(par1.value), this.loc);
+				else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'sqrt')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.sqrt(par1.value), type: FLOATTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue || par1 instanceof FloatValue)
+			{
+				if(par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
+			 	return new FloatValue(Math.sqrt(par1.value), this.loc);
+			}
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'log')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.log(par1.value), type: FLOATTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue || par1 instanceof FloatValue)
+			{
+				if(par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
+				let v = Math.log(par1.value);
+				if(Number.isFinite(v)) return new FloatValue(v, this.loc);
+				throw new RuntimeError(this.first_line, "オーバーフローしました");			
+			}
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'exp')
 		{
-			if(param.length != 1) throw new runtimeError(o, func + "の引数は1つです");
-			var par1 = getValue(param[0]);
-			return {value: Math.exp(par1.value), type: FLOATTYPE};
+			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue || par1 instanceof FloatValue)
+			{
+				let v = Math.exp(par1.value);
+				if(Number.isFinite(v)) return new FloatValue(v, this.loc);
+				throw new RuntimeError(this.first_line, "オーバーフローしました");			
+			}
+			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
 		if(func == 'pow')
 		{
-			if(param.length != 2) throw new runtimeError(o, func + "の引数は2つです");
-			var par1 = getValue(param[0]);
-			var par2 = getValue(param[1]);
-			var type = par1.type == INTTYPE && par2.type == INTTYPE ? INTTYPE : FLOATTYPE;
-			var rtnv = Math.pow(par1.value, par2.value);
-			if(type == INTTYPE && !Number.isSafeInteger(rtnv)) throw new runtimeError(o, "オーバーフローしました");
-			if(!Number.isFinite(rtnv)) throw new runtimeError(o, "オーバーフローしました");
-			if(par1.value < 0 && !Number.isInteger(par2)) throw new runtimeError(o, "負の数の非整数乗はできません");
-			return {value: rtnv, type: type};
+			if(param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			if(par1 instanceof IntValue && par2 instanceof IntValue && par2.value >= 0)
+			{
+				if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+				let v = Math.pow(par1.value, par2.value);
+				if(Number.isSafeInteger(v)) return new IntValue(v, this.loc);
+				else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
+			if((par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof IntValue || par2 instanceof FloatValue))
+			{
+				if(par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
+				if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+				let v = Math.pow(par1.value, par2.value);
+				if(Number.isFinite(v)) return new FloatValue(v, this.loc);
+				else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
 		}
-		else throw new RuntimeError(o, func + "という関数はありません");
+		else throw new RuntimeError(this.first_line, func + "という関数はありません");
 	}
 }
 
@@ -398,8 +468,8 @@ class Append extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		let v = String(v1) + String(v2);
-		return new StgringValue(v, this.loc);
+		let v = String(v1.value) + String(v2.value);
+		return new StringValue(v, this.loc);
 	}
 }
 
@@ -426,12 +496,48 @@ class DefinitionInt extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			let varname = this.vars[i];
+			let varname = this.vars[i].varname;
+			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-			varsInt[varname] = 0;
+			if(!parameter)
+			{
+				varsInt[varname] = 0;
+			}
+			else
+			{
+				let parameterlist = [];
+				for(var j = 0; j < parameter.length; j++) 
+				{
+					let v = parameter[j].getValue();
+					if(v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);
+					else if(v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));
+					else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+				}
+				let args = new Array(parameter.length);
+				for(var j = 0; j < parameter.length; j++) args[j] = 0;
+				while(args)
+				{
+					varsInt[varname + '[' + args.join(',') + ']'] = 0;
+					let k = 0;
+					do {
+						if(k < args.length)
+						{
+							args[k]++;
+							if(args[k] > parameterlist[k]) args[k++] = 0;
+							else k = -1;
+						}
+						else
+						{
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
+				}
+			}
 		}
+		console.log(varsInt);
 		return index + 1;
 	}
 }
@@ -447,10 +553,46 @@ class DefinitionFloat extends Statement
 		for(var i = 0; i < this.vars.length; i++)
 		{
 			let varname = this.vars[i];
+			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
 			varsFloat[varname] = 0;
+			if(!parameter)
+			{
+				varsFloat[varname] = 0;
+			}
+			else
+			{
+				let parameterlist = [];
+				for(var j = 0; j < parameter.length; j++) 
+				{
+					let v = parameter[j].getValue();
+					if(v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);
+					else if(v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));
+					else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+				}
+				let args = new Array(parameter.length);
+				for(var j = 0; j < parameter.length; j++) args[j] = 0;
+				while(args)
+				{
+					varsFloat[varname + '[' + args.join(',') + ']'] = 0;
+					let k = 0;
+					do {
+						if(k < args.length)
+						{
+							args[k]++;
+							if(args[k] > parameterlist[k]) args[k++] = 0;
+							else k = -1;
+						}
+						else
+						{
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
+				}
+			}
 		}
 		return index + 1;
 	}
@@ -467,10 +609,46 @@ class DefinitionString extends Statement
 		for(var i = 0; i < this.vars.length; i++)
 		{
 			let varname = this.vars[i];
+			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
 			varsString[varname] = 0;
+			if(!parameter)
+			{
+				varsString[varname] = 0;
+			}
+			else
+			{
+				let parameterlist = [];
+				for(var j = 0; j < parameter.length; j++) 
+				{
+					let v = parameter[j].getValue();
+					if(v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);
+					else if(v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));
+					else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+				}
+				let args = new Array(parameter.length);
+				for(var j = 0; j < parameter.length; j++) args[j] = 0;
+				while(args)
+				{
+					varsString[varname + '[' + args.join(',') + ']'] = 0;
+					let k = 0;
+					do {
+						if(k < args.length)
+						{
+							args[k]++;
+							if(args[k] > parameterlist[k]) args[k++] = 0;
+							else k = -1;
+						}
+						else
+						{
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
+				}
+			}
 		}
 		return index + 1;
 	}
@@ -487,10 +665,46 @@ class DefinitionBoolean extends Statement
 		for(var i = 0; i < this.vars.length; i++)
 		{
 			let varname = this.vars[i];
+			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
 			varsBoolean[varname] = 0;
+			if(!parameter)
+			{
+				varsBoolean[varname] = 0;
+			}
+			else
+			{
+				let parameterlist = [];
+				for(var j = 0; j < parameter.length; j++) 
+				{
+					let v = parameter[j].getValue();
+					if(v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);
+					else if(v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));
+					else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+				}
+				let args = new Array(parameter.length);
+				for(var j = 0; j < parameter.length; j++) args[j] = 0;
+				while(args)
+				{
+					varsBoolean[varname + '[' + args.join(',') + ']'] = 0;
+					let k = 0;
+					do {
+						if(k < args.length)
+						{
+							args[k]++;
+							if(args[k] > parameterlist[k]) args[k++] = 0;
+							else k = -1;
+						}
+						else
+						{
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
+				}
+			}
 		}
 		return index + 1;
 	}
@@ -506,12 +720,12 @@ class Assign extends Statement
 	}
 	run(index)
 	{
-		let vn = this.varname;
+		let vn = this.varname.varname;
 		let vl = this.val.getValue();
 		if(varsInt[vn] != undefined)
 		{
 			if(vl instanceof IntValue) varsInt[vn] = vl.value;
-			else if(vl instanceof FloatValue) varsInt[vn] = Math.floor(vl.value);
+			else if(vl instanceof FloatValue) varsInt[vn] = Math.round(vl.value);
 			else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
 			if(!Number.isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
 		}
@@ -531,6 +745,7 @@ class Assign extends Statement
 			if(vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
 			else throw new RuntimeError(this.first_line, vn + "に真偽以外の値を代入しようとしました");
 		}
+		else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
 		return index + 1;
 	}
 }
@@ -637,13 +852,13 @@ class ForInc extends Statement
 	{
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
-		if(varsInt[this.varname] != undefined || varsFloat[this.varname] != undefined)
+		if(varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined)
 		{
 			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 			assign.run(0);
-			let loop = [new LoopBegin(new LE(new Identifier(this.varname, this.loc), this.end, this.loc), true, this.loc)];
+			let loop = [new LoopBegin(new LE(new Variable(this.varname.varname, null, this.loc), this.end, this.loc), true, this.loc)];
 			for(let i = 0; i < this.state.length; i++)loop.push(this.state[i]);
-			loop.push(new Assign(this.varname, new Add(new Identifier(this.varname, this.loc), this.step, last_loc), last_loc));
+			loop.push(new Assign(this.varname, new Add(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
 			loop.push(new LoopEnd(null, true, last_loc));
 			stack.push({statementlist: loop, index: 0});
 		}
@@ -667,13 +882,13 @@ class ForDec extends Statement
 	{
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
-		if(varsInt[this.varname] != undefined || varsFloat[this.varname] != undefined)
+		if(varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined)
 		{
 			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 			assign.run(0);
-			let loop = [new LoopBegin(new GE(new Identifier(this.varname, this.loc), this.end, this.loc), true, this.loc)];
+			let loop = [new LoopBegin(new GE(new Variable(this.varname.varname, null, this.loc), this.end, this.loc), true, this.loc)];
 			for(let i = 0; i < this.state.length; i++)loop.push(this.state[i]);
-			loop.push(new Assign(this.varname, new Sub(new Identifier(this.varname, this.loc), this.step, last_loc), last_loc));
+			loop.push(new Assign(this.varname, new Sub(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
 			loop.push(new LoopEnd(null, true, last_loc));
 			stack.push({statementlist: loop, index: 0});
 		}
