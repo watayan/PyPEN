@@ -47,10 +47,17 @@ class IntValue extends Value
 	constructor(v, loc)
 	{
 		 super(v, loc);
-		 if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない数です");
+		 if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない数です");
 	}
 }
-class FloatValue extends Value {}
+class FloatValue extends Value 
+{
+	constructor(v, loc)
+	{
+		super(v, loc);
+		if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+	}
+}
 class StringValue extends Value {}
 class BooleanValue extends Value {}
 
@@ -68,12 +75,12 @@ class Add extends Value
 		if(v1 instanceof StringValue || v2 instanceof StringValue) return new StringValue(v, this.loc);
 		if(v1 instanceof IntValue && v2 instanceof IntValue)
 		{
-			if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			return new IntValue(v, this.loc);
 		}
 		else
 		{
-			if(!Number.isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return new FloatValue(v, this.loc);
 		} 
 	}
@@ -93,12 +100,12 @@ class Sub extends Value
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
 		if(v1 instanceof IntValue && v2 instanceof IntValue)
 		{
-			if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			return new IntValue(v, this.loc);
 		}
 		else
 		{
-			if(!Number.isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return new FloatValue(v, this.loc);
 		} 
 	}
@@ -118,12 +125,12 @@ class Mul extends Value
 		let v = v1.value * v2.value;
 		if(v1 instanceof IntValue && v2 instanceof IntValue)
 		{
-			if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			return new IntValue(v, this.loc);
 		}
 		else
 		{
-			if(!Number.isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return new FloatValue(v, this.loc);
 		} 
 	}
@@ -144,13 +151,13 @@ class Div extends Value
 		if(v1 instanceof IntValue && v2 instanceof IntValue)
 		{
 			let v = (v1.value - v1.value % v2.value) / v2.value
-			if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			return new IntValue(v, this.loc);
 		}
 		else
 		{
 			let v = v1.value / v2.value;
-			if(!Number.isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return new FloatValue(v, this.loc);
 		} 
 	}
@@ -169,7 +176,7 @@ class Mod extends Value
 		{
 			if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
 			let v = v1.value % v2.value;
-			if(!Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			return new IntValue(v, this.loc);
 		}
 		else
@@ -189,8 +196,8 @@ class Minus extends Value
 		if(v1 instanceof IntValue || v1 instanceof FloatValue)
 		{
 			let v = -v1.value;
-			if(v instanceof IntValue && !Number.isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			if(v instanceof FloatValue && !Number.isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(v instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(v instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
 		}
 		else
@@ -396,7 +403,7 @@ class CallFunction extends Value
 			if(par1 instanceof IntValue || par1 instanceof FloatValue) 
 			{
 				let v = Math.tan(par1.value);
-				if(Number.isFinite(v)) return new FloatValue(Math.tan(par1.value), this.loc);
+				if(isFinite(v)) return new FloatValue(Math.tan(par1.value), this.loc);
 				else throw new RuntimeError(this.first_line, "オーバーフローしました");
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
@@ -420,7 +427,7 @@ class CallFunction extends Value
 			{
 				if(par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
 				let v = Math.log(par1.value);
-				if(Number.isFinite(v)) return new FloatValue(v, this.loc);
+				if(isFinite(v)) return new FloatValue(v, this.loc);
 				throw new RuntimeError(this.first_line, "オーバーフローしました");			
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
@@ -432,7 +439,7 @@ class CallFunction extends Value
 			if(par1 instanceof IntValue || par1 instanceof FloatValue)
 			{
 				let v = Math.exp(par1.value);
-				if(Number.isFinite(v)) return new FloatValue(v, this.loc);
+				if(isFinite(v)) return new FloatValue(v, this.loc);
 				throw new RuntimeError(this.first_line, "オーバーフローしました");			
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
@@ -446,7 +453,7 @@ class CallFunction extends Value
 			{
 				if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
 				let v = Math.pow(par1.value, par2.value);
-				if(Number.isSafeInteger(v)) return new IntValue(v, this.loc);
+				if(isSafeInteger(v)) return new IntValue(v, this.loc);
 				else throw new RuntimeError(this.first_line, "オーバーフローしました");
 			}
 			if((par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof IntValue || par2 instanceof FloatValue))
@@ -454,7 +461,7 @@ class CallFunction extends Value
 				if(par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
 				if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
 				let v = Math.pow(par1.value, par2.value);
-				if(Number.isFinite(v)) return new FloatValue(v, this.loc);
+				if(isFinite(v)) return new FloatValue(v, this.loc);
 				else throw new RuntimeError(this.first_line, "オーバーフローしました");
 			}
 		}
@@ -537,7 +544,6 @@ class DefinitionInt extends Statement
 				}
 			}
 		}
-		console.log(varsInt);
 		return index + 1;
 	}
 }
@@ -552,15 +558,14 @@ class DefinitionFloat extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			let varname = this.vars[i];
+			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-			varsFloat[varname] = 0;
 			if(!parameter)
 			{
-				varsFloat[varname] = 0;
+				varsFloat[varname] = 0.0;
 			}
 			else
 			{
@@ -608,15 +613,14 @@ class DefinitionString extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			let varname = this.vars[i];
+			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-			varsString[varname] = 0;
 			if(!parameter)
 			{
-				varsString[varname] = 0;
+				varsString[varname] = '';
 			}
 			else
 			{
@@ -632,7 +636,7 @@ class DefinitionString extends Statement
 				for(var j = 0; j < parameter.length; j++) args[j] = 0;
 				while(args)
 				{
-					varsString[varname + '[' + args.join(',') + ']'] = 0;
+					varsString[varname + '[' + args.join(',') + ']'] = '';
 					let k = 0;
 					do {
 						if(k < args.length)
@@ -664,15 +668,14 @@ class DefinitionBoolean extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			let varname = this.vars[i];
+			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
 			|| varsString[varname] != undefined || varsBoolean[varname] != undefined)
 			 	throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-			varsBoolean[varname] = 0;
 			if(!parameter)
 			{
-				varsBoolean[varname] = 0;
+				varsBoolean[varname] = false;
 			}
 			else
 			{
@@ -688,7 +691,7 @@ class DefinitionBoolean extends Statement
 				for(var j = 0; j < parameter.length; j++) args[j] = 0;
 				while(args)
 				{
-					varsBoolean[varname + '[' + args.join(',') + ']'] = 0;
+					varsBoolean[varname + '[' + args.join(',') + ']'] = false;
 					let k = 0;
 					do {
 						if(k < args.length)
@@ -727,13 +730,13 @@ class Assign extends Statement
 			if(vl instanceof IntValue) varsInt[vn] = vl.value;
 			else if(vl instanceof FloatValue) varsInt[vn] = Math.round(vl.value);
 			else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
-			if(!Number.isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
 		}
 		else if(varsFloat[vn] != undefined)
 		{
 			if(vl instanceof IntValue || vl instanceof FloatValue) varsFloat[vn] = vl.value;
 			else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
-			if(!Number.isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
 		}
 		else if(varsString[vn] != undefined)
 		{
@@ -993,4 +996,16 @@ function run(parse,  step_flag)
 		stack[depth].index = index;
 		if(index > stack[depth].statementlist.length) stack.pop();
 	}
+}
+
+function isFinite(v)
+{
+	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
+	// return Number.isFinite(v);
+}
+
+function isSafeInteger(v)
+{
+	return !isNaN(v) && v <= 9007199254740991 && v >= -9007199254740991;
+	// return Number.isSafeInteger(v);
 }

@@ -9,7 +9,7 @@
 	<script src="./jquery/jquery-linedtextarea.js" type="text/javascript"></script>
 	<script src="./dncl.js" type="text/javascript"></script>
 	<script src="./disp.js" type="text/javascript"></script>
-	<script src="./run.js"  type="text/javascript"></script>
+	<script src="./run1.js"  type="text/javascript"></script>
 	<script type="text/javascript">
 		onload = function(){
 			var sourceTextArea = document.getElementById("sourceTextarea");
@@ -79,8 +79,8 @@
 			}
 			loadButton.addEventListener("change", function(ev)
 			{
-				let file = ev.target.files;
-				let reader = new FileReader();
+				var file = ev.target.files;
+				var reader = new FileReader();
 				reader.readAsText(file[0], "UTF-8");
 				reader.onload = function(ev)
 				{
@@ -90,14 +90,14 @@
 			,false);
 			downloadLink.onclick = function()
 			{
-				let now = new Date();
-				let filename = file_prefix.value.trim();
+				var now = new Date();
+				var filename = file_prefix.value.trim();
 				if(filename.length < 1)
 					filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
 					('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + 
 					('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
 				filename +=	'.PEN';
-				let blob = new Blob([sourceTextArea.value], {type:"text/plain"});
+				var blob = new Blob([sourceTextArea.value], {type:"text/plain"});
 				if(window.navigator.msSaveBlob)
 				{
 					window.navigator.msSaveBlob(blob, filename);
