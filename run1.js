@@ -968,7 +968,7 @@ var Input = function (_Statement6) {
 	_createClass(Input, [{
 		key: "run",
 		value: function run(index) {
-			var varname = this.varname;
+			var varname = this.varname.varname;
 			var value = void 0;
 			value = prompt("入力してください");
 			if (varsInt[varname] != undefined) varsInt[varname] = parseInt(value);else if (varsFloat[varname] != undefined) varsFloat[varname] = parseFloat(value);else if (varsString[varname] != undefined) varsString[varname] = value;else if (varsBoolean[varname] != undefined) varsBoolean[varname] = value == "true";else throw new RuntimeError(this.first_line, varname + "が宣言されていません");

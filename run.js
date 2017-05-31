@@ -762,7 +762,7 @@ class Input extends Statement
 	}
 	run(index)
 	{
-		let varname = this.varname;
+		let varname = this.varname.varname;
 		let value;
 		value = prompt("入力してください");
 		if(varsInt[varname] != undefined) varsInt[varname] = parseInt(value);
