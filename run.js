@@ -1,7 +1,21 @@
+"use Strict";
 var varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
-var run_flag = false;
 var stack = [];
+var run_flag = false, step_flag = false;
+var parse = null;
 var textarea = null;
+
+function isFinite(v)
+{
+	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
+	// return Number.isFinite(v);
+}
+
+function isSafeInteger(v)
+{
+	return !isNaN(v) && v == Math.round(v) && v <= 9007199254740991 && v >= -9007199254740991;
+	// return Number.isSafeInteger(v);
+}
 
 class Location
 {
@@ -47,7 +61,7 @@ class IntValue extends Value
 	constructor(v, loc)
 	{
 		 super(v, loc);
-		 if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない数です");
+		 if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
 	}
 }
 class FloatValue extends Value 
@@ -762,14 +776,56 @@ class Input extends Statement
 	}
 	run(index)
 	{
-		let varname = this.varname.varname;
-		let value;
-		value = prompt("入力してください");
-		if(varsInt[varname] != undefined) varsInt[varname] = parseInt(value);
-		else if(varsFloat[varname] != undefined) varsFloat[varname] = parseFloat(value);
-		else if(varsString[varname] != undefined) varsString[varname] = value;
-		else if(varsBoolean[varname] != undefined) varsBoolean[varname] = (value == "true");
-		else throw new RuntimeError(this.first_line, varname + "が宣言されていません");
+		var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
+		stack.push({statementlist: list, index: 0});
+		return index + 1;
+	}
+}
+
+class InputBegin extends Statement
+{
+	constructor(loc)
+	{
+		super(loc);
+	}
+	run(index)
+	{
+		openInputWindow();
+		return index + 1;
+	}
+}
+
+class InputEnd extends Statement
+{
+	constructor(x, loc)
+	{
+		super(loc);
+		this.varname = x;
+	}
+	run(index)
+	{
+		let vn = this.varname.varname;
+		let vl = closeInputWindow();
+		if(varsInt[vn] != undefined)
+		{
+			varsInt[vn] = Number(vl);
+			if(!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
+		}
+		else if(varsFloat[vn] != undefined)
+		{
+			varsFloat[vn] = Number(vl);
+			if(!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
+		}
+		else if(varsString[vn] != undefined)
+		{
+			varsString[vn] = String(vl);
+		}
+		else if(varsBoolean[vn] != undefined)
+		{
+			varsBoolean[vn] = vl;
+			if(vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
+		}
+		else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
 		return index + 1;
 	}
 }
@@ -939,25 +995,18 @@ class While extends Statement
 }
 
 
-function reset(resultTextArea)
+function reset()
 {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
-	textarea = resultTextArea;
 	textarea.value = '';
 	run_flag = false;
 	stack = [];
 	$(".codelines").children().removeClass("lineselect");
 }
 
-function run(parse,  step_flag)
+
+function run()
 {
-	if(!run_flag) 
-	{
-		reset(textarea);
-		stack.push({statementlist: parse, index: 0});
-		run_flag = true;
-//		getElementById("sourceTextarea").readOnly = true;
-	}
 	if(step_flag)
 	{
 		step();
@@ -965,47 +1014,194 @@ function run(parse,  step_flag)
 		{
 			textarea.value += "---\n";
 			run_flag = false;
+			parse = null;
 		}
 	}
 	else {
 		do{
 			step();
-		}while(stack.length > 0);
-		textarea.value += "---\n";
-		run_flag = false;
+		}while(stack.length > 0 && run_flag);
+		if(stack.length == 0)
+		{
+			textarea.value += "---\n";
+			run_flag = false;
+			parse = null;
+		}
 	}
-//	_run(parse);
+
+
+
 
 	function step()
 	{
 		var depth = stack.length - 1;
 		var index = stack[depth].index;
-		var line = -1;
-		let statement = stack[depth].statementlist[index];
-//		if(!stack[depth].statementlist[index]) return;
-		if(statement) 
-		{
-			line = statement.first_line;
-			index = statement.run(index);
+		var statement = stack[depth].statementlist[index];
+		if(statement) {
+			try{
+				index = statement.run(index);
+			}
+			catch(e)
+			{
+				textarea.value += "実行時エラーです\n" + 
+				e.line + "行目:" + e.message+"\n";
+				run_flag = false;
+				parse = null;
+			}
 		}
 		else index++;
 		if(index < 0) index = stack[depth].statementlist.length;
 		
-		$(".codelines").children().removeClass("lineselect");
-		$(".codelines :nth-child("+line+")").addClass("lineselect");
 		stack[depth].index = index;
 		if(index > stack[depth].statementlist.length) stack.pop();
+		// ハイライト行は次の実行行
+		depth = stack.length - 1;
+		if(depth < 0) return;
+		index = stack[depth].index;
+		var statement = stack[depth].statementlist[index];
+		if(statement)
+		{
+			var line = statement.first_line;
+			$(".codelines").children().removeClass("lineselect");
+			$(".codelines :nth-child("+line+")").addClass("lineselect");
+		}
+				
 	}
 }
 
-function isFinite(v)
+function openInputWindow()
 {
-	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
-	// return Number.isFinite(v);
+	var $input = $("#input");
+	var $input_overlay = $("#input-overlay");
+	$input_overlay.fadeIn();
+	$input.fadeIn();
+	$input.html("<p>入力してください</p><input type=\"text\" onkeydown=\"keydown();\">")
+	var $inputarea = $("#input input");
+	$inputarea.focus();
+	run_flag = false;
 }
 
-function isSafeInteger(v)
+function closeInputWindow()
 {
-	return !isNaN(v) && v <= 9007199254740991 && v >= -9007199254740991;
-	// return Number.isSafeInteger(v);
+	var val = $("#input input").val();
+	$("#input").hide();
+	$("#input-overlay").hide();
+	return val;
+}
+
+function keydown()
+{
+	if(window.event.keyCode == 13) 
+	{
+		run_flag = true;
+		setTimeout(run(), 100);
+	}
+}
+
+onload = function(){
+	var sourceTextArea = document.getElementById("sourceTextarea");
+	var resultTextArea = document.getElementById("resultTextarea");
+	var parseButton   = document.getElementById("parseButton");
+	var runButton     = document.getElementById("runButton");
+	var resetButton   = document.getElementById("resetButton");
+	var stepButton    = document.getElementById("stepButton");
+	var loadButton    = document.getElementById("loadButton");
+	var file_prefix   = document.getElementById("file_prefix");
+	var source;
+	$("#sourceTextarea").linedtextarea();
+	textarea = resultTextArea;
+	parseButton.onclick = function(){
+		source = sourceTextArea.value+"\n";
+		try{
+			resultTextArea.value = '';
+			parse = dncl.parse(source);
+			resultTextArea.value = toString(parse);
+		}
+		catch(e){
+			resultTextArea.value += "構文エラーです\n" + e.message;
+		}
+		finally{
+			parse = null;
+		}
+	};
+	runButton.onclick = function(){
+		if(parse == null)
+		{
+			try
+			{
+				source = sourceTextArea.value+"\n";
+				parse = dncl.parse(source);
+				reset();
+				stack.push({statementlist: parse, index: 0});
+				run_flag = true;
+			}
+			catch(e)
+			{
+				resultTextArea.value += "構文エラーです\n" + e.message + "\n";
+				run_flag = false;
+				parse = null;
+				return;
+			}
+		}
+		step_flag = false;
+		run();
+	};
+	stepButton.onclick = function()
+	{
+		if(parse == null)
+		{
+			try
+			{
+				source = sourceTextArea.value+"\n";
+				parse = dncl.parse(source);
+				reset();
+				stack.push({statementlist: parse, index: 0});
+				run_flag = true;
+			}
+			catch(e)
+			{
+				resultTextArea.value += "構文エラーです\n" + e.message + "\n";
+				run_flag = false;
+				parse = null;
+				return;
+			}
+		}
+		step_flag = true;
+		run();
+	}
+	resetButton.onclick = function(){
+		reset();
+	};
+	loadButton.addEventListener("change", function(ev)
+	{
+		var file = ev.target.files;
+		var reader = new FileReader();
+		reader.readAsText(file[0], "UTF-8");
+		reader.onload = function(ev)
+		{
+			sourceTextArea.value = reader.result;
+		}
+	}
+	,false);
+	downloadLink.onclick = function()
+	{
+		var now = new Date();
+		var filename = file_prefix.value.trim();
+		if(filename.length < 1)
+			filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
+			('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + 
+			('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
+		filename +=	'.PEN';
+		var blob = new Blob([sourceTextArea.value], {type:"text/plain"});
+		if(window.navigator.msSaveBlob)
+		{
+			window.navigator.msSaveBlob(blob, filename);
+		}
+		else
+		{
+			window.URL = window.URL || window.webkitURL;
+			downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
+			downloadLink.setAttribute("download", filename);
+		}
+	};
 }

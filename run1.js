@@ -1,4 +1,5 @@
 "use strict";
+"use Strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -12,9 +13,21 @@ var varsInt = {},
     varsFloat = {},
     varsString = {},
     varsBoolean = {};
-var run_flag = false;
 var stack = [];
+var run_flag = false,
+    step_flag = false;
+var parse = null;
 var textarea = null;
+
+function isFinite(v) {
+	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
+	// return Number.isFinite(v);
+}
+
+function isSafeInteger(v) {
+	return !isNaN(v) && v == Math.round(v) && v <= 9007199254740991 && v >= -9007199254740991;
+	// return Number.isSafeInteger(v);
+}
 
 var Location = function () {
 	function Location(first_token, last_token) {
@@ -104,7 +117,7 @@ var IntValue = function (_Value) {
 
 		var _this = _possibleConstructorReturn(this, (IntValue.__proto__ || Object.getPrototypeOf(IntValue)).call(this, v, loc));
 
-		if (!isSafeInteger(v)) throw new RuntimeError(_this.first_line, "整数で表せない数です");
+		if (!isSafeInteger(v)) throw new RuntimeError(_this.first_line, "整数で表せない値です");
 		return _this;
 	}
 
@@ -968,10 +981,8 @@ var Input = function (_Statement6) {
 	_createClass(Input, [{
 		key: "run",
 		value: function run(index) {
-			var varname = this.varname.varname;
-			var value = void 0;
-			value = prompt("入力してください");
-			if (varsInt[varname] != undefined) varsInt[varname] = parseInt(value);else if (varsFloat[varname] != undefined) varsFloat[varname] = parseFloat(value);else if (varsString[varname] != undefined) varsString[varname] = value;else if (varsBoolean[varname] != undefined) varsBoolean[varname] = value == "true";else throw new RuntimeError(this.first_line, varname + "が宣言されていません");
+			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
+			stack.push({ statementlist: list, index: 0 });
 			return index + 1;
 		}
 	}]);
@@ -979,17 +990,73 @@ var Input = function (_Statement6) {
 	return Input;
 }(Statement);
 
-var Output = function (_Statement7) {
-	_inherits(Output, _Statement7);
+var InputBegin = function (_Statement7) {
+	_inherits(InputBegin, _Statement7);
+
+	function InputBegin(loc) {
+		_classCallCheck(this, InputBegin);
+
+		return _possibleConstructorReturn(this, (InputBegin.__proto__ || Object.getPrototypeOf(InputBegin)).call(this, loc));
+	}
+
+	_createClass(InputBegin, [{
+		key: "run",
+		value: function run(index) {
+			openInputWindow();
+			return index + 1;
+		}
+	}]);
+
+	return InputBegin;
+}(Statement);
+
+var InputEnd = function (_Statement8) {
+	_inherits(InputEnd, _Statement8);
+
+	function InputEnd(x, loc) {
+		_classCallCheck(this, InputEnd);
+
+		var _this30 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
+
+		_this30.varname = x;
+		return _this30;
+	}
+
+	_createClass(InputEnd, [{
+		key: "run",
+		value: function run(index) {
+			var vn = this.varname.varname;
+			var vl = closeInputWindow();
+			if (varsInt[vn] != undefined) {
+				varsInt[vn] = Number(vl);
+				if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
+			} else if (varsFloat[vn] != undefined) {
+				varsFloat[vn] = Number(vl);
+				if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
+			} else if (varsString[vn] != undefined) {
+				varsString[vn] = String(vl);
+			} else if (varsBoolean[vn] != undefined) {
+				varsBoolean[vn] = vl;
+				if (vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
+			} else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+			return index + 1;
+		}
+	}]);
+
+	return InputEnd;
+}(Statement);
+
+var Output = function (_Statement9) {
+	_inherits(Output, _Statement9);
 
 	function Output(x, ln, loc) {
 		_classCallCheck(this, Output);
 
-		var _this29 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
+		var _this31 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
 
-		_this29.value = x;
-		_this29.ln = ln;
-		return _this29;
+		_this31.value = x;
+		_this31.ln = ln;
+		return _this31;
 	}
 
 	_createClass(Output, [{
@@ -1003,18 +1070,18 @@ var Output = function (_Statement7) {
 	return Output;
 }(Statement);
 
-var If = function (_Statement8) {
-	_inherits(If, _Statement8);
+var If = function (_Statement10) {
+	_inherits(If, _Statement10);
 
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
-		var _this30 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
+		var _this32 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
 
-		_this30.condition = condition;
-		_this30.state1 = state1;
-		_this30.state2 = state2;
-		return _this30;
+		_this32.condition = condition;
+		_this32.state1 = state1;
+		_this32.state2 = state2;
+		return _this32;
 	}
 
 	_createClass(If, [{
@@ -1030,17 +1097,17 @@ var If = function (_Statement8) {
 	return If;
 }(Statement);
 
-var LoopBegin = function (_Statement9) {
-	_inherits(LoopBegin, _Statement9);
+var LoopBegin = function (_Statement11) {
+	_inherits(LoopBegin, _Statement11);
 
 	function LoopBegin(condition, continuous, loc) {
 		_classCallCheck(this, LoopBegin);
 
-		var _this31 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
+		var _this33 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
 
-		_this31.condition = condition;
-		_this31.continuous = continuous;
-		return _this31;
+		_this33.condition = condition;
+		_this33.continuous = continuous;
+		return _this33;
 	}
 
 	_createClass(LoopBegin, [{
@@ -1053,17 +1120,17 @@ var LoopBegin = function (_Statement9) {
 	return LoopBegin;
 }(Statement);
 
-var LoopEnd = function (_Statement10) {
-	_inherits(LoopEnd, _Statement10);
+var LoopEnd = function (_Statement12) {
+	_inherits(LoopEnd, _Statement12);
 
 	function LoopEnd(condition, continuous, loc) {
 		_classCallCheck(this, LoopEnd);
 
-		var _this32 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
+		var _this34 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
 
-		_this32.condition = condition;
-		_this32.continuous = continuous;
-		return _this32;
+		_this34.condition = condition;
+		_this34.continuous = continuous;
+		return _this34;
 	}
 
 	_createClass(LoopEnd, [{
@@ -1076,20 +1143,20 @@ var LoopEnd = function (_Statement10) {
 	return LoopEnd;
 }(Statement);
 
-var ForInc = function (_Statement11) {
-	_inherits(ForInc, _Statement11);
+var ForInc = function (_Statement13) {
+	_inherits(ForInc, _Statement13);
 
 	function ForInc(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForInc);
 
-		var _this33 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
+		var _this35 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
 
-		_this33.varname = varname;
-		_this33.begin = begin;
-		_this33.end = end;
-		_this33.step = step;
-		_this33.state = state;
-		return _this33;
+		_this35.varname = varname;
+		_this35.begin = begin;
+		_this35.end = end;
+		_this35.step = step;
+		_this35.state = state;
+		return _this35;
 	}
 
 	_createClass(ForInc, [{
@@ -1114,20 +1181,20 @@ var ForInc = function (_Statement11) {
 	return ForInc;
 }(Statement);
 
-var ForDec = function (_Statement12) {
-	_inherits(ForDec, _Statement12);
+var ForDec = function (_Statement14) {
+	_inherits(ForDec, _Statement14);
 
 	function ForDec(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForDec);
 
-		var _this34 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
+		var _this36 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
 
-		_this34.varname = varname;
-		_this34.begin = begin;
-		_this34.end = end;
-		_this34.step = step;
-		_this34.state = state;
-		return _this34;
+		_this36.varname = varname;
+		_this36.begin = begin;
+		_this36.end = end;
+		_this36.step = step;
+		_this36.state = state;
+		return _this36;
 	}
 
 	_createClass(ForDec, [{
@@ -1152,17 +1219,17 @@ var ForDec = function (_Statement12) {
 	return ForDec;
 }(Statement);
 
-var Until = function (_Statement13) {
-	_inherits(Until, _Statement13);
+var Until = function (_Statement15) {
+	_inherits(Until, _Statement15);
 
 	function Until(state, condition, loc) {
 		_classCallCheck(this, Until);
 
-		var _this35 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
+		var _this37 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
 
-		_this35.condition = condition;
-		_this35.state = state;
-		return _this35;
+		_this37.condition = condition;
+		_this37.state = state;
+		return _this37;
 	}
 
 	_createClass(Until, [{
@@ -1181,17 +1248,17 @@ var Until = function (_Statement13) {
 	return Until;
 }(Statement);
 
-var While = function (_Statement14) {
-	_inherits(While, _Statement14);
+var While = function (_Statement16) {
+	_inherits(While, _Statement16);
 
 	function While(condition, state, loc) {
 		_classCallCheck(this, While);
 
-		var _this36 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
+		var _this38 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
 
-		_this36.condition = condition;
-		_this36.state = state;
-		return _this36;
+		_this38.condition = condition;
+		_this38.state = state;
+		return _this38;
 	}
 
 	_createClass(While, [{
@@ -1210,62 +1277,171 @@ var While = function (_Statement14) {
 	return While;
 }(Statement);
 
-function reset(resultTextArea) {
+function reset() {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
-	textarea = resultTextArea;
 	textarea.value = '';
 	run_flag = false;
 	stack = [];
 	$(".codelines").children().removeClass("lineselect");
 }
 
-function run(parse, step_flag) {
-	if (!run_flag) {
-		reset(textarea);
-		stack.push({ statementlist: parse, index: 0 });
-		run_flag = true;
-		//		getElementById("sourceTextarea").readOnly = true;
-	}
+function run() {
 	if (step_flag) {
 		step();
 		if (stack.length == 0) {
 			textarea.value += "---\n";
 			run_flag = false;
+			parse = null;
 		}
 	} else {
 		do {
 			step();
-		} while (stack.length > 0);
-		textarea.value += "---\n";
-		run_flag = false;
+		} while (stack.length > 0 && run_flag);
+		if (stack.length == 0) {
+			textarea.value += "---\n";
+			run_flag = false;
+			parse = null;
+		}
 	}
-	//	_run(parse);
 
 	function step() {
 		var depth = stack.length - 1;
 		var index = stack[depth].index;
-		var line = -1;
 		var statement = stack[depth].statementlist[index];
-		//		if(!stack[depth].statementlist[index]) return;
 		if (statement) {
-			line = statement.first_line;
-			index = statement.run(index);
+			try {
+				index = statement.run(index);
+			} catch (e) {
+				textarea.value += "実行時エラーです\n" + e.line + "行目:" + e.message + "\n";
+				run_flag = false;
+				parse = null;
+			}
 		} else index++;
 		if (index < 0) index = stack[depth].statementlist.length;
 
-		$(".codelines").children().removeClass("lineselect");
-		$(".codelines :nth-child(" + line + ")").addClass("lineselect");
 		stack[depth].index = index;
 		if (index > stack[depth].statementlist.length) stack.pop();
+		// ハイライト行は次の実行行
+		depth = stack.length - 1;
+		if (depth < 0) return;
+		index = stack[depth].index;
+		var statement = stack[depth].statementlist[index];
+		if (statement) {
+			var line = statement.first_line;
+			$(".codelines").children().removeClass("lineselect");
+			$(".codelines :nth-child(" + line + ")").addClass("lineselect");
+		}
 	}
 }
 
-function isFinite(v) {
-	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
-	// return Number.isFinite(v);
+function openInputWindow() {
+	var $input = $("#input");
+	var $input_overlay = $("#input-overlay");
+	$input_overlay.fadeIn();
+	$input.fadeIn();
+	$input.html("<p>入力してください</p><input type=\"text\" onkeydown=\"keydown();\">");
+	var $inputarea = $("#input input");
+	$inputarea.focus();
+	run_flag = false;
 }
 
-function isSafeInteger(v) {
-	return !isNaN(v) && v <= 9007199254740991 && v >= -9007199254740991;
-	// return Number.isSafeInteger(v);
+function closeInputWindow() {
+	var val = $("#input input").val();
+	$("#input").hide();
+	$("#input-overlay").hide();
+	return val;
 }
+
+function keydown() {
+	if (window.event.keyCode == 13) {
+		run_flag = true;
+		setTimeout(run(), 100);
+	}
+}
+
+onload = function onload() {
+	var sourceTextArea = document.getElementById("sourceTextarea");
+	var resultTextArea = document.getElementById("resultTextarea");
+	var parseButton = document.getElementById("parseButton");
+	var runButton = document.getElementById("runButton");
+	var resetButton = document.getElementById("resetButton");
+	var stepButton = document.getElementById("stepButton");
+	var loadButton = document.getElementById("loadButton");
+	var file_prefix = document.getElementById("file_prefix");
+	var source;
+	$("#sourceTextarea").linedtextarea();
+	textarea = resultTextArea;
+	parseButton.onclick = function () {
+		source = sourceTextArea.value + "\n";
+		try {
+			resultTextArea.value = '';
+			parse = dncl.parse(source);
+			resultTextArea.value = toString(parse);
+		} catch (e) {
+			resultTextArea.value += "構文エラーです\n" + e.message;
+		} finally {
+			parse = null;
+		}
+	};
+	runButton.onclick = function () {
+		if (parse == null) {
+			try {
+				source = sourceTextArea.value + "\n";
+				parse = dncl.parse(source);
+				reset();
+				stack.push({ statementlist: parse, index: 0 });
+				run_flag = true;
+			} catch (e) {
+				resultTextArea.value += "構文エラーです\n" + e.message + "\n";
+				run_flag = false;
+				parse = null;
+				return;
+			}
+		}
+		step_flag = false;
+		run();
+	};
+	stepButton.onclick = function () {
+		if (parse == null) {
+			try {
+				source = sourceTextArea.value + "\n";
+				parse = dncl.parse(source);
+				reset();
+				stack.push({ statementlist: parse, index: 0 });
+				run_flag = true;
+			} catch (e) {
+				resultTextArea.value += "構文エラーです\n" + e.message + "\n";
+				run_flag = false;
+				parse = null;
+				return;
+			}
+		}
+		step_flag = true;
+		run();
+	};
+	resetButton.onclick = function () {
+		reset();
+	};
+	loadButton.addEventListener("change", function (ev) {
+		var file = ev.target.files;
+		var reader = new FileReader();
+		reader.readAsText(file[0], "UTF-8");
+		reader.onload = function (ev) {
+			sourceTextArea.value = reader.result;
+		};
+	}, false);
+	downloadLink.onclick = function () {
+		var now = new Date();
+		var filename = file_prefix.value.trim();
+		if (filename.length < 1) filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
+		filename += '.PEN';
+		var blob = new Blob([sourceTextArea.value], { type: "text/plain" });
+		if (window.navigator.msSaveBlob) {
+			window.navigator.msSaveBlob(blob, filename);
+		} else {
+			window.URL = window.URL || window.webkitURL;
+			downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
+			downloadLink.setAttribute("download", filename);
+		}
+	};
+};
