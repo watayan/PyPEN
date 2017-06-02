@@ -163,8 +163,32 @@ var BooleanValue = function (_Value4) {
 	return BooleanValue;
 }(Value);
 
-var Add = function (_Value5) {
-	_inherits(Add, _Value5);
+var UNDEFINED = function (_Value5) {
+	_inherits(UNDEFINED, _Value5);
+
+	function UNDEFINED(loc) {
+		_classCallCheck(this, UNDEFINED);
+
+		return _possibleConstructorReturn(this, (UNDEFINED.__proto__ || Object.getPrototypeOf(UNDEFINED)).call(this, null, loc));
+	}
+
+	_createClass(UNDEFINED, [{
+		key: "getValue",
+		value: function getValue() {
+			throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		}
+	}, {
+		key: "varname",
+		get: function get() {
+			throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		}
+	}]);
+
+	return UNDEFINED;
+}(Value);
+
+var Add = function (_Value6) {
+	_inherits(Add, _Value6);
 
 	function Add(x, y, loc) {
 		_classCallCheck(this, Add);
@@ -177,7 +201,7 @@ var Add = function (_Value5) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(first_line, "真偽型の足し算はできません");
+			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
 			var v = v1.value + v2.value;
 			if (v1 instanceof StringValue || v2 instanceof StringValue) return new StringValue(v, this.loc);
 			if (v1 instanceof IntValue && v2 instanceof IntValue) {
@@ -193,8 +217,8 @@ var Add = function (_Value5) {
 	return Add;
 }(Value);
 
-var Sub = function (_Value6) {
-	_inherits(Sub, _Value6);
+var Sub = function (_Value7) {
+	_inherits(Sub, _Value7);
 
 	function Sub(x, y, loc) {
 		_classCallCheck(this, Sub);
@@ -223,8 +247,8 @@ var Sub = function (_Value6) {
 	return Sub;
 }(Value);
 
-var Mul = function (_Value7) {
-	_inherits(Mul, _Value7);
+var Mul = function (_Value8) {
+	_inherits(Mul, _Value8);
 
 	function Mul(x, y, loc) {
 		_classCallCheck(this, Mul);
@@ -253,8 +277,8 @@ var Mul = function (_Value7) {
 	return Mul;
 }(Value);
 
-var Div = function (_Value8) {
-	_inherits(Div, _Value8);
+var Div = function (_Value9) {
+	_inherits(Div, _Value9);
 
 	function Div(x, y, loc) {
 		_classCallCheck(this, Div);
@@ -285,8 +309,8 @@ var Div = function (_Value8) {
 	return Div;
 }(Value);
 
-var Mod = function (_Value9) {
-	_inherits(Mod, _Value9);
+var Mod = function (_Value10) {
+	_inherits(Mod, _Value10);
 
 	function Mod(x, y, loc) {
 		_classCallCheck(this, Mod);
@@ -311,8 +335,8 @@ var Mod = function (_Value9) {
 	return Mod;
 }(Value);
 
-var Minus = function (_Value10) {
-	_inherits(Minus, _Value10);
+var Minus = function (_Value11) {
+	_inherits(Minus, _Value11);
 
 	function Minus(x, loc) {
 		_classCallCheck(this, Minus);
@@ -336,8 +360,8 @@ var Minus = function (_Value10) {
 	return Minus;
 }(Value);
 
-var And = function (_Value11) {
-	_inherits(And, _Value11);
+var And = function (_Value12) {
+	_inherits(And, _Value12);
 
 	function And(x, y, loc) {
 		_classCallCheck(this, And);
@@ -357,8 +381,8 @@ var And = function (_Value11) {
 	return And;
 }(Value);
 
-var Or = function (_Value12) {
-	_inherits(Or, _Value12);
+var Or = function (_Value13) {
+	_inherits(Or, _Value13);
 
 	function Or(x, y, loc) {
 		_classCallCheck(this, Or);
@@ -378,8 +402,8 @@ var Or = function (_Value12) {
 	return Or;
 }(Value);
 
-var Not = function (_Value13) {
-	_inherits(Not, _Value13);
+var Not = function (_Value14) {
+	_inherits(Not, _Value14);
 
 	function Not(x, loc) {
 		_classCallCheck(this, Not);
@@ -398,8 +422,8 @@ var Not = function (_Value13) {
 	return Not;
 }(Value);
 
-var EQ = function (_Value14) {
-	_inherits(EQ, _Value14);
+var EQ = function (_Value15) {
+	_inherits(EQ, _Value15);
 
 	function EQ(x, y, loc) {
 		_classCallCheck(this, EQ);
@@ -419,8 +443,8 @@ var EQ = function (_Value14) {
 	return EQ;
 }(Value);
 
-var NE = function (_Value15) {
-	_inherits(NE, _Value15);
+var NE = function (_Value16) {
+	_inherits(NE, _Value16);
 
 	function NE(x, y, loc) {
 		_classCallCheck(this, NE);
@@ -440,8 +464,8 @@ var NE = function (_Value15) {
 	return NE;
 }(Value);
 
-var GT = function (_Value16) {
-	_inherits(GT, _Value16);
+var GT = function (_Value17) {
+	_inherits(GT, _Value17);
 
 	function GT(x, y, loc) {
 		_classCallCheck(this, GT);
@@ -461,8 +485,8 @@ var GT = function (_Value16) {
 	return GT;
 }(Value);
 
-var GE = function (_Value17) {
-	_inherits(GE, _Value17);
+var GE = function (_Value18) {
+	_inherits(GE, _Value18);
 
 	function GE(x, y, loc) {
 		_classCallCheck(this, GE);
@@ -482,8 +506,8 @@ var GE = function (_Value17) {
 	return GE;
 }(Value);
 
-var LT = function (_Value18) {
-	_inherits(LT, _Value18);
+var LT = function (_Value19) {
+	_inherits(LT, _Value19);
 
 	function LT(x, y, loc) {
 		_classCallCheck(this, LT);
@@ -503,8 +527,8 @@ var LT = function (_Value18) {
 	return LT;
 }(Value);
 
-var LE = function (_Value19) {
-	_inherits(LE, _Value19);
+var LE = function (_Value20) {
+	_inherits(LE, _Value20);
 
 	function LE(x, y, loc) {
 		_classCallCheck(this, LE);
@@ -524,8 +548,8 @@ var LE = function (_Value19) {
 	return LE;
 }(Value);
 
-var Variable = function (_Value20) {
-	_inherits(Variable, _Value20);
+var Variable = function (_Value21) {
+	_inherits(Variable, _Value21);
 
 	function Variable(x, y, loc) {
 		_classCallCheck(this, Variable);
@@ -559,8 +583,8 @@ var Variable = function (_Value20) {
 	return Variable;
 }(Value);
 
-var CallFunction = function (_Value21) {
-	_inherits(CallFunction, _Value21);
+var CallFunction = function (_Value22) {
+	_inherits(CallFunction, _Value22);
 
 	function CallFunction(funcname, parameter, loc) {
 		_classCallCheck(this, CallFunction);
@@ -670,8 +694,8 @@ var CallFunction = function (_Value21) {
 	return CallFunction;
 }(Value);
 
-var Append = function (_Value22) {
-	_inherits(Append, _Value22);
+var Append = function (_Value23) {
+	_inherits(Append, _Value23);
 
 	function Append(x, y, loc) {
 		_classCallCheck(this, Append);
@@ -728,10 +752,10 @@ var DefinitionInt = function (_Statement) {
 	function DefinitionInt(x, loc) {
 		_classCallCheck(this, DefinitionInt);
 
-		var _this23 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
+		var _this24 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
 
-		_this23.vars = x;
-		return _this23;
+		_this24.vars = x;
+		return _this24;
 	}
 
 	_createClass(DefinitionInt, [{
@@ -780,10 +804,10 @@ var DefinitionFloat = function (_Statement2) {
 	function DefinitionFloat(x, loc) {
 		_classCallCheck(this, DefinitionFloat);
 
-		var _this24 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
+		var _this25 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
 
-		_this24.vars = x;
-		return _this24;
+		_this25.vars = x;
+		return _this25;
 	}
 
 	_createClass(DefinitionFloat, [{
@@ -832,10 +856,10 @@ var DefinitionString = function (_Statement3) {
 	function DefinitionString(x, loc) {
 		_classCallCheck(this, DefinitionString);
 
-		var _this25 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
+		var _this26 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
 
-		_this25.vars = x;
-		return _this25;
+		_this26.vars = x;
+		return _this26;
 	}
 
 	_createClass(DefinitionString, [{
@@ -884,10 +908,10 @@ var DefinitionBoolean = function (_Statement4) {
 	function DefinitionBoolean(x, loc) {
 		_classCallCheck(this, DefinitionBoolean);
 
-		var _this26 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
+		var _this27 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
 
-		_this26.vars = x;
-		return _this26;
+		_this27.vars = x;
+		return _this27;
 	}
 
 	_createClass(DefinitionBoolean, [{
@@ -936,11 +960,11 @@ var Assign = function (_Statement5) {
 	function Assign(varname, val, loc) {
 		_classCallCheck(this, Assign);
 
-		var _this27 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
+		var _this28 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
 
-		_this27.varname = varname;
-		_this27.val = val;
-		return _this27;
+		_this28.varname = varname;
+		_this28.val = val;
+		return _this28;
 	}
 
 	_createClass(Assign, [{
@@ -972,10 +996,10 @@ var Input = function (_Statement6) {
 	function Input(x, loc) {
 		_classCallCheck(this, Input);
 
-		var _this28 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
+		var _this29 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
 
-		_this28.varname = x;
-		return _this28;
+		_this29.varname = x;
+		return _this29;
 	}
 
 	_createClass(Input, [{
@@ -1016,29 +1040,35 @@ var InputEnd = function (_Statement8) {
 	function InputEnd(x, loc) {
 		_classCallCheck(this, InputEnd);
 
-		var _this30 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
+		var _this31 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
 
-		_this30.varname = x;
-		return _this30;
+		_this31.varname = x;
+		return _this31;
 	}
 
 	_createClass(InputEnd, [{
 		key: "run",
 		value: function run(index) {
-			var vn = this.varname.varname;
-			var vl = closeInputWindow();
-			if (varsInt[vn] != undefined) {
-				varsInt[vn] = Number(vl);
-				if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
-			} else if (varsFloat[vn] != undefined) {
-				varsFloat[vn] = Number(vl);
-				if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
-			} else if (varsString[vn] != undefined) {
-				varsString[vn] = String(vl);
-			} else if (varsBoolean[vn] != undefined) {
-				varsBoolean[vn] = vl;
-				if (vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
-			} else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+			try {
+				var vn = this.varname.varname;
+				var vl = closeInputWindow();
+				if (varsInt[vn] != undefined) {
+					varsInt[vn] = Number(vl);
+					if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
+				} else if (varsFloat[vn] != undefined) {
+					varsFloat[vn] = Number(vl);
+					if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
+				} else if (varsString[vn] != undefined) {
+					varsString[vn] = String(vl);
+				} else if (varsBoolean[vn] != undefined) {
+					varsBoolean[vn] = vl;
+					if (vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
+				} else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+			} catch (e) {
+				closeInputWindow();
+				throw e;
+			}
+
 			return index + 1;
 		}
 	}]);
@@ -1052,11 +1082,11 @@ var Output = function (_Statement9) {
 	function Output(x, ln, loc) {
 		_classCallCheck(this, Output);
 
-		var _this31 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
+		var _this32 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
 
-		_this31.value = x;
-		_this31.ln = ln;
-		return _this31;
+		_this32.value = x;
+		_this32.ln = ln;
+		return _this32;
 	}
 
 	_createClass(Output, [{
@@ -1076,12 +1106,12 @@ var If = function (_Statement10) {
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
-		var _this32 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
+		var _this33 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
 
-		_this32.condition = condition;
-		_this32.state1 = state1;
-		_this32.state2 = state2;
-		return _this32;
+		_this33.condition = condition;
+		_this33.state1 = state1;
+		_this33.state2 = state2;
+		return _this33;
 	}
 
 	_createClass(If, [{
@@ -1103,11 +1133,11 @@ var LoopBegin = function (_Statement11) {
 	function LoopBegin(condition, continuous, loc) {
 		_classCallCheck(this, LoopBegin);
 
-		var _this33 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
+		var _this34 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
 
-		_this33.condition = condition;
-		_this33.continuous = continuous;
-		return _this33;
+		_this34.condition = condition;
+		_this34.continuous = continuous;
+		return _this34;
 	}
 
 	_createClass(LoopBegin, [{
@@ -1126,11 +1156,11 @@ var LoopEnd = function (_Statement12) {
 	function LoopEnd(condition, continuous, loc) {
 		_classCallCheck(this, LoopEnd);
 
-		var _this34 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
+		var _this35 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
 
-		_this34.condition = condition;
-		_this34.continuous = continuous;
-		return _this34;
+		_this35.condition = condition;
+		_this35.continuous = continuous;
+		return _this35;
 	}
 
 	_createClass(LoopEnd, [{
@@ -1149,14 +1179,14 @@ var ForInc = function (_Statement13) {
 	function ForInc(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForInc);
 
-		var _this35 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
+		var _this36 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
 
-		_this35.varname = varname;
-		_this35.begin = begin;
-		_this35.end = end;
-		_this35.step = step;
-		_this35.state = state;
-		return _this35;
+		_this36.varname = varname;
+		_this36.begin = begin;
+		_this36.end = end;
+		_this36.step = step;
+		_this36.state = state;
+		return _this36;
 	}
 
 	_createClass(ForInc, [{
@@ -1187,14 +1217,14 @@ var ForDec = function (_Statement14) {
 	function ForDec(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForDec);
 
-		var _this36 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
+		var _this37 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
 
-		_this36.varname = varname;
-		_this36.begin = begin;
-		_this36.end = end;
-		_this36.step = step;
-		_this36.state = state;
-		return _this36;
+		_this37.varname = varname;
+		_this37.begin = begin;
+		_this37.end = end;
+		_this37.step = step;
+		_this37.state = state;
+		return _this37;
 	}
 
 	_createClass(ForDec, [{
@@ -1225,11 +1255,11 @@ var Until = function (_Statement15) {
 	function Until(state, condition, loc) {
 		_classCallCheck(this, Until);
 
-		var _this37 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
+		var _this38 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
 
-		_this37.condition = condition;
-		_this37.state = state;
-		return _this37;
+		_this38.condition = condition;
+		_this38.state = state;
+		return _this38;
 	}
 
 	_createClass(Until, [{
@@ -1254,11 +1284,11 @@ var While = function (_Statement16) {
 	function While(condition, state, loc) {
 		_classCallCheck(this, While);
 
-		var _this38 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
+		var _this39 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
 
-		_this38.condition = condition;
-		_this38.state = state;
-		return _this38;
+		_this39.condition = condition;
+		_this39.state = state;
+		return _this39;
 	}
 
 	_createClass(While, [{

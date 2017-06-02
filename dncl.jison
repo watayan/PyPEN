@@ -14,6 +14,7 @@ Comma			[，,、]
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　|｜]
 NEWLINE			\r\n|\r|\n
+UNDEFINED		"《"[^》]*"》"
 
 %%
 
@@ -23,6 +24,7 @@ NEWLINE			\r\n|\r|\n
 {Float}			{return 'FLOAT';}
 {Integer}		{return 'INTEGER';}
 {Identifier}	{return 'IDENTIFIER';}
+{UNDEFINED}		{return 'UNDEFINED';}
 ","					{return ',';}
 "+"					{return '+';}
 "＋"				{return '+';}
@@ -131,6 +133,7 @@ variable
 	: IDENTIFIER'['parameterlist']'
 			{$$ = new Variable($1, $3, new Location(@1,@1));}
 	| IDENTIFIER{$$ = new Variable($1, null, new Location(@1, @1));}
+	| UNDEFINED	{$$ = new UNDEFINED(new Location(@1,@1));}
 	;
 	
 variablelist
@@ -138,6 +141,7 @@ variablelist
 	| variablelist ',' IDENTIFIER {$$ = $1.concat({varname:$3});}
 	| IDENTIFIER'['parameterlist']' {$$ = [{varname:$1, parameter:$3}];}
 	| IDENTIFIER {$$ = [{varname:$1}];}
+	| UNDEFINED  {$$ = [new UNDEFINED(new Location(@1,@1))];}
 	;
 
 parameterlist

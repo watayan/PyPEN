@@ -75,6 +75,22 @@ class FloatValue extends Value
 class StringValue extends Value {}
 class BooleanValue extends Value {}
 
+class UNDEFINED extends Value
+{
+	constructor(loc)
+	{
+		super(null, loc);
+	}
+	get varname()
+	{
+		throw new RuntimeError(this.first_line, "未完成のプログラムです");
+	}
+	getValue()
+	{
+		throw new RuntimeError(this.first_line, "未完成のプログラムです");
+	}
+}
+
 class Add extends Value
 {
 	constructor(x, y, loc)
@@ -84,7 +100,7 @@ class Add extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(first_line, "真偽型の足し算はできません");
+		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
 		let v = v1.value + v2.value;
 		if(v1 instanceof StringValue || v2 instanceof StringValue) return new StringValue(v, this.loc);
 		if(v1 instanceof IntValue && v2 instanceof IntValue)
@@ -804,28 +820,36 @@ class InputEnd extends Statement
 	}
 	run(index)
 	{
-		let vn = this.varname.varname;
-		let vl = closeInputWindow();
-		if(varsInt[vn] != undefined)
-		{
-			varsInt[vn] = Number(vl);
-			if(!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
+		try{
+			let vn = this.varname.varname;
+			let vl = closeInputWindow();
+			if(varsInt[vn] != undefined)
+			{
+				varsInt[vn] = Number(vl);
+				if(!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
+			}
+			else if(varsFloat[vn] != undefined)
+			{
+				varsFloat[vn] = Number(vl);
+				if(!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
+			}
+			else if(varsString[vn] != undefined)
+			{
+				varsString[vn] = String(vl);
+			}
+			else if(varsBoolean[vn] != undefined)
+			{
+				varsBoolean[vn] = vl;
+				if(vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
+			}
+			else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
 		}
-		else if(varsFloat[vn] != undefined)
+		catch(e)
 		{
-			varsFloat[vn] = Number(vl);
-			if(!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
+			closeInputWindow();
+			throw e;
 		}
-		else if(varsString[vn] != undefined)
-		{
-			varsString[vn] = String(vl);
-		}
-		else if(varsBoolean[vn] != undefined)
-		{
-			varsBoolean[vn] = vl;
-			if(vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
-		}
-		else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+
 		return index + 1;
 	}
 }

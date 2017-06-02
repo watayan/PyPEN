@@ -36,13 +36,33 @@ function keyDown()
 	var pos = sourceTextArea.selectionStart;
 	var cord = sourceTextArea.value;
 	var cord1 = cord.slice(0, pos);
-	var cord2 = cord.slice(pos, cord.length);
+	var cord2 = cord.slice(pos + 1, cord.length);
+	var re1 = /《[^》《]*$/;
+	var re2 = /^[^》《]*》/;
 	switch(window.event.keyCode)
 	{
+	case 37: case 38: case 39: case 40:
+		if(cord[pos] == "《")
+		{
+			var match = re2.exec(cord2);
+			if(match != null)
+			{
+//				sourceTextArea.setSelectionRange(pos, pos + match[0].length + 1);
+			}
+		}
+		else if(cord[pos] == "》")
+		{
+			var match = re1.exec(cord1);
+			if(match != null)
+			{
+//				sourceTextArea.setSelectionRange(pos - match[0].length, pos);
+			}
+		}
+		break;
 	default:
+//		console.log(window.event.keyCode);
 		break;
 	}
-	return true;
 }
 
 function mouseClick()
@@ -53,7 +73,7 @@ function mouseClick()
 	var cord1 = cord.slice(0, pos);
 	var cord2 = cord.slice(pos, cord.length);
 	var re1 = /《[^》《]*$/;
-	var re2 = /[^》《]*》/;
+	var re2 = /^[^》《]*》/;
 	var match1 = re1.exec(cord1);
 	var match2 = re2.exec(cord2);
 	if(match1 != null && match2 != null)
