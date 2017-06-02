@@ -2,10 +2,10 @@
 	display: none;
 	position: absolute;
 	background: #fff;
-	top: 0;
-	left: 0;
-	right: 0;
-	left:0;
+	top: 10px;
+	left: 10px;
+//	right: 0;
+//	left:0;
 	margin: auto;
 	width: 300px;
 	height: 100px;
@@ -28,4 +28,8 @@
 	height: 100%;
 	background: rgba(0,0,0,0.4);
 	cursor: pointer;
+}
+
+#EditButtons{
+	clear: both;
 }

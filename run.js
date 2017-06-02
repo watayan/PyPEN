@@ -1102,6 +1102,7 @@ onload = function(){
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var resultTextArea = document.getElementById("resultTextarea");
 	var parseButton   = document.getElementById("parseButton");
+	var newButton     = document.getElementById("newButton");
 	var runButton     = document.getElementById("runButton");
 	var resetButton   = document.getElementById("resetButton");
 	var stepButton    = document.getElementById("stepButton");
@@ -1168,6 +1169,11 @@ onload = function(){
 		}
 		step_flag = true;
 		run();
+	}
+	newButton.onclick = function(){
+		sourceTextArea.value = "";
+		parse = null;
+		reset();
 	}
 	resetButton.onclick = function(){
 		reset();
