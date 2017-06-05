@@ -21,22 +21,22 @@
 	Upload <input    id="loadButton" type="file"/><br/>
 	<a href="#" id="downloadLink">Download</a>
 	ファイル名：<input    id="file_prefix" type="text"></input><br/>
-	<textarea id="sourceTextarea" rows="20" cols="70" onkeydown="keyDown();" onmouseup="mouseClick();"></textarea>
+	<textarea id="sourceTextarea" rows="20" cols="70" onkeyup="keyUp();" onmouseup="mouseClick();"></textarea>
 	<textarea id="resultTextarea" rows="20" cols="50" readonly></textarea>
 	<div id="EditButtons">
-	<button type="button" class="editButton" onclick="add_cord(&quot;整数 《変数》&quot;);">整数</button> 
-	<button type="button" class="editButton" onclick="add_cord(&quot;実数 《変数》&quot;);">実数</button> 
-	<button type="button" class="editButton" onclick="add_cord(&quot;文字列 《変数》&quot;);">文字列</button> <br>
-	<button type="button" class="editButton" onclick="add_cord(&quot;もし 《条件式》 ならば\n｜\nを実行する&quot;);">もし</button>
-	<button type="button" class="editButton" onclick="add_cord(&quot;もし 《条件式》 ならば\n｜\nを実行し，そうでなければ\n｜\nを実行する&quot;);">もし〜そうでなければ</button>
-	<button type="button" class="editButton" onclick="add_cord(&quot;《条件式》 の間，\n｜\nを繰り返す&quot;);">〜の間，繰り返す</button>
-	<button type="button" class="editButton" onclick="add_cord(&quot;繰り返し\n｜\nを， 《条件式》 になるまで実行する&quot;);">〜になるまで実行する</button>
-	<button type="button" class="editButton" onclick="add_cord(&quot;《変数》 を 《値》 から 《値》 まで 《値》 ずつ増やしながら\n｜\nを繰り返す&quot;);">増やしながら</button>
-	<button type="button" class="editButton" onclick="add_cord(&quot;《変数》 を 《値》 から 《値》 まで 《値》 ずつ減らしながら\n｜\nを繰り返す&quot;);">減らしながら</button><br>
-	<button type="button" class="editButton" onclick="add_cord(&quot;《変数》 を入力する&quot;);">入力</button> 
-	<button type="button" class="editButton" onclick="add_cord(&quot;《値》 を表示する&quot;);">出力</button> 
-	<button type="button" class="editButton" onclick="add_cord(&quot;《値》 を改行なしで表示する&quot;);">改行無出力</button> 
-	<button type="button" class="editButton" onclick="add_cord(&quot;《変数》 ← 《値》&quot;);">代入</button> 
+	<button type="button" class="editButton" onclick="editButton(&quot;整数 《変数》&quot;);">整数</button> 
+	<button type="button" class="editButton" onclick="editButton(&quot;実数 《変数》&quot;);">実数</button> 
+	<button type="button" class="editButton" onclick="editButton(&quot;文字列 《変数》&quot;);">文字列</button> <br>
+	<button type="button" class="editButton" onclick="editButton(&quot;もし 《条件式》 ならば\n｜\nを実行する&quot;);">もし</button>
+	<button type="button" class="editButton" onclick="editButton(&quot;もし 《条件式》 ならば\n｜\nを実行し，そうでなければ\n｜\nを実行する&quot;);">もし〜そうでなければ</button>
+	<button type="button" class="editButton" onclick="editButton(&quot;《条件式》 の間，\n｜\nを繰り返す&quot;);">〜の間，繰り返す</button>
+	<button type="button" class="editButton" onclick="editButton(&quot;繰り返し，\n｜\nを， 《条件式》 になるまで実行する&quot;);">〜になるまで実行する</button>
+	<button type="button" class="editButton" onclick="editButton(&quot;《変数》 を 《値》 から 《値》 まで 《値》 ずつ増やしながら\n｜\nを繰り返す&quot;);">増やしながら</button>
+	<button type="button" class="editButton" onclick="editButton(&quot;《変数》 を 《値》 から 《値》 まで 《値》 ずつ減らしながら\n｜\nを繰り返す&quot;);">減らしながら</button><br>
+	<button type="button" class="editButton" onclick="editButton(&quot;《変数》 を入力する&quot;);">入力</button> 
+	<button type="button" class="editButton" onclick="editButton(&quot;《値》 を表示する&quot;);">出力</button> 
+	<button type="button" class="editButton" onclick="editButton(&quot;《値》 を改行なしで表示する&quot;);">改行無出力</button> 
+	<button type="button" class="editButton" onclick="editButton(&quot;《変数》 ← 《値》&quot;);">代入</button> 
 	</div>
 <div id="input"></div>
 <div id="input-overlay"></div>
