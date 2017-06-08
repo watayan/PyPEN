@@ -1,4 +1,4 @@
-"use Strict";
+"use strict";
 var varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 var stack = [];
 var run_flag = false, step_flag = false;

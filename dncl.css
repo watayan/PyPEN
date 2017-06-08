@@ -33,3 +33,10 @@
 #EditButtons{
 	clear: both;
 }
+.editButton{
+	margin:1px;
+}
+
+#SampleButtons{
+	margin-top: 1em;
+}
