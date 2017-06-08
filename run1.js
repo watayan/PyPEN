@@ -1310,6 +1310,7 @@ function reset() {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 	textarea.value = '';
 	setRunflag(false);
+	parse = null;
 	stack = [];
 	$(".codelines").children().removeClass("lineselect");
 }
@@ -1322,9 +1323,9 @@ function setRunflag(b) {
 function run() {
 	if (parse == null) {
 		try {
+			reset();
 			var source = document.getElementById("sourceTextarea").value + "\n";
 			parse = dncl.parse(source);
-			reset();
 			stack.push({ statementlist: parse, index: 0 });
 			setRunflag(true);
 		} catch (e) {
@@ -1455,6 +1456,7 @@ onload = function onload() {
 		reader.readAsText(file[0], "UTF-8");
 		reader.onload = function (ev) {
 			sourceTextArea.value = reader.result;
+			reset();
 		};
 	}, false);
 	downloadLink.onclick = function () {

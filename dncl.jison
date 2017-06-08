@@ -73,10 +73,10 @@ UNDEFINED		"《"[^》]*"》"
 "から"				{return 'FOR2';}
 "まで"				{return 'FOR3';}
 "ずつ"				{return 'FOR4';}
-"増やしながら"		{return 'FORINC';}
-"減らしながら"		{return 'FORDEC';}
-"増やしつつ"		{return 'FORINC';}
-"減らしつつ"		{return 'FORDEC';}
+"増やしながら"{Comma}		{return 'FORINC';}
+"減らしながら"{Comma}		{return 'FORDEC';}
+"増やしつつ"{Comma}		{return 'FORINC';}
+"減らしつつ"{Comma}		{return 'FORDEC';}
 "整数"				{return 'DEFINT';}
 "実数"				{return 'DEFFLOAT';}
 "文字列"				{return 'DEFSTR';}

@@ -1024,6 +1024,7 @@ function reset()
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 	textarea.value = '';
 	setRunflag(false);
+	parse = null;
 	stack = [];
 	$(".codelines").children().removeClass("lineselect");
 }
@@ -1040,9 +1041,9 @@ function run()
 	{
 		try
 		{
+			reset();
 			var source = document.getElementById("sourceTextarea").value+"\n";
 			parse = dncl.parse(source);
-			reset();
 			stack.push({statementlist: parse, index: 0});
 			setRunflag(true);
 		}
@@ -1077,9 +1078,6 @@ function run()
 			parse = null;
 		}
 	}
-
-
-
 
 	function step()
 	{
@@ -1198,6 +1196,7 @@ onload = function(){
 		reader.onload = function(ev)
 		{
 			sourceTextArea.value = reader.result;
+			reset();
 		}
 	}
 	,false);
