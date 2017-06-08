@@ -103,6 +103,7 @@ function sampleButton(num)
 {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
+	reset();
 }
 
 var sample=[

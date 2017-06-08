@@ -57,7 +57,7 @@ var RuntimeError = function () {
 
 		this._line = line;
 		this._message = message;
-		run_flag = false;
+		setRunflag(false);
 	}
 
 	_createClass(RuntimeError, [{
@@ -1309,17 +1309,37 @@ var While = function (_Statement16) {
 function reset() {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 	textarea.value = '';
-	run_flag = false;
+	setRunflag(false);
 	stack = [];
 	$(".codelines").children().removeClass("lineselect");
 }
 
+function setRunflag(b) {
+	run_flag = b;
+	document.getElementById("sourceTextarea").readOnly = b;
+}
+
 function run() {
+	if (parse == null) {
+		try {
+			var source = document.getElementById("sourceTextarea").value + "\n";
+			parse = dncl.parse(source);
+			reset();
+			stack.push({ statementlist: parse, index: 0 });
+			setRunflag(true);
+		} catch (e) {
+			textarea.value += "構文エラーです\n" + e.message + "\n";
+			setRunflag(false);
+			parse = null;
+			return;
+		}
+	}
 	if (step_flag) {
 		step();
 		if (stack.length == 0) {
 			textarea.value += "---\n";
-			run_flag = false;
+			$(".codelines").children().removeClass("lineselect");
+			setRunflag(false);
 			parse = null;
 		}
 	} else {
@@ -1328,7 +1348,8 @@ function run() {
 		} while (stack.length > 0 && run_flag);
 		if (stack.length == 0) {
 			textarea.value += "---\n";
-			run_flag = false;
+			$(".codelines").children().removeClass("lineselect");
+			setRunflag(false);
 			parse = null;
 		}
 	}
@@ -1342,7 +1363,7 @@ function run() {
 				index = statement.run(index);
 			} catch (e) {
 				textarea.value += "実行時エラーです\n" + e.line + "行目:" + e.message + "\n";
-				run_flag = false;
+				setRunflag(false);
 				parse = null;
 			}
 		} else index++;
@@ -1371,7 +1392,7 @@ function openInputWindow() {
 	$input.html("<p>入力してください</p><input type=\"text\" onkeydown=\"keydown();\">");
 	var $inputarea = $("#input input");
 	$inputarea.focus();
-	run_flag = false;
+	setRunflag(false);
 }
 
 function closeInputWindow() {
@@ -1383,7 +1404,7 @@ function closeInputWindow() {
 
 function keydown() {
 	if (window.event.keyCode == 13) {
-		run_flag = true;
+		setRunflag(true);
 		setTimeout(run(), 100);
 	}
 }
@@ -1398,7 +1419,6 @@ onload = function onload() {
 	var stepButton = document.getElementById("stepButton");
 	var loadButton = document.getElementById("loadButton");
 	var file_prefix = document.getElementById("file_prefix");
-	var source;
 	$("#sourceTextarea").linedtextarea();
 	textarea = resultTextArea;
 	parseButton.onclick = function () {
@@ -1414,38 +1434,10 @@ onload = function onload() {
 		}
 	};
 	runButton.onclick = function () {
-		if (parse == null) {
-			try {
-				source = sourceTextArea.value + "\n";
-				parse = dncl.parse(source);
-				reset();
-				stack.push({ statementlist: parse, index: 0 });
-				run_flag = true;
-			} catch (e) {
-				resultTextArea.value += "構文エラーです\n" + e.message + "\n";
-				run_flag = false;
-				parse = null;
-				return;
-			}
-		}
 		step_flag = false;
 		run();
 	};
 	stepButton.onclick = function () {
-		if (parse == null) {
-			try {
-				source = sourceTextArea.value + "\n";
-				parse = dncl.parse(source);
-				reset();
-				stack.push({ statementlist: parse, index: 0 });
-				run_flag = true;
-			} catch (e) {
-				resultTextArea.value += "構文エラーです\n" + e.message + "\n";
-				run_flag = false;
-				parse = null;
-				return;
-			}
-		}
 		step_flag = true;
 		run();
 	};
