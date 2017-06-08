@@ -32,15 +32,15 @@ function keyUp()
 	var pos = sourceTextArea.selectionStart;
 	var cord = sourceTextArea.value;
 	var cord1 = cord.slice(0, pos);
-	var cord2 = cord.slice(pos + 1, cord.length);
+	var cord2 = cord.slice(pos, cord.length);
 	var re1 = /《[^》《]*$/;
 	var re2 = /^[^》《]*》/;
 	var re3 = /\n?([｜|]*)([^｜|\n]*?)\n$/;
-	var re4 = /(ならば|なければ|ながら|[，,、])$/;
+	var re4 = /(ならば|なければ|(の間|繰り返し|繰返し|(増|減)やし(ながら|つつ))[，,、])$/;
 	var tab = "";
 	switch(window.event.keyCode)
 	{
-	case 39:
+	case 39:	// ->
 		if(pos > 0 && cord[pos - 1] == "《")
 		{
 			var match = re2.exec(cord2);
@@ -51,7 +51,7 @@ function keyUp()
 			}
 		}
 		break;
-	case 37:
+	case 37:	// <-
 		if(cord[pos] == "》")
 		{
 			var match = re1.exec(cord1);
@@ -62,15 +62,16 @@ function keyUp()
 			}
 		}
 		break;
-	case 13:
+	case 13:	// \n
+		if(!cord2.startsWith("\n")) return true;
 		var match = re3.exec(cord1);
 		if(match)
 		{
-			 tab = match[1] + "\n";
+			 tab = match[1] ;
 			 if(re4.exec(match[2])) tab = "｜" + tab;
 		}
 		sourceTextArea.value = cord1 + tab + cord2;
-		pos = cord1.length + tab.length - 1;
+		pos = cord1.length + tab.length;
 		sourceTextArea.setSelectionRange(pos, pos);
 		return false;
 	default:
@@ -135,5 +136,12 @@ var sample=[
 "を繰り返す\n"+
 "bを0から5まで1ずつ増やしながら，\n"+
 "｜c[b]を表示する\n"+
+"を繰り返す"
+,
+"整数 a,b\n"+
+"a←1\n"+
+"bを1から100まで1ずつ増やしながら，\n"+
+"｜a←a*b\n"+
+"｜bと「!=」とaを表示する\n"+
 "を繰り返す"
 ];

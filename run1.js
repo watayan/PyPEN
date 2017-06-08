@@ -560,7 +560,7 @@ var Variable = function (_Value21) {
 		key: "getValue",
 		value: function getValue() {
 			var vn = this.varname;
-			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[n], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[n], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
 		}
 	}, {
 		key: "varname",
@@ -1202,7 +1202,7 @@ var ForInc = function (_Statement13) {
 				}loop.push(new Assign(this.varname, new Add(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
 				loop.push(new LoopEnd(null, true, last_loc));
 				stack.push({ statementlist: loop, index: 0 });
-			} else throw new RuntimeError(this.first_line, this.varname + "は数値型の変数ではありません");
+			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
 			return index + 1;
 		}
 	}]);
@@ -1240,7 +1240,7 @@ var ForDec = function (_Statement14) {
 				}loop.push(new Assign(this.varname, new Sub(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
 				loop.push(new LoopEnd(null, true, last_loc));
 				stack.push({ statementlist: loop, index: 0 });
-			} else throw new RuntimeError(this.first_line, this.varname + "は数値型の変数ではありません");
+			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
 			return index + 1;
 		}
 	}]);

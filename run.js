@@ -355,7 +355,7 @@ class Variable extends Value
 		else if(varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);
 		else if(varsString[vn] != undefined) return new StringValue(varsString[n], this.loc);
 		else if(varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);
-		else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+		else throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
 	}
 }
 
@@ -945,7 +945,7 @@ class ForInc extends Statement
 			loop.push(new LoopEnd(null, true, last_loc));
 			stack.push({statementlist: loop, index: 0});
 		}
-		else throw new RuntimeError(this.first_line, this.varname + "は数値型の変数ではありません");
+		else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
 		return index + 1;
 	}
 }
@@ -975,7 +975,7 @@ class ForDec extends Statement
 			loop.push(new LoopEnd(null, true, last_loc));
 			stack.push({statementlist: loop, index: 0});
 		}
-		else throw new RuntimeError(this.first_line, this.varname + "は数値型の変数ではありません");
+		else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
 		return index + 1;
 	}
 }
