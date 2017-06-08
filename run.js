@@ -1,4 +1,7 @@
 "use strict";
+// programmed by watayan <watayan@watayan.net>
+// use Babel to transpile
+
 var varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 var stack = [];
 var run_flag = false, step_flag = false;
@@ -1158,7 +1161,7 @@ onload = function(){
 	$("#sourceTextarea").linedtextarea();
 	textarea = resultTextArea;
 	parseButton.onclick = function(){
-		source = sourceTextArea.value+"\n";
+		var source = sourceTextArea.value+"\n";
 		try{
 			resultTextArea.value = '';
 			parse = dncl.parse(source);

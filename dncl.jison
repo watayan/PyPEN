@@ -1,3 +1,5 @@
+/* by watayan <watayan@watayan.net> */
+
 %lex
 
 DecimalDigit	[0-9]

@@ -1,4 +1,5 @@
 'use strict';
+// programmed by watayan <watayan@watayan.net>
 
 function editButton(add_cord)
 {

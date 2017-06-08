@@ -1,4 +1,6 @@
 "use strict";
+// programmed by watayan <watayan@watayan.net>
+// use Babel to transpile
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -1423,7 +1425,7 @@ onload = function onload() {
 	$("#sourceTextarea").linedtextarea();
 	textarea = resultTextArea;
 	parseButton.onclick = function () {
-		source = sourceTextArea.value + "\n";
+		var source = sourceTextArea.value + "\n";
 		try {
 			resultTextArea.value = '';
 			parse = dncl.parse(source);
