@@ -1392,9 +1392,10 @@ function openInputWindow() {
 	var $input_overlay = $("#input-overlay");
 	$input_overlay.fadeIn();
 	$input.fadeIn();
-	$input.html("<p>入力してください</p><input type=\"text\" onkeydown=\"keydown();\">");
-	var $inputarea = $("#input input");
-	$inputarea.focus();
+	$input.html("<p>入力してください</p><input type=\"text\" id=\"inputarea\">");
+	var inputarea = document.getElementById("inputarea");
+	if (inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);else if (inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
+	$("#inputarea").focus();
 	setRunflag(false);
 }
 
@@ -1405,8 +1406,9 @@ function closeInputWindow() {
 	return val;
 }
 
-function keydown() {
-	if (window.event.keyCode == 13) {
+function keydown(e) {
+	var evt = e || window.event;
+	if (evt.keyCode == 13) {
 		setRunflag(true);
 		setTimeout(run(), 100);
 	}

@@ -9,14 +9,11 @@
 	margin: auto;
 	width: 300px;
 	height: 100px;
+	padding: 1em;
 	box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 	border-radius: 5px;
 	overflow: hidden;
 	z-index: 10;
-}
-
-#input input{
-	margin-left: 2em;
 }
 
 #input-overlay{
