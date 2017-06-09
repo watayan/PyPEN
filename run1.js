@@ -1308,13 +1308,18 @@ var While = function (_Statement16) {
 	return While;
 }(Statement);
 
+function highlightLine(l) {
+	$(".codelines").children().removeClass("lineselect");
+	if (l > 0) $(".codelines :nth-child(" + l + ")").addClass("lineselect");
+}
+
 function reset() {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 	textarea.value = '';
 	setRunflag(false);
 	parse = null;
 	stack = [];
-	$(".codelines").children().removeClass("lineselect");
+	highlightLine(-1);
 }
 
 function setRunflag(b) {
@@ -1341,7 +1346,7 @@ function run() {
 		step();
 		if (stack.length == 0) {
 			textarea.value += "---\n";
-			$(".codelines").children().removeClass("lineselect");
+			highlightLine(-1);
 			setRunflag(false);
 			parse = null;
 		}
@@ -1351,7 +1356,7 @@ function run() {
 		} while (stack.length > 0 && run_flag);
 		if (stack.length == 0) {
 			textarea.value += "---\n";
-			$(".codelines").children().removeClass("lineselect");
+			highlightLine(-1);
 			setRunflag(false);
 			parse = null;
 		}
@@ -1381,8 +1386,7 @@ function run() {
 		var statement = stack[depth].statementlist[index];
 		if (statement) {
 			var line = statement.first_line;
-			$(".codelines").children().removeClass("lineselect");
-			$(".codelines :nth-child(" + line + ")").addClass("lineselect");
+			highlightLine(line);
 		}
 	}
 }

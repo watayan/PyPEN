@@ -1021,6 +1021,11 @@ class While extends Statement
 	}
 }
 
+function highlightLine(l)
+{
+	$(".codelines").children().removeClass("lineselect");
+	if(l > 0) $(".codelines :nth-child("+l+")").addClass("lineselect");
+}
 
 function reset()
 {
@@ -1029,7 +1034,7 @@ function reset()
 	setRunflag(false);
 	parse = null;
 	stack = [];
-	$(".codelines").children().removeClass("lineselect");
+	highlightLine(-1);
 }
 
 function setRunflag(b)
@@ -1064,7 +1069,7 @@ function run()
 		if(stack.length == 0)
 		{
 			textarea.value += "---\n";
-			$(".codelines").children().removeClass("lineselect");
+			highlightLine(-1);
 			setRunflag(false);
 			parse = null;
 		}
@@ -1076,7 +1081,7 @@ function run()
 		if(stack.length == 0)
 		{
 			textarea.value += "---\n";
-			$(".codelines").children().removeClass("lineselect");
+			highlightLine(-1);
 			setRunflag(false);
 			parse = null;
 		}
@@ -1112,10 +1117,8 @@ function run()
 		if(statement)
 		{
 			var line = statement.first_line;
-			$(".codelines").children().removeClass("lineselect");
-			$(".codelines :nth-child("+line+")").addClass("lineselect");
+			highlightLine(line);
 		}
-				
 	}
 }
 
