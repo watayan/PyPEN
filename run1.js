@@ -30,6 +30,11 @@ function isSafeInteger(v) {
 	// return Number.isSafeInteger(v);
 }
 
+function textareaAppend(v) {
+	textarea.value += v;
+	textarea.scrollTop = textarea.scrollHeight;
+}
+
 var Location = function () {
 	function Location(first_token, last_token) {
 		_classCallCheck(this, Location);
@@ -1093,7 +1098,7 @@ var Output = function (_Statement9) {
 	_createClass(Output, [{
 		key: "run",
 		value: function run(index) {
-			textarea.value += this.value.getValue().value + (this.ln ? "\n" : "");
+			textareaAppend(this.value.getValue().value + (this.ln ? "\n" : ""));
 			return index + 1;
 		}
 	}]);
@@ -1336,7 +1341,7 @@ function run() {
 			stack.push({ statementlist: parse, index: 0 });
 			setRunflag(true);
 		} catch (e) {
-			textarea.value += "構文エラーです\n" + e.message + "\n";
+			textareaAppend("構文エラーです\n" + e.message + "\n");
 			setRunflag(false);
 			parse = null;
 			return;
@@ -1345,7 +1350,7 @@ function run() {
 	if (step_flag) {
 		step();
 		if (stack.length == 0) {
-			textarea.value += "---\n";
+			textareaAppend("---\n");
 			highlightLine(-1);
 			setRunflag(false);
 			parse = null;
@@ -1355,7 +1360,7 @@ function run() {
 			step();
 		} while (stack.length > 0 && run_flag);
 		if (stack.length == 0) {
-			textarea.value += "---\n";
+			textareaAppend("---\n");
 			highlightLine(-1);
 			setRunflag(false);
 			parse = null;
@@ -1370,7 +1375,7 @@ function run() {
 			try {
 				index = statement.run(index);
 			} catch (e) {
-				textarea.value += "実行時エラーです\n" + e.line + "行目:" + e.message + "\n";
+				textareaAppend("実行時エラーです\n" + e.line + "行目:" + e.message + "\n");
 				setRunflag(false);
 				parse = null;
 			}
