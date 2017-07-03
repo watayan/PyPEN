@@ -7,6 +7,7 @@ var stack = [];
 var run_flag = false, step_flag = false;
 var parse = null;
 var textarea = null;
+var context = null;
 
 function isFinite(v)
 {
@@ -382,14 +383,14 @@ class CallFunction extends Value
 			else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'random')
+		else if(func == 'random')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
 			if(par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
 		}
-		if(func == 'ceil')
+		else if(func == 'ceil')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -397,7 +398,7 @@ class CallFunction extends Value
 			else if(par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'floor')
+		else if(func == 'floor')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -405,7 +406,7 @@ class CallFunction extends Value
 			else if(par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'round')
+		else if(func == 'round')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -413,7 +414,7 @@ class CallFunction extends Value
 			else if(par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'int')
+		else if(func == 'int')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -421,21 +422,21 @@ class CallFunction extends Value
 			else if(par1 instanceof FloatValue)	return new IntValue(par1.value < 0 ? Math.ceil(par1.value) : Math.floor(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'sin')
+		else if(func == 'sin')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
 			if(par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'cos')
+		else if(func == 'cos')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
 			if(par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'tan')
+		else if(func == 'tan')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -447,7 +448,7 @@ class CallFunction extends Value
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'sqrt')
+		else if(func == 'sqrt')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -458,7 +459,7 @@ class CallFunction extends Value
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'log')
+		else if(func == 'log')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -471,7 +472,7 @@ class CallFunction extends Value
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'exp')
+		else if(func == 'exp')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
@@ -483,7 +484,7 @@ class CallFunction extends Value
 			}
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		if(func == 'pow')
+		else if(func == 'pow')
 		{
 			if(param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
 			var par1 = param[0].getValue();
@@ -878,6 +879,97 @@ class Output extends Statement
 	}
 }
 
+class GraphicStatement extends Statement
+{
+	constructor(command, args, loc)
+	{
+		super(loc);
+		this.command = command;
+		this.args = args;
+	}
+	run(index)
+	{
+		if(this.command == 'gOpenWindow')
+		{
+			var canvas = document.getElementById('canvas');
+			context = canvas.getContext('2d');
+			canvas.setAttribute("width", this.args[0].getValue().value + "px");
+			canvas.setAttribute("height", this.args[1].getValue().value + "px");
+			canvas.style.display="block";
+		}
+		else if(this.command == 'gCloseWindow')
+		{
+			var canvas = document.getElementById('canvas');
+			canvas.style.display = "none";
+			context = null;
+		}
+		else if(this.command == 'gSetLineColor')
+		{
+			let r = this.args[0].getValue().value, g = this.args[1].getValue().value, b = this.args[2].getValue().value;
+			context.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
+		}
+		else if(this.command == 'gSetFillColor')
+		{
+			let r = this.args[0].getValue().value, g = this.args[1].getValue().value, b = this.args[2].getValue().value;
+			context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+		}
+		else if(this.command == 'gSetLineWidth')
+		{
+			context.lineWidth = this.args[0].getValue().value;
+		}
+		else if(this.command == 'gSetFontSize')
+		{
+			context.font = this.args[0].getValue().value + "px 'sans-serif'";
+		}
+		else if(this.command == 'gDrawText')
+		{
+			context.fillText(this.args[0].getValue().value, this.args[1].getValue().value, this.args[2].getValue().value);
+		}
+		else if(this.command == 'gDrawLine')
+		{
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
+				x2 = this.args[2].getValue().value, y2 = this.args[3].getValue().value;
+			context.beginPath();
+			context.moveTo(x1, y1);
+			context.lineTo(x2, y2);
+			context.stroke();
+		}
+		else if(this.command == 'gDrawBox')
+		{
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
+				width = this.args[2].getValue().value, height = this.args[3].getValue().value;
+			context.beginPath();
+			context.strokeRect(x1, y1, width, height);
+			context.stroke();
+		}
+		else if(this.command == 'gFillBox')
+		{
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
+				width = this.args[2].getValue().value, height = this.args[3].getValue().value;
+			context.fillRect(x1, y1, width, height);
+		}
+		else if(this.command == 'gDrawCircle')
+		{
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, r = this.args[2].getValue().value;
+			context.beginPath();
+			context.arc(x1, y1, r, 0, Math.PI * 2, false);
+			context.stroke();
+		}
+		else if(this.command == 'gFillCircle')
+		{
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, r = this.args[2].getValue().value;
+			context.arc(x1, y1, r, 0, MJath.PI * 2, false);
+			context.fill();
+		}
+		else
+		{
+			throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
+		}
+		return index + 1;
+	}
+}
+
+
 class If extends Statement
 {
 	constructor(condition, state1, state2, loc)
@@ -898,7 +990,6 @@ class If extends Statement
 		return index + 1;
 	}
 }
-
 class LoopBegin extends Statement
 {
 	constructor(condition, continuous, loc)
@@ -1041,6 +1132,9 @@ function reset()
 	parse = null;
 	stack = [];
 	highlightLine(-1);
+	var canvas = document.getElementById('canvas');
+	canvas.style.display = 'none';
+	context = null;
 }
 
 function setRunflag(b)
@@ -1209,7 +1303,7 @@ function keyUp(e)
 			var match = re2.exec(cord2);
 			if(match != null)
 			{
-				sourceTextArea.setSelectionRange(pos - 1, pos + match[0].length + 1);
+				sourceTextArea.setSelectionRange(pos - 1, pos + match[0].length);
 				return false;
 			}
 		}

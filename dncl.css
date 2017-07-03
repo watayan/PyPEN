@@ -36,3 +36,8 @@
 #SampleButtons{
 	margin-top: 1em;
 }
+
+#canvas{
+	display: none;
+	border: solid 1px rgb(0,0,0);
+}
