@@ -414,14 +414,6 @@ class CallFunction extends Value
 			else if(par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);
 			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		}
-		else if(func == 'int')
-		{
-			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-			var par1 = param[0].getValue();
-			if(par1 instanceof IntValue) return par1;
-			else if(par1 instanceof FloatValue)	return new IntValue(par1.value < 0 ? Math.ceil(par1.value) : Math.floor(par1.value), this.loc);
-			else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-		}
 		else if(func == 'sin')
 		{
 			if(param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
@@ -903,30 +895,41 @@ class GraphicStatement extends Statement
 			canvas.style.display = "none";
 			context = null;
 		}
+		else if(this.command == 'gClearWindow')
+		{
+			var canvas = document.getElementById('canvas');
+			context.clearRect(0,0,canvas.width, canvas.height)
+		}
 		else if(this.command == 'gSetLineColor')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let r = this.args[0].getValue().value, g = this.args[1].getValue().value, b = this.args[2].getValue().value;
 			context.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
 		}
 		else if(this.command == 'gSetFillColor')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let r = this.args[0].getValue().value, g = this.args[1].getValue().value, b = this.args[2].getValue().value;
 			context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
 		}
 		else if(this.command == 'gSetLineWidth')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			context.lineWidth = this.args[0].getValue().value;
 		}
 		else if(this.command == 'gSetFontSize')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			context.font = this.args[0].getValue().value + "px 'sans-serif'";
 		}
 		else if(this.command == 'gDrawText')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			context.fillText(this.args[0].getValue().value, this.args[1].getValue().value, this.args[2].getValue().value);
 		}
 		else if(this.command == 'gDrawLine')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
 				x2 = this.args[2].getValue().value, y2 = this.args[3].getValue().value;
 			context.beginPath();
@@ -936,6 +939,7 @@ class GraphicStatement extends Statement
 		}
 		else if(this.command == 'gDrawBox')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
 				width = this.args[2].getValue().value, height = this.args[3].getValue().value;
 			context.beginPath();
@@ -944,12 +948,14 @@ class GraphicStatement extends Statement
 		}
 		else if(this.command == 'gFillBox')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
 				width = this.args[2].getValue().value, height = this.args[3].getValue().value;
 			context.fillRect(x1, y1, width, height);
 		}
 		else if(this.command == 'gDrawCircle')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, r = this.args[2].getValue().value;
 			context.beginPath();
 			context.arc(x1, y1, r, 0, Math.PI * 2, false);
@@ -957,8 +963,9 @@ class GraphicStatement extends Statement
 		}
 		else if(this.command == 'gFillCircle')
 		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, r = this.args[2].getValue().value;
-			context.arc(x1, y1, r, 0, MJath.PI * 2, false);
+			context.arc(x1, y1, r, 0, Math.PI * 2, false);
 			context.fill();
 		}
 		else
@@ -1297,28 +1304,17 @@ function keyUp(e)
 	var tab = "";
 	switch(evt.keyCode)
 	{
-	case 39:	// ->
-		if(pos > 0 && cord[pos - 1] == "《")
+	case 37: case 38: case 39: case 40:
+		if(pos > 0)
 		{
-			var match = re2.exec(cord2);
-			if(match != null)
+			var match1 = re1.exec(cord1);
+			var match2 = re2.exec(cord2);
+			if(match1 != null && match2 != null)
 			{
-				sourceTextArea.setSelectionRange(pos - 1, pos + match[0].length);
+				sourceTextArea.setSelectionRange(pos - match1[0].length, pos + match2[0].length);
 				return false;
 			}
 		}
-		break;
-	case 37:	// <-
-		if(cord[pos] == "》")
-		{
-			var match = re1.exec(cord1);
-			if(match != null)
-			{
-				sourceTextArea.setSelectionRange(pos - match[0].length, pos + 1);
-				return false;
-			}
-		}
-		break;
 	case 13:	// \n
 		if(!re5.exec(cord2)) return true;
 		var match = re3.exec(cord1);
@@ -1403,6 +1399,19 @@ var sample=[
 "を繰り返す"
 ];
 
+function insertCord(add_cord)
+{
+	var sourceTextArea = document.getElementById("sourceTextarea");
+	var pos1 = sourceTextArea.selectionStart;
+	var pos2 = sourceTextArea.selectionEnd;
+	var cord = sourceTextArea.value;
+	var cord1 = cord.slice(0, pos1);
+	var cord2 = cord.slice(pos2, cord.length);
+	sourceTextArea.value = cord1 + add_cord + cord2;
+}
+
+
+
 onload = function(){
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var resultTextArea = document.getElementById("resultTextarea");
@@ -1481,4 +1490,47 @@ onload = function(){
 	};
 	if(sourceTextArea.addEventListener) sourceTextArea.addEventListener("keyup", keyUp);
 	else if(sourceTextArea.attachEvent) sourceTextArea.attachEvent("onkeyup", keyUp);
+	
+	$.contextMenu(
+		{
+			selector: "#sourceTextarea",
+//			callback: function(k,e){},
+			items:{
+				copyAll: {name: "全コピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
+				math:{ name:"数学",
+				 	items:{
+						abs:	{name:"abs", callback: function(k,e){insertCord("abs(《値》)");}},
+						random:	{name: "random", callback: function(k,e){insertCord("random(《整数》)");}},
+						ceil:	{name: "ceil", callback: function(k,e){insertCord("ceil(《実数》)");}},
+						floor:	{name: "floor", callback: function(k,e){insertCord("floor(《実数》)");}},
+						round:	{name: "round", callback: function(k,e){insertCord("round(《実数》)");}},
+						sin:	{name: "sin", callback: function(k,e){insertCord("sin(《実数》)");}},
+						cos:	{name: "cos", callback: function(k,e){insertCord("cos(《実数》)");}},
+						tan:	{name: "tan", callback: function(k,e){insertCord("tan(《実数》)");}},
+						sqrt:	{name: "sqrt", callback: function(k,e){insertCord("sqrt(《実数》)");}},
+						log:	{name: "log", callback: function(k,e){insertCord("sqrt(《実数》)");}},
+						exp:	{name: "exp", callback: function(k,e){insertCord("sqrt(《実数》)");}},
+						pow:	{name: "pow", callback: function(k,e){insertCord("sqrt(《実数》,《実数》)");}}
+					}
+				},
+				graphic:{ name:"グラフィック",
+					items:{
+						gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCord("描画領域開く(《幅》,《高さ》)");}},
+						gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCord("描画領域閉じる()");}},
+						gClearWindow:{name:"描画領域全消去", callback: function(k,e){insertCord("描画領域全消去()");}},
+						gSetLineColor:{name:"線色設定", callback: function(k,e){insertCord("線色設定(《赤》,《青》,《緑》)");}},
+						gSetFillColor:{name:"塗色設定", callback: function(k,e){insertCord("塗色設定(《赤》,《青》,《緑》)");}},
+						gSetLineWidth:{name:"線太さ設定", callback: function(k,e){insertCord("線太さ設定(《太さ》)");}},
+						gSetFontSize:{name:"文字サイズ設定", callback: function(k,e){insertCord("文字サイズ設定(《サイズ》)");}},
+						gDrawText:{name:"文字描画", callback: function(k,e){insertCord("文字描画(《文字列》,《x》,《y》)");}},
+						gDrawLine:{name:"線描画", callback: function(k,e){insertCord("線描画(《x1》,《y1》,《x2》,《y2》)");}},
+						gDrawBox:{name:"矩形描画", callback: function(k,e){insertCord("矩形描画(《x1》,《y1》,《x2》,《y2》)");}},
+						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCord("矩形塗描画(《x1》,《y1》,《x2》,《y2》)");}},
+						gDrawCircle:{name:"円描画", callback: function(k,e){insertCord("円描画(《x》,《y》,《半径》)");}},
+						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCord("円塗描画(《x》,《y》,《半径》)");}}
+					}
+				}
+			}
+		}
+	);
 }
