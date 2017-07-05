@@ -1397,6 +1397,13 @@ var sample=[
 "｜a←a*b\n"+
 "｜bと「!=」とaを表示する\n"+
 "を繰り返す"
+,
+"整数 a,b\n"+
+"描画領域開く(200,200)\n"+
+"aを1から100まで1ずつ増やしながら，\n"+
+"｜線色設定(random(255),random(255),random(255))\n"+
+"｜円描画(random(200),random(200),random(30)+1)\n"+
+"を繰り返す"
 ];
 
 function insertCord(add_cord)
@@ -1499,18 +1506,18 @@ onload = function(){
 				copyAll: {name: "全コピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 				math:{ name:"数学",
 				 	items:{
-						abs:	{name:"abs", callback: function(k,e){insertCord("abs(《値》)");}},
-						random:	{name: "random", callback: function(k,e){insertCord("random(《整数》)");}},
-						ceil:	{name: "ceil", callback: function(k,e){insertCord("ceil(《実数》)");}},
-						floor:	{name: "floor", callback: function(k,e){insertCord("floor(《実数》)");}},
-						round:	{name: "round", callback: function(k,e){insertCord("round(《実数》)");}},
-						sin:	{name: "sin", callback: function(k,e){insertCord("sin(《実数》)");}},
-						cos:	{name: "cos", callback: function(k,e){insertCord("cos(《実数》)");}},
-						tan:	{name: "tan", callback: function(k,e){insertCord("tan(《実数》)");}},
-						sqrt:	{name: "sqrt", callback: function(k,e){insertCord("sqrt(《実数》)");}},
-						log:	{name: "log", callback: function(k,e){insertCord("sqrt(《実数》)");}},
-						exp:	{name: "exp", callback: function(k,e){insertCord("sqrt(《実数》)");}},
-						pow:	{name: "pow", callback: function(k,e){insertCord("sqrt(《実数》,《実数》)");}}
+						abs:	{name:"abs 絶対値", callback: function(k,e){insertCord("abs(《値》)");}},
+						random:	{name: "random 乱数", callback: function(k,e){insertCord("random(《整数》)");}},
+						ceil:	{name: "ceil 切り上げ", callback: function(k,e){insertCord("ceil(《実数》)");}},
+						floor:	{name: "floor 切り捨て", callback: function(k,e){insertCord("floor(《実数》)");}},
+						round:	{name: "round 四捨五入", callback: function(k,e){insertCord("round(《実数》)");}},
+						sin:	{name: "sin サイン", callback: function(k,e){insertCord("sin(《実数》)");}},
+						cos:	{name: "cos コサイン", callback: function(k,e){insertCord("cos(《実数》)");}},
+						tan:	{name: "tan タンジェント", callback: function(k,e){insertCord("tan(《実数》)");}},
+						sqrt:	{name: "sqrt ルート", callback: function(k,e){insertCord("sqrt(《実数》)");}},
+						log:	{name: "log 自然対数", callback: function(k,e){insertCord("log(《実数》)");}},
+						exp:	{name: "exp ", callback: function(k,e){insertCord("sqrt(《実数》)");}},
+						pow:	{name: "pow", callback: function(k,e){insertCord("pow(《実数》,《実数》)");}}
 					}
 				},
 				graphic:{ name:"グラフィック",
@@ -1524,8 +1531,8 @@ onload = function(){
 						gSetFontSize:{name:"文字サイズ設定", callback: function(k,e){insertCord("文字サイズ設定(《サイズ》)");}},
 						gDrawText:{name:"文字描画", callback: function(k,e){insertCord("文字描画(《文字列》,《x》,《y》)");}},
 						gDrawLine:{name:"線描画", callback: function(k,e){insertCord("線描画(《x1》,《y1》,《x2》,《y2》)");}},
-						gDrawBox:{name:"矩形描画", callback: function(k,e){insertCord("矩形描画(《x1》,《y1》,《x2》,《y2》)");}},
-						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCord("矩形塗描画(《x1》,《y1》,《x2》,《y2》)");}},
+						gDrawBox:{name:"矩形描画", callback: function(k,e){insertCord("矩形描画(《x》,《y》,《幅》,《高さ》)");}},
+						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCord("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCord("円描画(《x》,《y》,《半径》)");}},
 						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCord("円塗描画(《x》,《y》,《半径》)");}}
 					}

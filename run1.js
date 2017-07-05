@@ -1602,7 +1602,7 @@ function sampleButton(num) {
 	reset();
 }
 
-var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する", "整数 a,b\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す"];
+var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する", "整数 a,b\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す", "整数 a,b\n" + "描画領域開く(200,200)\n" + "aを1から100まで1ずつ増やしながら，\n" + "｜線色設定(random(255),random(255),random(255))\n" + "｜円描画(random(200),random(200),random(30)+1)\n" + "を繰り返す"];
 
 function insertCord(add_cord) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
@@ -1689,41 +1689,41 @@ onload = function onload() {
 			},
 			math: { name: "数学",
 				items: {
-					abs: { name: "abs", callback: function callback(k, e) {
+					abs: { name: "abs 絶対値", callback: function callback(k, e) {
 							insertCord("abs(《値》)");
 						} },
-					random: { name: "random", callback: function callback(k, e) {
+					random: { name: "random 乱数", callback: function callback(k, e) {
 							insertCord("random(《整数》)");
 						} },
-					ceil: { name: "ceil", callback: function callback(k, e) {
+					ceil: { name: "ceil 切り上げ", callback: function callback(k, e) {
 							insertCord("ceil(《実数》)");
 						} },
-					floor: { name: "floor", callback: function callback(k, e) {
+					floor: { name: "floor 切り捨て", callback: function callback(k, e) {
 							insertCord("floor(《実数》)");
 						} },
-					round: { name: "round", callback: function callback(k, e) {
+					round: { name: "round 四捨五入", callback: function callback(k, e) {
 							insertCord("round(《実数》)");
 						} },
-					sin: { name: "sin", callback: function callback(k, e) {
+					sin: { name: "sin サイン", callback: function callback(k, e) {
 							insertCord("sin(《実数》)");
 						} },
-					cos: { name: "cos", callback: function callback(k, e) {
+					cos: { name: "cos コサイン", callback: function callback(k, e) {
 							insertCord("cos(《実数》)");
 						} },
-					tan: { name: "tan", callback: function callback(k, e) {
+					tan: { name: "tan タンジェント", callback: function callback(k, e) {
 							insertCord("tan(《実数》)");
 						} },
-					sqrt: { name: "sqrt", callback: function callback(k, e) {
+					sqrt: { name: "sqrt ルート", callback: function callback(k, e) {
 							insertCord("sqrt(《実数》)");
 						} },
-					log: { name: "log", callback: function callback(k, e) {
-							insertCord("sqrt(《実数》)");
+					log: { name: "log 自然対数", callback: function callback(k, e) {
+							insertCord("log(《実数》)");
 						} },
-					exp: { name: "exp", callback: function callback(k, e) {
+					exp: { name: "exp ", callback: function callback(k, e) {
 							insertCord("sqrt(《実数》)");
 						} },
 					pow: { name: "pow", callback: function callback(k, e) {
-							insertCord("sqrt(《実数》,《実数》)");
+							insertCord("pow(《実数》,《実数》)");
 						} }
 				}
 			},
@@ -1757,10 +1757,10 @@ onload = function onload() {
 							insertCord("線描画(《x1》,《y1》,《x2》,《y2》)");
 						} },
 					gDrawBox: { name: "矩形描画", callback: function callback(k, e) {
-							insertCord("矩形描画(《x1》,《y1》,《x2》,《y2》)");
+							insertCord("矩形描画(《x》,《y》,《幅》,《高さ》)");
 						} },
 					gFillBox: { name: "矩形塗描画", callback: function callback(k, e) {
-							insertCord("矩形塗描画(《x1》,《y1》,《x2》,《y2》)");
+							insertCord("矩形塗描画(《x》,《y》,《幅》,《高さ》)");
 						} },
 					gDrawCircle: { name: "円描画", callback: function callback(k, e) {
 							insertCord("円描画(《x》,《y》,《半径》)");
