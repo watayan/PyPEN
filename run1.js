@@ -568,7 +568,7 @@ var Variable = function (_Value21) {
 		key: "getValue",
 		value: function getValue() {
 			var vn = this.varname;
-			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[n], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
+			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
 		}
 	}, {
 		key: "varname",
@@ -636,8 +636,8 @@ var CallFunction = function (_Value22) {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
 				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var v = Math.tan(par1.value);
-					if (isFinite(v)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v2 = Math.tan(par1.value);
+					if (isFinite(_v2)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'sqrt') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
@@ -651,16 +651,16 @@ var CallFunction = function (_Value22) {
 				var par1 = param[0].getValue();
 				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
 					if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
-					var _v2 = Math.log(par1.value);
-					if (isFinite(_v2)) return new FloatValue(_v2, this.loc);
+					var _v3 = Math.log(par1.value);
+					if (isFinite(_v3)) return new FloatValue(_v3, this.loc);
 					throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'exp') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
 				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v3 = Math.exp(par1.value);
-					if (isFinite(_v3)) return new FloatValue(_v3, this.loc);
+					var _v4 = Math.exp(par1.value);
+					if (isFinite(_v4)) return new FloatValue(_v4, this.loc);
 					throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'pow') {
@@ -669,15 +669,71 @@ var CallFunction = function (_Value22) {
 				var par2 = param[1].getValue();
 				if (par1 instanceof IntValue && par2 instanceof IntValue && par2.value >= 0) {
 					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v4 = Math.pow(par1.value, par2.value);
-					if (isSafeInteger(_v4)) return new IntValue(_v4, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v5 = Math.pow(par1.value, par2.value);
+					if (isSafeInteger(_v5)) return new IntValue(_v5, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				}
 				if ((par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof IntValue || par2 instanceof FloatValue)) {
 					if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
 					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v5 = Math.pow(par1.value, par2.value);
-					if (isFinite(_v5)) return new FloatValue(_v5, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v6 = Math.pow(par1.value, par2.value);
+					if (isFinite(_v6)) return new FloatValue(_v6, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				}
+			} else if (func == 'length') {
+				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+				var par1 = param[0].getValue();
+				if (par1 instanceof StringValue) {
+					return new IntValue(par1.value.length(), this.loc);
+				} else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
+			} else if (func == 'substring') {
+				if (param.length != 2 && param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は2つか3つです");
+				var par1 = param[0].getValue();
+				var par2 = param[1].getValue();
+				var par3 = param.length == 3 ? param[2].getValue() : null;
+				if (par1 instanceof StringValue && par2 instanceof IntValue && (par3 == null || par3 instanceof IntValue)) {
+					var v;
+					if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
+					return new StringValue(v, this.loc);
+				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+			} else if (func == 'append') {
+				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
+				var par1 = param[0].getValue();
+				var par2 = param[1].getValue();
+				if (par1 instanceof StringValue && par2 instanceof StringValue) {
+					return new StringValue(par1.value + par2.value, this.loc);
+				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+			} else if (func == 'extract') {
+				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
+				var par1 = param[0].getValue();
+				var par2 = param[1].getValue();
+				var par3 = param[2].getValue();
+				if (par1 instanceof StringValue && par2 instanceof StringValue && par3 instanceof IntValue) {
+					var v = par1.value.split(par2.value);
+					if (par3.value >= 0 && par3.value < v.length) return new StringValue(v[par3.value], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
+				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+			} else if (func == 'insert') {
+				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
+				var par1 = param[0].getValue();
+				var par2 = param[1].getValue();
+				var par3 = param[2].getValue();
+				if (par1 instanceof StringValue && par2 instanceof IntValue && par3 instanceof StringValue) {
+					if (par2.value < 0 || par2.value > par1.value.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+					var s1 = par1.value.substr(0, par2.value);
+					var s2 = par1.value.substr(par2.value);
+					return new StringValue(s1 + par3.value + s2, this.loc);
+				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+			} else if (func == 'replace') {
+				if (param.length != 4) throw new RuntimeError(this.first_line, func + "の引数は4つです");
+				var par1 = param[0].getValue();
+				var par2 = param[1].getValue();
+				var par3 = param[2].getValue();
+				var par4 = param[3].getValue();
+				if (par1 instanceof StringValue && par2 instanceof IntValue && par3 instanceof IntValue && par4 instanceof StringValue) {
+					if (par2.value < 0 || par2.value > par1.value.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+					if (par3.value < 0 || par2.value + par3.value > par1.value.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
+					var s1 = par1.value.substr(0, par2.value);
+					var s2 = par1.value.substr(par2.value + par3.value);
+					return new StringValue(s1 + par4.value + s2, this.loc);
+				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 			} else throw new RuntimeError(this.first_line, func + "という関数はありません");
 		}
 	}]);
@@ -1602,7 +1658,7 @@ function sampleButton(num) {
 	reset();
 }
 
-var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する", "整数 a,b\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す", "整数 a,b\n" + "描画領域開く(200,200)\n" + "aを1から100まで1ずつ増やしながら，\n" + "｜線色設定(random(255),random(255),random(255))\n" + "｜円描画(random(200),random(200),random(30)+1)\n" + "を繰り返す"];
+var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する", "整数 a,b\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す", "整数 a,b\n" + "描画領域開く(200,200)\n" + "aを1から100まで1ずつ増やしながら，\n" + "｜線色設定(random(255),random(255),random(255))\n" + "｜円描画(random(200),random(200),random(30)+1)\n" + "を繰り返す", "整数 tyotensu,hensosu,Siten[22],Syuten[22],kotae,i,j,x,y\n" + "文字列 Hen[8,8],Senbun[22],HenData[8]\n" + "HenData[1] ← 「-AB-A-AB」\n" + "HenData[2] ← 「---CA-AC」\n" + "HenData[3] ← 「---E-EEB」\n" + "HenData[4] ← 「-----EEC」\n" + "HenData[5] ← 「-----DAD」\n" + "HenData[6] ← 「------ED」\n" + "HenData[7] ← 「-------F」\n" + "HenData[8] ← 「--------」\n" + "i を 1 から 8 まで 1 ずつ増やしながら，\n" + "  | j を 1 から 8 まで 1 ずつ増やしながら，\n" + "  |   | Hen[i,j] ← substring(HenData[i],j-1,1)\n" + "  | を繰り返す\n" + "を繰り返す\n" + "tyotensu ← 8\n" + "hensosu ← 0\n" + "i を 1 から tyotensu-1 まで 1 ずつ増やしながら，\n" + "  | j を i+1 から tyotensu まで 1 ずつ増やしながら，\n" + "  |   | もし Hen[i,j]!=「-」 ならば\n" + "  |   |   | hensosu ← hensosu+1\n" + "  |   |   | Siten[hensosu] ← i\n" + "  |   |   | Syuten[hensosu] ← j\n" + "  |   |   | Senbun[hensosu] ← Hen[i,j]\n" + "  |   | を実行する\n" + "  | を繰り返す\n" + "を繰り返す\n" + "kotae ← 0\n" + "x を 1 から hensosu-2 まで 1 ずつ増やしながら，\n" + "  | y ← x+1\n" + "  | Siten[x]=Siten[y] の間，\n" + "  |   | もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n" + "  |   |   | kotae ← kotae+1\n" + "  |   | を実行する\n" + "  |   | y ← y+1\n" + "  | を繰り返す\n" + "を繰り返す\n" + "「三角形の個数は」とkotae を表示する\n"];
 
 function insertCord(add_cord) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
@@ -1687,7 +1743,7 @@ onload = function onload() {
 					document.getElementById("sourceTextarea").select();document.execCommand('copy');
 				}
 			},
-			math: { name: "数学",
+			math: { name: "数学関数",
 				items: {
 					abs: { name: "abs 絶対値", callback: function callback(k, e) {
 							insertCord("abs(《値》)");
@@ -1727,7 +1783,32 @@ onload = function onload() {
 						} }
 				}
 			},
-			graphic: { name: "グラフィック",
+			str: { name: "文字列関数",
+				items: {
+					length: { name: "length 長さ", callback: function callback(k, e) {
+							insertCord("length(《文字列》)");
+						} },
+					append: { name: "append 文字列結合", callback: function callback(k, e) {
+							insertCord("append(《文字列》,《文字列》)");
+						} },
+					substring1: { name: "substring 部分文字列（最後まで）", callback: function callback(k, e) {
+							insertCord("substring(《文字列》,《開始位置》)");
+						} },
+					substring2: { name: "substring 部分文字列（長さ指定）", callback: function callback(k, e) {
+							insertCord("substring(《文字列》,《開始位置》,《長さ》)");
+						} },
+					extract: { name: "extract 部分文字列（長さ指定）", callback: function callback(k, e) {
+							insertCord("extract(《文字列》,《区切文字列》,《番号》)");
+						} },
+					insert: { name: "insert 挿入", callback: function callback(k, e) {
+							insertCord("insert(《文字列》,《位置》,《文字列》)");
+						} },
+					replace: { name: "replace 置換", callback: function callback(k, e) {
+							insertCord("replace(《文字列》,《位置》,《長さ》,《文字列》)");
+						} }
+				}
+			},
+			graphic: { name: "グラフィック命令",
 				items: {
 					gOpenWindow: { name: "描画領域開く", callback: function callback(k, e) {
 							insertCord("描画領域開く(《幅》,《高さ》)");
