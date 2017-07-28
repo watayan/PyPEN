@@ -116,38 +116,50 @@ var Value = function () {
 	return Value;
 }();
 
-var IntValue = function (_Value) {
-	_inherits(IntValue, _Value);
+var NullValue = function (_Value) {
+	_inherits(NullValue, _Value);
+
+	function NullValue(loc) {
+		_classCallCheck(this, NullValue);
+
+		return _possibleConstructorReturn(this, (NullValue.__proto__ || Object.getPrototypeOf(NullValue)).call(this, 0, loc));
+	}
+
+	return NullValue;
+}(Value);
+
+var IntValue = function (_Value2) {
+	_inherits(IntValue, _Value2);
 
 	function IntValue(v, loc) {
 		_classCallCheck(this, IntValue);
 
-		var _this = _possibleConstructorReturn(this, (IntValue.__proto__ || Object.getPrototypeOf(IntValue)).call(this, v, loc));
+		var _this2 = _possibleConstructorReturn(this, (IntValue.__proto__ || Object.getPrototypeOf(IntValue)).call(this, v, loc));
 
-		if (!isSafeInteger(v)) throw new RuntimeError(_this.first_line, "整数で表せない値です");
-		return _this;
+		if (!isSafeInteger(v)) throw new RuntimeError(_this2.first_line, "整数で表せない値です");
+		return _this2;
 	}
 
 	return IntValue;
 }(Value);
 
-var FloatValue = function (_Value2) {
-	_inherits(FloatValue, _Value2);
+var FloatValue = function (_Value3) {
+	_inherits(FloatValue, _Value3);
 
 	function FloatValue(v, loc) {
 		_classCallCheck(this, FloatValue);
 
-		var _this2 = _possibleConstructorReturn(this, (FloatValue.__proto__ || Object.getPrototypeOf(FloatValue)).call(this, v, loc));
+		var _this3 = _possibleConstructorReturn(this, (FloatValue.__proto__ || Object.getPrototypeOf(FloatValue)).call(this, v, loc));
 
-		if (!isFinite(v)) throw new RuntimeError(_this2.first_line, "オーバーフローしました");
-		return _this2;
+		if (!isFinite(v)) throw new RuntimeError(_this3.first_line, "オーバーフローしました");
+		return _this3;
 	}
 
 	return FloatValue;
 }(Value);
 
-var StringValue = function (_Value3) {
-	_inherits(StringValue, _Value3);
+var StringValue = function (_Value4) {
+	_inherits(StringValue, _Value4);
 
 	function StringValue() {
 		_classCallCheck(this, StringValue);
@@ -158,8 +170,8 @@ var StringValue = function (_Value3) {
 	return StringValue;
 }(Value);
 
-var BooleanValue = function (_Value4) {
-	_inherits(BooleanValue, _Value4);
+var BooleanValue = function (_Value5) {
+	_inherits(BooleanValue, _Value5);
 
 	function BooleanValue() {
 		_classCallCheck(this, BooleanValue);
@@ -170,8 +182,8 @@ var BooleanValue = function (_Value4) {
 	return BooleanValue;
 }(Value);
 
-var UNDEFINED = function (_Value5) {
-	_inherits(UNDEFINED, _Value5);
+var UNDEFINED = function (_Value6) {
+	_inherits(UNDEFINED, _Value6);
 
 	function UNDEFINED(loc) {
 		_classCallCheck(this, UNDEFINED);
@@ -194,8 +206,8 @@ var UNDEFINED = function (_Value5) {
 	return UNDEFINED;
 }(Value);
 
-var Add = function (_Value6) {
-	_inherits(Add, _Value6);
+var Add = function (_Value7) {
+	_inherits(Add, _Value7);
 
 	function Add(x, y, loc) {
 		_classCallCheck(this, Add);
@@ -209,14 +221,16 @@ var Add = function (_Value6) {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
 			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
+			if (v1 instanceof StringValue || v2 instanceof StringValue) {
+				if (v1 instanceof NullValue) return v2;else if (v2 instanceof NullValue) return v1;else return new String(v1.value + v2.value, this.loc);
+			}
 			var v = v1.value + v2.value;
-			if (v1 instanceof StringValue || v2 instanceof StringValue) return new StringValue(v, this.loc);
-			if (v1 instanceof IntValue && v2 instanceof IntValue) {
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
-			} else {
+			if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
 				if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 				return new FloatValue(v, this.loc);
+			} else {
+				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(v, this.loc);
 			}
 		}
 	}]);
@@ -224,8 +238,8 @@ var Add = function (_Value6) {
 	return Add;
 }(Value);
 
-var Sub = function (_Value7) {
-	_inherits(Sub, _Value7);
+var Sub = function (_Value8) {
+	_inherits(Sub, _Value8);
 
 	function Sub(x, y, loc) {
 		_classCallCheck(this, Sub);
@@ -239,14 +253,14 @@ var Sub = function (_Value7) {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
 			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の引き算はできません");
-			var v = v1.value - v2.value;
 			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
-			if (v1 instanceof IntValue && v2 instanceof IntValue) {
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
-			} else {
+			var v = v1.value - v2.value;
+			if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
 				if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 				return new FloatValue(v, this.loc);
+			} else {
+				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(v, this.loc);
 			}
 		}
 	}]);
@@ -254,8 +268,8 @@ var Sub = function (_Value7) {
 	return Sub;
 }(Value);
 
-var Mul = function (_Value8) {
-	_inherits(Mul, _Value8);
+var Mul = function (_Value9) {
+	_inherits(Mul, _Value9);
 
 	function Mul(x, y, loc) {
 		_classCallCheck(this, Mul);
@@ -271,12 +285,12 @@ var Mul = function (_Value8) {
 			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
 			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のかけ算はできません");
 			var v = v1.value * v2.value;
-			if (v1 instanceof IntValue && v2 instanceof IntValue) {
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
-			} else {
+			if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
 				if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 				return new FloatValue(v, this.loc);
+			} else {
+				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(v, this.loc);
 			}
 		}
 	}]);
@@ -284,8 +298,8 @@ var Mul = function (_Value8) {
 	return Mul;
 }(Value);
 
-var Div = function (_Value9) {
-	_inherits(Div, _Value9);
+var Div = function (_Value10) {
+	_inherits(Div, _Value10);
 
 	function Div(x, y, loc) {
 		_classCallCheck(this, Div);
@@ -300,8 +314,8 @@ var Div = function (_Value9) {
 			    v2 = this.value[1].getValue();
 			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if (v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			if (v1 instanceof IntValue && v2 instanceof IntValue) {
+			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
+			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
 				var v = (v1.value - v1.value % v2.value) / v2.value;
 				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 				return new IntValue(v, this.loc);
@@ -316,8 +330,46 @@ var Div = function (_Value9) {
 	return Div;
 }(Value);
 
-var Mod = function (_Value10) {
-	_inherits(Mod, _Value10);
+var Div2 = function (_Value11) {
+	_inherits(Div2, _Value11);
+
+	function Div2(x, y, loc) {
+		_classCallCheck(this, Div2);
+
+		return _possibleConstructorReturn(this, (Div2.__proto__ || Object.getPrototypeOf(Div2)).call(this, [x, y], loc));
+	}
+
+	_createClass(Div2, [{
+		key: "getValue",
+		value: function getValue() {
+			var v1 = this.value[0].getValue(),
+			    v2 = this.value[1].getValue();
+			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
+			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
+			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
+			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
+				var v = (v1.value - v1.value % v2.value) / v2.value;
+				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(v, this.loc);
+			} else {
+				if (setting.div_mode == 0) {
+					var _v2 = v1.value / v2.value;
+					if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+					return new FloatValue(_v2, this.loc);
+				} else {
+					var _v3 = Math.floor(v1.value / v2.value);
+					if (!isFinite(_v3)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+					return new IntValue(_v3, this.loc);
+				}
+			}
+		}
+	}]);
+
+	return Div2;
+}(Value);
+
+var Mod = function (_Value12) {
+	_inherits(Mod, _Value12);
 
 	function Mod(x, y, loc) {
 		_classCallCheck(this, Mod);
@@ -330,7 +382,7 @@ var Mod = function (_Value10) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof IntValue && v2 instanceof IntValue) {
+			if ((v1 instanceof IntValue || v1 instanceof NullValue) && (v2 instanceof IntValue || v2 instanceof NullValue)) {
 				if (v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
 				var v = v1.value % v2.value;
 				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
@@ -342,8 +394,8 @@ var Mod = function (_Value10) {
 	return Mod;
 }(Value);
 
-var Minus = function (_Value11) {
-	_inherits(Minus, _Value11);
+var Minus = function (_Value13) {
+	_inherits(Minus, _Value13);
 
 	function Minus(x, loc) {
 		_classCallCheck(this, Minus);
@@ -355,6 +407,7 @@ var Minus = function (_Value11) {
 		key: "getValue",
 		value: function getValue() {
 			var v1 = this.value.getValue();
+			if (v1 instanceof NullValue) return v1;
 			if (v1 instanceof IntValue || v1 instanceof FloatValue) {
 				var v = -v1.value;
 				if (v instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
@@ -367,8 +420,8 @@ var Minus = function (_Value11) {
 	return Minus;
 }(Value);
 
-var And = function (_Value12) {
-	_inherits(And, _Value12);
+var And = function (_Value14) {
+	_inherits(And, _Value14);
 
 	function And(x, y, loc) {
 		_classCallCheck(this, And);
@@ -388,8 +441,8 @@ var And = function (_Value12) {
 	return And;
 }(Value);
 
-var Or = function (_Value13) {
-	_inherits(Or, _Value13);
+var Or = function (_Value15) {
+	_inherits(Or, _Value15);
 
 	function Or(x, y, loc) {
 		_classCallCheck(this, Or);
@@ -409,8 +462,8 @@ var Or = function (_Value13) {
 	return Or;
 }(Value);
 
-var Not = function (_Value14) {
-	_inherits(Not, _Value14);
+var Not = function (_Value16) {
+	_inherits(Not, _Value16);
 
 	function Not(x, loc) {
 		_classCallCheck(this, Not);
@@ -429,8 +482,8 @@ var Not = function (_Value14) {
 	return Not;
 }(Value);
 
-var EQ = function (_Value15) {
-	_inherits(EQ, _Value15);
+var EQ = function (_Value17) {
+	_inherits(EQ, _Value17);
 
 	function EQ(x, y, loc) {
 		_classCallCheck(this, EQ);
@@ -450,8 +503,8 @@ var EQ = function (_Value15) {
 	return EQ;
 }(Value);
 
-var NE = function (_Value16) {
-	_inherits(NE, _Value16);
+var NE = function (_Value18) {
+	_inherits(NE, _Value18);
 
 	function NE(x, y, loc) {
 		_classCallCheck(this, NE);
@@ -471,8 +524,8 @@ var NE = function (_Value16) {
 	return NE;
 }(Value);
 
-var GT = function (_Value17) {
-	_inherits(GT, _Value17);
+var GT = function (_Value19) {
+	_inherits(GT, _Value19);
 
 	function GT(x, y, loc) {
 		_classCallCheck(this, GT);
@@ -492,8 +545,8 @@ var GT = function (_Value17) {
 	return GT;
 }(Value);
 
-var GE = function (_Value18) {
-	_inherits(GE, _Value18);
+var GE = function (_Value20) {
+	_inherits(GE, _Value20);
 
 	function GE(x, y, loc) {
 		_classCallCheck(this, GE);
@@ -513,8 +566,8 @@ var GE = function (_Value18) {
 	return GE;
 }(Value);
 
-var LT = function (_Value19) {
-	_inherits(LT, _Value19);
+var LT = function (_Value21) {
+	_inherits(LT, _Value21);
 
 	function LT(x, y, loc) {
 		_classCallCheck(this, LT);
@@ -534,8 +587,8 @@ var LT = function (_Value19) {
 	return LT;
 }(Value);
 
-var LE = function (_Value20) {
-	_inherits(LE, _Value20);
+var LE = function (_Value22) {
+	_inherits(LE, _Value22);
 
 	function LE(x, y, loc) {
 		_classCallCheck(this, LE);
@@ -555,8 +608,8 @@ var LE = function (_Value20) {
 	return LE;
 }(Value);
 
-var Variable = function (_Value21) {
-	_inherits(Variable, _Value21);
+var Variable = function (_Value23) {
+	_inherits(Variable, _Value23);
 
 	function Variable(x, y, loc) {
 		_classCallCheck(this, Variable);
@@ -568,7 +621,7 @@ var Variable = function (_Value21) {
 		key: "getValue",
 		value: function getValue() {
 			var vn = this.varname;
-			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
+			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else return new NullValue(this.loc);
 		}
 	}, {
 		key: "varname",
@@ -590,8 +643,8 @@ var Variable = function (_Value21) {
 	return Variable;
 }(Value);
 
-var CallFunction = function (_Value22) {
-	_inherits(CallFunction, _Value22);
+var CallFunction = function (_Value24) {
+	_inherits(CallFunction, _Value24);
 
 	function CallFunction(funcname, parameter, loc) {
 		_classCallCheck(this, CallFunction);
@@ -607,89 +660,87 @@ var CallFunction = function (_Value22) {
 			if (func == 'abs') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), this.loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), this.loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'random') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
 			} else if (func == 'ceil') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'floor') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'round') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'sin') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'cos') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'tan') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v2 = Math.tan(par1.value);
-					if (isFinite(_v2)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+					var _v4 = Math.tan(par1.value);
+					if (isFinite(_v4)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'sqrt') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
+				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 					if (par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
 					return new FloatValue(Math.sqrt(par1.value), this.loc);
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'log') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
+				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 					if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
-					var _v3 = Math.log(par1.value);
-					if (isFinite(_v3)) return new FloatValue(_v3, this.loc);
+					var _v5 = Math.log(par1.value);
+					if (isFinite(_v5)) return new FloatValue(_v5, this.loc);
 					throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'exp') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v4 = Math.exp(par1.value);
-					if (isFinite(_v4)) return new FloatValue(_v4, this.loc);
+				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+					var _v6 = Math.exp(par1.value);
+					if (isFinite(_v6)) return new FloatValue(_v6, this.loc);
 					throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'pow') {
 				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
 				var par1 = param[0].getValue();
 				var par2 = param[1].getValue();
-				if (par1 instanceof IntValue && par2 instanceof IntValue && par2.value >= 0) {
+				if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
 					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v5 = Math.pow(par1.value, par2.value);
-					if (isSafeInteger(_v5)) return new IntValue(_v5, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v7 = Math.pow(par1.value, par2.value);
+					if (isSafeInteger(_v7)) return new IntValue(_v7, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				}
-				if ((par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof IntValue || par2 instanceof FloatValue)) {
+				if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
 					if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
 					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v6 = Math.pow(par1.value, par2.value);
-					if (isFinite(_v6)) return new FloatValue(_v6, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v8 = Math.pow(par1.value, par2.value);
+					if (isFinite(_v8)) return new FloatValue(_v8, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				}
 			} else if (func == 'length') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
-				if (par1 instanceof StringValue) {
-					return new IntValue(par1.value.length(), this.loc);
-				} else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
+				if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
 			} else if (func == 'substring') {
 				if (param.length != 2 && param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は2つか3つです");
 				var par1 = param[0].getValue();
 				var par2 = param[1].getValue();
 				var par3 = param.length == 3 ? param[2].getValue() : null;
-				if (par1 instanceof StringValue && par2 instanceof IntValue && (par3 == null || par3 instanceof IntValue)) {
+				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 == null || par1 instanceof NullValue || par3 instanceof IntValue)) {
 					var v;
 					if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
 					return new StringValue(v, this.loc);
@@ -698,7 +749,7 @@ var CallFunction = function (_Value22) {
 				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
 				var par1 = param[0].getValue();
 				var par2 = param[1].getValue();
-				if (par1 instanceof StringValue && par2 instanceof StringValue) {
+				if (par1 instanceof NullValue) return v2;else if (par2 instanceof NullValue) return v1;else if (par2 instanceof StringValue && par2 instanceof StringValue) {
 					return new StringValue(par1.value + par2.value, this.loc);
 				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 			} else if (func == 'extract') {
@@ -706,20 +757,26 @@ var CallFunction = function (_Value22) {
 				var par1 = param[0].getValue();
 				var par2 = param[1].getValue();
 				var par3 = param[2].getValue();
-				if (par1 instanceof StringValue && par2 instanceof StringValue && par3 instanceof IntValue) {
-					var v = par1.value.split(par2.value);
-					if (par3.value >= 0 && par3.value < v.length) return new StringValue(v[par3.value], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
+				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof StringValue) && (par3 instanceof NullValue || par3 instanceof IntValue)) {
+					var v1 = par1 instanceof NullValue ? '' : par1.value;
+					var v2 = par2 instanceof NullValue ? '' : par2.value;
+					var v3 = par3.value;
+					var v = v1.split(v2);
+					if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
 				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 			} else if (func == 'insert') {
 				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
 				var par1 = param[0].getValue();
 				var par2 = param[1].getValue();
 				var par3 = param[2].getValue();
-				if (par1 instanceof StringValue && par2 instanceof IntValue && par3 instanceof StringValue) {
-					if (par2.value < 0 || par2.value > par1.value.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-					var s1 = par1.value.substr(0, par2.value);
-					var s2 = par1.value.substr(par2.value);
-					return new StringValue(s1 + par3.value + s2, this.loc);
+				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof StringValue)) {
+					var v1 = par1 instanceof NullValue ? '' : par1.value;
+					var v2 = par2.value;
+					var v3 = par3 instanceof NullValue ? '' : par3.value;
+					if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+					var s1 = v1.substr(0, v2);
+					var s2 = v1.substr(v2);
+					return new StringValue(s1 + v3 + s2, this.loc);
 				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 			} else if (func == 'replace') {
 				if (param.length != 4) throw new RuntimeError(this.first_line, func + "の引数は4つです");
@@ -727,12 +784,17 @@ var CallFunction = function (_Value22) {
 				var par2 = param[1].getValue();
 				var par3 = param[2].getValue();
 				var par4 = param[3].getValue();
-				if (par1 instanceof StringValue && par2 instanceof IntValue && par3 instanceof IntValue && par4 instanceof StringValue) {
-					if (par2.value < 0 || par2.value > par1.value.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-					if (par3.value < 0 || par2.value + par3.value > par1.value.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
-					var s1 = par1.value.substr(0, par2.value);
-					var s2 = par1.value.substr(par2.value + par3.value);
-					return new StringValue(s1 + par4.value + s2, this.loc);
+				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof IntValue) && (par4 instanceof NullValue || par4 instanceof StringValue)) {
+					var v1 = par1 instanceof NullValue ? '' : par1.value;
+					var v2 = par2.value;
+					var v3 = par3.value;
+					var v4 = par4 instanceof NullValue ? '' : par4.value;
+
+					if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+					if (v3 < 0 || v2 + v3 > v1.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
+					var s1 = v1.substr(0, v2);
+					var s2 = v1.substr(v2 + v3);
+					return new StringValue(s1 + v4 + s2, this.loc);
 				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 			} else throw new RuntimeError(this.first_line, func + "という関数はありません");
 		}
@@ -741,8 +803,8 @@ var CallFunction = function (_Value22) {
 	return CallFunction;
 }(Value);
 
-var Append = function (_Value23) {
-	_inherits(Append, _Value23);
+var Append = function (_Value25) {
+	_inherits(Append, _Value25);
 
 	function Append(x, y, loc) {
 		_classCallCheck(this, Append);
@@ -755,6 +817,8 @@ var Append = function (_Value23) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (this.value[0].getValue() instanceof NullValue) v1 = '';
+			if (this.value[1].getValue() instanceof NullValue) v2 = '';
 			var v = String(v1.value) + String(v2.value);
 			return new StringValue(v, this.loc);
 		}
@@ -799,10 +863,10 @@ var DefinitionInt = function (_Statement) {
 	function DefinitionInt(x, loc) {
 		_classCallCheck(this, DefinitionInt);
 
-		var _this24 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
+		var _this26 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
 
-		_this24.vars = x;
-		return _this24;
+		_this26.vars = x;
+		return _this26;
 	}
 
 	_createClass(DefinitionInt, [{
@@ -822,14 +886,14 @@ var DefinitionInt = function (_Statement) {
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
-						args[j] = 0;
+						args[j] = setting.array_origin != 2 ? 0 : 1;
 					}while (args) {
 						varsInt[varname + '[' + args.join(',') + ']'] = 0;
 						var k = 0;
 						do {
 							if (k < args.length) {
 								args[k]++;
-								if (args[k] > parameterlist[k]) args[k++] = 0;else k = -1;
+								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
 							} else {
 								k = -1;
 								args = undefined;
@@ -851,10 +915,10 @@ var DefinitionFloat = function (_Statement2) {
 	function DefinitionFloat(x, loc) {
 		_classCallCheck(this, DefinitionFloat);
 
-		var _this25 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
+		var _this27 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
 
-		_this25.vars = x;
-		return _this25;
+		_this27.vars = x;
+		return _this27;
 	}
 
 	_createClass(DefinitionFloat, [{
@@ -874,14 +938,14 @@ var DefinitionFloat = function (_Statement2) {
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
-						args[j] = 0;
+						args[j] = setting.array_origin != 2 ? 0 : 1;
 					}while (args) {
 						varsFloat[varname + '[' + args.join(',') + ']'] = 0;
 						var k = 0;
 						do {
 							if (k < args.length) {
 								args[k]++;
-								if (args[k] > parameterlist[k]) args[k++] = 0;else k = -1;
+								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
 							} else {
 								k = -1;
 								args = undefined;
@@ -903,10 +967,10 @@ var DefinitionString = function (_Statement3) {
 	function DefinitionString(x, loc) {
 		_classCallCheck(this, DefinitionString);
 
-		var _this26 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
+		var _this28 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
 
-		_this26.vars = x;
-		return _this26;
+		_this28.vars = x;
+		return _this28;
 	}
 
 	_createClass(DefinitionString, [{
@@ -926,14 +990,14 @@ var DefinitionString = function (_Statement3) {
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
-						args[j] = 0;
+						args[j] = setting.array_origin != 2 ? 0 : 1;
 					}while (args) {
 						varsString[varname + '[' + args.join(',') + ']'] = '';
 						var k = 0;
 						do {
 							if (k < args.length) {
 								args[k]++;
-								if (args[k] > parameterlist[k]) args[k++] = 0;else k = -1;
+								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
 							} else {
 								k = -1;
 								args = undefined;
@@ -955,10 +1019,10 @@ var DefinitionBoolean = function (_Statement4) {
 	function DefinitionBoolean(x, loc) {
 		_classCallCheck(this, DefinitionBoolean);
 
-		var _this27 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
+		var _this29 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
 
-		_this27.vars = x;
-		return _this27;
+		_this29.vars = x;
+		return _this29;
 	}
 
 	_createClass(DefinitionBoolean, [{
@@ -978,14 +1042,14 @@ var DefinitionBoolean = function (_Statement4) {
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
-						args[j] = 0;
+						args[j] = setting.array_origin != 2 ? 0 : 1;
 					}while (args) {
 						varsBoolean[varname + '[' + args.join(',') + ']'] = false;
 						var k = 0;
 						do {
 							if (k < args.length) {
 								args[k]++;
-								if (args[k] > parameterlist[k]) args[k++] = 0;else k = -1;
+								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
 							} else {
 								k = -1;
 								args = undefined;
@@ -1007,11 +1071,11 @@ var Assign = function (_Statement5) {
 	function Assign(varname, val, loc) {
 		_classCallCheck(this, Assign);
 
-		var _this28 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
+		var _this30 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
 
-		_this28.varname = varname;
-		_this28.val = val;
-		return _this28;
+		_this30.varname = varname;
+		_this30.val = val;
+		return _this30;
 	}
 
 	_createClass(Assign, [{
@@ -1029,7 +1093,10 @@ var Assign = function (_Statement5) {
 				if (vl instanceof StringValue) varsString[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に文字列以外の値を代入しようとしました");
 			} else if (varsBoolean[vn] != undefined) {
 				if (vl instanceof BooleanValue) varsBoolean[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に真偽以外の値を代入しようとしました");
-			} else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+			} else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else // 新しい変数を宣言する
+				{
+					if (vl instanceof NullValue || vl instanceof IntValue) varsInt[vn] = vl.value;else if (vl instanceof FloatValue) varsFloat[vn] = vl.value;else if (vl instanceof StringValue) varsString[vn] = vl.value;else if (vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
+				}
 			return index + 1;
 		}
 	}]);
@@ -1043,10 +1110,10 @@ var Input = function (_Statement6) {
 	function Input(x, loc) {
 		_classCallCheck(this, Input);
 
-		var _this29 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
+		var _this31 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
 
-		_this29.varname = x;
-		return _this29;
+		_this31.varname = x;
+		return _this31;
 	}
 
 	_createClass(Input, [{
@@ -1087,10 +1154,10 @@ var InputEnd = function (_Statement8) {
 	function InputEnd(x, loc) {
 		_classCallCheck(this, InputEnd);
 
-		var _this31 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
+		var _this33 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
 
-		_this31.varname = x;
-		return _this31;
+		_this33.varname = x;
+		return _this33;
 	}
 
 	_createClass(InputEnd, [{
@@ -1110,7 +1177,9 @@ var InputEnd = function (_Statement8) {
 				} else if (varsBoolean[vn] != undefined) {
 					varsBoolean[vn] = vl;
 					if (vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
-				} else throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+				} else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else {
+					varsString[vn] = String(vl); // とりあえず文字列
+				}
 			} catch (e) {
 				closeInputWindow();
 				throw e;
@@ -1129,17 +1198,19 @@ var Output = function (_Statement9) {
 	function Output(x, ln, loc) {
 		_classCallCheck(this, Output);
 
-		var _this32 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
+		var _this34 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
 
-		_this32.value = x;
-		_this32.ln = ln;
-		return _this32;
+		_this34.value = x;
+		_this34.ln = ln;
+		return _this34;
 	}
 
 	_createClass(Output, [{
 		key: "run",
 		value: function run(index) {
-			textareaAppend(this.value.getValue().value + (this.ln ? "\n" : ""));
+			var v = this.value.getValue().value;
+			if (this.value.getValue() instanceof NullValue) v = '';
+			textareaAppend(v + (this.ln ? "\n" : ""));
 			return index + 1;
 		}
 	}]);
@@ -1153,11 +1224,11 @@ var GraphicStatement = function (_Statement10) {
 	function GraphicStatement(command, args, loc) {
 		_classCallCheck(this, GraphicStatement);
 
-		var _this33 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
+		var _this35 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
 
-		_this33.command = command;
-		_this33.args = args;
-		return _this33;
+		_this35.command = command;
+		_this35.args = args;
+		return _this35;
 	}
 
 	_createClass(GraphicStatement, [{
@@ -1254,12 +1325,12 @@ var If = function (_Statement11) {
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
-		var _this34 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
+		var _this36 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
 
-		_this34.condition = condition;
-		_this34.state1 = state1;
-		_this34.state2 = state2;
-		return _this34;
+		_this36.condition = condition;
+		_this36.state1 = state1;
+		_this36.state2 = state2;
+		return _this36;
 	}
 
 	_createClass(If, [{
@@ -1281,11 +1352,11 @@ var LoopBegin = function (_Statement12) {
 	function LoopBegin(condition, continuous, loc) {
 		_classCallCheck(this, LoopBegin);
 
-		var _this35 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
+		var _this37 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
 
-		_this35.condition = condition;
-		_this35.continuous = continuous;
-		return _this35;
+		_this37.condition = condition;
+		_this37.continuous = continuous;
+		return _this37;
 	}
 
 	_createClass(LoopBegin, [{
@@ -1304,11 +1375,11 @@ var LoopEnd = function (_Statement13) {
 	function LoopEnd(condition, continuous, loc) {
 		_classCallCheck(this, LoopEnd);
 
-		var _this36 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
+		var _this38 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
 
-		_this36.condition = condition;
-		_this36.continuous = continuous;
-		return _this36;
+		_this38.condition = condition;
+		_this38.continuous = continuous;
+		return _this38;
 	}
 
 	_createClass(LoopEnd, [{
@@ -1327,14 +1398,14 @@ var ForInc = function (_Statement14) {
 	function ForInc(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForInc);
 
-		var _this37 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
+		var _this39 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
 
-		_this37.varname = varname;
-		_this37.begin = begin;
-		_this37.end = end;
-		_this37.step = step;
-		_this37.state = state;
-		return _this37;
+		_this39.varname = varname;
+		_this39.begin = begin;
+		_this39.end = end;
+		_this39.step = step;
+		_this39.state = state;
+		return _this39;
 	}
 
 	_createClass(ForInc, [{
@@ -1342,6 +1413,9 @@ var ForInc = function (_Statement14) {
 		value: function run(index) {
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
+			if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
+				if (this.begin.getValue() instanceof IntValue) varsInt[this.varname.varname] = 0;else if (this.begin.getValue() instanceof FloatValue) varsFloat[this.varname.varname] = 0;
+			}
 			if (varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined) {
 				var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 				assign.run(0);
@@ -1365,14 +1439,14 @@ var ForDec = function (_Statement15) {
 	function ForDec(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForDec);
 
-		var _this38 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
+		var _this40 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
 
-		_this38.varname = varname;
-		_this38.begin = begin;
-		_this38.end = end;
-		_this38.step = step;
-		_this38.state = state;
-		return _this38;
+		_this40.varname = varname;
+		_this40.begin = begin;
+		_this40.end = end;
+		_this40.step = step;
+		_this40.state = state;
+		return _this40;
 	}
 
 	_createClass(ForDec, [{
@@ -1380,6 +1454,9 @@ var ForDec = function (_Statement15) {
 		value: function run(index) {
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
+			if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
+				if (this.begin.getValue() instanceof IntValue) varsInt[this.varname.varname] = 0;else if (this.begin.getValue() instanceof FloatValue) varsFloat[this.varname.varname] = 0;
+			}
 			if (varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined) {
 				var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 				assign.run(0);
@@ -1403,11 +1480,11 @@ var Until = function (_Statement16) {
 	function Until(state, condition, loc) {
 		_classCallCheck(this, Until);
 
-		var _this39 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
+		var _this41 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
 
-		_this39.condition = condition;
-		_this39.state = state;
-		return _this39;
+		_this41.condition = condition;
+		_this41.state = state;
+		return _this41;
 	}
 
 	_createClass(Until, [{
@@ -1432,11 +1509,11 @@ var While = function (_Statement17) {
 	function While(condition, state, loc) {
 		_classCallCheck(this, While);
 
-		var _this40 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
+		var _this42 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
 
-		_this40.condition = condition;
-		_this40.state = state;
-		return _this40;
+		_this42.condition = condition;
+		_this42.state = state;
+		return _this42;
 	}
 
 	_createClass(While, [{
@@ -1658,7 +1735,7 @@ function sampleButton(num) {
 	reset();
 }
 
-var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する", "整数 a,b\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す", "整数 a,b\n" + "描画領域開く(200,200)\n" + "aを1から100まで1ずつ増やしながら，\n" + "｜線色設定(random(255),random(255),random(255))\n" + "｜円描画(random(200),random(200),random(30)+1)\n" + "を繰り返す", "整数 tyotensu,hensosu,Siten[22],Syuten[22],kotae,i,j,x,y\n" + "文字列 Hen[8,8],Senbun[22],HenData[8]\n" + "HenData[1] ← 「-AB-A-AB」\n" + "HenData[2] ← 「---CA-AC」\n" + "HenData[3] ← 「---E-EEB」\n" + "HenData[4] ← 「-----EEC」\n" + "HenData[5] ← 「-----DAD」\n" + "HenData[6] ← 「------ED」\n" + "HenData[7] ← 「-------F」\n" + "HenData[8] ← 「--------」\n" + "i を 1 から 8 まで 1 ずつ増やしながら，\n" + "  | j を 1 から 8 まで 1 ずつ増やしながら，\n" + "  |   | Hen[i,j] ← substring(HenData[i],j-1,1)\n" + "  | を繰り返す\n" + "を繰り返す\n" + "tyotensu ← 8\n" + "hensosu ← 0\n" + "i を 1 から tyotensu-1 まで 1 ずつ増やしながら，\n" + "  | j を i+1 から tyotensu まで 1 ずつ増やしながら，\n" + "  |   | もし Hen[i,j]!=「-」 ならば\n" + "  |   |   | hensosu ← hensosu+1\n" + "  |   |   | Siten[hensosu] ← i\n" + "  |   |   | Syuten[hensosu] ← j\n" + "  |   |   | Senbun[hensosu] ← Hen[i,j]\n" + "  |   | を実行する\n" + "  | を繰り返す\n" + "を繰り返す\n" + "kotae ← 0\n" + "x を 1 から hensosu-2 まで 1 ずつ増やしながら，\n" + "  | y ← x+1\n" + "  | Siten[x]=Siten[y] の間，\n" + "  |   | もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n" + "  |   |   | kotae ← kotae+1\n" + "  |   | を実行する\n" + "  |   | y ← y+1\n" + "  | を繰り返す\n" + "を繰り返す\n" + "「三角形の個数は」とkotae を表示する\n"];
+var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する\n" + "3÷2を表示する\n" + "3.0÷2.0を表示する", "整数 a,b\n" + "a←0\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す", "整数 a,b\n" + "描画領域開く(200,200)\n" + "aを1から100まで1ずつ増やしながら，\n" + "｜線色設定(random(255),random(255),random(255))\n" + "｜円描画(random(200),random(200),random(30)+1)\n" + "を繰り返す", "整数 tyotensu,hensosu,Siten[22],Syuten[22],kotae,i,j,x,y\n" + "文字列 Hen[8,8],Senbun[22],HenData[8]\n" + "HenData[1] ← 「-AB-A-AB」\n" + "HenData[2] ← 「---CA-AC」\n" + "HenData[3] ← 「---E-EEB」\n" + "HenData[4] ← 「-----EEC」\n" + "HenData[5] ← 「-----DAD」\n" + "HenData[6] ← 「------ED」\n" + "HenData[7] ← 「-------F」\n" + "HenData[8] ← 「--------」\n" + "i を 1 から 8 まで 1 ずつ増やしながら，\n" + "  | j を 1 から 8 まで 1 ずつ増やしながら，\n" + "  |   | Hen[i,j] ← substring(HenData[i],j-1,1)\n" + "  | を繰り返す\n" + "を繰り返す\n" + "tyotensu ← 8\n" + "hensosu ← 0\n" + "i を 1 から tyotensu-1 まで 1 ずつ増やしながら，\n" + "  | j を i+1 から tyotensu まで 1 ずつ増やしながら，\n" + "  |   | もし Hen[i,j]!=「-」 ならば\n" + "  |   |   | hensosu ← hensosu+1\n" + "  |   |   | Siten[hensosu] ← i\n" + "  |   |   | Syuten[hensosu] ← j\n" + "  |   |   | Senbun[hensosu] ← Hen[i,j]\n" + "  |   | を実行する\n" + "  | を繰り返す\n" + "を繰り返す\n" + "kotae ← 0\n" + "x を 1 から hensosu-2 まで 1 ずつ増やしながら，\n" + "  | y ← x+1\n" + "  | Siten[x]=Siten[y] の間，\n" + "  |   | もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n" + "  |   |   | kotae ← kotae+1\n" + "  |   | を実行する\n" + "  |   | y ← y+1\n" + "  | を繰り返す\n" + "を繰り返す\n" + "「三角形の個数は」とkotae を表示する\n"];
 
 function insertCord(add_cord) {
 	var sourceTextArea = document.getElementById("sourceTextarea");

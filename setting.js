@@ -1,17 +1,17 @@
 var setting = 
 {
-    var_declaration: 0;
+    var_declaration: 0,
     // 変数の宣言が必要か否か
     // 0 宣言なしだとエラー
     // 1 宣言なしだとその場で生成
 
-    array_origin: 0;
+    array_origin: 0,
     // a[n]と宣言した配列の添字の範囲
     // 0 a[0]〜a[n]
     // 1 a[0]〜a[n-1]
     // 2 a[1]〜a[n]
 
-    div_mode: 0;
+    div_mode: 0,
     // /と÷の区別
     // 0 同じ
     // 1 /は商，÷は商の整数部分
