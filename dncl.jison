@@ -11,7 +11,7 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 
 Integer			[0] | ({NonZeroDigit}{DecimalDigit}*)
 Float			{Integer}"."{DecimalDigit}+
-String			"「"[^」]*"」"
+String			"「"[^」]*"」"|"\""[^"]*"\""
 Comma			[，,、]
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　|｜]

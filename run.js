@@ -1559,8 +1559,8 @@ var sample=[
 "「整数と実数の違い」を表示する\n"+
 "11.0/2*2を表示する\n"+
 "11/2*2を表示する\n"+
-"3÷2を表示する\n"+
-"3.0÷2.0を表示する"
+"3.0÷2.0を表示する\n"+
+"3÷2を表示する"
 ,
 "整数 a,b\n"+
 "a←0\n"+
@@ -1614,34 +1614,33 @@ var sample=[
 "HenData[7] ← 「-------F」\n"+
 "HenData[8] ← 「--------」\n"+
 "i を 1 から 8 まで 1 ずつ増やしながら，\n"+
-"  | j を 1 から 8 まで 1 ずつ増やしながら，\n"+
-"  |   | Hen[i,j] ← substring(HenData[i],j-1,1)\n"+
-"  | を繰り返す\n"+
+"｜j を 1 から 8 まで 1 ずつ増やしながら，\n"+
+"｜｜Hen[i,j] ← substring(HenData[i],j-1,1)\n"+
+"｜を繰り返す\n"+
 "を繰り返す\n"+
 "tyotensu ← 8\n"+
 "hensosu ← 0\n"+
 "i を 1 から tyotensu-1 まで 1 ずつ増やしながら，\n"+
-"  | j を i+1 から tyotensu まで 1 ずつ増やしながら，\n"+
-"  |   | もし Hen[i,j]!=「-」 ならば\n"+
-"  |   |   | hensosu ← hensosu+1\n"+
-"  |   |   | Siten[hensosu] ← i\n"+
-"  |   |   | Syuten[hensosu] ← j\n"+
-"  |   |   | Senbun[hensosu] ← Hen[i,j]\n"+
-"  |   | を実行する\n"+
-"  | を繰り返す\n"+
+"｜j を i+1 から tyotensu まで 1 ずつ増やしながら，\n"+
+"｜｜もし Hen[i,j]!=「-」 ならば\n"+
+"｜｜｜hensosu ← hensosu+1\n"+
+"｜｜｜Siten[hensosu] ← i\n"+
+"｜｜｜Syuten[hensosu] ← j\n"+
+"｜｜｜Senbun[hensosu] ← Hen[i,j]\n"+
+"｜｜を実行する\n"+
+"｜を繰り返す\n"+
 "を繰り返す\n"+
 "kotae ← 0\n"+
 "x を 1 から hensosu-2 まで 1 ずつ増やしながら，\n"+
-"  | y ← x+1\n"+
-"  | Siten[x]=Siten[y] の間，\n"+
-"  |   | もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n"+
-"  |   |   | kotae ← kotae+1\n"+
-"  |   | を実行する\n"+
-"  |   | y ← y+1\n"+
-"  | を繰り返す\n"+
+"｜y ← x+1\n"+
+"｜Siten[x]=Siten[y] の間，\n"+
+"｜｜もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n"+
+"｜｜｜kotae ← kotae+1\n"+
+"｜｜を実行する\n"+
+"｜｜y ← y+1\n"+
+"｜を繰り返す\n"+
 "を繰り返す\n"+
 "「三角形の個数は」とkotae を表示する\n"
-
 ];
 
 function insertCord(add_cord)
