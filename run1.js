@@ -1,6 +1,6 @@
 "use strict";
 // programmed by watayan <watayan@watayan.net>
-// use Babel to transpile
+// edit run.js, and transpile with Babel to make run1.js
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -1645,28 +1645,28 @@ function keydown(e) {
 	}
 }
 
-function editButton(add_cord) {
+function editButton(add_code) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var pos = sourceTextArea.selectionStart;
-	var cord = sourceTextArea.value;
-	var cord1 = cord.slice(0, pos);
-	var cord2 = cord.slice(pos, cord.length);
+	var code = sourceTextArea.value;
+	var code1 = code.slice(0, pos);
+	var code2 = code.slice(pos, code.length);
 	var re1 = /[｜| 　]*$/;
 	var re2 = /[｜| 　\n]/;
-	var add_cords = add_cord.split("\n");
+	var add_codes = add_code.split("\n");
 	var tab = "";
-	var array = re1.exec(cord1);
+	var array = re1.exec(code1);
 	if (array != null) tab = array[0];
-	//	console.log("["+cord[pos]+"]");
-	if (cord[pos] && cord[pos] != "\n" || pos > 0 && !re2.exec(cord[pos - 1])) {
+	//	console.log("["+code[pos]+"]");
+	if (code[pos] && code[pos] != "\n" || pos > 0 && !re2.exec(code[pos - 1])) {
 		alert("この位置で入力支援ボタンを押してはいけません");
 		sourceTextArea.focus();
 		return;
 	}
-	for (var c in add_cords) {
-		if (c > 0) add_cords[c] = tab + add_cords[c];
-	}sourceTextArea.value = cord1 + add_cords.join("\n") + cord2;
-	sourceTextArea.selectionStart = sourceTextArea.selectionEnd = sourceTextArea.value.length - cord2.length;
+	for (var c in add_codes) {
+		if (c > 0) add_codes[c] = tab + add_codes[c];
+	}sourceTextArea.value = code1 + add_codes.join("\n") + code2;
+	sourceTextArea.selectionStart = sourceTextArea.selectionEnd = sourceTextArea.value.length - code2.length;
 	sourceTextArea.focus();
 }
 
@@ -1674,9 +1674,9 @@ function keyUp(e) {
 	var evt = e || window.event;
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var pos = sourceTextArea.selectionStart;
-	var cord = sourceTextArea.value;
-	var cord1 = cord.slice(0, pos);
-	var cord2 = cord.slice(pos, cord.length);
+	var code = sourceTextArea.value;
+	var code1 = code.slice(0, pos);
+	var code2 = code.slice(pos, code.length);
 	var re1 = /《[^》《]*$/;
 	var re2 = /^[^》《]*》/;
 	var re3 = /\n?([｜|]*)([^｜|\n]*?)\n$/;
@@ -1686,8 +1686,8 @@ function keyUp(e) {
 	switch (evt.keyCode) {
 		case 37:case 38:case 39:case 40:
 			if (pos > 0) {
-				var match1 = re1.exec(cord1);
-				var match2 = re2.exec(cord2);
+				var match1 = re1.exec(code1);
+				var match2 = re2.exec(code2);
 				if (match1 != null && match2 != null) {
 					sourceTextArea.setSelectionRange(pos - match1[0].length, pos + match2[0].length);
 					return false;
@@ -1695,14 +1695,14 @@ function keyUp(e) {
 			}
 		case 13:
 			// \n
-			if (!re5.exec(cord2)) return true;
-			var match = re3.exec(cord1);
+			if (!re5.exec(code2)) return true;
+			var match = re3.exec(code1);
 			if (match) {
 				tab = match[1];
 				if (re4.exec(match[2])) tab = "｜" + tab;
 			}
-			sourceTextArea.value = cord1 + tab + cord2;
-			pos = cord1.length + tab.length;
+			sourceTextArea.value = code1 + tab + code2;
+			pos = code1.length + tab.length;
 			sourceTextArea.setSelectionRange(pos, pos);
 			return false;
 		default:
@@ -1715,13 +1715,13 @@ function keyUp(e) {
 function mouseClick() {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var pos = sourceTextArea.selectionStart;
-	var cord = sourceTextArea.value;
-	var cord1 = cord.slice(0, pos);
-	var cord2 = cord.slice(pos, cord.length);
+	var code = sourceTextArea.value;
+	var code1 = code.slice(0, pos);
+	var code2 = code.slice(pos, code.length);
 	var re1 = /《[^》《]*$/;
 	var re2 = /^[^》《]*》/;
-	var match1 = re1.exec(cord1);
-	var match2 = re2.exec(cord2);
+	var match1 = re1.exec(code1);
+	var match2 = re2.exec(code2);
 	if (match1 != null && match2 != null) {
 		var start = pos - match1[0].length;
 		var end = pos + match2[0].length;
@@ -1737,14 +1737,14 @@ function sampleButton(num) {
 
 var sample = ["「整数と実数の違い」を表示する\n" + "11.0/2*2を表示する\n" + "11/2*2を表示する\n" + "3.0÷2.0を表示する\n" + "3÷2を表示する", "整数 a,b\n" + "a←0\n" + "b←random(8)+1\n" + "「1から9の数字を当ててください」を表示する\n" + "繰り返し，\n" + "｜aを入力する\n" + "｜aを表示する\n" + "｜もしa>bならば\n" + "｜｜「大きい」を表示する\n" + "｜を実行し，そうでなければ\n" + "｜｜もしa<bならば\n" + "｜｜｜「小さい」を表示する\n" + "｜｜を実行する\n" + "｜を実行する\n" + "を，a=bになるまで実行する\n" + "「あたり」を表示する", "整数 a,b,c[5]\n" + "「サイコロを60回振って出た目の回数を数えるシミュレーション」を表示する\n" + "aを1から60まで1ずつ増やしながら，\n" + "｜b←random(5)\n" + "｜c[b]←c[b]+1\n" + "を繰り返す\n" + "bを0から5まで1ずつ増やしながら，\n" + "｜c[b]を表示する\n" + "を繰り返す", "整数 a,b\n" + "a←1\n" + "bを1から100まで1ずつ増やしながら，\n" + "｜a←a*b\n" + "｜bと「!=」とaを表示する\n" + "を繰り返す", "整数 a,b\n" + "描画領域開く(200,200)\n" + "aを1から100まで1ずつ増やしながら，\n" + "｜線色設定(random(255),random(255),random(255))\n" + "｜円描画(random(200),random(200),random(30)+1)\n" + "を繰り返す", "整数 tyotensu,hensosu,Siten[22],Syuten[22],kotae,i,j,x,y\n" + "文字列 Hen[8,8],Senbun[22],HenData[8]\n" + "HenData[1] ← 「-AB-A-AB」\n" + "HenData[2] ← 「---CA-AC」\n" + "HenData[3] ← 「---E-EEB」\n" + "HenData[4] ← 「-----EEC」\n" + "HenData[5] ← 「-----DAD」\n" + "HenData[6] ← 「------ED」\n" + "HenData[7] ← 「-------F」\n" + "HenData[8] ← 「--------」\n" + "i を 1 から 8 まで 1 ずつ増やしながら，\n" + "｜j を 1 から 8 まで 1 ずつ増やしながら，\n" + "｜｜Hen[i,j] ← substring(HenData[i],j-1,1)\n" + "｜を繰り返す\n" + "を繰り返す\n" + "tyotensu ← 8\n" + "hensosu ← 0\n" + "i を 1 から tyotensu-1 まで 1 ずつ増やしながら，\n" + "｜j を i+1 から tyotensu まで 1 ずつ増やしながら，\n" + "｜｜もし Hen[i,j]!=「-」 ならば\n" + "｜｜｜hensosu ← hensosu+1\n" + "｜｜｜Siten[hensosu] ← i\n" + "｜｜｜Syuten[hensosu] ← j\n" + "｜｜｜Senbun[hensosu] ← Hen[i,j]\n" + "｜｜を実行する\n" + "｜を繰り返す\n" + "を繰り返す\n" + "kotae ← 0\n" + "x を 1 から hensosu-2 まで 1 ずつ増やしながら，\n" + "｜y ← x+1\n" + "｜Siten[x]=Siten[y] の間，\n" + "｜｜もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n" + "｜｜｜kotae ← kotae+1\n" + "｜｜を実行する\n" + "｜｜y ← y+1\n" + "｜を繰り返す\n" + "を繰り返す\n" + "「三角形の個数は」とkotae を表示する\n"];
 
-function insertCord(add_cord) {
+function insertCode(add_code) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var pos1 = sourceTextArea.selectionStart;
 	var pos2 = sourceTextArea.selectionEnd;
-	var cord = sourceTextArea.value;
-	var cord1 = cord.slice(0, pos1);
-	var cord2 = cord.slice(pos2, cord.length);
-	sourceTextArea.value = cord1 + add_cord + cord2;
+	var code = sourceTextArea.value;
+	var code1 = code.slice(0, pos1);
+	var code2 = code.slice(pos2, code.length);
+	sourceTextArea.value = code1 + add_code + code2;
 }
 
 onload = function onload() {
@@ -1820,111 +1820,130 @@ onload = function onload() {
 					document.getElementById("sourceTextarea").select();document.execCommand('copy');
 				}
 			},
+			zenkaku: { name: "入力補助",
+				items: {
+					かつ: { name: "かつ", callback: function callback(k, e) {
+							insertCode("《値》 かつ 《値》");
+						} },
+					または: { name: "または", callback: function callback(k, e) {
+							insertCode("《値》 または 《値》");
+						} },
+					でない: { name: "でない", callback: function callback(k, e) {
+							insertCode("《値》 でない");
+						} },
+					と: { name: "と", callback: function callback(k, e) {
+							insertCode("《値》と《値》");
+						} },
+					カッコ: { name: "「」", callback: function callback(k, e) {
+							insertCode("「《値》」");
+						} }
+				}
+			},
 			math: { name: "数学関数",
 				items: {
 					abs: { name: "abs 絶対値", callback: function callback(k, e) {
-							insertCord("abs(《値》)");
+							insertCode("abs(《値》)");
 						} },
 					random: { name: "random 乱数", callback: function callback(k, e) {
-							insertCord("random(《整数》)");
+							insertCode("random(《整数》)");
 						} },
 					ceil: { name: "ceil 切り上げ", callback: function callback(k, e) {
-							insertCord("ceil(《実数》)");
+							insertCode("ceil(《実数》)");
 						} },
 					floor: { name: "floor 切り捨て", callback: function callback(k, e) {
-							insertCord("floor(《実数》)");
+							insertCode("floor(《実数》)");
 						} },
 					round: { name: "round 四捨五入", callback: function callback(k, e) {
-							insertCord("round(《実数》)");
+							insertCode("round(《実数》)");
 						} },
 					sin: { name: "sin サイン", callback: function callback(k, e) {
-							insertCord("sin(《実数》)");
+							insertCode("sin(《実数》)");
 						} },
 					cos: { name: "cos コサイン", callback: function callback(k, e) {
-							insertCord("cos(《実数》)");
+							insertCode("cos(《実数》)");
 						} },
 					tan: { name: "tan タンジェント", callback: function callback(k, e) {
-							insertCord("tan(《実数》)");
+							insertCode("tan(《実数》)");
 						} },
 					sqrt: { name: "sqrt ルート", callback: function callback(k, e) {
-							insertCord("sqrt(《実数》)");
+							insertCode("sqrt(《実数》)");
 						} },
 					log: { name: "log 自然対数", callback: function callback(k, e) {
-							insertCord("log(《実数》)");
+							insertCode("log(《実数》)");
 						} },
 					exp: { name: "exp ", callback: function callback(k, e) {
-							insertCord("sqrt(《実数》)");
+							insertCode("sqrt(《実数》)");
 						} },
 					pow: { name: "pow", callback: function callback(k, e) {
-							insertCord("pow(《実数》,《実数》)");
+							insertCode("pow(《実数》,《実数》)");
 						} }
 				}
 			},
 			str: { name: "文字列関数",
 				items: {
 					length: { name: "length 長さ", callback: function callback(k, e) {
-							insertCord("length(《文字列》)");
+							insertCode("length(《文字列》)");
 						} },
 					append: { name: "append 文字列結合", callback: function callback(k, e) {
-							insertCord("append(《文字列》,《文字列》)");
+							insertCode("append(《文字列》,《文字列》)");
 						} },
 					substring1: { name: "substring 部分文字列（最後まで）", callback: function callback(k, e) {
-							insertCord("substring(《文字列》,《開始位置》)");
+							insertCode("substring(《文字列》,《開始位置》)");
 						} },
 					substring2: { name: "substring 部分文字列（長さ指定）", callback: function callback(k, e) {
-							insertCord("substring(《文字列》,《開始位置》,《長さ》)");
+							insertCode("substring(《文字列》,《開始位置》,《長さ》)");
 						} },
 					extract: { name: "extract 部分文字列（長さ指定）", callback: function callback(k, e) {
-							insertCord("extract(《文字列》,《区切文字列》,《番号》)");
+							insertCode("extract(《文字列》,《区切文字列》,《番号》)");
 						} },
 					insert: { name: "insert 挿入", callback: function callback(k, e) {
-							insertCord("insert(《文字列》,《位置》,《文字列》)");
+							insertCode("insert(《文字列》,《位置》,《文字列》)");
 						} },
 					replace: { name: "replace 置換", callback: function callback(k, e) {
-							insertCord("replace(《文字列》,《位置》,《長さ》,《文字列》)");
+							insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");
 						} }
 				}
 			},
 			graphic: { name: "グラフィック命令",
 				items: {
 					gOpenWindow: { name: "描画領域開く", callback: function callback(k, e) {
-							insertCord("描画領域開く(《幅》,《高さ》)");
+							insertCode("描画領域開く(《幅》,《高さ》)");
 						} },
 					gCloseWindow: { name: "描画領域閉じる", callback: function callback(k, e) {
-							insertCord("描画領域閉じる()");
+							insertCode("描画領域閉じる()");
 						} },
 					gClearWindow: { name: "描画領域全消去", callback: function callback(k, e) {
-							insertCord("描画領域全消去()");
+							insertCode("描画領域全消去()");
 						} },
 					gSetLineColor: { name: "線色設定", callback: function callback(k, e) {
-							insertCord("線色設定(《赤》,《青》,《緑》)");
+							insertCode("線色設定(《赤》,《青》,《緑》)");
 						} },
 					gSetFillColor: { name: "塗色設定", callback: function callback(k, e) {
-							insertCord("塗色設定(《赤》,《青》,《緑》)");
+							insertCode("塗色設定(《赤》,《青》,《緑》)");
 						} },
 					gSetLineWidth: { name: "線太さ設定", callback: function callback(k, e) {
-							insertCord("線太さ設定(《太さ》)");
+							insertCode("線太さ設定(《太さ》)");
 						} },
 					gSetFontSize: { name: "文字サイズ設定", callback: function callback(k, e) {
-							insertCord("文字サイズ設定(《サイズ》)");
+							insertCode("文字サイズ設定(《サイズ》)");
 						} },
 					gDrawText: { name: "文字描画", callback: function callback(k, e) {
-							insertCord("文字描画(《文字列》,《x》,《y》)");
+							insertCode("文字描画(《文字列》,《x》,《y》)");
 						} },
 					gDrawLine: { name: "線描画", callback: function callback(k, e) {
-							insertCord("線描画(《x1》,《y1》,《x2》,《y2》)");
+							insertCode("線描画(《x1》,《y1》,《x2》,《y2》)");
 						} },
 					gDrawBox: { name: "矩形描画", callback: function callback(k, e) {
-							insertCord("矩形描画(《x》,《y》,《幅》,《高さ》)");
+							insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");
 						} },
 					gFillBox: { name: "矩形塗描画", callback: function callback(k, e) {
-							insertCord("矩形塗描画(《x》,《y》,《幅》,《高さ》)");
+							insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");
 						} },
 					gDrawCircle: { name: "円描画", callback: function callback(k, e) {
-							insertCord("円描画(《x》,《y》,《半径》)");
+							insertCode("円描画(《x》,《y》,《半径》)");
 						} },
 					gFillCircle: { name: "円塗描画", callback: function callback(k, e) {
-							insertCord("円塗描画(《x》,《y》,《半径》)");
+							insertCode("円塗描画(《x》,《y》,《半径》)");
 						} }
 				}
 			}
