@@ -123,7 +123,7 @@ class Add extends Value
 		{
 			if(v1 instanceof NullValue) return v2;
 			else if(v2 instanceof NullValue) return v1;
-			else return new String(v1.value + v2.value, this.loc);
+			else return new StringValue(v1.value + v2.value, this.loc);
 		}
 		let v = v1.value + v2.value;
 		if(v1 instanceof FloatValue || v2 instanceof FloatValue)
