@@ -301,9 +301,14 @@ class And extends Value
 	constructor(x, y, loc){super([x,y],loc);}
 	getValue()
 	{
-		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) return new BooleanValue(v1.value && v2.value, this.loc);
-		else throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+		let v1 = this.value[0].getValue();
+		if(v1 instanceof BooleanValue)
+		{
+			if(!v1.value) return new BooleanValue(false, this.loc);
+			let v2 = this.value[1].getValue();
+			if(v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
+		}
+		throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
 	}
 }
 
@@ -312,9 +317,14 @@ class Or extends Value
 	constructor(x, y, loc){super([x,y],loc);}
 	getValue()
 	{
-		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) return new BooleanValue(v1.value || v2.value, this.loc);
-		else throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
+		let v1 = this.value[0].getValue();
+		if(v1 instanceof BooleanValue)
+		{
+			if(v1.value) return new BooleanValue(true, this.loc);
+			let v2 = this.value[1].getValue();
+			if(v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
+		}
+		throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 	}
 }
 class Not extends Value
@@ -1552,7 +1562,17 @@ function sampleButton(num)
 {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
-	reset();
+	reset;
+	/*
+	var reader = new FileReader();
+	reader.onload = function()
+	{
+		var f = new File(['File'], file);
+		reader.readAsText(f);
+		sourceTextArea.value = reader.result;
+		reset();
+	}
+	*/
 }
 
 var sample=[
