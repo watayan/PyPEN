@@ -1,0 +1,24 @@
+{
+  "name": "wapen",
+  "version": "0.0.0",
+  "description": "Web-aided PEN",
+  "main": "run.js",
+  "scripts": {
+    "build": "babel run.js -o run1.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/watayan/WaPEN.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/watayan/WaPEN/issues"
+  },
+  "homepage": "https://github.com/watayan/WaPEN#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "es2015": "0.0.0"
+  }
+}
