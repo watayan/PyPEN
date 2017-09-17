@@ -1375,28 +1375,14 @@ function run()
 			return;
 		}
 	}
-	if(step_flag)
+	step();
+
+	function finish()
 	{
-		step();
-		if(stack.length == 0)
-		{
-			textareaAppend("---\n");
-			highlightLine(-1);
-			setRunflag(false);
-			parse = null;
-		}
-	}
-	else {
-		do{
-			step();
-		}while(stack.length > 0 && run_flag);
-		if(stack.length == 0)
-		{
-			textareaAppend("---\n");
-			highlightLine(-1);
-			setRunflag(false);
-			parse = null;
-		}
+		textareaAppend("---\n");
+		highlightLine(-1);
+		setRunflag(false);
+		parse = null;
 	}
 
 	function step()
@@ -1423,14 +1409,18 @@ function run()
 		if(index > stack[depth].statementlist.length) stack.pop();
 		// ハイライト行は次の実行行
 		depth = stack.length - 1;
-		if(depth < 0) return;
-		index = stack[depth].index;
-		var statement = stack[depth].statementlist[index];
-		if(statement)
+		if(depth >= 0)
 		{
-			var line = statement.first_line;
-			highlightLine(line);
+			index = stack[depth].index;
+			var statement = stack[depth].statementlist[index];
+			if(statement)
+			{
+				var line = statement.first_line;
+				highlightLine(line);
+			}
+			if(!step_flag && run_flag) setTimeout(step, 0);
 		}
+		else finish();
 	}
 }
 
@@ -1458,7 +1448,7 @@ function closeInputWindow()
 
 function keydown(e)
 {
-	var evt = e || window.event;
+	var evt = e || window.event
 	if(evt.keyCode == 13) 
 	{
 		setRunflag(true);

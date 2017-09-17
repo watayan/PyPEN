@@ -1577,24 +1577,13 @@ function run() {
 			return;
 		}
 	}
-	if (step_flag) {
-		step();
-		if (stack.length == 0) {
-			textareaAppend("---\n");
-			highlightLine(-1);
-			setRunflag(false);
-			parse = null;
-		}
-	} else {
-		do {
-			step();
-		} while (stack.length > 0 && run_flag);
-		if (stack.length == 0) {
-			textareaAppend("---\n");
-			highlightLine(-1);
-			setRunflag(false);
-			parse = null;
-		}
+	step();
+
+	function finish() {
+		textareaAppend("---\n");
+		highlightLine(-1);
+		setRunflag(false);
+		parse = null;
 	}
 
 	function step() {
@@ -1616,13 +1605,15 @@ function run() {
 		if (index > stack[depth].statementlist.length) stack.pop();
 		// ハイライト行は次の実行行
 		depth = stack.length - 1;
-		if (depth < 0) return;
-		index = stack[depth].index;
-		var statement = stack[depth].statementlist[index];
-		if (statement) {
-			var line = statement.first_line;
-			highlightLine(line);
-		}
+		if (depth >= 0) {
+			index = stack[depth].index;
+			var statement = stack[depth].statementlist[index];
+			if (statement) {
+				var line = statement.first_line;
+				highlightLine(line);
+			}
+			if (!step_flag && run_flag) setTimeout(step, 0);
+		} else finish();
 	}
 }
 
