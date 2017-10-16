@@ -115,7 +115,6 @@ UNDEFINED		"《"[^》]*"》"
 
 %%
 
-
 e
 	: e '+' e	{ $$ = new Add($1, $3, new Location(@1, @3));}
 	| e '-' e	{ $$ = new Sub($1, $3, new Location(@1, @3));}
@@ -143,6 +142,8 @@ e
 	| IDENTIFIER'('parameterlist')'
 				{$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable
+	| '[' parameterlist ']' {$$ = new ArrayValue($2, new Location(@1, @3));}
+	| '{' parameterlist '}' {$$ = new ArrayValue($2, new Location(@1, @3));}
 	;
 
 variable

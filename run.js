@@ -75,6 +75,14 @@ class NullValue extends Value
 	}
 }
 
+class ArrayValue extends Value
+{
+	constructor(v, loc)
+	{
+		super(v, loc);
+	}
+}
+
 class IntValue extends Value
 {
 	constructor(v, loc)
@@ -119,6 +127,7 @@ class Add extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はできません");
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue)
 		{
@@ -149,6 +158,7 @@ class Sub extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の引き算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
 		let v = v1.value - v2.value;
@@ -174,6 +184,7 @@ class Mul extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のかけ算はできません");
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のかけ算はできません");
 		let v = v1.value * v2.value;
@@ -199,6 +210,7 @@ class Div extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
@@ -226,6 +238,7 @@ class Div2 extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
@@ -413,7 +426,7 @@ class Variable extends Value
 			{
 				let v = pm[i].getValue();
 				if(v instanceof IntValue) ag[i] = v.value;
-				else if(v instanceof FloatValue) ag[i] = Math.round(v.value);
+				else if(v instanceof FloatValue) ag[i] = Math.floor(v.value);
 				else throw new RuntimeError(this.first_line, "配列の添字に" + v.value + "は使えません");
 			}
 			vn += '['+ag.join(',')+']';
@@ -934,38 +947,54 @@ class Assign extends Statement
 	}
 	run(index)
 	{
-		let vn = this.varname.varname;
 		let vl = this.val.getValue();
-		if(varsInt[vn] != undefined)
+		if(vl instanceof ArrayValue)
 		{
-			if(vl instanceof IntValue) varsInt[vn] = vl.value;
-			else if(vl instanceof FloatValue) varsInt[vn] = Math.round(vl.value);
-			else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
-			if(!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			var len = vl.value.length;
+			var ag = this.varname.value[1];
+			for(var i = 0; i < len; i++)
+			{
+				var ag1 = this.varname.value[1] instanceof Array ? this.varname.value[1].concat() : [];
+				ag1.push(new IntValue(i, this.loc));
+				var variable = new Variable(this.varname.value[0], ag1, this.loc);
+				var command = new Assign(variable,vl.value[i], this.loc);
+				command.run(index);
+			}
 		}
-		else if(varsFloat[vn] != undefined)
+		else
 		{
-			if(vl instanceof IntValue || vl instanceof FloatValue) varsFloat[vn] = vl.value;
-			else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
-			if(!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
-		}
-		else if(varsString[vn] != undefined)
-		{
-			if(vl instanceof StringValue) varsString[vn] = vl.value;
-			else throw new RuntimeError(this.first_line, vn + "に文字列以外の値を代入しようとしました");
-		}
-		else if(varsBoolean[vn] != undefined)
-		{
-			if(vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
-			else throw new RuntimeError(this.first_line, vn + "に真偽以外の値を代入しようとしました");
-		}
-		else if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");
-		else // 新しい変数を宣言する
-		{
-			if(vl instanceof NullValue || vl instanceof IntValue) varsInt[vn] = vl.value;
-			else if(vl instanceof FloatValue) varsFloat[vn] = vl.value;
-			else if(vl instanceof StringValue) varsString[vn] = vl.value;
-			else if(vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
+			let vn = this.varname.varname;
+			if(varsInt[vn] != undefined)
+			{
+				if(vl instanceof IntValue) varsInt[vn] = vl.value;
+				else if(vl instanceof FloatValue) varsInt[vn] = Math.round(vl.value);
+				else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
+				if(!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
+			else if(varsFloat[vn] != undefined)
+			{
+				if(vl instanceof IntValue || vl instanceof FloatValue) varsFloat[vn] = vl.value;
+				else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
+				if(!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
+			else if(varsString[vn] != undefined)
+			{
+				if(vl instanceof StringValue) varsString[vn] = vl.value;
+				else throw new RuntimeError(this.first_line, vn + "に文字列以外の値を代入しようとしました");
+			}
+			else if(varsBoolean[vn] != undefined)
+			{
+				if(vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
+				else throw new RuntimeError(this.first_line, vn + "に真偽以外の値を代入しようとしました");
+			}
+			else if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");
+			else // 新しい変数を宣言する
+			{
+				if(vl instanceof NullValue || vl instanceof IntValue) varsInt[vn] = vl.value;
+				else if(vl instanceof FloatValue) varsFloat[vn] = vl.value;
+				else if(vl instanceof StringValue) varsString[vn] = vl.value;
+				else if(vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
+			}
 		}
 		return index + 1;
 	}

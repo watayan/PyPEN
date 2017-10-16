@@ -48,42 +48,13 @@ var sample=[
 "｜円描画(random(200),random(200),random(30)+1)\n"+
 "を繰り返す"
 ,
-"整数 tyotensu,hensosu,Siten[22],Syuten[22],kotae,i,j,x,y\n"+
-"文字列 Hen[8,8],Senbun[22],HenData[8]\n"+
-"HenData[1] ← 「-AB-A-AB」\n"+
-"HenData[2] ← 「---CA-AC」\n"+
-"HenData[3] ← 「---E-EEB」\n"+
-"HenData[4] ← 「-----EEC」\n"+
-"HenData[5] ← 「-----DAD」\n"+
-"HenData[6] ← 「------ED」\n"+
-"HenData[7] ← 「-------F」\n"+
-"HenData[8] ← 「--------」\n"+
-"i を 1 から 8 まで 1 ずつ増やしながら，\n"+
-"｜j を 1 から 8 まで 1 ずつ増やしながら，\n"+
-"｜｜Hen[i,j] ← substring(HenData[i],j-1,1)\n"+
+"整数 a[5,5],b,c\n"+
+"a ← [10,9,8,7,6]\n"+
+"bを0から5まで1ずつ増やしながら，\n"+
+"｜cを0から5まで1ずつ増やしながら，\n"+
+"｜a[b,c]を改行なしで表示する\n"+
 "｜を繰り返す\n"+
-"を繰り返す\n"+
-"tyotensu ← 8\n"+
-"hensosu ← 0\n"+
-"i を 1 から tyotensu-1 まで 1 ずつ増やしながら，\n"+
-"｜j を i+1 から tyotensu まで 1 ずつ増やしながら，\n"+
-"｜｜もし Hen[i,j]!=「-」 ならば\n"+
-"｜｜｜hensosu ← hensosu+1\n"+
-"｜｜｜Siten[hensosu] ← i\n"+
-"｜｜｜Syuten[hensosu] ← j\n"+
-"｜｜｜Senbun[hensosu] ← Hen[i,j]\n"+
-"｜｜を実行する\n"+
-"｜を繰り返す\n"+
-"を繰り返す\n"+
-"kotae ← 0\n"+
-"x を 1 から hensosu-2 まで 1 ずつ増やしながら，\n"+
-"｜y ← x+1\n"+
-"｜Siten[x]=Siten[y] の間，\n"+
-"｜｜もし Senbun[x]!=Senbun[y] かつ Hen[Syuten[x],Syuten[y]]!=「-」 ならば\n"+
-"｜｜｜kotae ← kotae+1\n"+
-"｜｜を実行する\n"+
-"｜｜y ← y+1\n"+
-"｜を繰り返す\n"+
-"を繰り返す\n"+
-"「三角形の個数は」とkotae を表示する\n"
+"｜「」を表示する\n"+
+"を繰り返す"
+
 ];
