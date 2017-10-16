@@ -96,9 +96,9 @@ class BooleanValue extends Value {}
 
 class UNDEFINED extends Value
 {
-	constructor(loc)
+	constructor(v, loc)
 	{
-		super(null, loc);
+		super(v, loc);
 	}
 	get varname()
 	{

@@ -26,8 +26,8 @@ UNDEFINED		"《"[^》]*"》"
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
 {Identifier}	{return 'IDENTIFIER';}
-{UNDEFINED}		{return 'UNDEFINED';}
 {Comma}					{return 'COMMA';}
+{UNDEFINED}		{return 'UNDEFINED';}
 "+"					{return '+';}
 "＋"				{return '+';}
 "-"					{return '-';}
@@ -68,7 +68,7 @@ UNDEFINED		"《"[^》]*"》"
 "繰返し"{Comma}			{return '繰り返し，';}
 "を"{Comma}			{return 'を，';}
 "になるまで実行する"	{return 'になるまで実行する';}
-"になるまで実行"		{return 'になるまで実行する';}	
+"になるまで実行"		{return 'になるまで実行する';}
 "を繰り返す"			{return 'を繰り返す';}
 "を繰返す"			{return 'を繰り返す';}
 "を"					{return 'を';}
@@ -149,15 +149,15 @@ variable
 	: IDENTIFIER'['parameterlist']'
 			{$$ = new Variable($1, $3, new Location(@1,@1));}
 	| IDENTIFIER{$$ = new Variable($1, null, new Location(@1, @1));}
-	| UNDEFINED	{$$ = new UNDEFINED(new Location(@1,@1));}
+	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
 	;
-	
+
 variablelist
 	: variablelist 'COMMA' IDENTIFIER '['parameterlist']' {$$ = $1.concat({varname:$3, parameter:$5});}
 	| variablelist 'COMMA' IDENTIFIER {$$ = $1.concat({varname:$3});}
 	| IDENTIFIER'['parameterlist']' {$$ = [{varname:$1, parameter:$3}];}
 	| IDENTIFIER {$$ = [{varname:$1}];}
-	| UNDEFINED  {$$ = [new UNDEFINED(new Location(@1,@1))];}
+	| UNDEFINED  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
 	;
 
 parameterlist

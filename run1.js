@@ -186,10 +186,10 @@ var BooleanValue = function (_Value5) {
 var UNDEFINED = function (_Value6) {
 	_inherits(UNDEFINED, _Value6);
 
-	function UNDEFINED(loc) {
+	function UNDEFINED(v, loc) {
 		_classCallCheck(this, UNDEFINED);
 
-		return _possibleConstructorReturn(this, (UNDEFINED.__proto__ || Object.getPrototypeOf(UNDEFINED)).call(this, null, loc));
+		return _possibleConstructorReturn(this, (UNDEFINED.__proto__ || Object.getPrototypeOf(UNDEFINED)).call(this, v, loc));
 	}
 
 	_createClass(UNDEFINED, [{
