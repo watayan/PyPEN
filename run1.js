@@ -16,7 +16,8 @@ var varsInt = {},
     varsBoolean = {};
 var stack = [];
 var run_flag = false,
-    step_flag = false;
+    step_flag = false,
+    wait_flag = true;
 var parse = null;
 var textarea = null;
 var context = null;
@@ -1608,11 +1609,11 @@ function run() {
 			return;
 		}
 	}
-	step();
+	if (wait_flag) step();else step_nowait();
 
 	function finish() {
 		textareaAppend("---\n");
-		//		highlightLine(-1);
+		highlightLine(-1);
 		setRunflag(false);
 		parse = null;
 	}
@@ -1625,6 +1626,14 @@ function run() {
 		if (stack.length > 0) {
 			if (run_flag && !step_flag) setTimeout(step, 0);
 		} else finish();
+	}
+
+	function step_nowait() {
+		var l = current_line;
+		do {
+			next_line();
+		} while (run_flag && stack.length > 0);
+		finish();
 	}
 
 	function next_line() {
@@ -1792,6 +1801,7 @@ onload = function onload() {
 	var parseButton = document.getElementById("parseButton");
 	var newButton = document.getElementById("newButton");
 	var runButton = document.getElementById("runButton");
+	var runfastButton = document.getElementById("runfastButton");
 	var resetButton = document.getElementById("resetButton");
 	var stepButton = document.getElementById("stepButton");
 	var loadButton = document.getElementById("loadButton");
@@ -1810,11 +1820,18 @@ onload = function onload() {
 			parse = null;
 		}
 	};
+	runfastButton.onclick = function () {
+		wait_flag = false;
+		step_flag = false;
+		run();
+	};
 	runButton.onclick = function () {
+		wait_flag = true;
 		step_flag = false;
 		run();
 	};
 	stepButton.onclick = function () {
+		wait_flag = true;
 		step_flag = true;
 		run();
 	};
