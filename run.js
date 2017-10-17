@@ -1754,8 +1754,8 @@ onload = function(){
 						tan:	{name: "tan タンジェント", callback: function(k,e){insertCode("tan(《実数》)");}},
 						sqrt:	{name: "sqrt ルート", callback: function(k,e){insertCode("sqrt(《実数》)");}},
 						log:	{name: "log 自然対数", callback: function(k,e){insertCode("log(《実数》)");}},
-						exp:	{name: "exp ", callback: function(k,e){insertCode("sqrt(《実数》)");}},
-						pow:	{name: "pow", callback: function(k,e){insertCode("pow(《実数》,《実数》)");}}
+						exp:	{name: "exp 指数関数", callback: function(k,e){insertCode("exp(《実数》)");}},
+						pow:	{name: "pow 累乗", callback: function(k,e){insertCode("pow(《実数》,《実数》)");}}
 					}
 				},
 				str:{name:"文字列関数",

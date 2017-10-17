@@ -1946,10 +1946,10 @@ onload = function onload() {
 					log: { name: "log 自然対数", callback: function callback(k, e) {
 							insertCode("log(《実数》)");
 						} },
-					exp: { name: "exp ", callback: function callback(k, e) {
-							insertCode("sqrt(《実数》)");
+					exp: { name: "exp 指数関数", callback: function callback(k, e) {
+							insertCode("exp(《実数》)");
 						} },
-					pow: { name: "pow", callback: function callback(k, e) {
+					pow: { name: "pow 累乗", callback: function callback(k, e) {
 							insertCode("pow(《実数》,《実数》)");
 						} }
 				}
