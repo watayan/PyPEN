@@ -1891,7 +1891,7 @@ onload = function onload() {
 		selector: "#sourceTextarea",
 		//			callback: function(k,e){},
 		items: {
-			copyAll: { name: "全コピー", callback: function callback(k, e) {
+			copyAll: { name: "プログラムをコピー", callback: function callback(k, e) {
 					document.getElementById("sourceTextarea").select();document.execCommand('copy');
 				}
 			},

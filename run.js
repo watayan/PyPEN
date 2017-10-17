@@ -1732,7 +1732,7 @@ onload = function(){
 			selector: "#sourceTextarea",
 //			callback: function(k,e){},
 			items:{
-				copyAll: {name: "全コピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
+				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 				zenkaku: {name: "入力補助",
 					items:{
 						かつ:	{name:"かつ",	callback: function(k,e){insertCode("《値》 かつ 《値》");}},
