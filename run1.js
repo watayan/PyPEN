@@ -16,12 +16,12 @@ var varsInt = {},
     varsBoolean = {};
 var stack = [];
 var run_flag = false,
-    step_flag = false,
-    wait_flag = true;
+    step_flag = false;
 var parse = null;
 var textarea = null;
 var context = null;
 var current_line = -1;
+var wait_time = 0;
 
 function isFinite(v) {
 	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
@@ -1571,6 +1571,29 @@ var While = function (_Statement17) {
 	return While;
 }(Statement);
 
+var SleepStatement = function (_Statement18) {
+	_inherits(SleepStatement, _Statement18);
+
+	function SleepStatement(sec, loc) {
+		_classCallCheck(this, SleepStatement);
+
+		var _this44 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
+
+		_this44.sec = sec.value * 1000; // milli seconds
+		return _this44;
+	}
+
+	_createClass(SleepStatement, [{
+		key: "run",
+		value: function run(index) {
+			wait_time = this.sec;
+			return index + 1;
+		}
+	}]);
+
+	return SleepStatement;
+}(Statement);
+
 function highlightLine(l) {
 	$(".codelines").children().removeClass("lineselect");
 	if (l > 0) $(".codelines :nth-child(" + l + ")").addClass("lineselect");
@@ -1587,11 +1610,13 @@ function reset() {
 	var canvas = document.getElementById('canvas');
 	canvas.style.display = 'none';
 	context = null;
+	wait_time = 0;
 }
 
 function setRunflag(b) {
 	run_flag = b;
 	document.getElementById("sourceTextarea").readOnly = b;
+	document.getElementById("runButton").innerHTML = b & !step_flag ? "中断" : "実行";
 }
 
 function run() {
@@ -1601,7 +1626,6 @@ function run() {
 			var source = document.getElementById("sourceTextarea").value + "\n";
 			parse = dncl.parse(source);
 			stack.push({ statementlist: parse, index: 0 });
-			setRunflag(true);
 		} catch (e) {
 			textareaAppend("構文エラーです\n" + e.message + "\n");
 			setRunflag(false);
@@ -1609,12 +1633,14 @@ function run() {
 			return;
 		}
 	}
-	if (wait_flag) step();else step_nowait();
+	setRunflag(true);
+	step();
 
 	function finish() {
 		textareaAppend("---\n");
 		highlightLine(-1);
 		setRunflag(false);
+		wait_time = 0;
 		parse = null;
 	}
 
@@ -1624,16 +1650,9 @@ function run() {
 			next_line();
 		} while (run_flag && l == current_line);
 		if (stack.length > 0) {
-			if (run_flag && !step_flag) setTimeout(step, 0);
+			if (run_flag && !step_flag) if (wait_time != 0) setTimeout(step, wait_time);else setZeroTimeout(step);
 		} else finish();
-	}
-
-	function step_nowait() {
-		var l = current_line;
-		do {
-			next_line();
-		} while (run_flag && stack.length > 0);
-		finish();
+		wait_time = 0;
 	}
 
 	function next_line() {
@@ -1649,10 +1668,10 @@ function run() {
 				parse = null;
 			}
 		} else index++;
-		if (index < 0) index = stack[depth].statementlist.length;
+		//		if(index < 0) index = stack[depth].statementlist.length;
 
 		stack[depth].index = index;
-		if (index > stack[depth].statementlist.length) stack.pop();
+		if (index < 0 || index > stack[depth].statementlist.length) stack.pop();
 		// ハイライト行は次の実行行
 		depth = stack.length - 1;
 		if (depth >= 0) {
@@ -1673,9 +1692,10 @@ function openInputWindow() {
 	var $input_overlay = $("#input-overlay");
 	$input_overlay.fadeIn();
 	$input.fadeIn();
-	$input.html("<p>入力してください</p><input type=\"text\" id=\"inputarea\">");
-	var inputarea = document.getElementById("inputarea");
-	if (inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);else if (inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
+	$input.html("<p>入力してください</p>" + "<input type=\"text\" id=\"inputarea\" onkeydown=\"keydown();\">");
+	//	var inputarea = document.getElementById("inputarea");
+	//	if(inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);
+	//	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
 	$("#inputarea").focus();
 	setRunflag(false);
 }
@@ -1692,6 +1712,8 @@ function keydown(e) {
 	if (evt.keyCode == 13) {
 		setRunflag(true);
 		setTimeout(run(), 100);
+	} else if (evt.keyCode == 27) {
+		closeInputWindow();
 	}
 }
 
@@ -1782,7 +1804,7 @@ function mouseClick() {
 function sampleButton(num) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
-	reset;
+	reset();
 }
 
 function insertCode(add_code) {
@@ -1820,18 +1842,15 @@ onload = function onload() {
 			parse = null;
 		}
 	};
-	runfastButton.onclick = function () {
-		wait_flag = false;
-		step_flag = false;
-		run();
-	};
 	runButton.onclick = function () {
-		wait_flag = true;
-		step_flag = false;
-		run();
+		if (run_flag && !step_flag) {
+			setRunflag(false);
+		} else {
+			step_flag = false;
+			run();
+		}
 	};
 	stepButton.onclick = function () {
-		wait_flag = true;
 		step_flag = true;
 		run();
 	};
@@ -2005,4 +2024,32 @@ onload = function onload() {
 			}
 		}
 	});
+
+	// from David Baron's Weblog
+	// https://dbaron.org/log/20100309-faster-timeouts
+	var timeouts = [];
+	var messageName = "zero-timeout-message";
+
+	// Like setTimeout, but only takes a function argument.  There's
+	// no time argument (always zero) and no arguments (you have to
+	// use a closure).
+	function setZeroTimeout(fn) {
+		timeouts.push(fn);
+		window.postMessage(messageName, "*");
+	}
+
+	function handleMessage(event) {
+		if (event.source == window && event.data == messageName) {
+			event.stopPropagation();
+			if (timeouts.length > 0) {
+				var fn = timeouts.shift();
+				fn();
+			}
+		}
+	}
+
+	window.addEventListener("message", handleMessage, true);
+
+	// Add the one thing we want added to the window object.
+	window.setZeroTimeout = setZeroTimeout;
 };

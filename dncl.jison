@@ -97,6 +97,7 @@ UNDEFINED		"《"[^》]*"》"
 "矩形塗描画"				{return 'gFillBox';}
 "円描画"				{return 'gDrawCircle';}
 "円塗描画"				{return 'gFillCircle';}
+"秒待つ"				{return '秒待つ';}
 <<EOF>>				{return 'EOF';}
 {NEWLINE}				{return 'NEWLINE';}
 {Whitespace}		/* skip whitespace */
@@ -183,6 +184,7 @@ statement
 	|PrintStatement
 	|InputStatement
 	|GraphicStatement
+	|SleepStatement
 	;
 
 EmptyStatement
@@ -220,12 +222,12 @@ ForStatement
 
 LoopStatement
 	: '繰り返し，' 'NEWLINE' statementlist 'を，' e 'になるまで実行する' 'NEWLINE'
-		{$$ = new Until($3, $5, new Location(@1, @7));}
+		{$$ = new Until($3, $5, new Location(@1, @6));}
 	;
 
 WhileStatement
 	: e 'の間，' 'NEWLINE' statementlist 'を繰り返す' 'NEWLINE'
-		{$$ = new While($1, $4, new Location(@1, @6));}
+		{$$ = new While($1, $4, new Location(@1, @5));}
 	;
 
 
@@ -256,6 +258,10 @@ GraphicStatement
 	| 'gFillBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'{$$ = new GraphicStatement('gFillBox', [$3,$5,$7,$9], new Location(@1,@1));}
 	| 'gDrawCircle' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'{$$ = new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1));}
 	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'{$$ = new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1));}
+	;
+
+SleepStatement
+	: e '秒待つ' 'NEWLINE' {$$ = new SleepStatement($1, new Location(@1, @1));}
 	;
 
 Program
