@@ -2,7 +2,7 @@
   "name": "wapen",
   "version": "0.0.0",
   "description": "Web-aided PEN",
-  "main": "run.js",
+  "main": "run1.js",
   "scripts": {
     "build": "babel run.js -o run1.js"
   },

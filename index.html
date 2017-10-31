@@ -21,14 +21,14 @@
 	<button   id="runButton" type="button">実行</button>
 	<button   id="stepButton" type="button">ステップ実行</button>
 	<button   id="resetButton" type="button">リセット</button>
-	<button   id="parseButton" type="button">Parse</button><br>
-	Upload <input    id="loadButton" type="file"/>
+	<button   id="parseButton" type="button">Parse</button>
+	<input    id="flowchartButton" type="checkbox">フローチャート</button><br>
+	Upload <input id="loadButton" type="file"/>
 	<a href="#" id="downloadLink">Download</a>
-	ファイル名：<input    id="file_prefix" type="text"></input><br>
-	<textarea id="sourceTextarea" rows="20" cols="70" onmouseup="mouseClick();" spellcheck="false"></textarea>
-	<textarea id="resultTextarea" rows="20" cols="50" readonly></textarea>
-	<canvas id="canvas"></canvas>
-
+	ファイル名：<input id="file_prefix" type="text"></input><br>
+	<div id="Program_area">
+	<textarea id="sourceTextarea" rows="20" cols="50" onmouseup="mouseClick();" spellcheck="false"></textarea>
+	<textarea id="resultTextarea" rows="20" cols="30" readonly></textarea>
 	<div id="EditButtons">
 	<button type="button" class="editButton" onclick="editButton(&quot;整数 《変数》&quot;);">整数</button>
 	<button type="button" class="editButton" onclick="editButton(&quot;実数 《変数》&quot;);">実数</button>
@@ -52,6 +52,18 @@
 		<button type="button" class="sampleButton" onclick="sampleButton(4);">サンプル5</button>
 		<button type="button" class="sampleButton" onclick="sampleButton(5);">サンプル6</button>
 	</div>
+	</div>
+	<div id="Flowchart_area">
+		<table>
+			<tr><td>整数</td><td><input type="text" size="25" id="variable_int" onchange="variableChange();"></td></tr>
+			<tr><td>実数</td><td><input type="text" size="25" id="variable_float" onchange="variableChange();"></td></tr>
+			<tr><td>文字列</td><td><input type="text" size="25" id="variable_string" onchange="variableChange();"></td></tr>
+			<tr><td>真偽</td><td><input type="text" size="25" id="variable_bool" onchange="variableChange();"></td></tr>
+		</table>
+	<canvas id="flowchart" width="300px" height="400px"></canvas>
+	</div>
+	<canvas id="canvas"></canvas>
+
 <div id="input"></div>
 <div id="input-overlay"></div>
 </body>

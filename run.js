@@ -6,10 +6,12 @@ var varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
 var stack = [];
 var run_flag = false, step_flag = false;
 var parse = null;
+var flowchart = null;
 var textarea = null;
 var context = null;
 var current_line = -1;
 var wait_time = 0;
+var flowchart_display = false;
 
 function isFinite(v)
 {
@@ -1629,6 +1631,7 @@ function sampleButton(num)
 	reset();
 }
 
+
 function insertCode(add_code)
 {
 	var sourceTextArea = document.getElementById("sourceTextarea");
@@ -1640,17 +1643,24 @@ function insertCode(add_code)
 	sourceTextArea.value = code1 + add_code + code2;
 }
 
+function registerEvent(elem, ev, func)
+{
+	if(elem.addEventListener) elem.addEventListener(ev, func);
+	else if(elem.attachEvent) elem.attachEvent('on' + ev, func);
+}
+
 onload = function(){
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var resultTextArea = document.getElementById("resultTextarea");
 	var parseButton   = document.getElementById("parseButton");
 	var newButton     = document.getElementById("newButton");
 	var runButton     = document.getElementById("runButton");
-	var runfastButton = document.getElementById("runfastButton");
+	var flowchartButton = document.getElementById("flowchartButton");
 	var resetButton   = document.getElementById("resetButton");
 	var stepButton    = document.getElementById("stepButton");
 	var loadButton    = document.getElementById("loadButton");
 	var file_prefix   = document.getElementById("file_prefix");
+	var flowchart_canvas = document.getElementById("flowchart");
 	$("#sourceTextarea").linedtextarea();
 	textarea = resultTextArea;
 	parseButton.onclick = function(){
@@ -1724,18 +1734,36 @@ onload = function(){
 			downloadLink.setAttribute("download", filename);
 		}
 	};
-	if(sourceTextArea.addEventListener) sourceTextArea.addEventListener("keyup", keyUp);
-	else if(sourceTextArea.attachEvent) sourceTextArea.attachEvent("onkeyup", keyUp);
+	flowchartButton.onchange = function(){
+		flowchart_display = this.checked;
+		var flowchart_area = document.getElementById("Flowchart_area");
+		if(flowchart_display)
+		{
+			flowchart_area.style.display = "block";
+			flowchart = new Flowchart();
+			// flowchart.code2flowchart();
+			flowchart.paint();
+		}
+		else
+		{
+			flowchart_area.style.display = "none";
+			flowchart = null;
+		}
+	}
+	registerEvent(sourceTextArea, "keyup", keyUp);
+	registerEvent(flowchart_canvas, "mousedown", mouseDown);
+	registerEvent(flowchart_canvas, "mouseup", mouseUp);
+	registerEvent(flowchart_canvas, "mousemove", mouseMove);
+	registerEvent(flowchart_canvas, "dblclick", doubleclick_Flowchart);
 
 	$.contextMenu(
 		{
 			selector: "#sourceTextarea",
-//			callback: function(k,e){},
 			items:{
 				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 				zenkaku: {name: "入力補助",
 					items:{
-						かつ:	{name:"かつ",	callback: function(k,e){insertCode("《値》 かつ 《値》");}},
+						かつ:		{name:"かつ",	callback(k,e){insertCode("《値》 かつ 《値》");}},
 						または:	{name:"または",	callback: function(k,e){insertCode("《値》 または 《値》");}},
 						でない:	{name:"でない",	callback: function(k,e){insertCode("《値》 でない");}},
 						と:		{name:"と",		callback: function(k,e){insertCode("《値》と《値》");}},
@@ -1789,8 +1817,13 @@ onload = function(){
 			}
 		}
 	);
-
-	// from David Baron's Weblog
+	$.contextMenu(
+		{
+			selector: "#flowchart",
+			build: contextMenu_Flowchart,
+		}
+	);
+	// this code is from David Baron's Weblog
 	// https://dbaron.org/log/20100309-faster-timeouts
 	var timeouts = [];
 	var messageName = "zero-timeout-message";
@@ -1813,8 +1846,1004 @@ onload = function(){
 		}
 	}
 
-	window.addEventListener("message", handleMessage, true);
+	if(window.addEventListener) window.addEventListener("message", handleMessage, true);
+	else if(window.attachEvent) window.attachEvent("onmessage", handleMessage);
 
 	// Add the one thing we want added to the window object.
 	window.setZeroTimeout = setZeroTimeout;
+}
+
+/**************************************** flowchart **********************************/
+
+var dragging = false;
+var mouseX, mouseY;
+
+class point
+{
+	constructor(){this._x = this._y = 0;}
+	get x(){return this._x;} set x(v){this._x = v;}
+	get y(){return this._y;} set y(v){this._y = v;}
+	clone(){var p = new point(); p.x = this.x; p.y = this.y; return p;}
+}
+
+function mouseDown(e)
+{
+	var rect = document.getElementById("flowchart").getBoundingClientRect();
+	var x = e.clientX - rect.left;
+	var y = e.clientY - rect.top;
+	var parts = flowchart.findParts(x, y);
+	if(parts == null) return;
+	dragging = true;
+	mouseX = x; mouseY = y;
+}
+
+function mouseUp(e)
+{
+	dragging = false;
+}
+
+function mouseMove(e)
+{
+	if(dragging)
+	{
+		var rect = document.getElementById("flowchart").getBoundingClientRect();
+		var x = e.clientX - rect.left;
+		var y = e.clientY - rect.top;
+		flowchart.moveOrigin(x - mouseX, y - mouseY);
+		mouseX = x; mouseY = y;
+		flowchart.paint();
+	}
+}
+
+function doubleclick_Flowchart(evt)
+{
+	dragging = false;
+	var rect = evt.target.getBoundingClientRect();
+	var x = evt.clientX - rect.left;
+	var y = evt.clientY - rect.top;
+	var parts = flowchart.findParts(x, y);
+	if(parts == null || parts instanceof Parts_Terminal
+		|| parts instanceof Parts_Bar || parts instanceof Parts_Null) return;
+	parts.editMe();
+}
+
+function variableChange(e)
+{
+	flowchart.flowchart2code();
+}
+
+function contextMenu_Flowchart(trigger, event)
+{
+	dragging = false;
+	var x = event.offsetX, y = event.offsetY;
+	var parts = flowchart.findParts(x, y);
+	if(parts == null || parts instanceof Parts_Terminal || parts instanceof Parts_Null) return false;
+	if(parts instanceof Parts_Bar)
+		return {
+			selectableSubMenu: true,
+			events:{
+				show: function(){parts.highlight();},
+				hide: function(){flowchart.paint(); flowchart.flowchart2code();}
+			},
+			callback: function(k, e){callbackPartsBar(parts, k);},
+			items: {
+				input: {name: "入力"},
+				output: {name: "出力"},
+				substitute: {name: "代入"},
+				misc:{name:"各種処理"},
+				if:{name:"分岐"},
+				loop:{name:"ループ",
+					items:{
+						loop1: {name:"前条件"},
+						loop2: {name:"後条件"},
+						loopinc:{name:"増やしながら"},
+						loopdec:{name:"減らしながら"}
+					}
+				},
+				separator2:"-----",
+				paste:{name:"ペースト"}
+			}
+		};
+	return {
+		callback: function(k,e){callbackParts(parts, k);},
+		events:{
+			show: function(){parts.highlight();},
+			hide: function(){flowchart.paint(); flowchart.flowchart2code();}
+		},
+		items: {
+			edit:{ name:"編集"},
+			delete: { name:"削除"},
+			cut:{name:"カット"}
+		}
+	};
+}
+
+function callbackPartsBar(bar, key)
+{
+	bar.highlight();
+	if(key == "input") Parts_Input.appendMe(bar);
+	else if(key == "output") Parts_Output.appendMe(bar);
+	else if(key == "substitute") Parts_Substitute.appendMe(bar);
+	else if(key == "if") Parts_If.appendMe(bar);
+}
+
+function callbackParts(parts, key)
+{
+	if(parts instanceof Parts_Terminal) return false;
+	if(key == "edit"){parts.editMe();}
+	else if(key == "delete"){parts.deleteMe();}
+	else if(key == "cut"){parts.cutMe();}
+}
+
+var FlowchartSetting = {
+    size: 6,
+    fontsize: 12,
+};
+
+function variable2code(ty, id)
+{
+	var code = document.getElementById(id).value.trim();
+	if(code != "") return ty + ' ' + code + "\n";
+	return '';
+}
+
+
+class Flowchart
+{
+    constructor()
+    {
+		this._canvas = document.getElementById("flowchart");
+		this._context = this._canvas.getContext('2d');
+        this.makeEmpty();
+    }
+	get x0(){return this._x0;}
+	get y0(){return this._y0;}
+	get canvas(){return this._canvas;}
+	get context(){return this._context;}
+	setOrigin(x, y) {this._x0 = x; this._y0 = y;}
+	moveOrigin(x, y){this._x0 += x; this._y0 += y;}
+    makeEmpty()
+    {
+		this.setOrigin(this.canvas.width / 2, FlowchartSetting.size);
+        this.top = new Parts_Terminal();
+        var bar = new Parts_Bar();
+        var end = new Parts_Terminal();
+        this.top.next = bar;
+        bar.next = end;
+        this.top.setValue("はじめ");
+        end.setValue("おわり");
+		document.getElementById("variable_int").value = '';
+		document.getElementById("variable_float").value = '';
+		document.getElementById("variable_string").value = '';
+		document.getElementById("variable_bool").value = '';
+    }
+    code2flowchart()
+    {
+        if(!flowchart_display) return;
+    }
+    flowchart2code()
+    {
+		if(!flowchart_display) return;
+        var code = '';
+		code += variable2code("整数", "variable_int");
+		code += variable2code("実数", "variable_float");
+		code += variable2code("文字列", "variable_string");
+		code += variable2code("真偽", "variable_bool");
+		code += this.top.appendCode('', 0);
+		document.getElementById("sourceTextarea").value = code;
+    }
+    paint()
+    {
+        if(!flowchart_display) return;
+
+		var canvas_width = this.canvas.width;
+		var canvas_height = this.canvas.height;
+		var p0 = new point(), p1 = new point(), p2 = new point();
+		this.context.clearRect(0, 0, canvas_width, canvas_height);
+        FlowchartSetting.fontsize = FlowchartSetting.size * 2;
+        this.context.font = FlowchartSetting.fontsize + "px 'sans-serif'";
+        this.context.strokeStyle = "rgb(0,0,0)";
+        this.context.fillStyle = "rgb(0,0,0)";
+        this.context.lineWidth = "1px";
+        this.top.calcSize(p0, p1, p2);	// p1が左上，p2が右下
+        this.top.paint({x:this.x0, y:this.y0});
+    }
+
+	findParts(x, y)
+	{
+		return this.top.findParts(x, y);
+	}
+
+}
+
+class Parts
+{
+    constructor()
+    {
+        this._text = "";
+        this._next = this._prev = null;
+        this._textwidth = this._textheight = this._width = this._height = 0;
+		this._hspace = 0;
+    }
+    get x1(){return this._x1;} set x1(x){this._x1 = x;} // paintで計算する
+    get y1(){return this._y1;} set y1(y){this._y1 = y;}
+    get x2(){return this._x2;} set x2(x){this._x2 = x;}
+    get y2(){return this._y2;} set y2(y){this._y2 = y;}
+    get text(){return this._text;}
+    get next(){return this._next;}
+	set next(p){
+		p._next = this.next;
+		p._prev = this;
+		if(this.next != null) this.next._prev = p;
+		this._next = p;
+	}
+    get prev(){return this._prev;}
+	get end(){return this;}						// ブロックの終わりのパーツ
+    get width(){return this._width;}          // calcSizeで計算する
+    get height(){return this._height;}         // calcSizeで計算する
+    get textWidth(){return this._textwidth;}      // calcSizeで計算する
+    get textHeight(){return this._textheight;}     // calcSizeで計算する
+	get hspace(){return this._hspace;}
+
+	isBlockEnd(){return false;}
+
+	inside(x, y)
+	{
+		return this.x1 <= x && x <= this.x2 && this.y1 <= y && y <= this.y2;
+	}
+	findParts(x, y)
+	{
+		var p = this;
+		while(p != null && ! p.isBlockEnd())
+		{
+			if(p.inside(x, y)) return p;
+			if(p instanceof Parts_If)
+			{
+				var p1 = p.left.findParts(x, y);
+				if(p1) return p1;
+				p1 = p.right.findParts(x, y);
+				if(p1) return p1;
+				p = p.end.next;
+			}
+			else p = p.next;
+		}
+		return null;
+	}
+
+    paint(position)
+    {
+        if(this.end.next != null) return this.end.next.paint(position);
+		return this.end;
+    }
+    calcTextsize()
+    {
+        if(this.text != null && this.text != "")
+        {
+			var size = FlowchartSetting.size;
+            var metrics = flowchart.context.measureText(this.text);
+			this._hspace = 0;
+            this._textwidth = metrics.width;
+			if(this._textwidth < size * 4)
+			{
+				this._hspace = (size * 4 - this._textwidth) / 2;
+				this._textwidth = size * 4;
+			}
+            this._textheight = FlowchartSetting.fontsize;
+        }
+    }
+    calcSize(p0, p1, p2)
+    {
+		if(this.next == null || this.isBlockEnd()) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+	static appendMe(bar)
+	{
+
+	}
+    appendCode(code, indent)
+	{
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+    static makeIndent(indent_level)
+    {
+        var s = "";
+        for(var i = 0; i < indent_level; i++) s += "｜";
+        return s;
+    }
+	editMe()
+	{
+
+	}
+	deleteMe()
+	{
+//		if(this.prev != null)
+		{
+			this.prev._next = this.end.next.next;
+			this.end.next.next._prev = this.prev;
+		}
+		this.end._next = null;
+		this._next = null;
+	}
+	cutMe()
+	{
+
+	}
+	highlight()
+	{
+		flowchart.context.strokeStyle = "rgb(255,0,0)";
+		flowchart.context.fillStyle = "rgb(255,0,0)";
+		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
+		this.paint(null);
+		flowchart.context.strokeStyle = "rgb(0,0,0)";
+		flowchart.context.fillStyle = "rgb(0,0,0)";
+	}
+	unhighlight()
+	{
+		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
+		this.paint(null);
+	}
+}
+
+class Parts_Null extends Parts
+{
+	isBlockEnd()
+	{
+		return true;
+	}
+}
+
+class Parts_Bar extends Parts
+{
+    calcSize(p0,p1,p2)
+    {
+        this._width = 0;
+        this._height = FlowchartSetting.size * 4;
+		p0.y += this._height;
+		if(p0.y > p2.y) p2.y = p0.y;
+		if(this.next == null || this.isBlockEnd()) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+	inside(x, y)
+	{
+		var near = 4;
+		return this.x1 - near <= x && x <= this.x2 + near && this.y1 <= y && y <= this.y2;
+	}
+    paint(position)
+    {
+		if(position != null)
+		{
+			this.x1 = this.x2 = position.x;
+	        this.y1 = position.y;
+	        this.y2 = this.y1 + this.height;
+		}
+        flowchart.context.beginPath();
+        flowchart.context.moveTo(this.x1, this.y1);
+        flowchart.context.lineTo(this.x2, this.y2);
+        flowchart.context.stroke();
+		if(position != null)
+		{
+			position.x = this.x2; position.y = this.y2;
+	        return this.next.paint(position);
+		}
+		return this;
+    }
+}
+
+class Parts_Terminal extends Parts
+{
+    calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+        this._height = this._textheight + FlowchartSetting.size * 2;
+        this._width = this._textwidth + this._height;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd()) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+	setValue(v)
+	{
+		this._text = v;
+	}
+    paint(position)
+    {
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.textWidth / 2 - this.height / 2;
+	        this.x2 = position.x + this.textWidth / 2 + this.height / 2;
+	        this.y1 = position.y;
+	        this.y2 = position.y + this.height;
+		}
+        flowchart.context.beginPath();    // 上
+        flowchart.context.moveTo(this.x1 + this.height / 2, this.y1);
+        flowchart.context.lineTo(this.x2 - this.height / 2, this.y1);
+        flowchart.context.stroke();
+        flowchart.context.beginPath();    // 右
+        flowchart.context.arc(this.x2 - this.height / 2, this.y1 + this.height / 2,
+            this.height / 2, Math.PI / 2, - Math.PI / 2, true);
+        flowchart.context.stroke();
+        flowchart.context.beginPath();    // 下
+        flowchart.context.moveTo(this.x1 + this.height / 2, this.y2);
+        flowchart.context.lineTo(this.x2 - this.height / 2, this.y2);
+        flowchart.context.stroke();
+        flowchart.context.beginPath();    // 左
+        flowchart.context.arc(this.x1 + this.height / 2, this.y1 + this.height / 2,
+            this.height / 2, 3 * Math.PI / 2, Math.PI / 2, true);
+        flowchart.context.stroke();
+        flowchart.context.fillText(this.text, this.x1 + this.height / 2, this.y2 - FlowchartSetting.size);
+		if(position != null)
+		{
+			position.y += this.height;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+    }
+}
+
+class Parts_Output extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("《値》", true);
+	}
+	get newline(){return this._newline;}
+	setValue(v, nl)
+	{
+		this._text = v;
+		this._newline = nl;
+	}
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+        this._height = this._textheight + size * 2;
+        this._width = this._textwidth + size * 2 + this._height / 2;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd()) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x2 - this.height / 2, this.y1);
+		flowchart.context.lineTo(this.x1 + size * 2, this.y1);
+		flowchart.context.lineTo(this.x1, (this.y1 + this.y2) / 2);
+		flowchart.context.lineTo(this.x1 + size * 2, this.y2);
+		flowchart.context.lineTo(this.x2 - this.height / 2, this.y2);
+		flowchart.context.stroke();
+		flowchart.context.beginPath();
+		flowchart.context.arc(this.x2 - this.height / 2, (this.y1 + this.y2) / 2, this.height / 2,
+			Math.PI / 2, -Math.PI /2, true);
+		flowchart.context.stroke();
+
+		flowchart.context.fillText(this.text, this.x1 + size * 2 + this.hspace, this.y2 - size);
+
+		if(!this.newline)	// 改行なしマーク
+		{
+			var x = this.x2 - this.height / 2;
+			var y = this.y1 + size;
+			flowchart.context.beginPath();
+			flowchart.context.moveTo(x + size, y);
+			flowchart.context.lineTo(x + size, y + this.textHeight);
+			flowchart.context.lineTo(x , y + this.textHeight);
+			flowchart.context.stroke();
+			flowchart.context.beginPath();
+			flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 2);
+			flowchart.context.lineTo(x , y + this.textHeight);
+			flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 2);
+			flowchart.context.stroke();
+			x += this.height / 4; y += this.textHeight / 2;
+			flowchart.context.beginPath(); flowchart.context.moveTo(x - size / 2, y - size / 2); flowchart.context.lineTo(x + size / 2, y + size / 2); flowchart.context.stroke();
+			flowchart.context.beginPath(); flowchart.context.moveTo(x + size / 2, y - size / 2); flowchart.context.lineTo(x - size / 2, y + size / 2); flowchart.context.stroke();
+		}
+		if(position != null)
+		{
+			position.y = this.y2;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_Output();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.text + " を" + (this.newline ? "" : "改行なしで") + "表示する\n";
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["値", "改行"];
+		var values = [ this.text , this.newline];
+		openModalWindowforOutput("出力の編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0], values[1]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+class Parts_Input extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("《変数》");
+	}
+	setValue(v)
+	{
+		this._var = v;
+		this._text = v + "を入力";
+	}
+	get var(){return this._var;}
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+        this._height = this._textheight + size * 2;
+        this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd()) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1 + size);
+		flowchart.context.lineTo(this.x2, this.y1 - size);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1 + size);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+		if(position != null)
+		{
+			position.y = this.y2;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_Input();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.var + " を入力する\n";
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["変数"];
+		var values = [ this.var ];
+		openModalWindow("入力の編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+class Parts_Substitute extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("《変数》","《値》");
+	}
+	setValue(variable,value)
+	{
+		this._var = variable;
+		this._val = value;
+
+		this._text = this._var + "←" + this._val;
+	}
+	get var(){return this._var;}
+	get val(){return this._val;}
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+        this._height = this._textheight + size * 2;
+        this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd()) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+
+		if(position != null)
+		{
+			position.y = this.y2;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_Substitute();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.var + " ← " + this.val + "\n";
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["変数", "値"];
+		var values = [ this.var , this.val];
+		openModalWindow("代入の編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0], values[1]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+class Parts_If extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("《条件》");
+		this.left = this.right = null;
+		this.left_bar_expand = this.right_bar_expand = 0;
+	}
+	setValue(cond)
+	{
+		this._cond = cond;
+		this._text = this._cond;
+	}
+	get condition(){return this._cond;}
+	get end(){return this.next;}
+
+	calcTextsize()
+    {
+        if(this.text != null && this.text != "")
+        {
+			var size = FlowchartSetting.size;
+            var metrics = flowchart.context.measureText(this.text);
+			this._hspace = 0;
+            this._textwidth = metrics.width;
+			if(this._textwidth < size * 6)
+			{
+				this._hspace = (size * 6 - this._textwidth) / 2;
+				this._textwidth = size * 6;
+			}
+            this._textheight = FlowchartSetting.fontsize;
+        }
+    }
+
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+//		if(this._textwidth < size * 6) this._textwidth = size * 6;
+//		if(this._textheight < size * 2) this._textheight = size * 2;
+		this.v_margin = size * 2;
+		this.h_margin = this.textWidth * this.textHeight / this.v_margin / 4;
+        this._height = this.textHeight + this.v_margin * 2;
+        this._width = this.textWidth + this.h_margin * 2;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		// 左枝
+		var pl = new point(); pl.x = x1; pl.y = p0.y;
+		var pl1 = pl.clone(), pl2 = pl.clone();
+		this.left.calcSize(pl, pl1, pl2);
+		this.left_bar_expand = pl.x - pl2.x - this.width / 2;
+		if(this.left_bar_expand < size * 2) this.left_bar_expand = size * 2;
+		pl1.x = pl1.x - this.left_bar_expand;
+		pl2.x = pl2.x - this.left_bar_expand;
+		if(pl1.x < p1.x) p1.x = pl1.x;
+		if(pl2.y > p2.y) p2.y = pl2.y;
+		// 右枝
+		var pr = new point(); pr.x = x2; pl.y = p0.y;
+		var pr1 = pr.clone(), pr2 = pr.clone();
+		this.right.calcSize(pr, pr1, pr2);
+		this.right_bar_expand = pr2.x - pr.x - this.width / 2;
+		if(this.right_bar_expand < size * 2) this.right_bar_expand = size * 2;
+		pr1.x = pr1.x + this.right_bar_expand;
+		pr2.x = pr2.x + this.right_bar_expand;
+		if(pr2.x > p2.x) p2.x = pr2.x;
+		if(pl2.y > p2.y) p2.y = pr2.y;
+		// 左枝と右枝がぶつかっていたら，ちょっと伸ばす
+		var distance = pr1.x - pl2.x - size;
+		if(distance < 0)
+		{
+			this.left_bar_expand += -distance / 2;
+			this.right_bar_expand += -distance / 2;
+		}
+//		p0.y = this.end.y;
+		this.end.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		var x0 = (this.x1 + this.x2) / 2, y0 = (this.y1 + this.y2) / 2;
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(x0, this.y1);
+		flowchart.context.lineTo(this.x1, y0);
+		flowchart.context.lineTo(x0, this.y2);
+		flowchart.context.lineTo(this.x2, y0);
+		flowchart.context.lineTo(x0, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, x0 - this.textWidth / 2 + this.hspace,
+			y0 + this.textHeight / 2);
+		// 左側
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, y0);
+		flowchart.context.lineTo(this.x1 - this.left_bar_expand, y0);
+		flowchart.context.stroke();
+		var left_parts = this.left.paint({x:this.x1 - this.left_bar_expand, y:y0}).prev;
+		// 右側
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x2, y0);
+		flowchart.context.lineTo(this.x2 + this.right_bar_expand, y0);
+		flowchart.context.stroke();
+		var right_parts = this.right.paint({x:this.x2 + this.right_bar_expand, y:y0}).prev;
+		var y = left_parts.y2;
+		if(left_parts.y2 > right_parts.y2)
+		{
+			flowchart.context.beginPath();
+			flowchart.context.moveTo(this.x2 + this.right_bar_expand, right_parts.y2);
+			flowchart.context.lineTo(this.x2 + this.right_bar_expand, y);
+			flowchart.context.stroke();
+			right_parts.y2 = y;
+		}
+		else
+		{
+			y = right_parts.y2;
+			flowchart.context.beginPath();
+			flowchart.context.moveTo(this.x1 - this.left_bar_expand, left_parts.y2);
+			flowchart.context.lineTo(this.x1 - this.left_bar_expand, y);
+			flowchart.context.stroke();
+			left_parts.y2 = y;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1 - this.left_bar_expand, y);
+		flowchart.context.lineTo(this.x2 + this.right_bar_expand, y);
+		flowchart.context.stroke();
+
+		if(position != null)
+		{
+			position.y = y;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this.end.next;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_If();
+		bar.next = parts;
+		parts.next = new Parts_Null();
+		parts.next.next = new Parts_Bar();
+		parts.left = new Parts_Bar();
+		parts.left._prev = parts;
+		parts.left.next = new Parts_Null();
+		parts.right = new Parts_Bar();
+		parts.right._prev = parts;
+		parts.right.next = new Parts_Null();
+
+		return parts.end.next.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += "もし " + this.condition + " ならば\n";
+		if(this.left.next instanceof Parts_Null) code += Parts.makeIndent(indent + 1) + "\n";
+		else code += this.left.appendCode('', indent + 1);
+		if(!(this.right.next instanceof Parts_Null))
+		{
+			code += Parts.makeIndent(indent) + "を実行し，そうでなければ\n"
+			code += this.right.appendCode('', indent + 1);
+		}
+		code += Parts.makeIndent(indent);
+		code += "を実行する\n";
+
+		if(this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["条件"];
+		var values = [ this.condition ];
+		openModalWindow("分岐の編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+var modal_title,modal_subtitle,modal_values,modal_parts,modal_cancel;
+
+function openModalWindow(title, subtitle, values, parts)
+{
+	var html = "<p>" + title + "</p>";
+	modal_subtitle = subtitle;
+	modal_values = values;
+	modal_parts = parts;
+	modal_cancel = false;
+	html += "<table>";
+	for(var i = 0; i < modal_subtitle.length; i++)
+		html += "<tr><td>" + subtitle[i] + "</td><td><input type=\"text\" " +
+			"id=\"inputarea" + i + "\" value=\"" + values[i] + "\" " +
+			"onfocus=\"select();\" "+
+			"onkeydown=\"keydownModal();\" spellcheck=\"false\"></td></tr>";
+	html += "</table>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow();\">OK</button>";
+	html += "<button type=\"button\" onclick=\"discardModalWindow();\">キャンセル</button>";
+	modal_parts.highlight();
+	$("#input").html(html);
+	$("#input").height(100 + subtitle.length * 30);
+	$("#input-overlay").fadeIn();
+	$("#input").fadeIn();
+	$("#inputarea0").focus();
+}
+
+function openModalWindowforOutput(title, subtitle, values, parts)
+{
+	var html = "<p>" + title + "</p>";
+	modal_subtitle = subtitle;
+	modal_values = values;
+	modal_parts = parts;
+	modal_cancel = false;
+	html += "<table>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
+		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
+		"onfocus=\"select();\" "+
+		"onkeydown=\"keydownModal();\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td></td><td><input type=\"checkbox\" " +
+		"id=\"inputarea1\"" + (values[1] ? " checked=\"checked\"" : "") + ">改行する</td></tr>";
+	html += "</table>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow();\">OK</button>";
+	html += "<button type=\"button\" onclick=\"discardModalWindow();\">キャンセル</button>";
+	modal_parts.highlight();
+	$("#input").html(html);
+	$("#input").height(100 + subtitle.length * 30);
+	$("#input-overlay").fadeIn();
+	$("#input").fadeIn();
+	$("#inputarea0").focus();
+}
+
+function closeModalWindow()
+{
+	for(var i = 0; i < modal_subtitle.length; i++)
+	{
+		var $j = $("#inputarea" + i);
+		if($j.prop("type") == "checkbox") modal_values[i] = $j.prop("checked");
+		else modal_values[i] = $j.val();
+	}
+	$("#input").hide();
+	$("#input-overlay").hide();
+	modal_parts.unhighlight();
+	modal_parts.edited(modal_values); // parts must have function 'edited'
+}
+
+function discardModalWindow()
+{
+	$("#input").hide();
+	$("#input-overlay").hide();
+	modal_parts.unhighlight();
+}
+
+function keydownModal(e)
+{
+	var evt = e || window.event;
+	if(evt.keyCode == 27) // ESC
+	{
+		modal_cancel = true;
+		discardModalWindow();
+	}
+	else if(evt.keyCode == 13) // Enter
+	{
+		closeModalWindow();
+	}
 }

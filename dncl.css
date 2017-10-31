@@ -37,7 +37,28 @@
 	margin-top: 1em;
 }
 
+#sourceTextarea{
+	float: left;
+}
+
+#resultTextarea{
+	float: left;
+}
+
 #canvas{
 	display: none;
+	border: solid 1px rgb(128,128,128);
+}
+
+#Program_area{
+	float: left;
+}
+
+#Flowchart_area{
+	float: left;
+	display: none;
+}
+
+#flowchart{
 	border: solid 1px rgb(128,128,128);
 }
