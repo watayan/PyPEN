@@ -62,3 +62,7 @@
 #flowchart{
 	border: solid 1px rgb(128,128,128);
 }
+
+#input button{
+	margin:2px 2px;
+}

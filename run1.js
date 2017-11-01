@@ -2190,10 +2190,9 @@ function contextMenu_Flowchart(trigger, event) {
 					loopinc: { name: "増やしながら" },
 					loopdec: { name: "減らしながら" }
 				}
-			},
-			separator2: "-----",
-			paste: { name: "ペースト" }
-		}
+				//				separator2:"-----",
+				//				paste:{name:"ペースト"}
+			} }
 	};
 	return {
 		callback: function callback(k, e) {
@@ -2209,9 +2208,9 @@ function contextMenu_Flowchart(trigger, event) {
 		},
 		items: {
 			edit: { name: "編集" },
-			delete: { name: "削除" },
-			cut: { name: "カット" }
-		}
+			delete: { name: "削除"
+				//			cut:{name:"カット"}
+			} }
 	};
 }
 
@@ -2418,11 +2417,8 @@ var Parts = function () {
 	}, {
 		key: "deleteMe",
 		value: function deleteMe() {
-			//		if(this.prev != null)
-			{
-				this.prev._next = this.end.next.next;
-				this.end.next.next._prev = this.prev;
-			}
+			this.prev._next = this.end.next.next;
+			this.end.next.next._prev = this.prev;
 			this.end._next = null;
 			this._next = null;
 		}
