@@ -1797,7 +1797,7 @@ onload = function(){
 						replace:	{name: "replace 置換", callback: function(k,e){insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");}},
 					}
 				},
-				graphic:{ name:"グラフィック命令",
+				graphic:{ name:"各種命令",
 					items:{
 						gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCode("描画領域開く(《幅》,《高さ》)");}},
 						gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCode("描画領域閉じる()");}},
@@ -1811,7 +1811,8 @@ onload = function(){
 						gDrawBox:{name:"矩形描画", callback: function(k,e){insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");}},
 						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
-						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}}
+						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
+						sleep:{name:"待つ", callback: function(k,e){insertCode("《秒数》 秒待つ");}}
 					}
 				}
 			}
@@ -1930,7 +1931,6 @@ function contextMenu_Flowchart(trigger, event)
 				input: {name: "入力"},
 				output: {name: "出力"},
 				substitute: {name: "代入"},
-				misc:{name:"各種処理"},
 				if:{name:"分岐"},
 				loop:{name:"ループ",
 					items:{
@@ -1939,7 +1939,8 @@ function contextMenu_Flowchart(trigger, event)
 						loopinc:{name:"増やしながら"},
 						loopdec:{name:"減らしながら"}
 					}
-				}
+				},
+				misc:{name:"各種命令"}
 //				separator2:"-----",
 //				paste:{name:"ペースト"}
 			}
@@ -1969,6 +1970,7 @@ function callbackPartsBar(bar, key)
 	else if(key == "loop2") Parts_LoopBegin2.appendMe(bar);
 	else if(key == "loopinc") Parts_LoopBeginInc.appendMe(bar);
 	else if(key == "loopdec") Parts_LoopBeginDec.appendMe(bar);
+	else if(key == "misc") Parts_Misc.appendMe(bar);
 }
 
 function callbackParts(parts, key)
@@ -3242,6 +3244,127 @@ class Parts_LoopEnd2 extends Parts_LoopEnd
 	get text2(){return "になるまで";}
 }
 
+var misc_menu =[
+	//表示            識別子            プログラム上の表現            [引数の意味]
+	["《各種処理》"  , "none"           , "《各種処理》"              ,[]],
+	["描画領域開く"  , "gOpenWindow"    , "描画領域開く(	,	)"       ,["幅","高さ"]],
+	["描画領域閉じる", "gCloseWindow"   , "描画領域閉じる()"           ,[]],
+	["描画領域全消去", "gClearWindow"   , "描画領域全消去()"           ,[]],
+	["線色設定"     , "gSetLineColor"  , "線色設定(	,	,	)"         ,["赤","青","緑"]],
+	["塗色設定"     , "gSetFillColor"  , "塗色設定(	,	,	)"         ,["赤","青","緑"]],
+	["線太さ設定"   , "gSetLineWidth"   , "線太さ設定(	)"            ,["太さ"]],
+	["文字サイズ設定", "gSetFontSize"   , "文字サイズ設定(	)"         ,["サイズ"]],
+	["文字描画"     , "gDrawText"      , "文字描画(	,	,	)"        ,["文字列","x","y"]],
+	["線描画"       , "gDrawLine"      , "線描画(	,	,	,	)"        ,["x1","y1","x2","y2"]],
+	["矩形描画"     , "gDrawBox"       , "矩形描画(	,	,	,	)"      ,["x","y","幅","高さ"]],
+	["矩形塗描画"   , "gFillBox"       , "矩形塗描画(	,	,	,	)"    ,["x","y","幅","高さ"]],
+	["円描画"      , "gDrawCircle"     , "円描画(	,	,	)"          ,["x","y","半径"]],
+	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
+	["待つ"       , "sleep"           , "	 秒待つ"                 ,["秒数"]]
+];
+
+
+class Parts_Misc extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("none", []);
+	}
+	setValue(identifier, values)
+	{
+		this._identifier = identifier;
+		this._values = [];
+		for(var i = 0; i < values.length; i++) this._values.push(values[i]);
+		for(var i = 0; i < misc_menu.length; i++)
+		{
+			if(this._identifier != misc_menu[i][1]) continue;
+			this._command = misc_menu[i][0];
+			var code = misc_menu[i][2];
+			for(var j = 0; j < this.values.length; j++)
+				code = code.replace("\t",this.values[j]);
+			this._text = code;
+			break;
+		}
+	}
+
+	get identifier(){return this._identifier;}
+	get values(){return this._values;}
+
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+        this._height = this._textheight + size * 2;
+        this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd) return;
+		this.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+
+		if(position != null)
+		{
+			position.y = this.y2;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_Misc();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.text + "\n";
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["変数", "値"];
+		var values = [ this.var , this.val];
+		openModalWindowforMisc(this);
+	}
+	edited(identifier, values)
+	{
+		if(values != null)
+		{
+			this.setValue(identifier, values);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+
+}
 
 /* 編集ダイアログ */
 
@@ -3294,6 +3417,7 @@ function openModalWindowforOutput(title, subtitle, values, parts)
 	$("#inputarea0").focus();
 }
 
+
 function closeModalWindow(ok)
 {
 	if(ok)
@@ -3318,4 +3442,105 @@ function keydownModal(e)
 		closeModalWindow(false);
 	else if(evt.keyCode == 13) // Enter
 		closeModalWindow(true);
+}
+
+var misc_identifier;
+
+function openModalWindowforMisc(parts)
+{
+	var html = "<p>各種処理の編集</p>";
+	modal_parts = parts;
+	modal_values = [];
+	for(var i = 0; i < parts.values.length; i++) modal_values.push(parts.values[i]);
+	html += "<select id=\"misccommands\" onchange=\"onmiscchanged();\">";
+	for(var i = 0; i < misc_menu.length; i++)
+		html += "<option value=\"" + misc_menu[i][1] + "\""
+			+(misc_menu[i][1] == parts.identifier ? " selected" : "" )+">" 
+			+ misc_menu[i][0] + "</option>";
+	html += "</select>";
+	html += "<table id=\"miscvalues\">";
+	html += "</table>";
+	html += "<button type=\"button\" onclick=\"closeModalWindowforMisc(true);\">OK</button>";
+	html += "<button type=\"button\" onclick=\"closeModalWindowforMisc(false);\">キャンセル</button>";
+	modal_parts.highlight();
+	$("#input").html(html);
+	$("#input-overlay").fadeIn();
+	$("#input").fadeIn();
+	setIdentifierforMisc(parts.identifier);
+//	$("#inputarea0").focus();
+}
+
+function onmiscchanged()
+{
+	var index = document.getElementById("misccommands").selectedIndex;
+	setIdentifierforMisc(misc_menu[index][1]);
+
+}
+
+function setIdentifierforMisc(identifier)
+{
+	misc_identifier = identifier;
+	// 今のinputareaの値をmodal_valuesに退避する
+	for(var i = 0; i < modal_values.length; i++)
+	{
+		var elem = document.getElementById("inputarea" + i);
+		if(elem) modal_values[i] = elem.value;
+		if(modal_values[i].match(/《.*》/)) modal_values[i] = null;
+	}
+	
+	var table = document.getElementById("miscvalues");
+	// tableの子をすべて消す
+	while(table.firstChild) table.removeChild(table.firstChild);
+	for(var i = 0; i < misc_menu.length; i++)
+	{
+		if(identifier != misc_menu[i][1])continue;
+		var tmp_values = [];
+		for(var j = 0; j < misc_menu[i][3].length; j++)
+		{
+			var v = "《" + misc_menu[i][3][j] + "》";
+			if(modal_values.length > j && modal_values[j] != null) v = modal_values[j]
+			else if(modal_parts.values.length > j) v = modal_parts.values[j];
+			tmp_values.push(v);
+			var tr = document.createElement("tr");
+			var td = document.createElement("td");
+			td.innerHTML = misc_menu[i][3][j];
+			tr.appendChild(td);
+			td = document.createElement("td");
+			var input = document.createElement("input");
+			input.setAttribute("id", "inputarea" + j);
+			input.setAttribute("value", v);
+			input.setAttribute("onfocus", "select();");
+			input.setAttribute("onkeydown", "keydownModalforMisc();")
+			input.setAttribute("spellcheck", "false");
+			td.appendChild(input);
+			tr.appendChild(td);
+			table.appendChild(tr);
+		}
+		modal_values = tmp_values;
+	}
+	$("#input").height(100 + modal_values.length * 30);
+}
+
+function closeModalWindowforMisc(ok)
+{
+	if(ok)
+	{
+		for(var i = 0; i < modal_values.length; i++)
+		{
+			modal_values[i] = document.getElementById("inputarea" + i).value;
+		}
+	}
+	$("#input").hide();
+	$("#input-overlay").hide();
+	modal_parts.unhighlight();
+	modal_parts.edited(misc_identifier, ok ? modal_values : null); // parts must have function 'edited'
+}
+
+function keydownModalforMisc(e)
+{
+	var evt = e || window.event;
+	if(evt.keyCode == 27) // ESC
+		closeModalWindowforMisc(false);
+	else if(evt.keyCode == 13) // Enter
+		closeModalWindowforMisc(true);
 }
