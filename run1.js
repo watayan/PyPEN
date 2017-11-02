@@ -170,31 +170,9 @@ var ArrayValue = function (_Value2) {
 		key: "getCode",
 		value: function getCode() {
 			var ag = [];
-			var _iteratorNormalCompletion = true;
-			var _didIteratorError = false;
-			var _iteratorError = undefined;
-
-			try {
-				for (var _iterator = this.value[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-					var i = _step.value;
-					ag.push(i.getCode());
-				}
-			} catch (err) {
-				_didIteratorError = true;
-				_iteratorError = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion && _iterator.return) {
-						_iterator.return();
-					}
-				} finally {
-					if (_didIteratorError) {
-						throw _iteratorError;
-					}
-				}
-			}
-
-			return '[' + ag.join(',') + ']';
+			for (var i = 0; i < this.value.length; i++) {
+				ag.push(this.value[i].getCode());
+			}return '[' + ag.join(',') + ']';
 		}
 	}]);
 
@@ -1235,61 +1213,17 @@ var DefinitionInt = function (_Statement) {
 		key: "getCode",
 		value: function getCode() {
 			var ag = [];
-			var _iteratorNormalCompletion2 = true;
-			var _didIteratorError2 = false;
-			var _iteratorError2 = undefined;
-
-			try {
-				for (var _iterator2 = this.vars[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-					var v = _step2.value;
-
-					var vn = v.varname;
-					var pm = v.parameter;
-					if (pm) {
-						var pl = [];
-						var _iteratorNormalCompletion3 = true;
-						var _didIteratorError3 = false;
-						var _iteratorError3 = undefined;
-
-						try {
-							for (var _iterator3 = pm[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-								var p = _step3.value;
-								pl.push(p.getCode());
-							}
-						} catch (err) {
-							_didIteratorError3 = true;
-							_iteratorError3 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion3 && _iterator3.return) {
-									_iterator3.return();
-								}
-							} finally {
-								if (_didIteratorError3) {
-									throw _iteratorError3;
-								}
-							}
-						}
-
-						vn += '[' + pl.join(',') + ']';
-					}
-					ag.push(vn);
+			for (var i = 0; i < this.vars.length; i++) {
+				var vn = this.args[i].varname;
+				var pm = this.args[i].parameter;
+				if (pm) {
+					var pl = [];
+					for (var j = 0; j < pm.length; j++) {
+						pl.push(pm[j].getCode());
+					}vn += '[' + pl.join(',') + ']';
 				}
-			} catch (err) {
-				_didIteratorError2 = true;
-				_iteratorError2 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion2 && _iterator2.return) {
-						_iterator2.return();
-					}
-				} finally {
-					if (_didIteratorError2) {
-						throw _iteratorError2;
-					}
-				}
+				ag.push(vn);
 			}
-
 			return ag.join(',');
 		}
 	}]);
@@ -1348,61 +1282,17 @@ var DefinitionFloat = function (_Statement2) {
 		key: "getCode",
 		value: function getCode() {
 			var ag = [];
-			var _iteratorNormalCompletion4 = true;
-			var _didIteratorError4 = false;
-			var _iteratorError4 = undefined;
-
-			try {
-				for (var _iterator4 = this.vars[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-					var v = _step4.value;
-
-					var vn = v.varname;
-					var pm = v.parameter;
-					if (pm) {
-						var pl = [];
-						var _iteratorNormalCompletion5 = true;
-						var _didIteratorError5 = false;
-						var _iteratorError5 = undefined;
-
-						try {
-							for (var _iterator5 = pm[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-								var p = _step5.value;
-								pl.push(p.getCode());
-							}
-						} catch (err) {
-							_didIteratorError5 = true;
-							_iteratorError5 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion5 && _iterator5.return) {
-									_iterator5.return();
-								}
-							} finally {
-								if (_didIteratorError5) {
-									throw _iteratorError5;
-								}
-							}
-						}
-
-						vn += '[' + pl.join(',') + ']';
-					}
-					ag.push(vn);
+			for (var i = 0; i < this.vars.length; i++) {
+				var vn = this.args[i].varname;
+				var pm = this.args[i].parameter;
+				if (pm) {
+					var pl = [];
+					for (var j = 0; j < pm.length; j++) {
+						pl.push(pm[j].getCode());
+					}vn += '[' + pl.join(',') + ']';
 				}
-			} catch (err) {
-				_didIteratorError4 = true;
-				_iteratorError4 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion4 && _iterator4.return) {
-						_iterator4.return();
-					}
-				} finally {
-					if (_didIteratorError4) {
-						throw _iteratorError4;
-					}
-				}
+				ag.push(vn);
 			}
-
 			return ag.join(',');
 		}
 	}]);
@@ -1461,61 +1351,17 @@ var DefinitionString = function (_Statement3) {
 		key: "getCode",
 		value: function getCode() {
 			var ag = [];
-			var _iteratorNormalCompletion6 = true;
-			var _didIteratorError6 = false;
-			var _iteratorError6 = undefined;
-
-			try {
-				for (var _iterator6 = this.vars[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-					var v = _step6.value;
-
-					var vn = v.varname;
-					var pm = v.parameter;
-					if (pm) {
-						var pl = [];
-						var _iteratorNormalCompletion7 = true;
-						var _didIteratorError7 = false;
-						var _iteratorError7 = undefined;
-
-						try {
-							for (var _iterator7 = pm[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-								var p = _step7.value;
-								pl.push(p.getCode());
-							}
-						} catch (err) {
-							_didIteratorError7 = true;
-							_iteratorError7 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion7 && _iterator7.return) {
-									_iterator7.return();
-								}
-							} finally {
-								if (_didIteratorError7) {
-									throw _iteratorError7;
-								}
-							}
-						}
-
-						vn += '[' + pl.join(',') + ']';
-					}
-					ag.push(vn);
+			for (var i = 0; i < this.vars.length; i++) {
+				var vn = this.args[i].varname;
+				var pm = this.args[i].parameter;
+				if (pm) {
+					var pl = [];
+					for (var j = 0; j < pm.length; j++) {
+						pl.push(pm[j].getCode());
+					}vn += '[' + pl.join(',') + ']';
 				}
-			} catch (err) {
-				_didIteratorError6 = true;
-				_iteratorError6 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion6 && _iterator6.return) {
-						_iterator6.return();
-					}
-				} finally {
-					if (_didIteratorError6) {
-						throw _iteratorError6;
-					}
-				}
+				ag.push(vn);
 			}
-
 			return ag.join(',');
 		}
 	}]);
@@ -1574,61 +1420,17 @@ var DefinitionBoolean = function (_Statement4) {
 		key: "getCode",
 		value: function getCode() {
 			var ag = [];
-			var _iteratorNormalCompletion8 = true;
-			var _didIteratorError8 = false;
-			var _iteratorError8 = undefined;
-
-			try {
-				for (var _iterator8 = this.vars[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-					var v = _step8.value;
-
-					var vn = v.varname;
-					var pm = v.parameter;
-					if (pm) {
-						var pl = [];
-						var _iteratorNormalCompletion9 = true;
-						var _didIteratorError9 = false;
-						var _iteratorError9 = undefined;
-
-						try {
-							for (var _iterator9 = pm[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-								var p = _step9.value;
-								pl.push(p.getCode());
-							}
-						} catch (err) {
-							_didIteratorError9 = true;
-							_iteratorError9 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion9 && _iterator9.return) {
-									_iterator9.return();
-								}
-							} finally {
-								if (_didIteratorError9) {
-									throw _iteratorError9;
-								}
-							}
-						}
-
-						vn += '[' + pl.join(',') + ']';
-					}
-					ag.push(vn);
+			for (var i = 0; i < this.vars.length; i++) {
+				var vn = this.args[i].varname;
+				var pm = this.args[i].parameter;
+				if (pm) {
+					var pl = [];
+					for (var j = 0; j < pm.length; j++) {
+						pl.push(pm[j].getCode());
+					}vn += '[' + pl.join(',') + ']';
 				}
-			} catch (err) {
-				_didIteratorError8 = true;
-				_iteratorError8 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion8 && _iterator8.return) {
-						_iterator8.return();
-					}
-				} finally {
-					if (_didIteratorError8) {
-						throw _iteratorError8;
-					}
-				}
+				ag.push(vn);
 			}
-
 			return ag.join(',');
 		}
 	}]);
@@ -2904,128 +2706,108 @@ var Flowchart = function () {
 	}], [{
 		key: "appendParts",
 		value: function appendParts(parts, statementlist) {
-			var _iteratorNormalCompletion10 = true;
-			var _didIteratorError10 = false;
-			var _iteratorError10 = undefined;
-
-			try {
-				for (var _iterator10 = statementlist[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-					var p = _step10.value;
-
-					if (!p) continue;
-					var statement = p.constructor.name;
-					if (statement == "DefinitionInt") {
-						document.getElementById("variable_int").value = p.getCode();
-					} else if (statement == "DefinitionFloat") {
-						document.getElementById("variable_float").value = p.getCode();
-					} else if (statement == "DefinitionString") {
-						document.getElementById("variable_string").value = p.getCode();
-					} else if (statement == "DefinitionBoolean") {
-						document.getElementById("variable_bool").value = p.getCode();
-					} else if (statement == "Assign") {
-						var p1 = new Parts_Substitute();
-						var b1 = new Parts_Bar();
-						p1.setValue(p.varname.getCode(), p.val.getCode());
-						parts.next = p1;
-						parts = p1.next = b1;
-					} else if (statement == "Input") {
-						var p1 = new Parts_Input();
-						var b1 = new Parts_Bar();
-						p1.setValue(p.varname.getCode());
-						parts.next = p1;
-						parts = p1.next = b1;
-					} else if (statement == "Output") {
-						var p1 = new Parts_Output();
-						var b1 = new Parts_Bar();
-						p1.setValue(p.value.getCode(), p.ln);
-						parts.next = p1;
-						parts = p1.next = b1;
-					} else if (statement == "If") {
-						var p1 = new Parts_If();
-						var b1 = new Parts_Bar(),
-						    b2 = new Parts_Bar(),
-						    b3 = new Parts_Bar();
-						var n1 = new Parts_Null(),
-						    n2 = new Parts_Null(),
-						    n3 = new Parts_Null();
-						p1.setValue(p.condition.getCode());
-						parts.next = p1;
-						p1.next = n1;n1.next = b1;
-						p1.left = b2;b2._prev = p1;b2.next = n2;
-						p1.right = b3;b3._prev = p1;b3.next = n3;
-						if (p.state1) Flowchart.appendParts(b2, p.state1);
-						if (p.state2) Flowchart.appendParts(b3, p.state2);
-						parts = b1;
-					} else if (statement == "ForInc") {
-						var p1 = new Parts_LoopBeginInc(),
-						    p2 = new Parts_LoopEnd();
-						var b1 = new Parts_Bar(),
-						    b2 = new Parts_Bar();
-						p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
-						parts.next = p1;
-						p1.next = b1;b1.next = p2;p2.next = b2;
-						p1._end = p2;p2._begin = p1;
-						Flowchart.appendParts(b1, p.state);
-						parts = b2;
-					} else if (statement == "ForDec") {
-						var p1 = new Parts_LoopBeginDec(),
-						    p2 = new Parts_LoopEnd();
-						var b1 = new Parts_Bar(),
-						    b2 = new Parts_Bar();
-						p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
-						parts.next = p1;
-						p1.next = b1;b1.next = p2;p2.next = b2;
-						p1._end = p2;p2._begin = p1;
-						Flowchart.appendParts(b1, p.state);
-						parts = b2;
-					} else if (statement == "Until") {
-						var p1 = new Parts_LoopBegin2(),
-						    p2 = new Parts_LoopEnd2();
-						var b1 = new Parts_Bar(),
-						    b2 = new Parts_Bar();
-						p1.setValue(p.condition.getCode());
-						parts.next = p1;
-						p1.next = b1;b1.next = p2;p2.next = b2;
-						p1._end = p2;p2._begin = p1;
-						Flowchart.appendParts(b1, p.state);
-						parts = b2;
-					} else if (statement == "While") {
-						var p1 = new Parts_LoopBegin1(),
-						    p2 = new Parts_LoopEnd();
-						var b1 = new Parts_Bar(),
-						    b2 = new Parts_Bar();
-						p1.setValue(p.condition.getCode());
-						parts.next = p1;
-						p1.next = b1;b1.next = p2;p2.next = b2;
-						p1._end = p2;p2._begin = p1;
-						Flowchart.appendParts(b1, p.state);
-						parts = b2;
-					} else if (statement == "GraphicStatement") {
-						var p1 = new Parts_Misc();
-						var b1 = new Parts_Bar();
-						p1.setValue(p.command, p.args);
-						parts.next = p1;
-						parts = p1.next = b1;
-					} else if (statement == "SleepStatement") {
-						var p1 = new Parts_Misc();
-						var b1 = new Parts_Bar();
-						p1.setValue("sleep", [p.sec]);
-						parts.next = p1;
-						parts = p1.next = b1;
-					}
-				}
-			} catch (err) {
-				_didIteratorError10 = true;
-				_iteratorError10 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion10 && _iterator10.return) {
-						_iterator10.return();
-					}
-				} finally {
-					if (_didIteratorError10) {
-						throw _iteratorError10;
-					}
+			for (var i = 0; i < statementlist.length; i++) {
+				p = statementlist[i];
+				if (!p) continue;
+				var statement = p.constructor.name;
+				if (statement == "DefinitionInt") {
+					document.getElementById("variable_int").value = p.getCode();
+				} else if (statement == "DefinitionFloat") {
+					document.getElementById("variable_float").value = p.getCode();
+				} else if (statement == "DefinitionString") {
+					document.getElementById("variable_string").value = p.getCode();
+				} else if (statement == "DefinitionBoolean") {
+					document.getElementById("variable_bool").value = p.getCode();
+				} else if (statement == "Assign") {
+					var p1 = new Parts_Substitute();
+					var b1 = new Parts_Bar();
+					p1.setValue(p.varname.getCode(), p.val.getCode());
+					parts.next = p1;
+					parts = p1.next = b1;
+				} else if (statement == "Input") {
+					var p1 = new Parts_Input();
+					var b1 = new Parts_Bar();
+					p1.setValue(p.varname.getCode());
+					parts.next = p1;
+					parts = p1.next = b1;
+				} else if (statement == "Output") {
+					var p1 = new Parts_Output();
+					var b1 = new Parts_Bar();
+					p1.setValue(p.value.getCode(), p.ln);
+					parts.next = p1;
+					parts = p1.next = b1;
+				} else if (statement == "If") {
+					var p1 = new Parts_If();
+					var b1 = new Parts_Bar(),
+					    b2 = new Parts_Bar(),
+					    b3 = new Parts_Bar();
+					var n1 = new Parts_Null(),
+					    n2 = new Parts_Null(),
+					    n3 = new Parts_Null();
+					p1.setValue(p.condition.getCode());
+					parts.next = p1;
+					p1.next = n1;n1.next = b1;
+					p1.left = b2;b2._prev = p1;b2.next = n2;
+					p1.right = b3;b3._prev = p1;b3.next = n3;
+					if (p.state1) Flowchart.appendParts(b2, p.state1);
+					if (p.state2) Flowchart.appendParts(b3, p.state2);
+					parts = b1;
+				} else if (statement == "ForInc") {
+					var p1 = new Parts_LoopBeginInc(),
+					    p2 = new Parts_LoopEnd();
+					var b1 = new Parts_Bar(),
+					    b2 = new Parts_Bar();
+					p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+					parts.next = p1;
+					p1.next = b1;b1.next = p2;p2.next = b2;
+					p1._end = p2;p2._begin = p1;
+					Flowchart.appendParts(b1, p.state);
+					parts = b2;
+				} else if (statement == "ForDec") {
+					var p1 = new Parts_LoopBeginDec(),
+					    p2 = new Parts_LoopEnd();
+					var b1 = new Parts_Bar(),
+					    b2 = new Parts_Bar();
+					p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+					parts.next = p1;
+					p1.next = b1;b1.next = p2;p2.next = b2;
+					p1._end = p2;p2._begin = p1;
+					Flowchart.appendParts(b1, p.state);
+					parts = b2;
+				} else if (statement == "Until") {
+					var p1 = new Parts_LoopBegin2(),
+					    p2 = new Parts_LoopEnd2();
+					var b1 = new Parts_Bar(),
+					    b2 = new Parts_Bar();
+					p1.setValue(p.condition.getCode());
+					parts.next = p1;
+					p1.next = b1;b1.next = p2;p2.next = b2;
+					p1._end = p2;p2._begin = p1;
+					Flowchart.appendParts(b1, p.state);
+					parts = b2;
+				} else if (statement == "While") {
+					var p1 = new Parts_LoopBegin1(),
+					    p2 = new Parts_LoopEnd();
+					var b1 = new Parts_Bar(),
+					    b2 = new Parts_Bar();
+					p1.setValue(p.condition.getCode());
+					parts.next = p1;
+					p1.next = b1;b1.next = p2;p2.next = b2;
+					p1._end = p2;p2._begin = p1;
+					Flowchart.appendParts(b1, p.state);
+					parts = b2;
+				} else if (statement == "GraphicStatement") {
+					var p1 = new Parts_Misc();
+					var b1 = new Parts_Bar();
+					p1.setValue(p.command, p.args);
+					parts.next = p1;
+					parts = p1.next = b1;
+				} else if (statement == "SleepStatement") {
+					var p1 = new Parts_Misc();
+					var b1 = new Parts_Bar();
+					p1.setValue("sleep", [p.sec]);
+					parts.next = p1;
+					parts = p1.next = b1;
 				}
 			}
 		}

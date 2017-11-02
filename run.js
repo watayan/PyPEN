@@ -115,7 +115,7 @@ class ArrayValue extends Value
 	getCode()
 	{
 		var ag = [];
-		for(var i of this.value) ag.push(i.getCode());
+		for(var i = 0; i < this.value.length; i++) ag.push(this.value[i].getCode());
 		return '[' + ag.join(',') + ']';
 	}
 }
@@ -1013,14 +1013,14 @@ class DefinitionInt extends Statement
 	getCode()
 	{
 		var ag = [];
-		for(var v of this.vars)
+		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = v.varname;
-			var pm = v.parameter;
+			var vn = this.args[i].varname;
+			var pm = this.args[i].parameter;
 			if(pm)
 			{
 				var pl = [];
-				for(var p of pm)pl.push(p.getCode());
+				for(var j = 0; j < pm.length; j++) pl.push(pm[j].getCode());
 				vn += '[' + pl.join(',') + ']';
 			}
 			ag.push(vn);
@@ -1087,14 +1087,14 @@ class DefinitionFloat extends Statement
 	getCode()
 	{
 		var ag = [];
-		for(var v of this.vars)
+		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = v.varname;
-			var pm = v.parameter;
+			var vn = this.args[i].varname;
+			var pm = this.args[i].parameter;
 			if(pm)
 			{
 				var pl = [];
-				for(var p of pm)pl.push(p.getCode());
+				for(var j = 0; j < pm.length; j++) pl.push(pm[j].getCode());
 				vn += '[' + pl.join(',') + ']';
 			}
 			ag.push(vn);
@@ -1161,14 +1161,14 @@ class DefinitionString extends Statement
 	getCode()
 	{
 		var ag = [];
-		for(var v of this.vars)
+		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = v.varname;
-			var pm = v.parameter;
+			var vn = this.args[i].varname;
+			var pm = this.args[i].parameter;
 			if(pm)
 			{
 				var pl = [];
-				for(var p of pm)pl.push(p.getCode());
+				for(var j = 0; j < pm.length; j++) pl.push(pm[j].getCode());
 				vn += '[' + pl.join(',') + ']';
 			}
 			ag.push(vn);
@@ -1235,14 +1235,14 @@ class DefinitionBoolean extends Statement
 	getCode()
 	{
 		var ag = [];
-		for(var v of this.vars)
+		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = v.varname;
-			var pm = v.parameter;
+			var vn = this.args[i].varname;
+			var pm = this.args[i].parameter;
 			if(pm)
 			{
 				var pl = [];
-				for(var p of pm)pl.push(p.getCode());
+				for(var j = 0; j < pm.length; j++) pl.push(pm[j].getCode());
 				vn += '[' + pl.join(',') + ']';
 			}
 			ag.push(vn);
@@ -2362,8 +2362,9 @@ class Flowchart
 	}
 	static appendParts(parts, statementlist)
 	{
-		for(var p of statementlist)
+		for(var i = 0; i < statementlist.length; i++)
 		{
+			p = statementlist[i];
 			if(!p) continue;
 			var statement = p.constructor.name;
 			if(statement == "DefinitionInt")
