@@ -58,7 +58,6 @@ function isInteger(v) {
 }
 
 function constructor_name(obj) {
-	var f = obj.constructor.toString();
 	var result = /^(class|function)\s+([\w\d]+)/.exec(obj.constructor.toString());
 	return result ? result[2] : null;
 	// return obj.constructor.name;
