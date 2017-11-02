@@ -24,6 +24,21 @@ var context = null;
 var current_line = -1;
 var wait_time = 0;
 var flowchart_display = false;
+var converting = false;
+
+function codeChange() {
+	if (converting || !flowchart_display) return;
+	var code = document.getElementById("sourceTextarea").value + "\n";
+	try {
+		var parse = dncl.parse(code);
+		converting = true;
+		flowchart.code2flowchart(parse);
+		converting = false;
+	} catch (e) {
+		textareaAppend("構文エラーです\n" + e.message + "\n");
+		converting = false;
+	}
+}
 
 function isFinite(v) {
 	return !isNaN(v) && v != Number.POSITIVE_INFINITY && v != Number.NEGATIVE_INFINITY;
@@ -31,8 +46,13 @@ function isFinite(v) {
 }
 
 function isSafeInteger(v) {
-	return !isNaN(v) && v == Math.round(v) && v <= 9007199254740991 && v >= -9007199254740991;
+	return !isNaN(v) && v == Math.floor(v) && v <= 9007199254740991 && v >= -9007199254740991;
 	// return Number.isSafeInteger(v);
+}
+
+function isInteger(v) {
+	return isFinite(v) && v == Math.floor(v);
+	// return Number.isInteger(v);
 }
 
 function textareaAppend(v) {
@@ -101,6 +121,11 @@ var Value = function () {
 			return this;
 		}
 	}, {
+		key: "getCode",
+		value: function getCode() {
+			return '' + this._value;
+		}
+	}, {
 		key: "value",
 		get: function get() {
 			return this._value;
@@ -141,6 +166,38 @@ var ArrayValue = function (_Value2) {
 		return _possibleConstructorReturn(this, (ArrayValue.__proto__ || Object.getPrototypeOf(ArrayValue)).call(this, v, loc));
 	}
 
+	_createClass(ArrayValue, [{
+		key: "getCode",
+		value: function getCode() {
+			var ag = [];
+			var _iteratorNormalCompletion = true;
+			var _didIteratorError = false;
+			var _iteratorError = undefined;
+
+			try {
+				for (var _iterator = this.value[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var i = _step.value;
+					ag.push(i.getCode());
+				}
+			} catch (err) {
+				_didIteratorError = true;
+				_iteratorError = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion && _iterator.return) {
+						_iterator.return();
+					}
+				} finally {
+					if (_didIteratorError) {
+						throw _iteratorError;
+					}
+				}
+			}
+
+			return '[' + ag.join(',') + ']';
+		}
+	}]);
+
 	return ArrayValue;
 }(Value);
 
@@ -171,6 +228,13 @@ var FloatValue = function (_Value4) {
 		return _this4;
 	}
 
+	_createClass(FloatValue, [{
+		key: "getCode",
+		value: function getCode() {
+			if (isInteger(this.value)) return this.value + '.0';else return this.value;
+		}
+	}]);
+
 	return FloatValue;
 }(Value);
 
@@ -183,6 +247,13 @@ var StringValue = function (_Value5) {
 		return _possibleConstructorReturn(this, (StringValue.__proto__ || Object.getPrototypeOf(StringValue)).apply(this, arguments));
 	}
 
+	_createClass(StringValue, [{
+		key: "getCode",
+		value: function getCode() {
+			if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
+		}
+	}]);
+
 	return StringValue;
 }(Value);
 
@@ -194,6 +265,13 @@ var BooleanValue = function (_Value6) {
 
 		return _possibleConstructorReturn(this, (BooleanValue.__proto__ || Object.getPrototypeOf(BooleanValue)).apply(this, arguments));
 	}
+
+	_createClass(BooleanValue, [{
+		key: "getCode",
+		value: function getCode() {
+			return this.value ? 'true' : 'false';
+		}
+	}]);
 
 	return BooleanValue;
 }(Value);
@@ -211,6 +289,11 @@ var UNDEFINED = function (_Value7) {
 		key: "getValue",
 		value: function getValue() {
 			throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			return "《" + v + "》";
 		}
 	}, {
 		key: "varname",
@@ -250,6 +333,19 @@ var Add = function (_Value8) {
 				return new IntValue(v, this.loc);
 			}
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus") brace1 = true;
+			if (c2 == "Minus") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Add;
@@ -280,6 +376,19 @@ var Sub = function (_Value9) {
 				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 				return new IntValue(v, this.loc);
 			}
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus") brace1 = true;
+			if (c2 == "Minus") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -312,6 +421,19 @@ var Mul = function (_Value10) {
 				return new IntValue(v, this.loc);
 			}
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Mul;
@@ -336,14 +458,27 @@ var Div = function (_Value11) {
 			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
 			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-				var v = (v1.value - v1.value % v2.value) / v2.value;
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
+				var _v = (v1.value - v1.value % v2.value) / v2.value;
+				if (!isSafeInteger(_v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(_v, this.loc);
 			} else {
-				var _v = v1.value / v2.value;
-				if (!isFinite(_v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(_v, this.loc);
+				var _v2 = v1.value / v2.value;
+				if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new FloatValue(_v2, this.loc);
 			}
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -369,20 +504,33 @@ var Div2 = function (_Value12) {
 			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
 			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-				var v = (v1.value - v1.value % v2.value) / v2.value;
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
+				var _v3 = (v1.value - v1.value % v2.value) / v2.value;
+				if (!isSafeInteger(_v3)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(_v3, this.loc);
 			} else {
 				if (setting.div_mode == 0) {
-					var _v2 = v1.value / v2.value;
-					if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					return new FloatValue(_v2, this.loc);
+					var _v4 = v1.value / v2.value;
+					if (!isFinite(_v4)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+					return new FloatValue(_v4, this.loc);
 				} else {
-					var _v3 = Math.floor(v1.value / v2.value);
-					if (!isFinite(_v3)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					return new IntValue(_v3, this.loc);
+					var _v5 = Math.floor(v1.value / v2.value);
+					if (!isFinite(_v5)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+					return new IntValue(_v5, this.loc);
 				}
 			}
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' ÷ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -405,10 +553,23 @@ var Mod = function (_Value13) {
 			    v2 = this.value[1].getValue();
 			if ((v1 instanceof IntValue || v1 instanceof NullValue) && (v2 instanceof IntValue || v2 instanceof NullValue)) {
 				if (v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-				var v = v1.value % v2.value;
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
+				var _v6 = v1.value % v2.value;
+				if (!isSafeInteger(_v6)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(_v6, this.loc);
 			} else throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' % ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -430,11 +591,20 @@ var Minus = function (_Value14) {
 			var v1 = this.value.getValue();
 			if (v1 instanceof NullValue) return v1;
 			if (v1 instanceof IntValue || v1 instanceof FloatValue) {
-				var v = -v1.value;
-				if (v instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				if (v instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
+				var _v7 = -v1.value;
+				if (_v7 instanceof IntValue && !isSafeInteger(_v7)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				if (_v7 instanceof FloatValue && !isFinite(_v7)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return v1 instanceof IntValue ? new IntValue(_v7, this.loc) : new FloatValue(_v7, this.loc);
 			} else throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value;
+			var c1 = v1.constructor.name;
+			var brace1 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
 		}
 	}]);
 
@@ -461,6 +631,18 @@ var And = function (_Value15) {
 			}
 			throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' かつ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return And;
@@ -486,6 +668,18 @@ var Or = function (_Value16) {
 			}
 			throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' または ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Or;
@@ -505,6 +699,15 @@ var Not = function (_Value17) {
 		value: function getValue() {
 			var v1 = this.value.getValue();
 			if (v1 instanceof BooleanValue) return new BooleanValue(!v1.value, this.loc);else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value;
+			var c1 = v1.constructor.name;
+			var brace1 = false;
+			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
 		}
 	}]);
 
@@ -527,6 +730,17 @@ var EQ = function (_Value18) {
 			    v2 = this.value[1].getValue();
 			return new BooleanValue(v1.value == v2.value, this.loc);
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return EQ;
@@ -547,6 +761,17 @@ var NE = function (_Value19) {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
 			return new BooleanValue(v1.value != v2.value, this.loc);
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -569,6 +794,17 @@ var GT = function (_Value20) {
 			    v2 = this.value[1].getValue();
 			return new BooleanValue(v1.value > v2.value, this.loc);
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return GT;
@@ -589,6 +825,17 @@ var GE = function (_Value21) {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
 			return new BooleanValue(v1.value >= v2.value, this.loc);
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -611,6 +858,17 @@ var LT = function (_Value22) {
 			    v2 = this.value[1].getValue();
 			return new BooleanValue(v1.value < v2.value, this.loc);
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return LT;
@@ -631,6 +889,17 @@ var LE = function (_Value23) {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
 			return new BooleanValue(v1.value <= v2.value, this.loc);
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = v1.constructor.name,
+			    c2 = v2.constructor.name;
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -653,6 +922,20 @@ var Variable = function (_Value24) {
 			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else return new NullValue(this.loc);
 		}
 	}, {
+		key: "getCode",
+		value: function getCode() {
+			var vn = this.value[0];
+			var pm = this.value[1];
+			if (pm != null) {
+				var ag = new Array(pm.length);
+				for (var i = 0; i < pm.length; i++) {
+					ag[i] = pm[i].getCode();
+				}
+				vn += '[' + ag.join(',') + ']';
+			}
+			return vn;
+		}
+	}, {
 		key: "varname",
 		get: function get() {
 			var vn = this.value[0];
@@ -660,8 +943,8 @@ var Variable = function (_Value24) {
 			if (pm != null) {
 				var ag = new Array(pm.length);
 				for (var i = 0; i < pm.length; i++) {
-					var v = pm[i].getValue();
-					if (v instanceof IntValue) ag[i] = v.value;else if (v instanceof FloatValue) ag[i] = Math.floor(v.value);else throw new RuntimeError(this.first_line, "配列の添字に" + v.value + "は使えません");
+					var _v8 = pm[i].getValue();
+					if (_v8 instanceof IntValue) ag[i] = _v8.value;else if (_v8 instanceof FloatValue) ag[i] = Math.floor(_v8.value);else throw new RuntimeError(this.first_line, "配列の添字に" + _v8.value + "は使えません");
 				}
 				vn += '[' + ag.join(',') + ']';
 			}
@@ -718,8 +1001,8 @@ var CallFunction = function (_Value25) {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
 				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v4 = Math.tan(par1.value);
-					if (isFinite(_v4)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v9 = Math.tan(par1.value);
+					if (isFinite(_v9)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'sqrt') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
@@ -733,16 +1016,16 @@ var CallFunction = function (_Value25) {
 				var par1 = param[0].getValue();
 				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 					if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
-					var _v5 = Math.log(par1.value);
-					if (isFinite(_v5)) return new FloatValue(_v5, this.loc);
+					var _v10 = Math.log(par1.value);
+					if (isFinite(_v10)) return new FloatValue(_v10, this.loc);
 					throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'exp') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 				var par1 = param[0].getValue();
 				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v6 = Math.exp(par1.value);
-					if (isFinite(_v6)) return new FloatValue(_v6, this.loc);
+					var _v11 = Math.exp(par1.value);
+					if (isFinite(_v11)) return new FloatValue(_v11, this.loc);
 					throw new RuntimeError(this.first_line, "オーバーフローしました");
 				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 			} else if (func == 'pow') {
@@ -751,14 +1034,14 @@ var CallFunction = function (_Value25) {
 				var par2 = param[1].getValue();
 				if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
 					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v7 = Math.pow(par1.value, par2.value);
-					if (isSafeInteger(_v7)) return new IntValue(_v7, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v12 = Math.pow(par1.value, par2.value);
+					if (isSafeInteger(_v12)) return new IntValue(_v12, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				}
 				if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
 					if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
 					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v8 = Math.pow(par1.value, par2.value);
-					if (isFinite(_v8)) return new FloatValue(_v8, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+					var _v13 = Math.pow(par1.value, par2.value);
+					if (isFinite(_v13)) return new FloatValue(_v13, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 				}
 			} else if (func == 'length') {
 				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
@@ -827,6 +1110,16 @@ var CallFunction = function (_Value25) {
 				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 			} else throw new RuntimeError(this.first_line, func + "という関数はありません");
 		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var func = this.value.funcname,
+			    param = this.value.parameter;
+			var ag = [];
+			for (var i = 0; i < param.length; i++) {
+				ag.push(param[i].getCode());
+			}return func + '(' + ag.join(',') + ')';
+		}
 	}]);
 
 	return CallFunction;
@@ -850,6 +1143,11 @@ var Append = function (_Value26) {
 			if (this.value[1].getValue() instanceof NullValue) v2 = '';
 			var v = String(v1.value) + String(v2.value);
 			return new StringValue(v, this.loc);
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			return this.value[0].getCode() + " と " + this.value[1].getCode();
 		}
 	}]);
 
@@ -910,8 +1208,8 @@ var DefinitionInt = function (_Statement) {
 				} else {
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
-						var v = parameter[j].getValue();
-						if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+						var _v14 = parameter[j].getValue();
+						if (_v14 instanceof IntValue && _v14.value >= 0) parameterlist.push(_v14.value);else if (_v14 instanceof FloatValue && _v14.value >= 0) parameterlist.push(Math.round(_v14.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v14.value + "は使えません");
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
@@ -932,6 +1230,67 @@ var DefinitionInt = function (_Statement) {
 				}
 			}
 			return index + 1;
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var ag = [];
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
+
+			try {
+				for (var _iterator2 = this.vars[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var v = _step2.value;
+
+					var vn = v.varname;
+					var pm = v.parameter;
+					if (pm) {
+						var pl = [];
+						var _iteratorNormalCompletion3 = true;
+						var _didIteratorError3 = false;
+						var _iteratorError3 = undefined;
+
+						try {
+							for (var _iterator3 = pm[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+								var p = _step3.value;
+								pl.push(p.getCode());
+							}
+						} catch (err) {
+							_didIteratorError3 = true;
+							_iteratorError3 = err;
+						} finally {
+							try {
+								if (!_iteratorNormalCompletion3 && _iterator3.return) {
+									_iterator3.return();
+								}
+							} finally {
+								if (_didIteratorError3) {
+									throw _iteratorError3;
+								}
+							}
+						}
+
+						vn += '[' + pl.join(',') + ']';
+					}
+					ag.push(vn);
+				}
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
+					}
+				}
+			}
+
+			return ag.join(',');
 		}
 	}]);
 
@@ -962,8 +1321,8 @@ var DefinitionFloat = function (_Statement2) {
 				} else {
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
-						var v = parameter[j].getValue();
-						if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+						var _v15 = parameter[j].getValue();
+						if (_v15 instanceof IntValue && _v15.value >= 0) parameterlist.push(_v15.value);else if (_v15 instanceof FloatValue && _v15.value >= 0) parameterlist.push(Math.round(_v15.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v15.value + "は使えません");
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
@@ -984,6 +1343,67 @@ var DefinitionFloat = function (_Statement2) {
 				}
 			}
 			return index + 1;
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var ag = [];
+			var _iteratorNormalCompletion4 = true;
+			var _didIteratorError4 = false;
+			var _iteratorError4 = undefined;
+
+			try {
+				for (var _iterator4 = this.vars[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+					var v = _step4.value;
+
+					var vn = v.varname;
+					var pm = v.parameter;
+					if (pm) {
+						var pl = [];
+						var _iteratorNormalCompletion5 = true;
+						var _didIteratorError5 = false;
+						var _iteratorError5 = undefined;
+
+						try {
+							for (var _iterator5 = pm[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+								var p = _step5.value;
+								pl.push(p.getCode());
+							}
+						} catch (err) {
+							_didIteratorError5 = true;
+							_iteratorError5 = err;
+						} finally {
+							try {
+								if (!_iteratorNormalCompletion5 && _iterator5.return) {
+									_iterator5.return();
+								}
+							} finally {
+								if (_didIteratorError5) {
+									throw _iteratorError5;
+								}
+							}
+						}
+
+						vn += '[' + pl.join(',') + ']';
+					}
+					ag.push(vn);
+				}
+			} catch (err) {
+				_didIteratorError4 = true;
+				_iteratorError4 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion4 && _iterator4.return) {
+						_iterator4.return();
+					}
+				} finally {
+					if (_didIteratorError4) {
+						throw _iteratorError4;
+					}
+				}
+			}
+
+			return ag.join(',');
 		}
 	}]);
 
@@ -1014,8 +1434,8 @@ var DefinitionString = function (_Statement3) {
 				} else {
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
-						var v = parameter[j].getValue();
-						if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+						var _v16 = parameter[j].getValue();
+						if (_v16 instanceof IntValue && _v16.value >= 0) parameterlist.push(_v16.value);else if (_v16 instanceof FloatValue && _v16.value >= 0) parameterlist.push(Math.round(_v16.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v16.value + "は使えません");
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
@@ -1036,6 +1456,67 @@ var DefinitionString = function (_Statement3) {
 				}
 			}
 			return index + 1;
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var ag = [];
+			var _iteratorNormalCompletion6 = true;
+			var _didIteratorError6 = false;
+			var _iteratorError6 = undefined;
+
+			try {
+				for (var _iterator6 = this.vars[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+					var v = _step6.value;
+
+					var vn = v.varname;
+					var pm = v.parameter;
+					if (pm) {
+						var pl = [];
+						var _iteratorNormalCompletion7 = true;
+						var _didIteratorError7 = false;
+						var _iteratorError7 = undefined;
+
+						try {
+							for (var _iterator7 = pm[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+								var p = _step7.value;
+								pl.push(p.getCode());
+							}
+						} catch (err) {
+							_didIteratorError7 = true;
+							_iteratorError7 = err;
+						} finally {
+							try {
+								if (!_iteratorNormalCompletion7 && _iterator7.return) {
+									_iterator7.return();
+								}
+							} finally {
+								if (_didIteratorError7) {
+									throw _iteratorError7;
+								}
+							}
+						}
+
+						vn += '[' + pl.join(',') + ']';
+					}
+					ag.push(vn);
+				}
+			} catch (err) {
+				_didIteratorError6 = true;
+				_iteratorError6 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion6 && _iterator6.return) {
+						_iterator6.return();
+					}
+				} finally {
+					if (_didIteratorError6) {
+						throw _iteratorError6;
+					}
+				}
+			}
+
+			return ag.join(',');
 		}
 	}]);
 
@@ -1066,8 +1547,8 @@ var DefinitionBoolean = function (_Statement4) {
 				} else {
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
-						var v = parameter[j].getValue();
-						if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
+						var _v17 = parameter[j].getValue();
+						if (_v17 instanceof IntValue && _v17.value >= 0) parameterlist.push(_v17.value);else if (_v17 instanceof FloatValue && _v17.value >= 0) parameterlist.push(Math.round(_v17.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v17.value + "は使えません");
 					}
 					var args = new Array(parameter.length);
 					for (var j = 0; j < parameter.length; j++) {
@@ -1088,6 +1569,67 @@ var DefinitionBoolean = function (_Statement4) {
 				}
 			}
 			return index + 1;
+		}
+	}, {
+		key: "getCode",
+		value: function getCode() {
+			var ag = [];
+			var _iteratorNormalCompletion8 = true;
+			var _didIteratorError8 = false;
+			var _iteratorError8 = undefined;
+
+			try {
+				for (var _iterator8 = this.vars[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+					var v = _step8.value;
+
+					var vn = v.varname;
+					var pm = v.parameter;
+					if (pm) {
+						var pl = [];
+						var _iteratorNormalCompletion9 = true;
+						var _didIteratorError9 = false;
+						var _iteratorError9 = undefined;
+
+						try {
+							for (var _iterator9 = pm[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+								var p = _step9.value;
+								pl.push(p.getCode());
+							}
+						} catch (err) {
+							_didIteratorError9 = true;
+							_iteratorError9 = err;
+						} finally {
+							try {
+								if (!_iteratorNormalCompletion9 && _iterator9.return) {
+									_iterator9.return();
+								}
+							} finally {
+								if (_didIteratorError9) {
+									throw _iteratorError9;
+								}
+							}
+						}
+
+						vn += '[' + pl.join(',') + ']';
+					}
+					ag.push(vn);
+				}
+			} catch (err) {
+				_didIteratorError8 = true;
+				_iteratorError8 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion8 && _iterator8.return) {
+						_iterator8.return();
+					}
+				} finally {
+					if (_didIteratorError8) {
+						throw _iteratorError8;
+					}
+				}
+			}
+
+			return ag.join(',');
 		}
 	}]);
 
@@ -1581,14 +2123,14 @@ var SleepStatement = function (_Statement18) {
 
 		var _this44 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
 
-		_this44.sec = sec.value * 1000; // milli seconds
+		_this44.sec = sec.value; // milli seconds
 		return _this44;
 	}
 
 	_createClass(SleepStatement, [{
 		key: "run",
 		value: function run(index) {
-			wait_time = this.sec;
+			wait_time = this.sec * 1000;
 			return index + 1;
 		}
 	}]);
@@ -1807,6 +2349,7 @@ function sampleButton(num) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
 	reset();
+	if (flowchart) flowchart.paint();
 }
 
 function insertCode(add_code) {
@@ -1865,6 +2408,10 @@ onload = function onload() {
 		sourceTextArea.value = "";
 		parse = null;
 		reset();
+		if (flowchart) {
+			flowchart.makeEmpty();
+			flowchart.paint();
+		}
 	};
 	resetButton.onclick = function () {
 		reset();
@@ -1895,13 +2442,16 @@ onload = function onload() {
 	flowchartButton.onchange = function () {
 		flowchart_display = this.checked;
 		var flowchart_area = document.getElementById("Flowchart_area");
+		var drawButton = document.getElementById("drawButton");
 		if (flowchart_display) {
 			flowchart_area.style.display = "block";
+			drawButton.style.display = "inline";
 			flowchart = new Flowchart();
-			// flowchart.code2flowchart();
+			codeChange();
 			flowchart.paint();
 		} else {
 			flowchart_area.style.display = "none";
+			drawButton.style.display = "none";
 			flowchart = null;
 		}
 	};
@@ -2003,7 +2553,7 @@ onload = function onload() {
 						} }
 				}
 			},
-			graphic: { name: "各種命令",
+			misc: { name: "各種命令",
 				items: {
 					gOpenWindow: { name: "描画領域開く", callback: function callback(k, e) {
 							insertCode("描画領域開く(《幅》,《高さ》)");
@@ -2289,8 +2839,10 @@ var Flowchart = function () {
 		}
 	}, {
 		key: "code2flowchart",
-		value: function code2flowchart() {
-			if (!flowchart_display) return;
+		value: function code2flowchart(parse) {
+			flowchart.makeEmpty();
+			Flowchart.appendParts(this.top.next, parse);
+			flowchart.paint();
 		}
 	}, {
 		key: "flowchart2code",
@@ -2347,6 +2899,134 @@ var Flowchart = function () {
 		key: "context",
 		get: function get() {
 			return this._context;
+		}
+	}], [{
+		key: "appendParts",
+		value: function appendParts(parts, statementlist) {
+			var _iteratorNormalCompletion10 = true;
+			var _didIteratorError10 = false;
+			var _iteratorError10 = undefined;
+
+			try {
+				for (var _iterator10 = statementlist[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+					var p = _step10.value;
+
+					if (!p) continue;
+					var statement = p.constructor.name;
+					if (statement == "DefinitionInt") {
+						document.getElementById("variable_int").value = p.getCode();
+					} else if (statement == "DefinitionFloat") {
+						document.getElementById("variable_float").value = p.getCode();
+					} else if (statement == "DefinitionString") {
+						document.getElementById("variable_string").value = p.getCode();
+					} else if (statement == "DefinitionBoolean") {
+						document.getElementById("variable_bool").value = p.getCode();
+					} else if (statement == "Assign") {
+						var p1 = new Parts_Substitute();
+						var b1 = new Parts_Bar();
+						p1.setValue(p.varname.getCode(), p.val.getCode());
+						parts.next = p1;
+						parts = p1.next = b1;
+					} else if (statement == "Input") {
+						var p1 = new Parts_Input();
+						var b1 = new Parts_Bar();
+						p1.setValue(p.varname.getCode());
+						parts.next = p1;
+						parts = p1.next = b1;
+					} else if (statement == "Output") {
+						var p1 = new Parts_Output();
+						var b1 = new Parts_Bar();
+						p1.setValue(p.value.getCode(), p.ln);
+						parts.next = p1;
+						parts = p1.next = b1;
+					} else if (statement == "If") {
+						var p1 = new Parts_If();
+						var b1 = new Parts_Bar(),
+						    b2 = new Parts_Bar(),
+						    b3 = new Parts_Bar();
+						var n1 = new Parts_Null(),
+						    n2 = new Parts_Null(),
+						    n3 = new Parts_Null();
+						p1.setValue(p.condition.getCode());
+						parts.next = p1;
+						p1.next = n1;n1.next = b1;
+						p1.left = b2;b2._prev = p1;b2.next = n2;
+						p1.right = b3;b3._prev = p1;b3.next = n3;
+						if (p.state1) Flowchart.appendParts(b2, p.state1);
+						if (p.state2) Flowchart.appendParts(b3, p.state2);
+						parts = b1;
+					} else if (statement == "ForInc") {
+						var p1 = new Parts_LoopBeginInc(),
+						    p2 = new Parts_LoopEnd();
+						var b1 = new Parts_Bar(),
+						    b2 = new Parts_Bar();
+						p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+						parts.next = p1;
+						p1.next = b1;b1.next = p2;p2.next = b2;
+						p1._end = p2;p2._begin = p1;
+						Flowchart.appendParts(b1, p.state);
+						parts = b2;
+					} else if (statement == "ForDec") {
+						var p1 = new Parts_LoopBeginDec(),
+						    p2 = new Parts_LoopEnd();
+						var b1 = new Parts_Bar(),
+						    b2 = new Parts_Bar();
+						p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+						parts.next = p1;
+						p1.next = b1;b1.next = p2;p2.next = b2;
+						p1._end = p2;p2._begin = p1;
+						Flowchart.appendParts(b1, p.state);
+						parts = b2;
+					} else if (statement == "Until") {
+						var p1 = new Parts_LoopBegin2(),
+						    p2 = new Parts_LoopEnd2();
+						var b1 = new Parts_Bar(),
+						    b2 = new Parts_Bar();
+						p1.setValue(p.condition.getCode());
+						parts.next = p1;
+						p1.next = b1;b1.next = p2;p2.next = b2;
+						p1._end = p2;p2._begin = p1;
+						Flowchart.appendParts(b1, p.state);
+						parts = b2;
+					} else if (statement == "While") {
+						var p1 = new Parts_LoopBegin1(),
+						    p2 = new Parts_LoopEnd();
+						var b1 = new Parts_Bar(),
+						    b2 = new Parts_Bar();
+						p1.setValue(p.condition.getCode());
+						parts.next = p1;
+						p1.next = b1;b1.next = p2;p2.next = b2;
+						p1._end = p2;p2._begin = p1;
+						Flowchart.appendParts(b1, p.state);
+						parts = b2;
+					} else if (statement == "GraphicStatement") {
+						var p1 = new Parts_Misc();
+						var b1 = new Parts_Bar();
+						p1.setValue(p.command, p.args);
+						parts.next = p1;
+						parts = p1.next = b1;
+					} else if (statement == "SleepStatement") {
+						var p1 = new Parts_Misc();
+						var b1 = new Parts_Bar();
+						p1.setValue("sleep", [p.sec]);
+						parts.next = p1;
+						parts = p1.next = b1;
+					}
+				}
+			} catch (err) {
+				_didIteratorError10 = true;
+				_iteratorError10 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion10 && _iterator10.return) {
+						_iterator10.return();
+					}
+				} finally {
+					if (_didIteratorError10) {
+						throw _iteratorError10;
+					}
+				}
+			}
 		}
 	}]);
 
@@ -2773,9 +3453,9 @@ var Parts_Output = function (_Parts4) {
 					flowchart.context.lineTo(x, y + this.textHeight);
 					flowchart.context.stroke();
 					flowchart.context.beginPath();
-					flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 2);
+					flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 4);
 					flowchart.context.lineTo(x, y + this.textHeight);
-					flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 2);
+					flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 4);
 					flowchart.context.stroke();
 					x += this.height / 4;y += this.textHeight / 2;
 					flowchart.context.beginPath();flowchart.context.moveTo(x - size / 2, y - size / 2);flowchart.context.lineTo(x + size / 2, y + size / 2);flowchart.context.stroke();
@@ -3896,7 +4576,7 @@ var Parts_Misc = function (_Parts10) {
 				this._command = misc_menu[i][0];
 				var code = misc_menu[i][2];
 				for (var j = 0; j < this.values.length; j++) {
-					code = code.replace("\t", this.values[j]);
+					code = code.replace("\t", this.values[j].getCode());
 				}this._text = code;
 				break;
 			}
@@ -4100,7 +4780,7 @@ function setIdentifierforMisc(identifier) {
 		var tmp_values = [];
 		for (var j = 0; j < misc_menu[i][3].length; j++) {
 			var v = "《" + misc_menu[i][3][j] + "》";
-			if (modal_values.length > j && modal_values[j] != null) v = modal_values[j];else if (modal_parts.values.length > j) v = modal_parts.values[j];
+			if (modal_values.length > j && modal_values[j] != null) v = modal_values[j];else if (modal_parts.values.length > j && modal_parts.values[j] != null) v = modal_parts.values[j];
 			tmp_values.push(v);
 			var tr = document.createElement("tr");
 			var td = document.createElement("td");

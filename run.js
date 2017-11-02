@@ -12,6 +12,24 @@ var context = null;
 var current_line = -1;
 var wait_time = 0;
 var flowchart_display = false;
+var converting = false;
+
+function codeChange()
+{
+	if(converting || !flowchart_display) return;
+	var code = document.getElementById("sourceTextarea").value + "\n";
+	try{
+		var parse = dncl.parse(code);
+		converting = true;
+		flowchart.code2flowchart(parse);
+		converting = false;
+	}
+	catch(e)
+	{
+		textareaAppend("構文エラーです\n" + e.message + "\n");
+		converting = false;
+	}
+}
 
 function isFinite(v)
 {
@@ -21,8 +39,14 @@ function isFinite(v)
 
 function isSafeInteger(v)
 {
-	return !isNaN(v) && v == Math.round(v) && v <= 9007199254740991 && v >= -9007199254740991;
+	return !isNaN(v) && v == Math.floor(v) && v <= 9007199254740991 && v >= -9007199254740991;
 	// return Number.isSafeInteger(v);
+}
+
+function isInteger(v)
+{
+	return isFinite(v) && v == Math.floor(v);
+	// return Number.isInteger(v);
 }
 
 function textareaAppend(v)
@@ -68,6 +92,10 @@ class Value
 	{
 		return this;
 	}
+	getCode()
+	{
+		return '' + this._value;
+	}
 }
 
 class NullValue extends Value
@@ -83,6 +111,12 @@ class ArrayValue extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
+	}
+	getCode()
+	{
+		var ag = [];
+		for(var i of this.value) ag.push(i.getCode());
+		return '[' + ag.join(',') + ']';
 	}
 }
 
@@ -101,9 +135,27 @@ class FloatValue extends Value
 		super(v, loc);
 		if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 	}
+	getCode()
+	{
+		if(isInteger(this.value)) return this.value + '.0';
+		else return this.value;
+	}
 }
-class StringValue extends Value {}
-class BooleanValue extends Value {}
+class StringValue extends Value 
+{
+	getCode()
+	{
+		if(this.value.match(/[「」]/)) return '"' + this.value + '"';
+		else return '「' + this.value + '」';
+	}
+}
+class BooleanValue extends Value 
+{
+	getCode()
+	{
+		return this.value ? 'true' : 'false';
+	}
+}
 
 class UNDEFINED extends Value
 {
@@ -118,6 +170,10 @@ class UNDEFINED extends Value
 	getValue()
 	{
 		throw new RuntimeError(this.first_line, "未完成のプログラムです");
+	}
+	getCode()
+	{
+		return "《" + v + "》";
 	}
 }
 
@@ -150,6 +206,17 @@ class Add extends Value
 			return new IntValue(v, this.loc);
 		}
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus") brace1 = true;
+		if(c2 == "Minus") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' + '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
 }
 
 class Sub extends Value
@@ -175,6 +242,17 @@ class Sub extends Value
 			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			return new IntValue(v, this.loc);
 		}
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus") brace1 = true;
+		if(c2 == "Minus") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' - '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -202,6 +280,18 @@ class Mul extends Value
 			return new IntValue(v, this.loc);
 		}
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' * '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+
 }
 
 class Div extends Value
@@ -229,6 +319,17 @@ class Div extends Value
 			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return new FloatValue(v, this.loc);
 		}
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' / '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -267,6 +368,18 @@ class Div2 extends Value
 			}
 		}
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' ÷ '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+
 }
 
 
@@ -288,6 +401,17 @@ class Mod extends Value
 		}
 		else
 			throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' % '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -311,6 +435,15 @@ class Minus extends Value
 		else
 			throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
 	}
+	getCode()
+	{
+		let v1 = this.value;
+		let c1 = v1.constructor.name;
+		let brace1 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+	}
+
 }
 
 class And extends Value
@@ -326,6 +459,16 @@ class And extends Value
 			if(v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
 		}
 		throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' かつ '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -343,6 +486,16 @@ class Or extends Value
 		}
 		throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' または '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
 }
 class Not extends Value
 {
@@ -352,6 +505,15 @@ class Not extends Value
 		let v1 = this.value.getValue();
 		if(v1 instanceof BooleanValue) return new BooleanValue(!v1.value, this.loc);
 		else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
+	}
+	getCode()
+	{
+		let v1 = this.value;
+		let c1 = v1.constructor.name;
+		let brace1 = false;
+		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' でない';
 	}
 }
 
@@ -363,6 +525,15 @@ class EQ extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		return new BooleanValue(v1.value == v2.value, this.loc);
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' = '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
 }
 
 class NE extends Value
@@ -372,6 +543,15 @@ class NE extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		return new BooleanValue(v1.value != v2.value, this.loc);
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' != '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -383,6 +563,15 @@ class GT extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		return new BooleanValue(v1.value > v2.value, this.loc);
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' > '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
 }
 
 class GE extends Value
@@ -392,6 +581,15 @@ class GE extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		return new BooleanValue(v1.value >= v2.value, this.loc);
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' >= '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -403,6 +601,15 @@ class LT extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		return new BooleanValue(v1.value < v2.value, this.loc);
 	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' < '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
 }
 
 class LE extends Value
@@ -412,6 +619,15 @@ class LE extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		return new BooleanValue(v1.value <= v2.value, this.loc);
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' <= '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
 
@@ -445,6 +661,21 @@ class Variable extends Value
 		else if(varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);
 		else if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
 		else return new NullValue(this.loc);
+	}
+	getCode()
+	{
+		let vn = this.value[0];
+		let pm = this.value[1];
+		if(pm != null)
+		{
+			let ag = new Array(pm.length);
+			for(let i = 0; i < pm.length; i++)
+			{
+				ag[i] = pm[i].getCode();
+			}
+			vn += '['+ag.join(',')+']';
+		}
+		return vn;
 	}
 }
 
@@ -684,6 +915,14 @@ class CallFunction extends Value
 
 		else throw new RuntimeError(this.first_line, func + "という関数はありません");
 	}
+	getCode()
+	{
+		let func = this.value.funcname, param = this.value.parameter;
+		let ag = [];
+		for(let i = 0; i < param.length; i++)
+			ag.push(param[i].getCode());
+		return func + '(' + ag.join(',') + ')';
+	}
 }
 
 class Append extends Value
@@ -696,6 +935,10 @@ class Append extends Value
 		if(this.value[1].getValue() instanceof NullValue) v2 = '';
 		let v = String(v1.value) + String(v2.value);
 		return new StringValue(v, this.loc);
+	}
+	getCode()
+	{
+		return this.value[0].getCode() + " と " + this.value[1].getCode();
 	}
 }
 
@@ -767,6 +1010,23 @@ class DefinitionInt extends Statement
 		}
 		return index + 1;
 	}
+	getCode()
+	{
+		var ag = [];
+		for(var v of this.vars)
+		{
+			var vn = v.varname;
+			var pm = v.parameter;
+			if(pm)
+			{
+				var pl = [];
+				for(var p of pm)pl.push(p.getCode());
+				vn += '[' + pl.join(',') + ']';
+			}
+			ag.push(vn);
+		}
+		return ag.join(',');
+	}
 }
 class DefinitionFloat extends Statement
 {
@@ -823,6 +1083,23 @@ class DefinitionFloat extends Statement
 			}
 		}
 		return index + 1;
+	}
+	getCode()
+	{
+		var ag = [];
+		for(var v of this.vars)
+		{
+			var vn = v.varname;
+			var pm = v.parameter;
+			if(pm)
+			{
+				var pl = [];
+				for(var p of pm)pl.push(p.getCode());
+				vn += '[' + pl.join(',') + ']';
+			}
+			ag.push(vn);
+		}
+		return ag.join(',');
 	}
 }
 class DefinitionString extends Statement
@@ -881,6 +1158,23 @@ class DefinitionString extends Statement
 		}
 		return index + 1;
 	}
+	getCode()
+	{
+		var ag = [];
+		for(var v of this.vars)
+		{
+			var vn = v.varname;
+			var pm = v.parameter;
+			if(pm)
+			{
+				var pl = [];
+				for(var p of pm)pl.push(p.getCode());
+				vn += '[' + pl.join(',') + ']';
+			}
+			ag.push(vn);
+		}
+		return ag.join(',');
+	}
 }
 class DefinitionBoolean extends Statement
 {
@@ -937,6 +1231,23 @@ class DefinitionBoolean extends Statement
 			}
 		}
 		return index + 1;
+	}
+	getCode()
+	{
+		var ag = [];
+		for(var v of this.vars)
+		{
+			var vn = v.varname;
+			var pm = v.parameter;
+			if(pm)
+			{
+				var pl = [];
+				for(var p of pm)pl.push(p.getCode());
+				vn += '[' + pl.join(',') + ']';
+			}
+			ag.push(vn);
+		}
+		return ag.join(',');
 	}
 }
 
@@ -1368,16 +1679,14 @@ class SleepStatement extends Statement
 	constructor(sec, loc)
 	{
 		super(loc)
-		this.sec = sec.value * 1000; // milli seconds
+		this.sec = sec.value; // milli seconds
 	}
 	run(index)
 	{
-		wait_time = this.sec;
+		wait_time = this.sec * 1000;
 		return index + 1;
 	}
 }
-
-
 
 function highlightLine(l)
 {
@@ -1629,6 +1938,7 @@ function sampleButton(num)
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
 	reset();
+	if(flowchart) flowchart.paint();
 }
 
 
@@ -1697,6 +2007,11 @@ onload = function(){
 		sourceTextArea.value = "";
 		parse = null;
 		reset();
+		if(flowchart)
+		{
+			flowchart.makeEmpty();
+			flowchart.paint();
+		} 
 	}
 	resetButton.onclick = function(){
 		reset();
@@ -1737,16 +2052,19 @@ onload = function(){
 	flowchartButton.onchange = function(){
 		flowchart_display = this.checked;
 		var flowchart_area = document.getElementById("Flowchart_area");
+		var drawButton = document.getElementById("drawButton");
 		if(flowchart_display)
 		{
 			flowchart_area.style.display = "block";
+			drawButton.style.display = "inline";
 			flowchart = new Flowchart();
-			// flowchart.code2flowchart();
+			codeChange();
 			flowchart.paint();
 		}
 		else
 		{
 			flowchart_area.style.display = "none";
+			drawButton.style.display = "none";
 			flowchart = null;
 		}
 	}
@@ -1797,7 +2115,7 @@ onload = function(){
 						replace:	{name: "replace 置換", callback: function(k,e){insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");}},
 					}
 				},
-				graphic:{ name:"各種命令",
+				misc:{ name:"各種命令",
 					items:{
 						gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCode("描画領域開く(《幅》,《高さ》)");}},
 						gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCode("描画領域閉じる()");}},
@@ -2035,11 +2353,136 @@ class Flowchart
 		document.getElementById("variable_string").value = '';
 		document.getElementById("variable_bool").value = '';
     }
-    code2flowchart()
+    code2flowchart(parse)
     {
-        if(!flowchart_display) return;
-    }
-    flowchart2code()
+		flowchart.makeEmpty();
+		Flowchart.appendParts(this.top.next, parse);
+		flowchart.paint();
+	}
+	static appendParts(parts, statementlist)
+	{
+		for(var p of statementlist)
+		{
+			if(!p) continue;
+			var statement = p.constructor.name;
+			if(statement == "DefinitionInt")
+			{
+				document.getElementById("variable_int").value = p.getCode();
+			}
+			else if(statement == "DefinitionFloat")
+			{
+				document.getElementById("variable_float").value = p.getCode();
+			}
+			else if(statement == "DefinitionString")
+			{
+				document.getElementById("variable_string").value = p.getCode();
+			}
+			else if(statement == "DefinitionBoolean")
+			{
+				document.getElementById("variable_bool").value = p.getCode();
+			}
+			else if(statement == "Assign")
+			{
+				var p1 = new Parts_Substitute();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.varname.getCode(), p.val.getCode());
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "Input")
+			{
+				var p1 = new Parts_Input();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.varname.getCode());
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "Output")
+			{
+				var p1 = new Parts_Output();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.value.getCode(), p.ln);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "If")
+			{
+				var p1 = new Parts_If();
+				var b1 = new Parts_Bar(), b2 = new Parts_Bar(), b3 = new Parts_Bar();
+				var n1 = new Parts_Null(), n2 = new Parts_Null(), n3 = new Parts_Null();
+				p1.setValue(p.condition.getCode());
+				parts.next = p1; 
+				p1.next = n1; n1.next = b1;
+				p1.left = b2; b2._prev = p1; b2.next = n2;
+				p1.right = b3; b3._prev = p1; b3.next = n3;
+				if(p.state1) Flowchart.appendParts(b2, p.state1);
+				if(p.state2) Flowchart.appendParts(b3, p.state2);
+				parts = b1;
+			}
+			else if(statement == "ForInc")
+			{
+				var p1 = new Parts_LoopBeginInc(), p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
+				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				parts.next = p1; 
+				p1.next = b1; b1.next = p2; p2.next = b2;
+				p1._end = p2; p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			}
+			else if(statement == "ForDec")
+			{
+				var p1 = new Parts_LoopBeginDec(), p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
+				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				parts.next = p1; 
+				p1.next = b1; b1.next = p2; p2.next = b2;
+				p1._end = p2; p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			}
+			else if(statement == "Until")
+			{
+				var p1 = new Parts_LoopBegin2(), p2 = new Parts_LoopEnd2();
+				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
+				p1.setValue(p.condition.getCode());
+				parts.next = p1; 
+				p1.next = b1; b1.next = p2; p2.next = b2;
+				p1._end = p2; p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			}
+			else if(statement == "While")
+			{
+				var p1 = new Parts_LoopBegin1(), p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
+				p1.setValue(p.condition.getCode());
+				parts.next = p1; 
+				p1.next = b1; b1.next = p2; p2.next = b2;
+				p1._end = p2; p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			}
+			else if(statement == "GraphicStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.command, p.args);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "SleepStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue("sleep", [p.sec]);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+		}
+	}
+
+	flowchart2code()
     {
 		if(!flowchart_display) return;
         var code = '';
@@ -2373,9 +2816,9 @@ class Parts_Output extends Parts
 			flowchart.context.lineTo(x , y + this.textHeight);
 			flowchart.context.stroke();
 			flowchart.context.beginPath();
-			flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 2);
+			flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 4);
 			flowchart.context.lineTo(x , y + this.textHeight);
-			flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 2);
+			flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 4);
 			flowchart.context.stroke();
 			x += this.height / 4; y += this.textHeight / 2;
 			flowchart.context.beginPath(); flowchart.context.moveTo(x - size / 2, y - size / 2); flowchart.context.lineTo(x + size / 2, y + size / 2); flowchart.context.stroke();
@@ -3282,7 +3725,7 @@ class Parts_Misc extends Parts
 			this._command = misc_menu[i][0];
 			var code = misc_menu[i][2];
 			for(var j = 0; j < this.values.length; j++)
-				code = code.replace("\t",this.values[j]);
+				code = code.replace("\t",this.values[j].getCode());
 			this._text = code;
 			break;
 		}
@@ -3499,7 +3942,7 @@ function setIdentifierforMisc(identifier)
 		{
 			var v = "《" + misc_menu[i][3][j] + "》";
 			if(modal_values.length > j && modal_values[j] != null) v = modal_values[j]
-			else if(modal_parts.values.length > j) v = modal_parts.values[j];
+			else if(modal_parts.values.length > j && modal_parts.values[j] != null) v = modal_parts.values[j];
 			tmp_values.push(v);
 			var tr = document.createElement("tr");
 			var td = document.createElement("td");
