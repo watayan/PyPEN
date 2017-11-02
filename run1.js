@@ -1890,6 +1890,7 @@ var GraphicStatement = function (_Statement10) {
 				var _x4 = this.args[0].getValue().value,
 				    _y4 = this.args[1].getValue().value,
 				    _r3 = this.args[2].getValue().value;
+				context.beginPath();
 				context.arc(_x4, _y4, _r3, 0, Math.PI * 2, false);
 				context.fill();
 			} else {
@@ -4570,13 +4571,30 @@ var Parts_Misc = function (_Parts10) {
 			this._identifier = identifier;
 			this._values = [];
 			for (var i = 0; i < values.length; i++) {
+				this._values.push(values[i].getCode());
+			}for (var i = 0; i < misc_menu.length; i++) {
+				if (this._identifier != misc_menu[i][1]) continue;
+				this._command = misc_menu[i][0];
+				var code = misc_menu[i][2];
+				for (var j = 0; j < this.values.length; j++) {
+					code = code.replace("\t", this.values[j]);
+				}this._text = code;
+				break;
+			}
+		}
+	}, {
+		key: "setValuebyText",
+		value: function setValuebyText(identifier, values) {
+			this._identifier = identifier;
+			this._values = [];
+			for (var i = 0; i < values.length; i++) {
 				this._values.push(values[i]);
 			}for (var i = 0; i < misc_menu.length; i++) {
 				if (this._identifier != misc_menu[i][1]) continue;
 				this._command = misc_menu[i][0];
 				var code = misc_menu[i][2];
 				for (var j = 0; j < this.values.length; j++) {
-					code = code.replace("\t", this.values[j].getCode());
+					code = code.replace("\t", this.values[j]);
 				}this._text = code;
 				break;
 			}
@@ -4635,15 +4653,13 @@ var Parts_Misc = function (_Parts10) {
 	}, {
 		key: "editMe",
 		value: function editMe() {
-			var subtitle = ["変数", "値"];
-			var values = [this.var, this.val];
 			openModalWindowforMisc(this);
 		}
 	}, {
 		key: "edited",
 		value: function edited(identifier, values) {
 			if (values != null) {
-				this.setValue(identifier, values);
+				this.setValuebyText(identifier, values);
 			}
 			flowchart.paint();
 			flowchart.flowchart2code();
@@ -4768,7 +4784,7 @@ function setIdentifierforMisc(identifier) {
 	for (var i = 0; i < modal_values.length; i++) {
 		var elem = document.getElementById("inputarea" + i);
 		if (elem) modal_values[i] = elem.value;
-		if (modal_values[i].match(/《.*》/)) modal_values[i] = null;
+		if (/《.*》/.test(modal_values[i])) modal_values[i] = null;
 	}
 
 	var table = document.getElementById("miscvalues");

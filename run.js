@@ -1500,6 +1500,7 @@ class GraphicStatement extends Statement
 		{
 			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, r = this.args[2].getValue().value;
+			context.beginPath();
 			context.arc(x1, y1, r, 0, Math.PI * 2, false);
 			context.fill();
 		}
@@ -3718,6 +3719,23 @@ class Parts_Misc extends Parts
 	{
 		this._identifier = identifier;
 		this._values = [];
+		for(var i = 0; i < values.length; i++) this._values.push(values[i].getCode());
+		for(var i = 0; i < misc_menu.length; i++)
+		{
+			if(this._identifier != misc_menu[i][1]) continue;
+			this._command = misc_menu[i][0];
+			var code = misc_menu[i][2];
+			for(var j = 0; j < this.values.length; j++)
+				code = code.replace("\t",this.values[j]);
+			this._text = code;
+			break;
+		}
+	}
+
+	setValuebyText(identifier, values)
+	{
+		this._identifier = identifier;
+		this._values = [];
 		for(var i = 0; i < values.length; i++) this._values.push(values[i]);
 		for(var i = 0; i < misc_menu.length; i++)
 		{
@@ -3725,7 +3743,7 @@ class Parts_Misc extends Parts
 			this._command = misc_menu[i][0];
 			var code = misc_menu[i][2];
 			for(var j = 0; j < this.values.length; j++)
-				code = code.replace("\t",this.values[j].getCode());
+				code = code.replace("\t",this.values[j]);
 			this._text = code;
 			break;
 		}
@@ -3793,15 +3811,13 @@ class Parts_Misc extends Parts
 	}
 	editMe()
 	{
-		var subtitle = ["変数", "値"];
-		var values = [ this.var , this.val];
 		openModalWindowforMisc(this);
 	}
 	edited(identifier, values)
 	{
 		if(values != null)
 		{
-			this.setValue(identifier, values);
+			this.setValuebyText(identifier, values);
 		}
 		flowchart.paint();
 		flowchart.flowchart2code();
@@ -3928,7 +3944,7 @@ function setIdentifierforMisc(identifier)
 	{
 		var elem = document.getElementById("inputarea" + i);
 		if(elem) modal_values[i] = elem.value;
-		if(modal_values[i].match(/《.*》/)) modal_values[i] = null;
+		if(/《.*》/.test(modal_values[i])) modal_values[i] = null;
 	}
 	
 	var table = document.getElementById("miscvalues");
