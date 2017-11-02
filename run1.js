@@ -1214,8 +1214,8 @@ var DefinitionInt = function (_Statement) {
 		value: function getCode() {
 			var ag = [];
 			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.args[i].varname;
-				var pm = this.args[i].parameter;
+				var vn = this.vars[i].varname;
+				var pm = this.vars[i].parameter;
 				if (pm) {
 					var pl = [];
 					for (var j = 0; j < pm.length; j++) {
@@ -1283,8 +1283,8 @@ var DefinitionFloat = function (_Statement2) {
 		value: function getCode() {
 			var ag = [];
 			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.args[i].varname;
-				var pm = this.args[i].parameter;
+				var vn = this.vars[i].varname;
+				var pm = this.vars[i].parameter;
 				if (pm) {
 					var pl = [];
 					for (var j = 0; j < pm.length; j++) {
@@ -1352,8 +1352,8 @@ var DefinitionString = function (_Statement3) {
 		value: function getCode() {
 			var ag = [];
 			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.args[i].varname;
-				var pm = this.args[i].parameter;
+				var vn = this.vars[i].varname;
+				var pm = this.vars[i].parameter;
 				if (pm) {
 					var pl = [];
 					for (var j = 0; j < pm.length; j++) {
@@ -1421,8 +1421,8 @@ var DefinitionBoolean = function (_Statement4) {
 		value: function getCode() {
 			var ag = [];
 			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.args[i].varname;
-				var pm = this.args[i].parameter;
+				var vn = this.vars[i].varname;
+				var pm = this.vars[i].parameter;
 				if (pm) {
 					var pl = [];
 					for (var j = 0; j < pm.length; j++) {
@@ -2707,7 +2707,7 @@ var Flowchart = function () {
 		key: "appendParts",
 		value: function appendParts(parts, statementlist) {
 			for (var i = 0; i < statementlist.length; i++) {
-				p = statementlist[i];
+				var p = statementlist[i];
 				if (!p) continue;
 				var statement = p.constructor.name;
 				if (statement == "DefinitionInt") {

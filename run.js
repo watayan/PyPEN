@@ -1015,8 +1015,8 @@ class DefinitionInt extends Statement
 		var ag = [];
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = this.args[i].varname;
-			var pm = this.args[i].parameter;
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
 			if(pm)
 			{
 				var pl = [];
@@ -1089,8 +1089,8 @@ class DefinitionFloat extends Statement
 		var ag = [];
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = this.args[i].varname;
-			var pm = this.args[i].parameter;
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
 			if(pm)
 			{
 				var pl = [];
@@ -1163,8 +1163,8 @@ class DefinitionString extends Statement
 		var ag = [];
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = this.args[i].varname;
-			var pm = this.args[i].parameter;
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
 			if(pm)
 			{
 				var pl = [];
@@ -1237,8 +1237,8 @@ class DefinitionBoolean extends Statement
 		var ag = [];
 		for(var i = 0; i < this.vars.length; i++)
 		{
-			var vn = this.args[i].varname;
-			var pm = this.args[i].parameter;
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
 			if(pm)
 			{
 				var pl = [];
@@ -2364,7 +2364,7 @@ class Flowchart
 	{
 		for(var i = 0; i < statementlist.length; i++)
 		{
-			p = statementlist[i];
+			var p = statementlist[i];
 			if(!p) continue;
 			var statement = p.constructor.name;
 			if(statement == "DefinitionInt")
