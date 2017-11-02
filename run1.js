@@ -2,11 +2,13 @@
 // programmed by watayan <watayan@watayan.net>
 // edit run.js, and transpile with Babel to make run1.js
 
+function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : _defaults(subClass, superClass); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -115,17 +117,15 @@ var Value = function () {
 		this._loc = loc;
 	}
 
+	Value.prototype.getValue = function getValue() {
+		return this;
+	};
+
+	Value.prototype.getCode = function getCode() {
+		return '' + this._value;
+	};
+
 	_createClass(Value, [{
-		key: "getValue",
-		value: function getValue() {
-			return this;
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			return '' + this._value;
-		}
-	}, {
 		key: "value",
 		get: function get() {
 			return this._value;
@@ -151,7 +151,7 @@ var NullValue = function (_Value) {
 	function NullValue(loc) {
 		_classCallCheck(this, NullValue);
 
-		return _possibleConstructorReturn(this, (NullValue.__proto__ || Object.getPrototypeOf(NullValue)).call(this, 0, loc));
+		return _possibleConstructorReturn(this, _Value.call(this, 0, loc));
 	}
 
 	return NullValue;
@@ -163,18 +163,15 @@ var ArrayValue = function (_Value2) {
 	function ArrayValue(v, loc) {
 		_classCallCheck(this, ArrayValue);
 
-		return _possibleConstructorReturn(this, (ArrayValue.__proto__ || Object.getPrototypeOf(ArrayValue)).call(this, v, loc));
+		return _possibleConstructorReturn(this, _Value2.call(this, v, loc));
 	}
 
-	_createClass(ArrayValue, [{
-		key: "getCode",
-		value: function getCode() {
-			var ag = [];
-			for (var i = 0; i < this.value.length; i++) {
-				ag.push(this.value[i].getCode());
-			}return '[' + ag.join(',') + ']';
-		}
-	}]);
+	ArrayValue.prototype.getCode = function getCode() {
+		var ag = [];
+		for (var i = 0; i < this.value.length; i++) {
+			ag.push(this.value[i].getCode());
+		}return '[' + ag.join(',') + ']';
+	};
 
 	return ArrayValue;
 }(Value);
@@ -185,7 +182,7 @@ var IntValue = function (_Value3) {
 	function IntValue(v, loc) {
 		_classCallCheck(this, IntValue);
 
-		var _this3 = _possibleConstructorReturn(this, (IntValue.__proto__ || Object.getPrototypeOf(IntValue)).call(this, v, loc));
+		var _this3 = _possibleConstructorReturn(this, _Value3.call(this, v, loc));
 
 		if (!isSafeInteger(v)) throw new RuntimeError(_this3.first_line, "整数で表せない値です");
 		return _this3;
@@ -200,18 +197,15 @@ var FloatValue = function (_Value4) {
 	function FloatValue(v, loc) {
 		_classCallCheck(this, FloatValue);
 
-		var _this4 = _possibleConstructorReturn(this, (FloatValue.__proto__ || Object.getPrototypeOf(FloatValue)).call(this, v, loc));
+		var _this4 = _possibleConstructorReturn(this, _Value4.call(this, v, loc));
 
 		if (!isFinite(v)) throw new RuntimeError(_this4.first_line, "オーバーフローしました");
 		return _this4;
 	}
 
-	_createClass(FloatValue, [{
-		key: "getCode",
-		value: function getCode() {
-			if (isInteger(this.value)) return this.value + '.0';else return this.value;
-		}
-	}]);
+	FloatValue.prototype.getCode = function getCode() {
+		if (isInteger(this.value)) return this.value + '.0';else return this.value;
+	};
 
 	return FloatValue;
 }(Value);
@@ -222,15 +216,12 @@ var StringValue = function (_Value5) {
 	function StringValue() {
 		_classCallCheck(this, StringValue);
 
-		return _possibleConstructorReturn(this, (StringValue.__proto__ || Object.getPrototypeOf(StringValue)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Value5.apply(this, arguments));
 	}
 
-	_createClass(StringValue, [{
-		key: "getCode",
-		value: function getCode() {
-			if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
-		}
-	}]);
+	StringValue.prototype.getCode = function getCode() {
+		if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
+	};
 
 	return StringValue;
 }(Value);
@@ -241,15 +232,12 @@ var BooleanValue = function (_Value6) {
 	function BooleanValue() {
 		_classCallCheck(this, BooleanValue);
 
-		return _possibleConstructorReturn(this, (BooleanValue.__proto__ || Object.getPrototypeOf(BooleanValue)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Value6.apply(this, arguments));
 	}
 
-	_createClass(BooleanValue, [{
-		key: "getCode",
-		value: function getCode() {
-			return this.value ? 'true' : 'false';
-		}
-	}]);
+	BooleanValue.prototype.getCode = function getCode() {
+		return this.value ? 'true' : 'false';
+	};
 
 	return BooleanValue;
 }(Value);
@@ -260,20 +248,18 @@ var UNDEFINED = function (_Value7) {
 	function UNDEFINED(v, loc) {
 		_classCallCheck(this, UNDEFINED);
 
-		return _possibleConstructorReturn(this, (UNDEFINED.__proto__ || Object.getPrototypeOf(UNDEFINED)).call(this, v, loc));
+		return _possibleConstructorReturn(this, _Value7.call(this, v, loc));
 	}
 
+	UNDEFINED.prototype.getValue = function getValue() {
+		throw new RuntimeError(this.first_line, "未完成のプログラムです");
+	};
+
+	UNDEFINED.prototype.getCode = function getCode() {
+		return "《" + v + "》";
+	};
+
 	_createClass(UNDEFINED, [{
-		key: "getValue",
-		value: function getValue() {
-			throw new RuntimeError(this.first_line, "未完成のプログラムです");
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			return "《" + v + "》";
-		}
-	}, {
 		key: "varname",
 		get: function get() {
 			throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -289,42 +275,38 @@ var Add = function (_Value8) {
 	function Add(x, y, loc) {
 		_classCallCheck(this, Add);
 
-		return _possibleConstructorReturn(this, (Add.__proto__ || Object.getPrototypeOf(Add)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value8.call(this, [x, y], loc));
 	}
 
-	_createClass(Add, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はできません");
-			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
-			if (v1 instanceof StringValue || v2 instanceof StringValue) {
-				if (v1 instanceof NullValue) return v2;else if (v2 instanceof NullValue) return v1;else return new StringValue(v1.value + v2.value, this.loc);
-			}
-			var v = v1.value + v2.value;
-			if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
-				if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(v, this.loc);
-			} else {
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
-			}
+	Add.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はできません");
+		if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
+		if (v1 instanceof StringValue || v2 instanceof StringValue) {
+			if (v1 instanceof NullValue) return v2;else if (v2 instanceof NullValue) return v1;else return new StringValue(v1.value + v2.value, this.loc);
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c1 == "Minus") brace1 = true;
-			if (c2 == "Minus") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		var v = v1.value + v2.value;
+		if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
+			if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return new FloatValue(v, this.loc);
+		} else {
+			if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(v, this.loc);
 		}
-	}]);
+	};
+
+	Add.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c1 == "Minus") brace1 = true;
+		if (c2 == "Minus") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Add;
 }(Value);
@@ -335,40 +317,36 @@ var Sub = function (_Value9) {
 	function Sub(x, y, loc) {
 		_classCallCheck(this, Sub);
 
-		return _possibleConstructorReturn(this, (Sub.__proto__ || Object.getPrototypeOf(Sub)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value9.call(this, [x, y], loc));
 	}
 
-	_createClass(Sub, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
-			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の引き算はできません");
-			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
-			var v = v1.value - v2.value;
-			if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
-				if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(v, this.loc);
-			} else {
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
-			}
+	Sub.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
+		if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の引き算はできません");
+		if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
+		var v = v1.value - v2.value;
+		if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
+			if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return new FloatValue(v, this.loc);
+		} else {
+			if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(v, this.loc);
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c1 == "Minus") brace1 = true;
-			if (c2 == "Minus") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	};
+
+	Sub.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c1 == "Minus") brace1 = true;
+		if (c2 == "Minus") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Sub;
 }(Value);
@@ -379,40 +357,36 @@ var Mul = function (_Value10) {
 	function Mul(x, y, loc) {
 		_classCallCheck(this, Mul);
 
-		return _possibleConstructorReturn(this, (Mul.__proto__ || Object.getPrototypeOf(Mul)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value10.call(this, [x, y], loc));
 	}
 
-	_createClass(Mul, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のかけ算はできません");
-			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
-			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のかけ算はできません");
-			var v = v1.value * v2.value;
-			if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
-				if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(v, this.loc);
-			} else {
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
-			}
+	Mul.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のかけ算はできません");
+		if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
+		if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のかけ算はできません");
+		var v = v1.value * v2.value;
+		if (v1 instanceof FloatValue || v2 instanceof FloatValue) {
+			if (!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return new FloatValue(v, this.loc);
+		} else {
+			if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(v, this.loc);
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	};
+
+	Mul.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Mul;
 }(Value);
@@ -423,42 +397,38 @@ var Div = function (_Value11) {
 	function Div(x, y, loc) {
 		_classCallCheck(this, Div);
 
-		return _possibleConstructorReturn(this, (Div.__proto__ || Object.getPrototypeOf(Div)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value11.call(this, [x, y], loc));
 	}
 
-	_createClass(Div, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
-			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
-			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-				var _v = (v1.value - v1.value % v2.value) / v2.value;
-				if (!isSafeInteger(_v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(_v, this.loc);
-			} else {
-				var _v2 = v1.value / v2.value;
-				if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(_v2, this.loc);
-			}
+	Div.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
+		if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
+		if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
+		if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
+		if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
+			var _v = (v1.value - v1.value % v2.value) / v2.value;
+			if (!isSafeInteger(_v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(_v, this.loc);
+		} else {
+			var _v2 = v1.value / v2.value;
+			if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return new FloatValue(_v2, this.loc);
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	};
+
+	Div.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Div;
 }(Value);
@@ -469,48 +439,44 @@ var Div2 = function (_Value12) {
 	function Div2(x, y, loc) {
 		_classCallCheck(this, Div2);
 
-		return _possibleConstructorReturn(this, (Div2.__proto__ || Object.getPrototypeOf(Div2)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value12.call(this, [x, y], loc));
 	}
 
-	_createClass(Div2, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
-			if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
-			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-				var _v3 = (v1.value - v1.value % v2.value) / v2.value;
-				if (!isSafeInteger(_v3)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(_v3, this.loc);
+	Div2.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
+		if (v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
+		if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
+		if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
+		if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
+			var _v3 = (v1.value - v1.value % v2.value) / v2.value;
+			if (!isSafeInteger(_v3)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(_v3, this.loc);
+		} else {
+			if (setting.div_mode == 0) {
+				var _v4 = v1.value / v2.value;
+				if (!isFinite(_v4)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new FloatValue(_v4, this.loc);
 			} else {
-				if (setting.div_mode == 0) {
-					var _v4 = v1.value / v2.value;
-					if (!isFinite(_v4)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					return new FloatValue(_v4, this.loc);
-				} else {
-					var _v5 = Math.floor(v1.value / v2.value);
-					if (!isFinite(_v5)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					return new IntValue(_v5, this.loc);
-				}
+				var _v5 = Math.floor(v1.value / v2.value);
+				if (!isFinite(_v5)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new IntValue(_v5, this.loc);
 			}
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' ÷ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	};
+
+	Div2.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' ÷ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Div2;
 }(Value);
@@ -521,35 +487,31 @@ var Mod = function (_Value13) {
 	function Mod(x, y, loc) {
 		_classCallCheck(this, Mod);
 
-		return _possibleConstructorReturn(this, (Mod.__proto__ || Object.getPrototypeOf(Mod)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value13.call(this, [x, y], loc));
 	}
 
-	_createClass(Mod, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if ((v1 instanceof IntValue || v1 instanceof NullValue) && (v2 instanceof IntValue || v2 instanceof NullValue)) {
-				if (v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-				var _v6 = v1.value % v2.value;
-				if (!isSafeInteger(_v6)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(_v6, this.loc);
-			} else throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' % ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	Mod.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if ((v1 instanceof IntValue || v1 instanceof NullValue) && (v2 instanceof IntValue || v2 instanceof NullValue)) {
+			if (v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
+			var _v6 = v1.value % v2.value;
+			if (!isSafeInteger(_v6)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(_v6, this.loc);
+		} else throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
+	};
+
+	Mod.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' % ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Mod;
 }(Value);
@@ -560,31 +522,27 @@ var Minus = function (_Value14) {
 	function Minus(x, loc) {
 		_classCallCheck(this, Minus);
 
-		return _possibleConstructorReturn(this, (Minus.__proto__ || Object.getPrototypeOf(Minus)).call(this, x, loc));
+		return _possibleConstructorReturn(this, _Value14.call(this, x, loc));
 	}
 
-	_createClass(Minus, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value.getValue();
-			if (v1 instanceof NullValue) return v1;
-			if (v1 instanceof IntValue || v1 instanceof FloatValue) {
-				var _v7 = -v1.value;
-				if (_v7 instanceof IntValue && !isSafeInteger(_v7)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				if (_v7 instanceof FloatValue && !isFinite(_v7)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return v1 instanceof IntValue ? new IntValue(_v7, this.loc) : new FloatValue(_v7, this.loc);
-			} else throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value;
-			var c1 = v1.constructor.name;
-			var brace1 = false;
-			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-			return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
-		}
-	}]);
+	Minus.prototype.getValue = function getValue() {
+		var v1 = this.value.getValue();
+		if (v1 instanceof NullValue) return v1;
+		if (v1 instanceof IntValue || v1 instanceof FloatValue) {
+			var _v7 = -v1.value;
+			if (_v7 instanceof IntValue && !isSafeInteger(_v7)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if (_v7 instanceof FloatValue && !isFinite(_v7)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return v1 instanceof IntValue ? new IntValue(_v7, this.loc) : new FloatValue(_v7, this.loc);
+		} else throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
+	};
+
+	Minus.prototype.getCode = function getCode() {
+		var v1 = this.value;
+		var c1 = v1.constructor.name;
+		var brace1 = false;
+		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+	};
 
 	return Minus;
 }(Value);
@@ -595,33 +553,29 @@ var And = function (_Value15) {
 	function And(x, y, loc) {
 		_classCallCheck(this, And);
 
-		return _possibleConstructorReturn(this, (And.__proto__ || Object.getPrototypeOf(And)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value15.call(this, [x, y], loc));
 	}
 
-	_createClass(And, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue();
-			if (v1 instanceof BooleanValue) {
-				if (!v1.value) return new BooleanValue(false, this.loc);
-				var v2 = this.value[1].getValue();
-				if (v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
-			}
-			throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+	And.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue();
+		if (v1 instanceof BooleanValue) {
+			if (!v1.value) return new BooleanValue(false, this.loc);
+			var v2 = this.value[1].getValue();
+			if (v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' かつ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+		throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+	};
+
+	And.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' かつ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return And;
 }(Value);
@@ -632,33 +586,29 @@ var Or = function (_Value16) {
 	function Or(x, y, loc) {
 		_classCallCheck(this, Or);
 
-		return _possibleConstructorReturn(this, (Or.__proto__ || Object.getPrototypeOf(Or)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value16.call(this, [x, y], loc));
 	}
 
-	_createClass(Or, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue();
-			if (v1 instanceof BooleanValue) {
-				if (v1.value) return new BooleanValue(true, this.loc);
-				var v2 = this.value[1].getValue();
-				if (v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
-			}
-			throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
+	Or.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue();
+		if (v1 instanceof BooleanValue) {
+			if (v1.value) return new BooleanValue(true, this.loc);
+			var v2 = this.value[1].getValue();
+			if (v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' または ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+		throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
+	};
+
+	Or.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' または ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return Or;
 }(Value);
@@ -669,25 +619,21 @@ var Not = function (_Value17) {
 	function Not(x, loc) {
 		_classCallCheck(this, Not);
 
-		return _possibleConstructorReturn(this, (Not.__proto__ || Object.getPrototypeOf(Not)).call(this, x, loc));
+		return _possibleConstructorReturn(this, _Value17.call(this, x, loc));
 	}
 
-	_createClass(Not, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value.getValue();
-			if (v1 instanceof BooleanValue) return new BooleanValue(!v1.value, this.loc);else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value;
-			var c1 = v1.constructor.name;
-			var brace1 = false;
-			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
-		}
-	}]);
+	Not.prototype.getValue = function getValue() {
+		var v1 = this.value.getValue();
+		if (v1 instanceof BooleanValue) return new BooleanValue(!v1.value, this.loc);else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
+	};
+
+	Not.prototype.getCode = function getCode() {
+		var v1 = this.value;
+		var c1 = v1.constructor.name;
+		var brace1 = false;
+		if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
+	};
 
 	return Not;
 }(Value);
@@ -698,28 +644,24 @@ var EQ = function (_Value18) {
 	function EQ(x, y, loc) {
 		_classCallCheck(this, EQ);
 
-		return _possibleConstructorReturn(this, (EQ.__proto__ || Object.getPrototypeOf(EQ)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value18.call(this, [x, y], loc));
 	}
 
-	_createClass(EQ, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			return new BooleanValue(v1.value == v2.value, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	EQ.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		return new BooleanValue(v1.value == v2.value, this.loc);
+	};
+
+	EQ.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return EQ;
 }(Value);
@@ -730,28 +672,24 @@ var NE = function (_Value19) {
 	function NE(x, y, loc) {
 		_classCallCheck(this, NE);
 
-		return _possibleConstructorReturn(this, (NE.__proto__ || Object.getPrototypeOf(NE)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value19.call(this, [x, y], loc));
 	}
 
-	_createClass(NE, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			return new BooleanValue(v1.value != v2.value, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	NE.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		return new BooleanValue(v1.value != v2.value, this.loc);
+	};
+
+	NE.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return NE;
 }(Value);
@@ -762,28 +700,24 @@ var GT = function (_Value20) {
 	function GT(x, y, loc) {
 		_classCallCheck(this, GT);
 
-		return _possibleConstructorReturn(this, (GT.__proto__ || Object.getPrototypeOf(GT)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value20.call(this, [x, y], loc));
 	}
 
-	_createClass(GT, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			return new BooleanValue(v1.value > v2.value, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	GT.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		return new BooleanValue(v1.value > v2.value, this.loc);
+	};
+
+	GT.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return GT;
 }(Value);
@@ -794,28 +728,24 @@ var GE = function (_Value21) {
 	function GE(x, y, loc) {
 		_classCallCheck(this, GE);
 
-		return _possibleConstructorReturn(this, (GE.__proto__ || Object.getPrototypeOf(GE)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value21.call(this, [x, y], loc));
 	}
 
-	_createClass(GE, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			return new BooleanValue(v1.value >= v2.value, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	GE.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		return new BooleanValue(v1.value >= v2.value, this.loc);
+	};
+
+	GE.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return GE;
 }(Value);
@@ -826,28 +756,24 @@ var LT = function (_Value22) {
 	function LT(x, y, loc) {
 		_classCallCheck(this, LT);
 
-		return _possibleConstructorReturn(this, (LT.__proto__ || Object.getPrototypeOf(LT)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value22.call(this, [x, y], loc));
 	}
 
-	_createClass(LT, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			return new BooleanValue(v1.value < v2.value, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	LT.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		return new BooleanValue(v1.value < v2.value, this.loc);
+	};
+
+	LT.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return LT;
 }(Value);
@@ -858,28 +784,24 @@ var LE = function (_Value23) {
 	function LE(x, y, loc) {
 		_classCallCheck(this, LE);
 
-		return _possibleConstructorReturn(this, (LE.__proto__ || Object.getPrototypeOf(LE)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value23.call(this, [x, y], loc));
 	}
 
-	_createClass(LE, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			return new BooleanValue(v1.value <= v2.value, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var v1 = this.value[0],
-			    v2 = this.value[1];
-			var c1 = v1.constructor.name,
-			    c2 = v2.constructor.name;
-			var brace1 = false,
-			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
-		}
-	}]);
+	LE.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		return new BooleanValue(v1.value <= v2.value, this.loc);
+	};
+
+	LE.prototype.getCode = function getCode() {
+		var v1 = this.value[0],
+		    v2 = this.value[1];
+		var c1 = v1.constructor.name,
+		    c2 = v2.constructor.name;
+		var brace1 = false,
+		    brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+	};
 
 	return LE;
 }(Value);
@@ -890,30 +812,28 @@ var Variable = function (_Value24) {
 	function Variable(x, y, loc) {
 		_classCallCheck(this, Variable);
 
-		return _possibleConstructorReturn(this, (Variable.__proto__ || Object.getPrototypeOf(Variable)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value24.call(this, [x, y], loc));
 	}
 
-	_createClass(Variable, [{
-		key: "getValue",
-		value: function getValue() {
-			var vn = this.varname;
-			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else return new NullValue(this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var vn = this.value[0];
-			var pm = this.value[1];
-			if (pm != null) {
-				var ag = new Array(pm.length);
-				for (var i = 0; i < pm.length; i++) {
-					ag[i] = pm[i].getCode();
-				}
-				vn += '[' + ag.join(',') + ']';
+	Variable.prototype.getValue = function getValue() {
+		var vn = this.varname;
+		if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else return new NullValue(this.loc);
+	};
+
+	Variable.prototype.getCode = function getCode() {
+		var vn = this.value[0];
+		var pm = this.value[1];
+		if (pm != null) {
+			var ag = new Array(pm.length);
+			for (var i = 0; i < pm.length; i++) {
+				ag[i] = pm[i].getCode();
 			}
-			return vn;
+			vn += '[' + ag.join(',') + ']';
 		}
-	}, {
+		return vn;
+	};
+
+	_createClass(Variable, [{
 		key: "varname",
 		get: function get() {
 			var vn = this.value[0];
@@ -939,166 +859,162 @@ var CallFunction = function (_Value25) {
 	function CallFunction(funcname, parameter, loc) {
 		_classCallCheck(this, CallFunction);
 
-		return _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
+		return _possibleConstructorReturn(this, _Value25.call(this, { funcname: funcname, parameter: parameter }, loc));
 	}
 
-	_createClass(CallFunction, [{
-		key: "getValue",
-		value: function getValue() {
-			var func = this.value.funcname,
-			    param = this.value.parameter;
-			if (func == 'abs') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), this.loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'random') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
-			} else if (func == 'ceil') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'floor') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'round') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'sin') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'cos') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'tan') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v9 = Math.tan(par1.value);
-					if (isFinite(_v9)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'sqrt') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					if (par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
-					return new FloatValue(Math.sqrt(par1.value), this.loc);
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'log') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
-					var _v10 = Math.log(par1.value);
-					if (isFinite(_v10)) return new FloatValue(_v10, this.loc);
-					throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'exp') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v11 = Math.exp(par1.value);
-					if (isFinite(_v11)) return new FloatValue(_v11, this.loc);
-					throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'pow') {
-				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
-					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v12 = Math.pow(par1.value, par2.value);
-					if (isSafeInteger(_v12)) return new IntValue(_v12, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				}
-				if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
-					if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
-					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v13 = Math.pow(par1.value, par2.value);
-					if (isFinite(_v13)) return new FloatValue(_v13, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				}
-			} else if (func == 'length') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
-			} else if (func == 'substring') {
-				if (param.length != 2 && param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は2つか3つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param.length == 3 ? param[2].getValue() : null;
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 == null || par1 instanceof NullValue || par3 instanceof IntValue)) {
-					var v;
-					if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
-					return new StringValue(v, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'append') {
-				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				if (par1 instanceof NullValue) return v2;else if (par2 instanceof NullValue) return v1;else if (par2 instanceof StringValue && par2 instanceof StringValue) {
-					return new StringValue(par1.value + par2.value, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'extract') {
-				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param[2].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof StringValue) && (par3 instanceof NullValue || par3 instanceof IntValue)) {
-					var v1 = par1 instanceof NullValue ? '' : par1.value;
-					var v2 = par2 instanceof NullValue ? '' : par2.value;
-					var v3 = par3.value;
-					var v = v1.split(v2);
-					if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'insert') {
-				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param[2].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof StringValue)) {
-					var v1 = par1 instanceof NullValue ? '' : par1.value;
-					var v2 = par2.value;
-					var v3 = par3 instanceof NullValue ? '' : par3.value;
-					if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-					var s1 = v1.substr(0, v2);
-					var s2 = v1.substr(v2);
-					return new StringValue(s1 + v3 + s2, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'replace') {
-				if (param.length != 4) throw new RuntimeError(this.first_line, func + "の引数は4つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param[2].getValue();
-				var par4 = param[3].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof IntValue) && (par4 instanceof NullValue || par4 instanceof StringValue)) {
-					var v1 = par1 instanceof NullValue ? '' : par1.value;
-					var v2 = par2.value;
-					var v3 = par3.value;
-					var v4 = par4 instanceof NullValue ? '' : par4.value;
+	CallFunction.prototype.getValue = function getValue() {
+		var func = this.value.funcname,
+		    param = this.value.parameter;
+		if (func == 'abs') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), this.loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'random') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
+		} else if (func == 'ceil') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'floor') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'round') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'sin') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'cos') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'tan') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+				var _v9 = Math.tan(par1.value);
+				if (isFinite(_v9)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'sqrt') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+				if (par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
+				return new FloatValue(Math.sqrt(par1.value), this.loc);
+			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'log') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+				if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
+				var _v10 = Math.log(par1.value);
+				if (isFinite(_v10)) return new FloatValue(_v10, this.loc);
+				throw new RuntimeError(this.first_line, "オーバーフローしました");
+			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'exp') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+				var _v11 = Math.exp(par1.value);
+				if (isFinite(_v11)) return new FloatValue(_v11, this.loc);
+				throw new RuntimeError(this.first_line, "オーバーフローしました");
+			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		} else if (func == 'pow') {
+			if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
+				if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+				var _v12 = Math.pow(par1.value, par2.value);
+				if (isSafeInteger(_v12)) return new IntValue(_v12, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
+			if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
+				if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
+				if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+				var _v13 = Math.pow(par1.value, par2.value);
+				if (isFinite(_v13)) return new FloatValue(_v13, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			}
+		} else if (func == 'length') {
+			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
+			var par1 = param[0].getValue();
+			if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
+		} else if (func == 'substring') {
+			if (param.length != 2 && param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は2つか3つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			var par3 = param.length == 3 ? param[2].getValue() : null;
+			if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 == null || par1 instanceof NullValue || par3 instanceof IntValue)) {
+				var v;
+				if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
+				return new StringValue(v, this.loc);
+			} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		} else if (func == 'append') {
+			if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			if (par1 instanceof NullValue) return v2;else if (par2 instanceof NullValue) return v1;else if (par2 instanceof StringValue && par2 instanceof StringValue) {
+				return new StringValue(par1.value + par2.value, this.loc);
+			} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		} else if (func == 'extract') {
+			if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			var par3 = param[2].getValue();
+			if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof StringValue) && (par3 instanceof NullValue || par3 instanceof IntValue)) {
+				var v1 = par1 instanceof NullValue ? '' : par1.value;
+				var v2 = par2 instanceof NullValue ? '' : par2.value;
+				var v3 = par3.value;
+				var v = v1.split(v2);
+				if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
+			} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		} else if (func == 'insert') {
+			if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			var par3 = param[2].getValue();
+			if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof StringValue)) {
+				var v1 = par1 instanceof NullValue ? '' : par1.value;
+				var v2 = par2.value;
+				var v3 = par3 instanceof NullValue ? '' : par3.value;
+				if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+				var s1 = v1.substr(0, v2);
+				var s2 = v1.substr(v2);
+				return new StringValue(s1 + v3 + s2, this.loc);
+			} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		} else if (func == 'replace') {
+			if (param.length != 4) throw new RuntimeError(this.first_line, func + "の引数は4つです");
+			var par1 = param[0].getValue();
+			var par2 = param[1].getValue();
+			var par3 = param[2].getValue();
+			var par4 = param[3].getValue();
+			if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof IntValue) && (par4 instanceof NullValue || par4 instanceof StringValue)) {
+				var v1 = par1 instanceof NullValue ? '' : par1.value;
+				var v2 = par2.value;
+				var v3 = par3.value;
+				var v4 = par4 instanceof NullValue ? '' : par4.value;
 
-					if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-					if (v3 < 0 || v2 + v3 > v1.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
-					var s1 = v1.substr(0, v2);
-					var s2 = v1.substr(v2 + v3);
-					return new StringValue(s1 + v4 + s2, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else throw new RuntimeError(this.first_line, func + "という関数はありません");
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var func = this.value.funcname,
-			    param = this.value.parameter;
-			var ag = [];
-			for (var i = 0; i < param.length; i++) {
-				ag.push(param[i].getCode());
-			}return func + '(' + ag.join(',') + ')';
-		}
-	}]);
+				if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+				if (v3 < 0 || v2 + v3 > v1.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
+				var s1 = v1.substr(0, v2);
+				var s2 = v1.substr(v2 + v3);
+				return new StringValue(s1 + v4 + s2, this.loc);
+			} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		} else throw new RuntimeError(this.first_line, func + "という関数はありません");
+	};
+
+	CallFunction.prototype.getCode = function getCode() {
+		var func = this.value.funcname,
+		    param = this.value.parameter;
+		var ag = [];
+		for (var i = 0; i < param.length; i++) {
+			ag.push(param[i].getCode());
+		}return func + '(' + ag.join(',') + ')';
+	};
 
 	return CallFunction;
 }(Value);
@@ -1109,25 +1025,21 @@ var Append = function (_Value26) {
 	function Append(x, y, loc) {
 		_classCallCheck(this, Append);
 
-		return _possibleConstructorReturn(this, (Append.__proto__ || Object.getPrototypeOf(Append)).call(this, [x, y], loc));
+		return _possibleConstructorReturn(this, _Value26.call(this, [x, y], loc));
 	}
 
-	_createClass(Append, [{
-		key: "getValue",
-		value: function getValue() {
-			var v1 = this.value[0].getValue(),
-			    v2 = this.value[1].getValue();
-			if (this.value[0].getValue() instanceof NullValue) v1 = '';
-			if (this.value[1].getValue() instanceof NullValue) v2 = '';
-			var v = String(v1.value) + String(v2.value);
-			return new StringValue(v, this.loc);
-		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			return this.value[0].getCode() + " と " + this.value[1].getCode();
-		}
-	}]);
+	Append.prototype.getValue = function getValue() {
+		var v1 = this.value[0].getValue(),
+		    v2 = this.value[1].getValue();
+		if (this.value[0].getValue() instanceof NullValue) v1 = '';
+		if (this.value[1].getValue() instanceof NullValue) v2 = '';
+		var v = String(v1.value) + String(v2.value);
+		return new StringValue(v, this.loc);
+	};
+
+	Append.prototype.getCode = function getCode() {
+		return this.value[0].getCode() + " と " + this.value[1].getCode();
+	};
 
 	return Append;
 }(Value);
@@ -1139,10 +1051,9 @@ var Statement = function () {
 		this._loc = loc;
 	}
 
+	Statement.prototype.run = function run(index) {};
+
 	_createClass(Statement, [{
-		key: "run",
-		value: function run(index) {}
-	}, {
 		key: "first_line",
 		get: function get() {
 			return this._loc.first_line;
@@ -1168,65 +1079,61 @@ var DefinitionInt = function (_Statement) {
 	function DefinitionInt(x, loc) {
 		_classCallCheck(this, DefinitionInt);
 
-		var _this27 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
+		var _this27 = _possibleConstructorReturn(this, _Statement.call(this, loc));
 
 		_this27.vars = x;
 		return _this27;
 	}
 
-	_createClass(DefinitionInt, [{
-		key: "run",
-		value: function run(index) {
-			for (var i = 0; i < this.vars.length; i++) {
-				var varname = this.vars[i].varname;
-				var parameter = this.vars[i].parameter;
-				if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-				if (!parameter) {
-					varsInt[varname] = 0;
-				} else {
-					var parameterlist = [];
-					for (var j = 0; j < parameter.length; j++) {
-						var _v14 = parameter[j].getValue();
-						if (_v14 instanceof IntValue && _v14.value >= 0) parameterlist.push(_v14.value);else if (_v14 instanceof FloatValue && _v14.value >= 0) parameterlist.push(Math.round(_v14.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v14.value + "は使えません");
-					}
-					var args = new Array(parameter.length);
-					for (var j = 0; j < parameter.length; j++) {
-						args[j] = setting.array_origin != 2 ? 0 : 1;
-					}while (args) {
-						varsInt[varname + '[' + args.join(',') + ']'] = 0;
-						var k = 0;
-						do {
-							if (k < args.length) {
-								args[k]++;
-								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
-							} else {
-								k = -1;
-								args = undefined;
-							}
-						} while (k >= 0);
-					}
+	DefinitionInt.prototype.run = function run(index) {
+		for (var i = 0; i < this.vars.length; i++) {
+			var varname = this.vars[i].varname;
+			var parameter = this.vars[i].parameter;
+			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+			if (!parameter) {
+				varsInt[varname] = 0;
+			} else {
+				var parameterlist = [];
+				for (var j = 0; j < parameter.length; j++) {
+					var _v14 = parameter[j].getValue();
+					if (_v14 instanceof IntValue && _v14.value >= 0) parameterlist.push(_v14.value);else if (_v14 instanceof FloatValue && _v14.value >= 0) parameterlist.push(Math.round(_v14.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v14.value + "は使えません");
+				}
+				var args = new Array(parameter.length);
+				for (var j = 0; j < parameter.length; j++) {
+					args[j] = setting.array_origin != 2 ? 0 : 1;
+				}while (args) {
+					varsInt[varname + '[' + args.join(',') + ']'] = 0;
+					var k = 0;
+					do {
+						if (k < args.length) {
+							args[k]++;
+							if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
+						} else {
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
 				}
 			}
-			return index + 1;
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var ag = [];
-			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.vars[i].varname;
-				var pm = this.vars[i].parameter;
-				if (pm) {
-					var pl = [];
-					for (var j = 0; j < pm.length; j++) {
-						pl.push(pm[j].getCode());
-					}vn += '[' + pl.join(',') + ']';
-				}
-				ag.push(vn);
+		return index + 1;
+	};
+
+	DefinitionInt.prototype.getCode = function getCode() {
+		var ag = [];
+		for (var i = 0; i < this.vars.length; i++) {
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
+			if (pm) {
+				var pl = [];
+				for (var j = 0; j < pm.length; j++) {
+					pl.push(pm[j].getCode());
+				}vn += '[' + pl.join(',') + ']';
 			}
-			return ag.join(',');
+			ag.push(vn);
 		}
-	}]);
+		return ag.join(',');
+	};
 
 	return DefinitionInt;
 }(Statement);
@@ -1237,65 +1144,61 @@ var DefinitionFloat = function (_Statement2) {
 	function DefinitionFloat(x, loc) {
 		_classCallCheck(this, DefinitionFloat);
 
-		var _this28 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
+		var _this28 = _possibleConstructorReturn(this, _Statement2.call(this, loc));
 
 		_this28.vars = x;
 		return _this28;
 	}
 
-	_createClass(DefinitionFloat, [{
-		key: "run",
-		value: function run(index) {
-			for (var i = 0; i < this.vars.length; i++) {
-				var varname = this.vars[i].varname;
-				var parameter = this.vars[i].parameter;
-				if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-				if (!parameter) {
-					varsFloat[varname] = 0.0;
-				} else {
-					var parameterlist = [];
-					for (var j = 0; j < parameter.length; j++) {
-						var _v15 = parameter[j].getValue();
-						if (_v15 instanceof IntValue && _v15.value >= 0) parameterlist.push(_v15.value);else if (_v15 instanceof FloatValue && _v15.value >= 0) parameterlist.push(Math.round(_v15.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v15.value + "は使えません");
-					}
-					var args = new Array(parameter.length);
-					for (var j = 0; j < parameter.length; j++) {
-						args[j] = setting.array_origin != 2 ? 0 : 1;
-					}while (args) {
-						varsFloat[varname + '[' + args.join(',') + ']'] = 0;
-						var k = 0;
-						do {
-							if (k < args.length) {
-								args[k]++;
-								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
-							} else {
-								k = -1;
-								args = undefined;
-							}
-						} while (k >= 0);
-					}
+	DefinitionFloat.prototype.run = function run(index) {
+		for (var i = 0; i < this.vars.length; i++) {
+			var varname = this.vars[i].varname;
+			var parameter = this.vars[i].parameter;
+			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+			if (!parameter) {
+				varsFloat[varname] = 0.0;
+			} else {
+				var parameterlist = [];
+				for (var j = 0; j < parameter.length; j++) {
+					var _v15 = parameter[j].getValue();
+					if (_v15 instanceof IntValue && _v15.value >= 0) parameterlist.push(_v15.value);else if (_v15 instanceof FloatValue && _v15.value >= 0) parameterlist.push(Math.round(_v15.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v15.value + "は使えません");
+				}
+				var args = new Array(parameter.length);
+				for (var j = 0; j < parameter.length; j++) {
+					args[j] = setting.array_origin != 2 ? 0 : 1;
+				}while (args) {
+					varsFloat[varname + '[' + args.join(',') + ']'] = 0;
+					var k = 0;
+					do {
+						if (k < args.length) {
+							args[k]++;
+							if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
+						} else {
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
 				}
 			}
-			return index + 1;
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var ag = [];
-			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.vars[i].varname;
-				var pm = this.vars[i].parameter;
-				if (pm) {
-					var pl = [];
-					for (var j = 0; j < pm.length; j++) {
-						pl.push(pm[j].getCode());
-					}vn += '[' + pl.join(',') + ']';
-				}
-				ag.push(vn);
+		return index + 1;
+	};
+
+	DefinitionFloat.prototype.getCode = function getCode() {
+		var ag = [];
+		for (var i = 0; i < this.vars.length; i++) {
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
+			if (pm) {
+				var pl = [];
+				for (var j = 0; j < pm.length; j++) {
+					pl.push(pm[j].getCode());
+				}vn += '[' + pl.join(',') + ']';
 			}
-			return ag.join(',');
+			ag.push(vn);
 		}
-	}]);
+		return ag.join(',');
+	};
 
 	return DefinitionFloat;
 }(Statement);
@@ -1306,65 +1209,61 @@ var DefinitionString = function (_Statement3) {
 	function DefinitionString(x, loc) {
 		_classCallCheck(this, DefinitionString);
 
-		var _this29 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
+		var _this29 = _possibleConstructorReturn(this, _Statement3.call(this, loc));
 
 		_this29.vars = x;
 		return _this29;
 	}
 
-	_createClass(DefinitionString, [{
-		key: "run",
-		value: function run(index) {
-			for (var i = 0; i < this.vars.length; i++) {
-				var varname = this.vars[i].varname;
-				var parameter = this.vars[i].parameter;
-				if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-				if (!parameter) {
-					varsString[varname] = '';
-				} else {
-					var parameterlist = [];
-					for (var j = 0; j < parameter.length; j++) {
-						var _v16 = parameter[j].getValue();
-						if (_v16 instanceof IntValue && _v16.value >= 0) parameterlist.push(_v16.value);else if (_v16 instanceof FloatValue && _v16.value >= 0) parameterlist.push(Math.round(_v16.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v16.value + "は使えません");
-					}
-					var args = new Array(parameter.length);
-					for (var j = 0; j < parameter.length; j++) {
-						args[j] = setting.array_origin != 2 ? 0 : 1;
-					}while (args) {
-						varsString[varname + '[' + args.join(',') + ']'] = '';
-						var k = 0;
-						do {
-							if (k < args.length) {
-								args[k]++;
-								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
-							} else {
-								k = -1;
-								args = undefined;
-							}
-						} while (k >= 0);
-					}
+	DefinitionString.prototype.run = function run(index) {
+		for (var i = 0; i < this.vars.length; i++) {
+			var varname = this.vars[i].varname;
+			var parameter = this.vars[i].parameter;
+			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+			if (!parameter) {
+				varsString[varname] = '';
+			} else {
+				var parameterlist = [];
+				for (var j = 0; j < parameter.length; j++) {
+					var _v16 = parameter[j].getValue();
+					if (_v16 instanceof IntValue && _v16.value >= 0) parameterlist.push(_v16.value);else if (_v16 instanceof FloatValue && _v16.value >= 0) parameterlist.push(Math.round(_v16.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v16.value + "は使えません");
+				}
+				var args = new Array(parameter.length);
+				for (var j = 0; j < parameter.length; j++) {
+					args[j] = setting.array_origin != 2 ? 0 : 1;
+				}while (args) {
+					varsString[varname + '[' + args.join(',') + ']'] = '';
+					var k = 0;
+					do {
+						if (k < args.length) {
+							args[k]++;
+							if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
+						} else {
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
 				}
 			}
-			return index + 1;
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var ag = [];
-			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.vars[i].varname;
-				var pm = this.vars[i].parameter;
-				if (pm) {
-					var pl = [];
-					for (var j = 0; j < pm.length; j++) {
-						pl.push(pm[j].getCode());
-					}vn += '[' + pl.join(',') + ']';
-				}
-				ag.push(vn);
+		return index + 1;
+	};
+
+	DefinitionString.prototype.getCode = function getCode() {
+		var ag = [];
+		for (var i = 0; i < this.vars.length; i++) {
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
+			if (pm) {
+				var pl = [];
+				for (var j = 0; j < pm.length; j++) {
+					pl.push(pm[j].getCode());
+				}vn += '[' + pl.join(',') + ']';
 			}
-			return ag.join(',');
+			ag.push(vn);
 		}
-	}]);
+		return ag.join(',');
+	};
 
 	return DefinitionString;
 }(Statement);
@@ -1375,65 +1274,61 @@ var DefinitionBoolean = function (_Statement4) {
 	function DefinitionBoolean(x, loc) {
 		_classCallCheck(this, DefinitionBoolean);
 
-		var _this30 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
+		var _this30 = _possibleConstructorReturn(this, _Statement4.call(this, loc));
 
 		_this30.vars = x;
 		return _this30;
 	}
 
-	_createClass(DefinitionBoolean, [{
-		key: "run",
-		value: function run(index) {
-			for (var i = 0; i < this.vars.length; i++) {
-				var varname = this.vars[i].varname;
-				var parameter = this.vars[i].parameter;
-				if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
-				if (!parameter) {
-					varsBoolean[varname] = false;
-				} else {
-					var parameterlist = [];
-					for (var j = 0; j < parameter.length; j++) {
-						var _v17 = parameter[j].getValue();
-						if (_v17 instanceof IntValue && _v17.value >= 0) parameterlist.push(_v17.value);else if (_v17 instanceof FloatValue && _v17.value >= 0) parameterlist.push(Math.round(_v17.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v17.value + "は使えません");
-					}
-					var args = new Array(parameter.length);
-					for (var j = 0; j < parameter.length; j++) {
-						args[j] = setting.array_origin != 2 ? 0 : 1;
-					}while (args) {
-						varsBoolean[varname + '[' + args.join(',') + ']'] = false;
-						var k = 0;
-						do {
-							if (k < args.length) {
-								args[k]++;
-								if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
-							} else {
-								k = -1;
-								args = undefined;
-							}
-						} while (k >= 0);
-					}
+	DefinitionBoolean.prototype.run = function run(index) {
+		for (var i = 0; i < this.vars.length; i++) {
+			var varname = this.vars[i].varname;
+			var parameter = this.vars[i].parameter;
+			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+			if (!parameter) {
+				varsBoolean[varname] = false;
+			} else {
+				var parameterlist = [];
+				for (var j = 0; j < parameter.length; j++) {
+					var _v17 = parameter[j].getValue();
+					if (_v17 instanceof IntValue && _v17.value >= 0) parameterlist.push(_v17.value);else if (_v17 instanceof FloatValue && _v17.value >= 0) parameterlist.push(Math.round(_v17.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v17.value + "は使えません");
+				}
+				var args = new Array(parameter.length);
+				for (var j = 0; j < parameter.length; j++) {
+					args[j] = setting.array_origin != 2 ? 0 : 1;
+				}while (args) {
+					varsBoolean[varname + '[' + args.join(',') + ']'] = false;
+					var k = 0;
+					do {
+						if (k < args.length) {
+							args[k]++;
+							if (setting.array_origin != 1 && args[k] > parameterlist[k] || setting.array_origin == 1 && args[k] >= parameterlist[k]) args[k++] = setting.array_origin != 2 ? 0 : 1;else k = -1;
+						} else {
+							k = -1;
+							args = undefined;
+						}
+					} while (k >= 0);
 				}
 			}
-			return index + 1;
 		}
-	}, {
-		key: "getCode",
-		value: function getCode() {
-			var ag = [];
-			for (var i = 0; i < this.vars.length; i++) {
-				var vn = this.vars[i].varname;
-				var pm = this.vars[i].parameter;
-				if (pm) {
-					var pl = [];
-					for (var j = 0; j < pm.length; j++) {
-						pl.push(pm[j].getCode());
-					}vn += '[' + pl.join(',') + ']';
-				}
-				ag.push(vn);
+		return index + 1;
+	};
+
+	DefinitionBoolean.prototype.getCode = function getCode() {
+		var ag = [];
+		for (var i = 0; i < this.vars.length; i++) {
+			var vn = this.vars[i].varname;
+			var pm = this.vars[i].parameter;
+			if (pm) {
+				var pl = [];
+				for (var j = 0; j < pm.length; j++) {
+					pl.push(pm[j].getCode());
+				}vn += '[' + pl.join(',') + ']';
 			}
-			return ag.join(',');
+			ag.push(vn);
 		}
-	}]);
+		return ag.join(',');
+	};
 
 	return DefinitionBoolean;
 }(Statement);
@@ -1444,47 +1339,44 @@ var Assign = function (_Statement5) {
 	function Assign(varname, val, loc) {
 		_classCallCheck(this, Assign);
 
-		var _this31 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
+		var _this31 = _possibleConstructorReturn(this, _Statement5.call(this, loc));
 
 		_this31.varname = varname;
 		_this31.val = val;
 		return _this31;
 	}
 
-	_createClass(Assign, [{
-		key: "run",
-		value: function run(index) {
-			var vl = this.val.getValue();
-			if (vl instanceof ArrayValue) {
-				var len = vl.value.length;
-				var ag = this.varname.value[1];
-				for (var i = 0; i < len; i++) {
-					var ag1 = this.varname.value[1] instanceof Array ? this.varname.value[1].concat() : [];
-					ag1.push(new IntValue(i, this.loc));
-					var variable = new Variable(this.varname.value[0], ag1, this.loc);
-					var command = new Assign(variable, vl.value[i], this.loc);
-					command.run(index);
-				}
-			} else {
-				var vn = this.varname.varname;
-				if (varsInt[vn] != undefined) {
-					if (vl instanceof IntValue) varsInt[vn] = vl.value;else if (vl instanceof FloatValue) varsInt[vn] = Math.round(vl.value);else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
-					if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else if (varsFloat[vn] != undefined) {
-					if (vl instanceof IntValue || vl instanceof FloatValue) varsFloat[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
-					if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else if (varsString[vn] != undefined) {
-					if (vl instanceof StringValue) varsString[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に文字列以外の値を代入しようとしました");
-				} else if (varsBoolean[vn] != undefined) {
-					if (vl instanceof BooleanValue) varsBoolean[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に真偽以外の値を代入しようとしました");
-				} else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else // 新しい変数を宣言する
-					{
-						if (vl instanceof NullValue || vl instanceof IntValue) varsInt[vn] = vl.value;else if (vl instanceof FloatValue) varsFloat[vn] = vl.value;else if (vl instanceof StringValue) varsString[vn] = vl.value;else if (vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
-					}
+	Assign.prototype.run = function run(index) {
+		var vl = this.val.getValue();
+		if (vl instanceof ArrayValue) {
+			var len = vl.value.length;
+			var ag = this.varname.value[1];
+			for (var i = 0; i < len; i++) {
+				var ag1 = this.varname.value[1] instanceof Array ? this.varname.value[1].concat() : [];
+				ag1.push(new IntValue(i, this.loc));
+				var variable = new Variable(this.varname.value[0], ag1, this.loc);
+				var command = new Assign(variable, vl.value[i], this.loc);
+				command.run(index);
 			}
-			return index + 1;
+		} else {
+			var vn = this.varname.varname;
+			if (varsInt[vn] != undefined) {
+				if (vl instanceof IntValue) varsInt[vn] = vl.value;else if (vl instanceof FloatValue) varsInt[vn] = Math.round(vl.value);else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
+				if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			} else if (varsFloat[vn] != undefined) {
+				if (vl instanceof IntValue || vl instanceof FloatValue) varsFloat[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に数値以外の値を代入しようとしました");
+				if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			} else if (varsString[vn] != undefined) {
+				if (vl instanceof StringValue) varsString[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に文字列以外の値を代入しようとしました");
+			} else if (varsBoolean[vn] != undefined) {
+				if (vl instanceof BooleanValue) varsBoolean[vn] = vl.value;else throw new RuntimeError(this.first_line, vn + "に真偽以外の値を代入しようとしました");
+			} else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else // 新しい変数を宣言する
+				{
+					if (vl instanceof NullValue || vl instanceof IntValue) varsInt[vn] = vl.value;else if (vl instanceof FloatValue) varsFloat[vn] = vl.value;else if (vl instanceof StringValue) varsString[vn] = vl.value;else if (vl instanceof BooleanValue) varsBoolean[vn] = vl.value;
+				}
 		}
-	}]);
+		return index + 1;
+	};
 
 	return Assign;
 }(Statement);
@@ -1495,20 +1387,17 @@ var Input = function (_Statement6) {
 	function Input(x, loc) {
 		_classCallCheck(this, Input);
 
-		var _this32 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
+		var _this32 = _possibleConstructorReturn(this, _Statement6.call(this, loc));
 
 		_this32.varname = x;
 		return _this32;
 	}
 
-	_createClass(Input, [{
-		key: "run",
-		value: function run(index) {
-			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
-			stack.push({ statementlist: list, index: 0 });
-			return index + 1;
-		}
-	}]);
+	Input.prototype.run = function run(index) {
+		var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
+		stack.push({ statementlist: list, index: 0 });
+		return index + 1;
+	};
 
 	return Input;
 }(Statement);
@@ -1519,16 +1408,13 @@ var InputBegin = function (_Statement7) {
 	function InputBegin(loc) {
 		_classCallCheck(this, InputBegin);
 
-		return _possibleConstructorReturn(this, (InputBegin.__proto__ || Object.getPrototypeOf(InputBegin)).call(this, loc));
+		return _possibleConstructorReturn(this, _Statement7.call(this, loc));
 	}
 
-	_createClass(InputBegin, [{
-		key: "run",
-		value: function run(index) {
-			openInputWindow();
-			return index + 1;
-		}
-	}]);
+	InputBegin.prototype.run = function run(index) {
+		openInputWindow();
+		return index + 1;
+	};
 
 	return InputBegin;
 }(Statement);
@@ -1539,40 +1425,37 @@ var InputEnd = function (_Statement8) {
 	function InputEnd(x, loc) {
 		_classCallCheck(this, InputEnd);
 
-		var _this34 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
+		var _this34 = _possibleConstructorReturn(this, _Statement8.call(this, loc));
 
 		_this34.varname = x;
 		return _this34;
 	}
 
-	_createClass(InputEnd, [{
-		key: "run",
-		value: function run(index) {
-			try {
-				var vn = this.varname.varname;
-				var vl = closeInputWindow();
-				if (varsInt[vn] != undefined) {
-					varsInt[vn] = Number(vl);
-					if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
-				} else if (varsFloat[vn] != undefined) {
-					varsFloat[vn] = Number(vl);
-					if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
-				} else if (varsString[vn] != undefined) {
-					varsString[vn] = String(vl);
-				} else if (varsBoolean[vn] != undefined) {
-					varsBoolean[vn] = vl;
-					if (vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
-				} else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else {
-					varsString[vn] = String(vl); // とりあえず文字列
-				}
-			} catch (e) {
-				closeInputWindow();
-				throw e;
+	InputEnd.prototype.run = function run(index) {
+		try {
+			var vn = this.varname.varname;
+			var vl = closeInputWindow();
+			if (varsInt[vn] != undefined) {
+				varsInt[vn] = Number(vl);
+				if (!isSafeInteger(varsInt[vn])) throw new RuntimeError(this.first_line, "整数で表せない値が入力されました");
+			} else if (varsFloat[vn] != undefined) {
+				varsFloat[vn] = Number(vl);
+				if (!isFinite(varsFloat[vn])) throw new RuntimeError(this.first_line, "実数で表せない値が入力されました");
+			} else if (varsString[vn] != undefined) {
+				varsString[vn] = String(vl);
+			} else if (varsBoolean[vn] != undefined) {
+				varsBoolean[vn] = vl;
+				if (vl !== true && vl !== false) throw new RuntimeError(this.first_line, "真偽以外の値が入力されました");
+			} else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else {
+				varsString[vn] = String(vl); // とりあえず文字列
 			}
-
-			return index + 1;
+		} catch (e) {
+			closeInputWindow();
+			throw e;
 		}
-	}]);
+
+		return index + 1;
+	};
 
 	return InputEnd;
 }(Statement);
@@ -1583,22 +1466,19 @@ var Output = function (_Statement9) {
 	function Output(x, ln, loc) {
 		_classCallCheck(this, Output);
 
-		var _this35 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
+		var _this35 = _possibleConstructorReturn(this, _Statement9.call(this, loc));
 
 		_this35.value = x;
 		_this35.ln = ln;
 		return _this35;
 	}
 
-	_createClass(Output, [{
-		key: "run",
-		value: function run(index) {
-			var v = this.value.getValue().value;
-			if (this.value.getValue() instanceof NullValue) v = '';
-			textareaAppend(v + (this.ln ? "\n" : ""));
-			return index + 1;
-		}
-	}]);
+	Output.prototype.run = function run(index) {
+		var v = this.value.getValue().value;
+		if (this.value.getValue() instanceof NullValue) v = '';
+		textareaAppend(v + (this.ln ? "\n" : ""));
+		return index + 1;
+	};
 
 	return Output;
 }(Statement);
@@ -1609,98 +1489,95 @@ var GraphicStatement = function (_Statement10) {
 	function GraphicStatement(command, args, loc) {
 		_classCallCheck(this, GraphicStatement);
 
-		var _this36 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
+		var _this36 = _possibleConstructorReturn(this, _Statement10.call(this, loc));
 
 		_this36.command = command;
 		_this36.args = args;
 		return _this36;
 	}
 
-	_createClass(GraphicStatement, [{
-		key: "run",
-		value: function run(index) {
-			if (this.command == 'gOpenWindow') {
-				var canvas = document.getElementById('canvas');
-				context = canvas.getContext('2d');
-				canvas.setAttribute("width", this.args[0].getValue().value + "px");
-				canvas.setAttribute("height", this.args[1].getValue().value + "px");
-				canvas.style.display = "block";
-			} else if (this.command == 'gCloseWindow') {
-				var canvas = document.getElementById('canvas');
-				canvas.style.display = "none";
-				context = null;
-			} else if (this.command == 'gClearWindow') {
-				var canvas = document.getElementById('canvas');
-				context.clearRect(0, 0, canvas.width, canvas.height);
-			} else if (this.command == 'gSetLineColor') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var r = this.args[0].getValue().value,
-				    g = this.args[1].getValue().value,
-				    b = this.args[2].getValue().value;
-				context.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
-			} else if (this.command == 'gSetFillColor') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var _r = this.args[0].getValue().value,
-				    _g = this.args[1].getValue().value,
-				    _b = this.args[2].getValue().value;
-				context.fillStyle = "rgb(" + _r + "," + _g + "," + _b + ")";
-			} else if (this.command == 'gSetLineWidth') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				context.lineWidth = this.args[0].getValue().value;
-			} else if (this.command == 'gSetFontSize') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				context.font = this.args[0].getValue().value + "px 'sans-serif'";
-			} else if (this.command == 'gDrawText') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				context.fillText(this.args[0].getValue().value, this.args[1].getValue().value, this.args[2].getValue().value);
-			} else if (this.command == 'gDrawLine') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var x1 = this.args[0].getValue().value,
-				    y1 = this.args[1].getValue().value,
-				    x2 = this.args[2].getValue().value,
-				    y2 = this.args[3].getValue().value;
-				context.beginPath();
-				context.moveTo(x1, y1);
-				context.lineTo(x2, y2);
-				context.stroke();
-			} else if (this.command == 'gDrawBox') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var _x = this.args[0].getValue().value,
-				    _y = this.args[1].getValue().value,
-				    width = this.args[2].getValue().value,
-				    height = this.args[3].getValue().value;
-				context.beginPath();
-				context.strokeRect(_x, _y, width, height);
-				context.stroke();
-			} else if (this.command == 'gFillBox') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var _x2 = this.args[0].getValue().value,
-				    _y2 = this.args[1].getValue().value,
-				    _width = this.args[2].getValue().value,
-				    _height = this.args[3].getValue().value;
-				context.fillRect(_x2, _y2, _width, _height);
-			} else if (this.command == 'gDrawCircle') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var _x3 = this.args[0].getValue().value,
-				    _y3 = this.args[1].getValue().value,
-				    _r2 = this.args[2].getValue().value;
-				context.beginPath();
-				context.arc(_x3, _y3, _r2, 0, Math.PI * 2, false);
-				context.stroke();
-			} else if (this.command == 'gFillCircle') {
-				if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				var _x4 = this.args[0].getValue().value,
-				    _y4 = this.args[1].getValue().value,
-				    _r3 = this.args[2].getValue().value;
-				context.beginPath();
-				context.arc(_x4, _y4, _r3, 0, Math.PI * 2, false);
-				context.fill();
-			} else {
-				throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
-			}
-			return index + 1;
+	GraphicStatement.prototype.run = function run(index) {
+		if (this.command == 'gOpenWindow') {
+			var canvas = document.getElementById('canvas');
+			context = canvas.getContext('2d');
+			canvas.setAttribute("width", this.args[0].getValue().value + "px");
+			canvas.setAttribute("height", this.args[1].getValue().value + "px");
+			canvas.style.display = "block";
+		} else if (this.command == 'gCloseWindow') {
+			var canvas = document.getElementById('canvas');
+			canvas.style.display = "none";
+			context = null;
+		} else if (this.command == 'gClearWindow') {
+			var canvas = document.getElementById('canvas');
+			context.clearRect(0, 0, canvas.width, canvas.height);
+		} else if (this.command == 'gSetLineColor') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var r = this.args[0].getValue().value,
+			    g = this.args[1].getValue().value,
+			    b = this.args[2].getValue().value;
+			context.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
+		} else if (this.command == 'gSetFillColor') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var _r = this.args[0].getValue().value,
+			    _g = this.args[1].getValue().value,
+			    _b = this.args[2].getValue().value;
+			context.fillStyle = "rgb(" + _r + "," + _g + "," + _b + ")";
+		} else if (this.command == 'gSetLineWidth') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			context.lineWidth = this.args[0].getValue().value;
+		} else if (this.command == 'gSetFontSize') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			context.font = this.args[0].getValue().value + "px 'sans-serif'";
+		} else if (this.command == 'gDrawText') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			context.fillText(this.args[0].getValue().value, this.args[1].getValue().value, this.args[2].getValue().value);
+		} else if (this.command == 'gDrawLine') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var x1 = this.args[0].getValue().value,
+			    y1 = this.args[1].getValue().value,
+			    x2 = this.args[2].getValue().value,
+			    y2 = this.args[3].getValue().value;
+			context.beginPath();
+			context.moveTo(x1, y1);
+			context.lineTo(x2, y2);
+			context.stroke();
+		} else if (this.command == 'gDrawBox') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var _x = this.args[0].getValue().value,
+			    _y = this.args[1].getValue().value,
+			    width = this.args[2].getValue().value,
+			    height = this.args[3].getValue().value;
+			context.beginPath();
+			context.strokeRect(_x, _y, width, height);
+			context.stroke();
+		} else if (this.command == 'gFillBox') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var _x2 = this.args[0].getValue().value,
+			    _y2 = this.args[1].getValue().value,
+			    _width = this.args[2].getValue().value,
+			    _height = this.args[3].getValue().value;
+			context.fillRect(_x2, _y2, _width, _height);
+		} else if (this.command == 'gDrawCircle') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var _x3 = this.args[0].getValue().value,
+			    _y3 = this.args[1].getValue().value,
+			    _r2 = this.args[2].getValue().value;
+			context.beginPath();
+			context.arc(_x3, _y3, _r2, 0, Math.PI * 2, false);
+			context.stroke();
+		} else if (this.command == 'gFillCircle') {
+			if (context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var _x4 = this.args[0].getValue().value,
+			    _y4 = this.args[1].getValue().value,
+			    _r3 = this.args[2].getValue().value;
+			context.beginPath();
+			context.arc(_x4, _y4, _r3, 0, Math.PI * 2, false);
+			context.fill();
+		} else {
+			throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
 		}
-	}]);
+		return index + 1;
+	};
 
 	return GraphicStatement;
 }(Statement);
@@ -1711,7 +1588,7 @@ var If = function (_Statement11) {
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
-		var _this37 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
+		var _this37 = _possibleConstructorReturn(this, _Statement11.call(this, loc));
 
 		_this37.condition = condition;
 		_this37.state1 = state1;
@@ -1719,15 +1596,12 @@ var If = function (_Statement11) {
 		return _this37;
 	}
 
-	_createClass(If, [{
-		key: "run",
-		value: function run(index) {
-			if (this.condition.getValue() instanceof BooleanValue) {
-				if (this.condition.getValue().value) stack.push({ statementlist: this.state1, index: 0 });else if (this.state2 != null) stack.push({ statementlist: this.state2, index: 0 });
-			} else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
-			return index + 1;
-		}
-	}]);
+	If.prototype.run = function run(index) {
+		if (this.condition.getValue() instanceof BooleanValue) {
+			if (this.condition.getValue().value) stack.push({ statementlist: this.state1, index: 0 });else if (this.state2 != null) stack.push({ statementlist: this.state2, index: 0 });
+		} else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
+		return index + 1;
+	};
 
 	return If;
 }(Statement);
@@ -1738,19 +1612,16 @@ var LoopBegin = function (_Statement12) {
 	function LoopBegin(condition, continuous, loc) {
 		_classCallCheck(this, LoopBegin);
 
-		var _this38 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
+		var _this38 = _possibleConstructorReturn(this, _Statement12.call(this, loc));
 
 		_this38.condition = condition;
 		_this38.continuous = continuous;
 		return _this38;
 	}
 
-	_createClass(LoopBegin, [{
-		key: "run",
-		value: function run(index) {
-			if (this.condition == null || this.condition.getValue().value == this.continuous) return index + 1;else return -1;
-		}
-	}]);
+	LoopBegin.prototype.run = function run(index) {
+		if (this.condition == null || this.condition.getValue().value == this.continuous) return index + 1;else return -1;
+	};
 
 	return LoopBegin;
 }(Statement);
@@ -1761,19 +1632,16 @@ var LoopEnd = function (_Statement13) {
 	function LoopEnd(condition, continuous, loc) {
 		_classCallCheck(this, LoopEnd);
 
-		var _this39 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
+		var _this39 = _possibleConstructorReturn(this, _Statement13.call(this, loc));
 
 		_this39.condition = condition;
 		_this39.continuous = continuous;
 		return _this39;
 	}
 
-	_createClass(LoopEnd, [{
-		key: "run",
-		value: function run(index) {
-			if (this.condition == null || this.condition.getValue().value == this.continuous) return 0;else return -1;
-		}
-	}]);
+	LoopEnd.prototype.run = function run(index) {
+		if (this.condition == null || this.condition.getValue().value == this.continuous) return 0;else return -1;
+	};
 
 	return LoopEnd;
 }(Statement);
@@ -1784,7 +1652,7 @@ var ForInc = function (_Statement14) {
 	function ForInc(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForInc);
 
-		var _this40 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
+		var _this40 = _possibleConstructorReturn(this, _Statement14.call(this, loc));
 
 		_this40.varname = varname;
 		_this40.begin = begin;
@@ -1794,27 +1662,24 @@ var ForInc = function (_Statement14) {
 		return _this40;
 	}
 
-	_createClass(ForInc, [{
-		key: "run",
-		value: function run(index) {
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var last_loc = new Location(last_token, last_token);
-			if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
-				if (this.begin.getValue() instanceof IntValue) varsInt[this.varname.varname] = 0;else if (this.begin.getValue() instanceof FloatValue) varsFloat[this.varname.varname] = 0;
-			}
-			if (varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined) {
-				var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
-				assign.run(0);
-				var loop = [new LoopBegin(new LE(new Variable(this.varname.varname, null, this.loc), this.end, this.loc), true, this.loc)];
-				for (var i = 0; i < this.state.length; i++) {
-					loop.push(this.state[i]);
-				}loop.push(new Assign(this.varname, new Add(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
-				loop.push(new LoopEnd(null, true, last_loc));
-				stack.push({ statementlist: loop, index: 0 });
-			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
-			return index + 1;
+	ForInc.prototype.run = function run(index) {
+		var last_token = { first_line: this.last_line, last_line: this.last_line };
+		var last_loc = new Location(last_token, last_token);
+		if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
+			if (this.begin.getValue() instanceof IntValue) varsInt[this.varname.varname] = 0;else if (this.begin.getValue() instanceof FloatValue) varsFloat[this.varname.varname] = 0;
 		}
-	}]);
+		if (varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined) {
+			var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
+			assign.run(0);
+			var loop = [new LoopBegin(new LE(new Variable(this.varname.varname, null, this.loc), this.end, this.loc), true, this.loc)];
+			for (var i = 0; i < this.state.length; i++) {
+				loop.push(this.state[i]);
+			}loop.push(new Assign(this.varname, new Add(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
+			loop.push(new LoopEnd(null, true, last_loc));
+			stack.push({ statementlist: loop, index: 0 });
+		} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
+		return index + 1;
+	};
 
 	return ForInc;
 }(Statement);
@@ -1825,7 +1690,7 @@ var ForDec = function (_Statement15) {
 	function ForDec(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForDec);
 
-		var _this41 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
+		var _this41 = _possibleConstructorReturn(this, _Statement15.call(this, loc));
 
 		_this41.varname = varname;
 		_this41.begin = begin;
@@ -1835,27 +1700,24 @@ var ForDec = function (_Statement15) {
 		return _this41;
 	}
 
-	_createClass(ForDec, [{
-		key: "run",
-		value: function run(index) {
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var last_loc = new Location(last_token, last_token);
-			if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
-				if (this.begin.getValue() instanceof IntValue) varsInt[this.varname.varname] = 0;else if (this.begin.getValue() instanceof FloatValue) varsFloat[this.varname.varname] = 0;
-			}
-			if (varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined) {
-				var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
-				assign.run(0);
-				var loop = [new LoopBegin(new GE(new Variable(this.varname.varname, null, this.loc), this.end, this.loc), true, this.loc)];
-				for (var i = 0; i < this.state.length; i++) {
-					loop.push(this.state[i]);
-				}loop.push(new Assign(this.varname, new Sub(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
-				loop.push(new LoopEnd(null, true, last_loc));
-				stack.push({ statementlist: loop, index: 0 });
-			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
-			return index + 1;
+	ForDec.prototype.run = function run(index) {
+		var last_token = { first_line: this.last_line, last_line: this.last_line };
+		var last_loc = new Location(last_token, last_token);
+		if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
+			if (this.begin.getValue() instanceof IntValue) varsInt[this.varname.varname] = 0;else if (this.begin.getValue() instanceof FloatValue) varsFloat[this.varname.varname] = 0;
 		}
-	}]);
+		if (varsInt[this.varname.varname] != undefined || varsFloat[this.varname.varname] != undefined) {
+			var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
+			assign.run(0);
+			var loop = [new LoopBegin(new GE(new Variable(this.varname.varname, null, this.loc), this.end, this.loc), true, this.loc)];
+			for (var i = 0; i < this.state.length; i++) {
+				loop.push(this.state[i]);
+			}loop.push(new Assign(this.varname, new Sub(new Variable(this.varname.varname, null, this.loc), this.step, last_loc), last_loc));
+			loop.push(new LoopEnd(null, true, last_loc));
+			stack.push({ statementlist: loop, index: 0 });
+		} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
+		return index + 1;
+	};
 
 	return ForDec;
 }(Statement);
@@ -1866,25 +1728,22 @@ var Until = function (_Statement16) {
 	function Until(state, condition, loc) {
 		_classCallCheck(this, Until);
 
-		var _this42 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
+		var _this42 = _possibleConstructorReturn(this, _Statement16.call(this, loc));
 
 		_this42.condition = condition;
 		_this42.state = state;
 		return _this42;
 	}
 
-	_createClass(Until, [{
-		key: "run",
-		value: function run(index) {
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var loop = [new LoopBegin(null, true, this.loc)];
-			for (var i = 0; i < this.state.length; i++) {
-				loop.push(this.state[i]);
-			}loop.push(new LoopEnd(this.condition, false, new Location(last_token, last_token)));
-			stack.push({ statementlist: loop, index: 0 });
-			return index + 1;
-		}
-	}]);
+	Until.prototype.run = function run(index) {
+		var last_token = { first_line: this.last_line, last_line: this.last_line };
+		var loop = [new LoopBegin(null, true, this.loc)];
+		for (var i = 0; i < this.state.length; i++) {
+			loop.push(this.state[i]);
+		}loop.push(new LoopEnd(this.condition, false, new Location(last_token, last_token)));
+		stack.push({ statementlist: loop, index: 0 });
+		return index + 1;
+	};
 
 	return Until;
 }(Statement);
@@ -1895,25 +1754,22 @@ var While = function (_Statement17) {
 	function While(condition, state, loc) {
 		_classCallCheck(this, While);
 
-		var _this43 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
+		var _this43 = _possibleConstructorReturn(this, _Statement17.call(this, loc));
 
 		_this43.condition = condition;
 		_this43.state = state;
 		return _this43;
 	}
 
-	_createClass(While, [{
-		key: "run",
-		value: function run(index) {
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var loop = [new LoopBegin(this.condition, true, this.loc)];
-			for (var i = 0; i < this.state.length; i++) {
-				loop.push(this.state[i]);
-			}loop.push(new LoopEnd(null, false, new Location(last_token, last_token)));
-			stack.push({ statementlist: loop, index: 0 });
-			return index + 1;
-		}
-	}]);
+	While.prototype.run = function run(index) {
+		var last_token = { first_line: this.last_line, last_line: this.last_line };
+		var loop = [new LoopBegin(this.condition, true, this.loc)];
+		for (var i = 0; i < this.state.length; i++) {
+			loop.push(this.state[i]);
+		}loop.push(new LoopEnd(null, false, new Location(last_token, last_token)));
+		stack.push({ statementlist: loop, index: 0 });
+		return index + 1;
+	};
 
 	return While;
 }(Statement);
@@ -1924,19 +1780,16 @@ var SleepStatement = function (_Statement18) {
 	function SleepStatement(sec, loc) {
 		_classCallCheck(this, SleepStatement);
 
-		var _this44 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
+		var _this44 = _possibleConstructorReturn(this, _Statement18.call(this, loc));
 
 		_this44.sec = sec.value; // milli seconds
 		return _this44;
 	}
 
-	_createClass(SleepStatement, [{
-		key: "run",
-		value: function run(index) {
-			wait_time = this.sec * 1000;
-			return index + 1;
-		}
-	}]);
+	SleepStatement.prototype.run = function run(index) {
+		wait_time = this.sec * 1000;
+		return index + 1;
+	};
 
 	return SleepStatement;
 }(Statement);
@@ -2449,12 +2302,11 @@ var point = function () {
 		this._x = this._y = 0;
 	}
 
+	point.prototype.clone = function clone() {
+		var p = new point();p.x = this.x;p.y = this.y;return p;
+	};
+
 	_createClass(point, [{
-		key: "clone",
-		value: function clone() {
-			var p = new point();p.x = this.x;p.y = this.y;return p;
-		}
-	}, {
 		key: "x",
 		get: function get() {
 			return this._x;
@@ -2614,76 +2466,176 @@ var Flowchart = function () {
 		this.makeEmpty();
 	}
 
-	_createClass(Flowchart, [{
-		key: "setOrigin",
-		value: function setOrigin(x, y) {
-			this._x0 = x;this._y0 = y;
-		}
-	}, {
-		key: "moveOrigin",
-		value: function moveOrigin(x, y) {
-			this._x0 += x;this._y0 += y;
-		}
-	}, {
-		key: "makeEmpty",
-		value: function makeEmpty() {
-			this.setOrigin(this.canvas.width / 2, FlowchartSetting.size);
-			this.top = new Parts_Terminal();
-			var bar = new Parts_Bar();
-			var end = new Parts_Terminal();
-			this.top.next = bar;
-			bar.next = end;
-			this.top.setValue("はじめ");
-			end.setValue("おわり");
-			document.getElementById("variable_int").value = '';
-			document.getElementById("variable_float").value = '';
-			document.getElementById("variable_string").value = '';
-			document.getElementById("variable_bool").value = '';
-		}
-	}, {
-		key: "code2flowchart",
-		value: function code2flowchart(parse) {
-			flowchart.makeEmpty();
-			Flowchart.appendParts(this.top.next, parse);
-			flowchart.paint();
-		}
-	}, {
-		key: "flowchart2code",
-		value: function flowchart2code() {
-			if (!flowchart_display) return;
-			var code = '';
-			code += variable2code("整数", "variable_int");
-			code += variable2code("実数", "variable_float");
-			code += variable2code("文字列", "variable_string");
-			code += variable2code("真偽", "variable_bool");
-			code += this.top.appendCode('', 0);
-			document.getElementById("sourceTextarea").value = code;
-		}
-	}, {
-		key: "paint",
-		value: function paint() {
-			if (!flowchart_display) return;
+	Flowchart.prototype.setOrigin = function setOrigin(x, y) {
+		this._x0 = x;this._y0 = y;
+	};
 
-			var canvas_width = this.canvas.width;
-			var canvas_height = this.canvas.height;
-			var p0 = new point(),
-			    p1 = new point(),
-			    p2 = new point();
-			this.context.clearRect(0, 0, canvas_width, canvas_height);
-			FlowchartSetting.fontsize = FlowchartSetting.size * 2;
-			this.context.font = FlowchartSetting.fontsize + "px 'sans-serif'";
-			this.context.strokeStyle = "rgb(0,0,0)";
-			this.context.fillStyle = "rgb(0,0,0)";
-			this.context.lineWidth = "1px";
-			this.top.calcSize(p0, p1, p2); // p1が左上，p2が右下
-			this.top.paint({ x: this.x0, y: this.y0 });
+	Flowchart.prototype.moveOrigin = function moveOrigin(x, y) {
+		this._x0 += x;this._y0 += y;
+	};
+
+	Flowchart.prototype.makeEmpty = function makeEmpty() {
+		this.setOrigin(this.canvas.width / 2, FlowchartSetting.size);
+		this.top = new Parts_Terminal();
+		var bar = new Parts_Bar();
+		var end = new Parts_Terminal();
+		this.top.next = bar;
+		bar.next = end;
+		this.top.setValue("はじめ");
+		end.setValue("おわり");
+		document.getElementById("variable_int").value = '';
+		document.getElementById("variable_float").value = '';
+		document.getElementById("variable_string").value = '';
+		document.getElementById("variable_bool").value = '';
+	};
+
+	Flowchart.prototype.code2flowchart = function code2flowchart(parse) {
+		flowchart.makeEmpty();
+		Flowchart.appendParts(this.top.next, parse);
+		flowchart.paint();
+	};
+
+	Flowchart.appendParts = function appendParts(parts, statementlist) {
+		for (var i = 0; i < statementlist.length; i++) {
+			var p = statementlist[i];
+			if (!p) continue;
+			var statement = p.constructor.name;
+			if (statement == "DefinitionInt") {
+				document.getElementById("variable_int").value = p.getCode();
+			} else if (statement == "DefinitionFloat") {
+				document.getElementById("variable_float").value = p.getCode();
+			} else if (statement == "DefinitionString") {
+				document.getElementById("variable_string").value = p.getCode();
+			} else if (statement == "DefinitionBoolean") {
+				document.getElementById("variable_bool").value = p.getCode();
+			} else if (statement == "Assign") {
+				var p1 = new Parts_Substitute();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.varname.getCode(), p.val.getCode());
+				parts.next = p1;
+				parts = p1.next = b1;
+			} else if (statement == "Input") {
+				var p1 = new Parts_Input();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.varname.getCode());
+				parts.next = p1;
+				parts = p1.next = b1;
+			} else if (statement == "Output") {
+				var p1 = new Parts_Output();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.value.getCode(), p.ln);
+				parts.next = p1;
+				parts = p1.next = b1;
+			} else if (statement == "If") {
+				var p1 = new Parts_If();
+				var b1 = new Parts_Bar(),
+				    b2 = new Parts_Bar(),
+				    b3 = new Parts_Bar();
+				var n1 = new Parts_Null(),
+				    n2 = new Parts_Null(),
+				    n3 = new Parts_Null();
+				p1.setValue(p.condition.getCode());
+				parts.next = p1;
+				p1.next = n1;n1.next = b1;
+				p1.left = b2;b2._prev = p1;b2.next = n2;
+				p1.right = b3;b3._prev = p1;b3.next = n3;
+				if (p.state1) Flowchart.appendParts(b2, p.state1);
+				if (p.state2) Flowchart.appendParts(b3, p.state2);
+				parts = b1;
+			} else if (statement == "ForInc") {
+				var p1 = new Parts_LoopBeginInc(),
+				    p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(),
+				    b2 = new Parts_Bar();
+				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				parts.next = p1;
+				p1.next = b1;b1.next = p2;p2.next = b2;
+				p1._end = p2;p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			} else if (statement == "ForDec") {
+				var p1 = new Parts_LoopBeginDec(),
+				    p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(),
+				    b2 = new Parts_Bar();
+				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				parts.next = p1;
+				p1.next = b1;b1.next = p2;p2.next = b2;
+				p1._end = p2;p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			} else if (statement == "Until") {
+				var p1 = new Parts_LoopBegin2(),
+				    p2 = new Parts_LoopEnd2();
+				var b1 = new Parts_Bar(),
+				    b2 = new Parts_Bar();
+				p1.setValue(p.condition.getCode());
+				parts.next = p1;
+				p1.next = b1;b1.next = p2;p2.next = b2;
+				p1._end = p2;p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			} else if (statement == "While") {
+				var p1 = new Parts_LoopBegin1(),
+				    p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(),
+				    b2 = new Parts_Bar();
+				p1.setValue(p.condition.getCode());
+				parts.next = p1;
+				p1.next = b1;b1.next = p2;p2.next = b2;
+				p1._end = p2;p2._begin = p1;
+				Flowchart.appendParts(b1, p.state);
+				parts = b2;
+			} else if (statement == "GraphicStatement") {
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.command, p.args);
+				parts.next = p1;
+				parts = p1.next = b1;
+			} else if (statement == "SleepStatement") {
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue("sleep", [p.sec]);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
 		}
-	}, {
-		key: "findParts",
-		value: function findParts(x, y) {
-			return this.top.findParts(x, y);
-		}
-	}, {
+	};
+
+	Flowchart.prototype.flowchart2code = function flowchart2code() {
+		if (!flowchart_display) return;
+		var code = '';
+		code += variable2code("整数", "variable_int");
+		code += variable2code("実数", "variable_float");
+		code += variable2code("文字列", "variable_string");
+		code += variable2code("真偽", "variable_bool");
+		code += this.top.appendCode('', 0);
+		document.getElementById("sourceTextarea").value = code;
+	};
+
+	Flowchart.prototype.paint = function paint() {
+		if (!flowchart_display) return;
+
+		var canvas_width = this.canvas.width;
+		var canvas_height = this.canvas.height;
+		var p0 = new point(),
+		    p1 = new point(),
+		    p2 = new point();
+		this.context.clearRect(0, 0, canvas_width, canvas_height);
+		FlowchartSetting.fontsize = FlowchartSetting.size * 2;
+		this.context.font = FlowchartSetting.fontsize + "px 'sans-serif'";
+		this.context.strokeStyle = "rgb(0,0,0)";
+		this.context.fillStyle = "rgb(0,0,0)";
+		this.context.lineWidth = "1px";
+		this.top.calcSize(p0, p1, p2); // p1が左上，p2が右下
+		this.top.paint({ x: this.x0, y: this.y0 });
+	};
+
+	Flowchart.prototype.findParts = function findParts(x, y) {
+		return this.top.findParts(x, y);
+	};
+
+	_createClass(Flowchart, [{
 		key: "x0",
 		get: function get() {
 			return this._x0;
@@ -2703,114 +2655,6 @@ var Flowchart = function () {
 		get: function get() {
 			return this._context;
 		}
-	}], [{
-		key: "appendParts",
-		value: function appendParts(parts, statementlist) {
-			for (var i = 0; i < statementlist.length; i++) {
-				var p = statementlist[i];
-				if (!p) continue;
-				var statement = p.constructor.name;
-				if (statement == "DefinitionInt") {
-					document.getElementById("variable_int").value = p.getCode();
-				} else if (statement == "DefinitionFloat") {
-					document.getElementById("variable_float").value = p.getCode();
-				} else if (statement == "DefinitionString") {
-					document.getElementById("variable_string").value = p.getCode();
-				} else if (statement == "DefinitionBoolean") {
-					document.getElementById("variable_bool").value = p.getCode();
-				} else if (statement == "Assign") {
-					var p1 = new Parts_Substitute();
-					var b1 = new Parts_Bar();
-					p1.setValue(p.varname.getCode(), p.val.getCode());
-					parts.next = p1;
-					parts = p1.next = b1;
-				} else if (statement == "Input") {
-					var p1 = new Parts_Input();
-					var b1 = new Parts_Bar();
-					p1.setValue(p.varname.getCode());
-					parts.next = p1;
-					parts = p1.next = b1;
-				} else if (statement == "Output") {
-					var p1 = new Parts_Output();
-					var b1 = new Parts_Bar();
-					p1.setValue(p.value.getCode(), p.ln);
-					parts.next = p1;
-					parts = p1.next = b1;
-				} else if (statement == "If") {
-					var p1 = new Parts_If();
-					var b1 = new Parts_Bar(),
-					    b2 = new Parts_Bar(),
-					    b3 = new Parts_Bar();
-					var n1 = new Parts_Null(),
-					    n2 = new Parts_Null(),
-					    n3 = new Parts_Null();
-					p1.setValue(p.condition.getCode());
-					parts.next = p1;
-					p1.next = n1;n1.next = b1;
-					p1.left = b2;b2._prev = p1;b2.next = n2;
-					p1.right = b3;b3._prev = p1;b3.next = n3;
-					if (p.state1) Flowchart.appendParts(b2, p.state1);
-					if (p.state2) Flowchart.appendParts(b3, p.state2);
-					parts = b1;
-				} else if (statement == "ForInc") {
-					var p1 = new Parts_LoopBeginInc(),
-					    p2 = new Parts_LoopEnd();
-					var b1 = new Parts_Bar(),
-					    b2 = new Parts_Bar();
-					p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
-					parts.next = p1;
-					p1.next = b1;b1.next = p2;p2.next = b2;
-					p1._end = p2;p2._begin = p1;
-					Flowchart.appendParts(b1, p.state);
-					parts = b2;
-				} else if (statement == "ForDec") {
-					var p1 = new Parts_LoopBeginDec(),
-					    p2 = new Parts_LoopEnd();
-					var b1 = new Parts_Bar(),
-					    b2 = new Parts_Bar();
-					p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
-					parts.next = p1;
-					p1.next = b1;b1.next = p2;p2.next = b2;
-					p1._end = p2;p2._begin = p1;
-					Flowchart.appendParts(b1, p.state);
-					parts = b2;
-				} else if (statement == "Until") {
-					var p1 = new Parts_LoopBegin2(),
-					    p2 = new Parts_LoopEnd2();
-					var b1 = new Parts_Bar(),
-					    b2 = new Parts_Bar();
-					p1.setValue(p.condition.getCode());
-					parts.next = p1;
-					p1.next = b1;b1.next = p2;p2.next = b2;
-					p1._end = p2;p2._begin = p1;
-					Flowchart.appendParts(b1, p.state);
-					parts = b2;
-				} else if (statement == "While") {
-					var p1 = new Parts_LoopBegin1(),
-					    p2 = new Parts_LoopEnd();
-					var b1 = new Parts_Bar(),
-					    b2 = new Parts_Bar();
-					p1.setValue(p.condition.getCode());
-					parts.next = p1;
-					p1.next = b1;b1.next = p2;p2.next = b2;
-					p1._end = p2;p2._begin = p1;
-					Flowchart.appendParts(b1, p.state);
-					parts = b2;
-				} else if (statement == "GraphicStatement") {
-					var p1 = new Parts_Misc();
-					var b1 = new Parts_Bar();
-					p1.setValue(p.command, p.args);
-					parts.next = p1;
-					parts = p1.next = b1;
-				} else if (statement == "SleepStatement") {
-					var p1 = new Parts_Misc();
-					var b1 = new Parts_Bar();
-					p1.setValue("sleep", [p.sec]);
-					parts.next = p1;
-					parts = p1.next = b1;
-				}
-			}
-		}
 	}]);
 
 	return Flowchart;
@@ -2826,102 +2670,98 @@ var Parts = function () {
 		this._hspace = 0;
 	}
 
+	Parts.prototype.inside = function inside(x, y) {
+		return this.x1 <= x && x <= this.x2 && this.y1 <= y && y <= this.y2;
+	};
+
+	Parts.prototype.findParts = function findParts(x, y) {
+		var p = this;
+		while (p != null && !(p instanceof Parts_Null)) {
+			if (p.inside(x, y)) return p;
+			if (p instanceof Parts_If) {
+				var p1 = p.left.findParts(x, y);
+				if (p1) return p1;
+				p1 = p.right.findParts(x, y);
+				if (p1) return p1;
+				p = p.end.next;
+			} else p = p.next;
+		}
+		if (p != null && p.next != null) return p.next.findParts(x, y);
+		return null;
+	};
+
+	Parts.prototype.paint = function paint(position) {
+		if (this.next != null) return this.next.paint(position);
+		return this;
+	};
+
+	Parts.prototype.calcTextsize = function calcTextsize() {
+		if (this.text != null && this.text != "") {
+			var size = FlowchartSetting.size;
+			var metrics = flowchart.context.measureText(this.text);
+			this._hspace = 0;
+			this._textwidth = metrics.width;
+			if (this._textwidth < size * 4) {
+				this._hspace = (size * 4 - this._textwidth) / 2;
+				this._textwidth = size * 4;
+			}
+			this._textheight = FlowchartSetting.fontsize;
+		}
+	};
+
+	Parts.prototype.calcSize = function calcSize(p0, p1, p2) {
+		if (this.next == null || this.isBlockEnd) return;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts.appendMe = function appendMe(bar) {};
+
+	Parts.prototype.appendCode = function appendCode(code, indent) {
+		if (this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts.makeIndent = function makeIndent(indent_level) {
+		var s = "";
+		for (var i = 0; i < indent_level; i++) {
+			s += "｜";
+		}return s;
+	};
+
+	Parts.prototype.editMe = function editMe() {};
+
+	Parts.prototype.deleteMe = function deleteMe() {
+		this.prev._next = this.end.next.next;
+		this.end.next.next._prev = this.prev;
+		this.end._next = null;
+		this._next = null;
+	};
+
+	Parts.prototype.cutMe = function cutMe() {};
+
+	Parts.prototype.paint_highlight = function paint_highlight() {
+		flowchart.context.strokeStyle = "rgb(255,0,0)";
+		flowchart.context.fillStyle = "rgb(255,0,0)";
+		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
+		this.paint(null);
+		flowchart.context.strokeStyle = "rgb(0,0,0)";
+		flowchart.context.fillStyle = "rgb(0,0,0)";
+	};
+
+	Parts.prototype.paint_unhighlight = function paint_unhighlight() {
+		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
+		this.paint(null);
+	};
+
+	Parts.prototype.highlight = function highlight() {
+		this.paint_highlight();
+	};
+
+	Parts.prototype.unhighlight = function unhighlight() {
+		this.paint_unhighlight();
+	};
+
 	_createClass(Parts, [{
-		key: "inside",
-		value: function inside(x, y) {
-			return this.x1 <= x && x <= this.x2 && this.y1 <= y && y <= this.y2;
-		}
-	}, {
-		key: "findParts",
-		value: function findParts(x, y) {
-			var p = this;
-			while (p != null && !(p instanceof Parts_Null)) {
-				if (p.inside(x, y)) return p;
-				if (p instanceof Parts_If) {
-					var p1 = p.left.findParts(x, y);
-					if (p1) return p1;
-					p1 = p.right.findParts(x, y);
-					if (p1) return p1;
-					p = p.end.next;
-				} else p = p.next;
-			}
-			if (p != null && p.next != null) return p.next.findParts(x, y);
-			return null;
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			if (this.next != null) return this.next.paint(position);
-			return this;
-		}
-	}, {
-		key: "calcTextsize",
-		value: function calcTextsize() {
-			if (this.text != null && this.text != "") {
-				var size = FlowchartSetting.size;
-				var metrics = flowchart.context.measureText(this.text);
-				this._hspace = 0;
-				this._textwidth = metrics.width;
-				if (this._textwidth < size * 4) {
-					this._hspace = (size * 4 - this._textwidth) / 2;
-					this._textwidth = size * 4;
-				}
-				this._textheight = FlowchartSetting.fontsize;
-			}
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			if (this.next == null || this.isBlockEnd) return;
-			this.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			if (this.next != null) return this.next.appendCode(code, indent);
-			return code;
-		}
-	}, {
-		key: "editMe",
-		value: function editMe() {}
-	}, {
-		key: "deleteMe",
-		value: function deleteMe() {
-			this.prev._next = this.end.next.next;
-			this.end.next.next._prev = this.prev;
-			this.end._next = null;
-			this._next = null;
-		}
-	}, {
-		key: "cutMe",
-		value: function cutMe() {}
-	}, {
-		key: "paint_highlight",
-		value: function paint_highlight() {
-			flowchart.context.strokeStyle = "rgb(255,0,0)";
-			flowchart.context.fillStyle = "rgb(255,0,0)";
-			flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
-			this.paint(null);
-			flowchart.context.strokeStyle = "rgb(0,0,0)";
-			flowchart.context.fillStyle = "rgb(0,0,0)";
-		}
-	}, {
-		key: "paint_unhighlight",
-		value: function paint_unhighlight() {
-			flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
-			this.paint(null);
-		}
-	}, {
-		key: "highlight",
-		value: function highlight() {
-			this.paint_highlight();
-		}
-	}, {
-		key: "unhighlight",
-		value: function unhighlight() {
-			this.paint_unhighlight();
-		}
-	}, {
 		key: "x1",
 		get: function get() {
 			return this._x1;
@@ -3020,17 +2860,6 @@ var Parts = function () {
 		get: function get() {
 			return false;
 		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {}
-	}, {
-		key: "makeIndent",
-		value: function makeIndent(indent_level) {
-			var s = "";
-			for (var i = 0; i < indent_level; i++) {
-				s += "｜";
-			}return s;
-		}
 	}]);
 
 	return Parts;
@@ -3042,7 +2871,7 @@ var Parts_Null = function (_Parts) {
 	function Parts_Null() {
 		_classCallCheck(this, Parts_Null);
 
-		return _possibleConstructorReturn(this, (Parts_Null.__proto__ || Object.getPrototypeOf(Parts_Null)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Parts.apply(this, arguments));
 	}
 
 	_createClass(Parts_Null, [{
@@ -3061,43 +2890,38 @@ var Parts_Bar = function (_Parts2) {
 	function Parts_Bar() {
 		_classCallCheck(this, Parts_Bar);
 
-		return _possibleConstructorReturn(this, (Parts_Bar.__proto__ || Object.getPrototypeOf(Parts_Bar)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Parts2.apply(this, arguments));
 	}
 
-	_createClass(Parts_Bar, [{
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this._width = 0;
-			this._height = FlowchartSetting.size * 4;
-			p0.y += this._height;
-			if (p0.y > p2.y) p2.y = p0.y;
-			this.next.calcSize(p0, p1, p2);
+	Parts_Bar.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this._width = 0;
+		this._height = FlowchartSetting.size * 4;
+		p0.y += this._height;
+		if (p0.y > p2.y) p2.y = p0.y;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_Bar.prototype.inside = function inside(x, y) {
+		var near = 4;
+		return this.x1 - near <= x && x <= this.x2 + near && this.y1 <= y && y <= this.y2;
+	};
+
+	Parts_Bar.prototype.paint = function paint(position) {
+		if (position != null) {
+			this.x1 = this.x2 = position.x;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
 		}
-	}, {
-		key: "inside",
-		value: function inside(x, y) {
-			var near = 4;
-			return this.x1 - near <= x && x <= this.x2 + near && this.y1 <= y && y <= this.y2;
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.stroke();
+		if (position != null) {
+			position.x = this.x2;position.y = this.y2;
+			return this.next.paint(position);
 		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			if (position != null) {
-				this.x1 = this.x2 = position.x;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x1, this.y1);
-			flowchart.context.lineTo(this.x2, this.y2);
-			flowchart.context.stroke();
-			if (position != null) {
-				position.x = this.x2;position.y = this.y2;
-				return this.next.paint(position);
-			}
-			return this;
-		}
-	}]);
+		return this;
+	};
 
 	return Parts_Bar;
 }(Parts);
@@ -3108,63 +2932,58 @@ var Parts_Terminal = function (_Parts3) {
 	function Parts_Terminal() {
 		_classCallCheck(this, Parts_Terminal);
 
-		return _possibleConstructorReturn(this, (Parts_Terminal.__proto__ || Object.getPrototypeOf(Parts_Terminal)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Parts3.apply(this, arguments));
 	}
 
-	_createClass(Parts_Terminal, [{
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			this._height = this._textheight + FlowchartSetting.size * 2;
-			this._width = this._textwidth + this._height;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			if (this.next == null) return;
-			this.next.calcSize(p0, p1, p2);
+	Parts_Terminal.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		this._height = this._textheight + FlowchartSetting.size * 2;
+		this._width = this._textwidth + this._height;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if (this.next == null) return;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_Terminal.prototype.setValue = function setValue(v) {
+		this._text = v;
+	};
+
+	Parts_Terminal.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.textWidth / 2 - this.height / 2;
+			this.x2 = position.x + this.textWidth / 2 + this.height / 2;
+			this.y1 = position.y;
+			this.y2 = position.y + this.height;
 		}
-	}, {
-		key: "setValue",
-		value: function setValue(v) {
-			this._text = v;
+		flowchart.context.beginPath(); // 上
+		flowchart.context.moveTo(this.x1 + this.height / 2, this.y1);
+		flowchart.context.lineTo(this.x2 - this.height / 2, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.beginPath(); // 右
+		flowchart.context.arc(this.x2 - this.height / 2, this.y1 + this.height / 2, this.height / 2, Math.PI / 2, -Math.PI / 2, true);
+		flowchart.context.stroke();
+		flowchart.context.beginPath(); // 下
+		flowchart.context.moveTo(this.x1 + this.height / 2, this.y2);
+		flowchart.context.lineTo(this.x2 - this.height / 2, this.y2);
+		flowchart.context.stroke();
+		flowchart.context.beginPath(); // 左
+		flowchart.context.arc(this.x1 + this.height / 2, this.y1 + this.height / 2, this.height / 2, 3 * Math.PI / 2, Math.PI / 2, true);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + this.height / 2, this.y2 - FlowchartSetting.size);
+		if (position != null) {
+			position.y += this.height;
+			if (this.end.next != null) return this.end.next.paint(position);
+			return this.end;
 		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.textWidth / 2 - this.height / 2;
-				this.x2 = position.x + this.textWidth / 2 + this.height / 2;
-				this.y1 = position.y;
-				this.y2 = position.y + this.height;
-			}
-			flowchart.context.beginPath(); // 上
-			flowchart.context.moveTo(this.x1 + this.height / 2, this.y1);
-			flowchart.context.lineTo(this.x2 - this.height / 2, this.y1);
-			flowchart.context.stroke();
-			flowchart.context.beginPath(); // 右
-			flowchart.context.arc(this.x2 - this.height / 2, this.y1 + this.height / 2, this.height / 2, Math.PI / 2, -Math.PI / 2, true);
-			flowchart.context.stroke();
-			flowchart.context.beginPath(); // 下
-			flowchart.context.moveTo(this.x1 + this.height / 2, this.y2);
-			flowchart.context.lineTo(this.x2 - this.height / 2, this.y2);
-			flowchart.context.stroke();
-			flowchart.context.beginPath(); // 左
-			flowchart.context.arc(this.x1 + this.height / 2, this.y1 + this.height / 2, this.height / 2, 3 * Math.PI / 2, Math.PI / 2, true);
-			flowchart.context.stroke();
-			flowchart.context.fillText(this.text, this.x1 + this.height / 2, this.y2 - FlowchartSetting.size);
-			if (position != null) {
-				position.y += this.height;
-				if (this.end.next != null) return this.end.next.paint(position);
-				return this.end;
-			}
-			return this;
-		}
-	}]);
+		return this;
+	};
 
 	return Parts_Terminal;
 }(Parts);
@@ -3175,118 +2994,111 @@ var Parts_Output = function (_Parts4) {
 	function Parts_Output() {
 		_classCallCheck(this, Parts_Output);
 
-		var _this48 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
+		var _this48 = _possibleConstructorReturn(this, _Parts4.call(this));
 
 		_this48.setValue("《値》", true);
 		return _this48;
 	}
 
+	Parts_Output.prototype.setValue = function setValue(v, nl) {
+		this._text = v;
+		this._newline = nl;
+	};
+
+	Parts_Output.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+		this._height = this._textheight + size * 2;
+		this._width = this._textwidth + size * 2 + this._height / 2;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_Output.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x2 - this.height / 2, this.y1);
+		flowchart.context.lineTo(this.x1 + size * 2, this.y1);
+		flowchart.context.lineTo(this.x1, (this.y1 + this.y2) / 2);
+		flowchart.context.lineTo(this.x1 + size * 2, this.y2);
+		flowchart.context.lineTo(this.x2 - this.height / 2, this.y2);
+		flowchart.context.stroke();
+		flowchart.context.beginPath();
+		flowchart.context.arc(this.x2 - this.height / 2, (this.y1 + this.y2) / 2, this.height / 2, Math.PI / 2, -Math.PI / 2, true);
+		flowchart.context.stroke();
+
+		flowchart.context.fillText(this.text, this.x1 + size * 2 + this.hspace, this.y2 - size);
+
+		if (!this.newline) // 改行なしマーク
+			{
+				var x = this.x2 - this.height / 2;
+				var y = this.y1 + size;
+				flowchart.context.beginPath();
+				flowchart.context.moveTo(x + size, y);
+				flowchart.context.lineTo(x + size, y + this.textHeight);
+				flowchart.context.lineTo(x, y + this.textHeight);
+				flowchart.context.stroke();
+				flowchart.context.beginPath();
+				flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 4);
+				flowchart.context.lineTo(x, y + this.textHeight);
+				flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 4);
+				flowchart.context.stroke();
+				x += this.height / 4;y += this.textHeight / 2;
+				flowchart.context.beginPath();flowchart.context.moveTo(x - size / 2, y - size / 2);flowchart.context.lineTo(x + size / 2, y + size / 2);flowchart.context.stroke();
+				flowchart.context.beginPath();flowchart.context.moveTo(x + size / 2, y - size / 2);flowchart.context.lineTo(x - size / 2, y + size / 2);flowchart.context.stroke();
+			}
+		if (position != null) {
+			position.y = this.y2;
+			if (this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	};
+
+	Parts_Output.appendMe = function appendMe(bar) {
+		var parts = new Parts_Output();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	};
+
+	Parts_Output.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.text + " を" + (this.newline ? "" : "改行なしで") + "表示する\n";
+		if (this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_Output.prototype.editMe = function editMe() {
+		var subtitle = ["値", "改行"];
+		var values = [this.text, this.newline];
+		openModalWindowforOutput("出力の編集", subtitle, values, this);
+	};
+
+	Parts_Output.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0], values[1]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
 	_createClass(Parts_Output, [{
-		key: "setValue",
-		value: function setValue(v, nl) {
-			this._text = v;
-			this._newline = nl;
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-			this._height = this._textheight + size * 2;
-			this._width = this._textwidth + size * 2 + this._height / 2;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			this.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x2 - this.height / 2, this.y1);
-			flowchart.context.lineTo(this.x1 + size * 2, this.y1);
-			flowchart.context.lineTo(this.x1, (this.y1 + this.y2) / 2);
-			flowchart.context.lineTo(this.x1 + size * 2, this.y2);
-			flowchart.context.lineTo(this.x2 - this.height / 2, this.y2);
-			flowchart.context.stroke();
-			flowchart.context.beginPath();
-			flowchart.context.arc(this.x2 - this.height / 2, (this.y1 + this.y2) / 2, this.height / 2, Math.PI / 2, -Math.PI / 2, true);
-			flowchart.context.stroke();
-
-			flowchart.context.fillText(this.text, this.x1 + size * 2 + this.hspace, this.y2 - size);
-
-			if (!this.newline) // 改行なしマーク
-				{
-					var x = this.x2 - this.height / 2;
-					var y = this.y1 + size;
-					flowchart.context.beginPath();
-					flowchart.context.moveTo(x + size, y);
-					flowchart.context.lineTo(x + size, y + this.textHeight);
-					flowchart.context.lineTo(x, y + this.textHeight);
-					flowchart.context.stroke();
-					flowchart.context.beginPath();
-					flowchart.context.moveTo(x + size / 2, y + this.textHeight - size / 4);
-					flowchart.context.lineTo(x, y + this.textHeight);
-					flowchart.context.lineTo(x + size / 2, y + this.textHeight + size / 4);
-					flowchart.context.stroke();
-					x += this.height / 4;y += this.textHeight / 2;
-					flowchart.context.beginPath();flowchart.context.moveTo(x - size / 2, y - size / 2);flowchart.context.lineTo(x + size / 2, y + size / 2);flowchart.context.stroke();
-					flowchart.context.beginPath();flowchart.context.moveTo(x + size / 2, y - size / 2);flowchart.context.lineTo(x - size / 2, y + size / 2);flowchart.context.stroke();
-				}
-			if (position != null) {
-				position.y = this.y2;
-				if (this.end.next != null) return this.end.next.paint(position);
-				return this.end;
-			}
-			return this;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.text + " を" + (this.newline ? "" : "改行なしで") + "表示する\n";
-			if (this.next != null) return this.next.appendCode(code, indent);
-			return code;
-		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["値", "改行"];
-			var values = [this.text, this.newline];
-			openModalWindowforOutput("出力の編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0], values[1]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
 		key: "newline",
 		get: function get() {
 			return this._newline;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_Output();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			return parts.next;
 		}
 	}]);
 
@@ -3299,96 +3111,89 @@ var Parts_Input = function (_Parts5) {
 	function Parts_Input() {
 		_classCallCheck(this, Parts_Input);
 
-		var _this49 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
+		var _this49 = _possibleConstructorReturn(this, _Parts5.call(this));
 
 		_this49.setValue("《変数》");
 		return _this49;
 	}
 
+	Parts_Input.prototype.setValue = function setValue(v) {
+		this._var = v;
+		this._text = v + "を入力";
+	};
+
+	Parts_Input.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+		this._height = this._textheight + size * 2;
+		this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if (this.next == null || this.isBlockEnd) return;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_Input.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1 + size);
+		flowchart.context.lineTo(this.x2, this.y1 - size);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1 + size);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+		if (position != null) {
+			position.y = this.y2;
+			if (this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	};
+
+	Parts_Input.appendMe = function appendMe(bar) {
+		var parts = new Parts_Input();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	};
+
+	Parts_Input.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.var + " を入力する\n";
+		if (this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_Input.prototype.editMe = function editMe() {
+		var subtitle = ["変数"];
+		var values = [this.var];
+		openModalWindow("入力の編集", subtitle, values, this);
+	};
+
+	Parts_Input.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
 	_createClass(Parts_Input, [{
-		key: "setValue",
-		value: function setValue(v) {
-			this._var = v;
-			this._text = v + "を入力";
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-			this._height = this._textheight + size * 2;
-			this._width = this._textwidth + size * 4;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			if (this.next == null || this.isBlockEnd) return;
-			this.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x1, this.y1 + size);
-			flowchart.context.lineTo(this.x2, this.y1 - size);
-			flowchart.context.lineTo(this.x2, this.y2);
-			flowchart.context.lineTo(this.x1, this.y2);
-			flowchart.context.lineTo(this.x1, this.y1 + size);
-			flowchart.context.stroke();
-			flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
-			if (position != null) {
-				position.y = this.y2;
-				if (this.end.next != null) return this.end.next.paint(position);
-				return this.end;
-			}
-			return this;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.var + " を入力する\n";
-			if (this.next != null) return this.next.appendCode(code, indent);
-			return code;
-		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["変数"];
-			var values = [this.var];
-			openModalWindow("入力の編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
 		key: "var",
 		get: function get() {
 			return this._var;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_Input();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			return parts.next;
 		}
 	}]);
 
@@ -3401,88 +3206,89 @@ var Parts_Substitute = function (_Parts6) {
 	function Parts_Substitute() {
 		_classCallCheck(this, Parts_Substitute);
 
-		var _this50 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
+		var _this50 = _possibleConstructorReturn(this, _Parts6.call(this));
 
 		_this50.setValue("《変数》", "《値》");
 		return _this50;
 	}
 
+	Parts_Substitute.prototype.setValue = function setValue(variable, value) {
+		this._var = variable;
+		this._val = value;
+
+		this._text = this._var + "←" + this._val;
+	};
+
+	Parts_Substitute.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+		this._height = this._textheight + size * 2;
+		this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if (this.next == null || this.isBlockEnd) return;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_Substitute.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+
+		if (position != null) {
+			position.y = this.y2;
+			if (this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	};
+
+	Parts_Substitute.appendMe = function appendMe(bar) {
+		var parts = new Parts_Substitute();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	};
+
+	Parts_Substitute.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.var + " ← " + this.val + "\n";
+		if (this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_Substitute.prototype.editMe = function editMe() {
+		var subtitle = ["変数", "値"];
+		var values = [this.var, this.val];
+		openModalWindow("代入の編集", subtitle, values, this);
+	};
+
+	Parts_Substitute.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0], values[1]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
 	_createClass(Parts_Substitute, [{
-		key: "setValue",
-		value: function setValue(variable, value) {
-			this._var = variable;
-			this._val = value;
-
-			this._text = this._var + "←" + this._val;
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-			this._height = this._textheight + size * 2;
-			this._width = this._textwidth + size * 4;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			if (this.next == null || this.isBlockEnd) return;
-			this.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x1, this.y1);
-			flowchart.context.lineTo(this.x2, this.y1);
-			flowchart.context.lineTo(this.x2, this.y2);
-			flowchart.context.lineTo(this.x1, this.y2);
-			flowchart.context.lineTo(this.x1, this.y1);
-			flowchart.context.stroke();
-			flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
-
-			if (position != null) {
-				position.y = this.y2;
-				if (this.end.next != null) return this.end.next.paint(position);
-				return this.end;
-			}
-			return this;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.var + " ← " + this.val + "\n";
-			if (this.next != null) return this.next.appendCode(code, indent);
-			return code;
-		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["変数", "値"];
-			var values = [this.var, this.val];
-			openModalWindow("代入の編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0], values[1]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
 		key: "var",
 		get: function get() {
 			return this._var;
@@ -3491,14 +3297,6 @@ var Parts_Substitute = function (_Parts6) {
 		key: "val",
 		get: function get() {
 			return this._val;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_Substitute();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			return parts.next;
 		}
 	}]);
 
@@ -3511,7 +3309,7 @@ var Parts_If = function (_Parts7) {
 	function Parts_If() {
 		_classCallCheck(this, Parts_If);
 
-		var _this51 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
+		var _this51 = _possibleConstructorReturn(this, _Parts7.call(this));
 
 		_this51.setValue("《条件》");
 		_this51.left = _this51.right = null;
@@ -3519,166 +3317,174 @@ var Parts_If = function (_Parts7) {
 		return _this51;
 	}
 
-	_createClass(Parts_If, [{
-		key: "setValue",
-		value: function setValue(cond) {
-			this._cond = cond;
-			this._text = this._cond;
-		}
-	}, {
-		key: "calcTextsize",
-		value: function calcTextsize() {
-			if (this.text != null && this.text != "") {
-				var size = FlowchartSetting.size;
-				var metrics = flowchart.context.measureText(this.text);
-				this._hspace = 0;
-				this._textwidth = metrics.width;
-				if (this._textwidth < size * 6) {
-					this._hspace = (size * 6 - this._textwidth) / 2;
-					this._textwidth = size * 6;
-				}
-				this._textheight = FlowchartSetting.fontsize;
-			}
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-			//		if(this._textwidth < size * 6) this._textwidth = size * 6;
-			//		if(this._textheight < size * 2) this._textheight = size * 2;
-			this.v_margin = size * 2;
-			this.h_margin = this.textWidth * this.textHeight / this.v_margin / 4;
-			this._height = this.textHeight + this.v_margin * 2;
-			this._width = this.textWidth + this.h_margin * 2;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			// 左枝
-			var pl = new point();pl.x = x1;pl.y = p0.y;
-			var pl1 = pl.clone(),
-			    pl2 = pl.clone();
-			this.left.calcSize(pl, pl1, pl2);
-			this.left_bar_expand = pl.x - pl2.x - this.width / 2;
-			if (this.left_bar_expand < size * 2) this.left_bar_expand = size * 2;
-			pl1.x = pl1.x - this.left_bar_expand;
-			pl2.x = pl2.x - this.left_bar_expand;
-			if (pl1.x < p1.x) p1.x = pl1.x;
-			if (pl2.y > p2.y) p2.y = pl2.y;
+	Parts_If.prototype.setValue = function setValue(cond) {
+		this._cond = cond;
+		this._text = this._cond;
+	};
 
-			// 右枝
-			var pr = new point();pr.x = x2;pl.y = p0.y;
-			var pr1 = pr.clone(),
-			    pr2 = pr.clone();
-			this.right.calcSize(pr, pr1, pr2);
-			this.right_bar_expand = pr2.x - pr.x - this.width / 2;
-			if (this.right_bar_expand < size * 2) this.right_bar_expand = size * 2;
-			pr1.x = pr1.x + this.right_bar_expand;
-			pr2.x = pr2.x + this.right_bar_expand;
-			if (pr2.x > p2.x) p2.x = pr2.x;
-			if (pl2.y > p2.y) p2.y = pr2.y;
-			// 左枝と右枝がぶつかっていたら，ちょっと伸ばす
-			var distance = pr1.x - pl2.x - size;
-			if (distance < 0) {
-				this.left_bar_expand += -distance / 2;
-				this.right_bar_expand += -distance / 2;
-			}
-			//		p0.y = this.end.y;
-			this.end.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
+	Parts_If.prototype.calcTextsize = function calcTextsize() {
+		if (this.text != null && this.text != "") {
 			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
+			var metrics = flowchart.context.measureText(this.text);
+			this._hspace = 0;
+			this._textwidth = metrics.width;
+			if (this._textwidth < size * 6) {
+				this._hspace = (size * 6 - this._textwidth) / 2;
+				this._textwidth = size * 6;
 			}
-			var x0 = (this.x1 + this.x2) / 2,
-			    y0 = (this.y1 + this.y2) / 2;
+			this._textheight = FlowchartSetting.fontsize;
+		}
+	};
+
+	Parts_If.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+		//		if(this._textwidth < size * 6) this._textwidth = size * 6;
+		//		if(this._textheight < size * 2) this._textheight = size * 2;
+		this.v_margin = size * 2;
+		this.h_margin = this.textWidth * this.textHeight / this.v_margin / 4;
+		this._height = this.textHeight + this.v_margin * 2;
+		this._width = this.textWidth + this.h_margin * 2;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		// 左枝
+		var pl = new point();pl.x = x1;pl.y = p0.y;
+		var pl1 = pl.clone(),
+		    pl2 = pl.clone();
+		this.left.calcSize(pl, pl1, pl2);
+		this.left_bar_expand = pl.x - pl2.x - this.width / 2;
+		if (this.left_bar_expand < size * 2) this.left_bar_expand = size * 2;
+		pl1.x = pl1.x - this.left_bar_expand;
+		pl2.x = pl2.x - this.left_bar_expand;
+		if (pl1.x < p1.x) p1.x = pl1.x;
+		if (pl2.y > p2.y) p2.y = pl2.y;
+
+		// 右枝
+		var pr = new point();pr.x = x2;pl.y = p0.y;
+		var pr1 = pr.clone(),
+		    pr2 = pr.clone();
+		this.right.calcSize(pr, pr1, pr2);
+		this.right_bar_expand = pr2.x - pr.x - this.width / 2;
+		if (this.right_bar_expand < size * 2) this.right_bar_expand = size * 2;
+		pr1.x = pr1.x + this.right_bar_expand;
+		pr2.x = pr2.x + this.right_bar_expand;
+		if (pr2.x > p2.x) p2.x = pr2.x;
+		if (pl2.y > p2.y) p2.y = pr2.y;
+		// 左枝と右枝がぶつかっていたら，ちょっと伸ばす
+		var distance = pr1.x - pl2.x - size;
+		if (distance < 0) {
+			this.left_bar_expand += -distance / 2;
+			this.right_bar_expand += -distance / 2;
+		}
+		//		p0.y = this.end.y;
+		this.end.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_If.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		var x0 = (this.x1 + this.x2) / 2,
+		    y0 = (this.y1 + this.y2) / 2;
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(x0, this.y1);
+		flowchart.context.lineTo(this.x1, y0);
+		flowchart.context.lineTo(x0, this.y2);
+		flowchart.context.lineTo(this.x2, y0);
+		flowchart.context.lineTo(x0, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, x0 - this.textWidth / 2 + this.hspace, y0 + this.textHeight / 2);
+
+		if (position != null) {
+			// 左側
 			flowchart.context.beginPath();
-			flowchart.context.moveTo(x0, this.y1);
-			flowchart.context.lineTo(this.x1, y0);
-			flowchart.context.lineTo(x0, this.y2);
-			flowchart.context.lineTo(this.x2, y0);
-			flowchart.context.lineTo(x0, this.y1);
+			flowchart.context.moveTo(this.x1, y0);
+			flowchart.context.lineTo(this.x1 - this.left_bar_expand, y0);
 			flowchart.context.stroke();
-			flowchart.context.fillText(this.text, x0 - this.textWidth / 2 + this.hspace, y0 + this.textHeight / 2);
-
-			if (position != null) {
-				// 左側
+			flowchart.context.fillText('Y', this.x1 - size * 1, y0 - size);
+			var left_parts = this.left.paint({ x: this.x1 - this.left_bar_expand, y: y0 }).prev;
+			// 右側
+			flowchart.context.beginPath();
+			flowchart.context.moveTo(this.x2, y0);
+			flowchart.context.lineTo(this.x2 + this.right_bar_expand, y0);
+			flowchart.context.stroke();
+			flowchart.context.fillText('N', this.x2 + size * 0, y0 - size);
+			var right_parts = this.right.paint({ x: this.x2 + this.right_bar_expand, y: y0 }).prev;
+			var y = left_parts.y2;
+			if (left_parts.y2 > right_parts.y2) {
 				flowchart.context.beginPath();
-				flowchart.context.moveTo(this.x1, y0);
-				flowchart.context.lineTo(this.x1 - this.left_bar_expand, y0);
-				flowchart.context.stroke();
-				flowchart.context.fillText('Y', this.x1 - size * 1, y0 - size);
-				var left_parts = this.left.paint({ x: this.x1 - this.left_bar_expand, y: y0 }).prev;
-				// 右側
-				flowchart.context.beginPath();
-				flowchart.context.moveTo(this.x2, y0);
-				flowchart.context.lineTo(this.x2 + this.right_bar_expand, y0);
-				flowchart.context.stroke();
-				flowchart.context.fillText('N', this.x2 + size * 0, y0 - size);
-				var right_parts = this.right.paint({ x: this.x2 + this.right_bar_expand, y: y0 }).prev;
-				var y = left_parts.y2;
-				if (left_parts.y2 > right_parts.y2) {
-					flowchart.context.beginPath();
-					flowchart.context.moveTo(this.x2 + this.right_bar_expand, right_parts.y2);
-					flowchart.context.lineTo(this.x2 + this.right_bar_expand, y);
-					flowchart.context.stroke();
-					right_parts.y2 = y;
-				} else {
-					y = right_parts.y2;
-					flowchart.context.beginPath();
-					flowchart.context.moveTo(this.x1 - this.left_bar_expand, left_parts.y2);
-					flowchart.context.lineTo(this.x1 - this.left_bar_expand, y);
-					flowchart.context.stroke();
-					left_parts.y2 = y;
-				}
-				flowchart.context.beginPath();
-				flowchart.context.moveTo(this.x1 - this.left_bar_expand, y);
+				flowchart.context.moveTo(this.x2 + this.right_bar_expand, right_parts.y2);
 				flowchart.context.lineTo(this.x2 + this.right_bar_expand, y);
 				flowchart.context.stroke();
-				position.y = y;
-				if (this.end.next != null) return this.end.next.paint(position);
-				return this.end;
+				right_parts.y2 = y;
+			} else {
+				y = right_parts.y2;
+				flowchart.context.beginPath();
+				flowchart.context.moveTo(this.x1 - this.left_bar_expand, left_parts.y2);
+				flowchart.context.lineTo(this.x1 - this.left_bar_expand, y);
+				flowchart.context.stroke();
+				left_parts.y2 = y;
 			}
-			return this.end.next;
+			flowchart.context.beginPath();
+			flowchart.context.moveTo(this.x1 - this.left_bar_expand, y);
+			flowchart.context.lineTo(this.x2 + this.right_bar_expand, y);
+			flowchart.context.stroke();
+			position.y = y;
+			if (this.end.next != null) return this.end.next.paint(position);
+			return this.end;
 		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += "もし " + this.condition + " ならば\n";
-			if (this.left.next instanceof Parts_Null) code += Parts.makeIndent(indent + 1) + "\n";else code += this.left.appendCode('', indent + 1);
-			if (!(this.right.next instanceof Parts_Null)) {
-				code += Parts.makeIndent(indent) + "を実行し，そうでなければ\n";
-				code += this.right.appendCode('', indent + 1);
-			}
-			code += Parts.makeIndent(indent);
-			code += "を実行する\n";
+		return this.end.next;
+	};
 
-			if (this.end.next != null) return this.end.next.appendCode(code, indent);
-			return code;
+	Parts_If.appendMe = function appendMe(bar) {
+		var parts = new Parts_If();
+		bar.next = parts;
+		parts.next = new Parts_Null();
+		parts.next.next = new Parts_Bar();
+		parts.left = new Parts_Bar();
+		parts.left._prev = parts;
+		parts.left.next = new Parts_Null();
+		parts.right = new Parts_Bar();
+		parts.right._prev = parts;
+		parts.right.next = new Parts_Null();
+
+		return parts.end.next.next;
+	};
+
+	Parts_If.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += "もし " + this.condition + " ならば\n";
+		if (this.left.next instanceof Parts_Null) code += Parts.makeIndent(indent + 1) + "\n";else code += this.left.appendCode('', indent + 1);
+		if (!(this.right.next instanceof Parts_Null)) {
+			code += Parts.makeIndent(indent) + "を実行し，そうでなければ\n";
+			code += this.right.appendCode('', indent + 1);
 		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["条件"];
-			var values = [this.condition];
-			openModalWindow("分岐の編集", subtitle, values, this);
+		code += Parts.makeIndent(indent);
+		code += "を実行する\n";
+
+		if (this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_If.prototype.editMe = function editMe() {
+		var subtitle = ["条件"];
+		var values = [this.condition];
+		openModalWindow("分岐の編集", subtitle, values, this);
+	};
+
+	Parts_If.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0]);
 		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
+	_createClass(Parts_If, [{
 		key: "condition",
 		get: function get() {
 			return this._cond;
@@ -3687,22 +3493,6 @@ var Parts_If = function (_Parts7) {
 		key: "end",
 		get: function get() {
 			return this.next;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_If();
-			bar.next = parts;
-			parts.next = new Parts_Null();
-			parts.next.next = new Parts_Bar();
-			parts.left = new Parts_Bar();
-			parts.left._prev = parts;
-			parts.left.next = new Parts_Null();
-			parts.right = new Parts_Bar();
-			parts.right._prev = parts;
-			parts.right.next = new Parts_Null();
-
-			return parts.end.next.next;
 		}
 	}]);
 
@@ -3715,99 +3505,93 @@ var Parts_LoopBegin = function (_Parts8) {
 	function Parts_LoopBegin() {
 		_classCallCheck(this, Parts_LoopBegin);
 
-		return _possibleConstructorReturn(this, (Parts_LoopBegin.__proto__ || Object.getPrototypeOf(Parts_LoopBegin)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Parts8.apply(this, arguments));
 	}
 
+	Parts_LoopBegin.prototype.calcTextsize = function calcTextsize() {
+		if (this.hasText) {
+			var size = FlowchartSetting.size;
+			this._textwidth = size * 6;
+			this._hspace = this._hspace2 = 0;
+			var tw = flowchart.context.measureText(this.text).width;
+			if (tw > this._textwidth) this._textwidth = tw;
+			var tw2 = flowchart.context.measureText(this.text2).width;
+			if (tw2 > this._textwidth) this._textwidth = tw2;
+			if (tw < this._textwidth) this._hspace = (this._textwidth - tw) / 2;
+			if (tw2 < this._textwidth) this._hspace2 = (this._textwidth - tw2) / 2;
+			this._textheight = FlowchartSetting.fontsize;
+		} else {
+			this.end.calcTextsize();
+			this._textwidth = this.end.textWidth;
+			this._textheight = this.end.textHeight;
+		}
+	};
+
+	Parts_LoopBegin.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+
+		this._height = this.textHeight * (this.hasText ? 2 : 1) + size * 2;
+		this._width = this.textWidth + size * 2;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		this.next.calcSize(p0, p1, p2);
+		this.end.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_LoopBegin.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1 + size, this.y1);
+		flowchart.context.lineTo(this.x2 - size, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1 + size);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1 + size);
+		flowchart.context.lineTo(this.x1 + size, this.y1);
+		flowchart.context.stroke();
+		if (this.hasText) {
+			flowchart.context.fillText(this.text, this.x1 + size + this.hspace, this.y1 + size + this.textHeight);
+			flowchart.context.fillText(this.text2, this.x1 + size + this.hspace2, this.y1 + size + this.textHeight * 2);
+		}
+
+		if (position != null) {
+			position.y = this.y2;
+			this.next.paint(position);
+			return this.end.next.paint(position);;
+		}
+		return this;
+	};
+
+	Parts_LoopBegin.prototype.deleteMe = function deleteMe() {
+		this.prev._next = this.end.next.next;
+		this.end.next.next._prev = this.prev;
+		this.end._next = null;
+		this._next = null;
+	};
+
+	Parts_LoopBegin.prototype.highlight = function highlight() {
+		this.paint_highlight();
+		this.end.paint_highlight();
+	};
+
+	Parts_LoopBegin.prototype.unhighlight = function unhighlight() {
+		this.paint_unhighlight();
+		this.end.paint_unhighlight();
+	};
+
 	_createClass(Parts_LoopBegin, [{
-		key: "calcTextsize",
-		value: function calcTextsize() {
-			if (this.hasText) {
-				var size = FlowchartSetting.size;
-				this._textwidth = size * 6;
-				this._hspace = this._hspace2 = 0;
-				var tw = flowchart.context.measureText(this.text).width;
-				if (tw > this._textwidth) this._textwidth = tw;
-				var tw2 = flowchart.context.measureText(this.text2).width;
-				if (tw2 > this._textwidth) this._textwidth = tw2;
-				if (tw < this._textwidth) this._hspace = (this._textwidth - tw) / 2;
-				if (tw2 < this._textwidth) this._hspace2 = (this._textwidth - tw2) / 2;
-				this._textheight = FlowchartSetting.fontsize;
-			} else {
-				this.end.calcTextsize();
-				this._textwidth = this.end.textWidth;
-				this._textheight = this.end.textHeight;
-			}
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-
-			this._height = this.textHeight * (this.hasText ? 2 : 1) + size * 2;
-			this._width = this.textWidth + size * 2;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			this.next.calcSize(p0, p1, p2);
-			this.end.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x1 + size, this.y1);
-			flowchart.context.lineTo(this.x2 - size, this.y1);
-			flowchart.context.lineTo(this.x2, this.y1 + size);
-			flowchart.context.lineTo(this.x2, this.y2);
-			flowchart.context.lineTo(this.x1, this.y2);
-			flowchart.context.lineTo(this.x1, this.y1 + size);
-			flowchart.context.lineTo(this.x1 + size, this.y1);
-			flowchart.context.stroke();
-			if (this.hasText) {
-				flowchart.context.fillText(this.text, this.x1 + size + this.hspace, this.y1 + size + this.textHeight);
-				flowchart.context.fillText(this.text2, this.x1 + size + this.hspace2, this.y1 + size + this.textHeight * 2);
-			}
-
-			if (position != null) {
-				position.y = this.y2;
-				this.next.paint(position);
-				return this.end.next.paint(position);;
-			}
-			return this;
-		}
-	}, {
-		key: "deleteMe",
-		value: function deleteMe() {
-			this.prev._next = this.end.next.next;
-			this.end.next.next._prev = this.prev;
-			this.end._next = null;
-			this._next = null;
-		}
-	}, {
-		key: "highlight",
-		value: function highlight() {
-			this.paint_highlight();
-			this.end.paint_highlight();
-		}
-	}, {
-		key: "unhighlight",
-		value: function unhighlight() {
-			this.paint_unhighlight();
-			this.end.paint_unhighlight();
-		}
-	}, {
 		key: "hasText",
 		get: function get() {
 			return false;
@@ -3835,47 +3619,55 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	function Parts_LoopBegin1() {
 		_classCallCheck(this, Parts_LoopBegin1);
 
-		var _this53 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
+		var _this53 = _possibleConstructorReturn(this, _Parts_LoopBegin.call(this));
 
 		_this53.setValue("《条件》");
 		return _this53;
 	}
 
-	_createClass(Parts_LoopBegin1, [{
-		key: "setValue",
-		value: function setValue(cond) {
-			this._cond = cond;
-			this._text = this._cond;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.condition + " の間，\n";
-			var code_inner = this.next.appendCode('', indent + 1);
-			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を繰り返す\n";
+	Parts_LoopBegin1.prototype.setValue = function setValue(cond) {
+		this._cond = cond;
+		this._text = this._cond;
+	};
 
-			if (this.end.next != null) return this.end.next.appendCode(code, indent);
-			return code;
+	Parts_LoopBegin1.appendMe = function appendMe(bar) {
+		var parts = new Parts_LoopBegin1();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		parts.next.next = new Parts_LoopEnd();
+		parts.next.next.next = new Parts_Bar();
+		parts._end = parts.next.next;
+		parts.next.next._begin = parts;
+
+		return parts.end;
+	};
+
+	Parts_LoopBegin1.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.condition + " の間，\n";
+		var code_inner = this.next.appendCode('', indent + 1);
+		if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
+		code += Parts.makeIndent(indent) + "を繰り返す\n";
+
+		if (this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_LoopBegin1.prototype.editMe = function editMe() {
+		var subtitle = ["条件（〜の間）"];
+		var values = [this.condition];
+		openModalWindow("繰り返しの編集", subtitle, values, this);
+	};
+
+	Parts_LoopBegin1.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0]);
 		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["条件（〜の間）"];
-			var values = [this.condition];
-			openModalWindow("繰り返しの編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
+	_createClass(Parts_LoopBegin1, [{
 		key: "condition",
 		get: function get() {
 			return this._cond;
@@ -3884,19 +3676,6 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 		key: "text2",
 		get: function get() {
 			return "の間";
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_LoopBegin1();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			parts.next.next = new Parts_LoopEnd();
-			parts.next.next.next = new Parts_Bar();
-			parts._end = parts.next.next;
-			parts.next.next._begin = parts;
-
-			return parts.end;
 		}
 	}]);
 
@@ -3909,62 +3688,57 @@ var Parts_LoopBegin2 = function (_Parts_LoopBegin2) {
 	function Parts_LoopBegin2() {
 		_classCallCheck(this, Parts_LoopBegin2);
 
-		var _this54 = _possibleConstructorReturn(this, (Parts_LoopBegin2.__proto__ || Object.getPrototypeOf(Parts_LoopBegin2)).call(this));
+		var _this54 = _possibleConstructorReturn(this, _Parts_LoopBegin2.call(this));
 
 		_this54.setValue("《条件》");
 		return _this54;
 	}
 
-	_createClass(Parts_LoopBegin2, [{
-		key: "setValue",
-		value: function setValue(cond) {
-			this._cond = cond;
-			this._text = this._cond;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent) + "繰り返し，\n";
-			var code_inner = this.next.appendCode('', indent + 1);
-			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を， " + this.condition + " になるまで実行する\n";
+	Parts_LoopBegin2.prototype.setValue = function setValue(cond) {
+		this._cond = cond;
+		this._text = this._cond;
+	};
 
-			if (this.end.next != null) return this.end.next.appendCode(code, indent);
-			return code;
+	Parts_LoopBegin2.appendMe = function appendMe(bar) {
+		var parts = new Parts_LoopBegin2();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		parts.next.next = new Parts_LoopEnd2();
+		parts.next.next.next = new Parts_Bar();
+		parts._end = parts.next.next;
+		parts.next.next._begin = parts;
+
+		return parts.end;
+	};
+
+	Parts_LoopBegin2.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent) + "繰り返し，\n";
+		var code_inner = this.next.appendCode('', indent + 1);
+		if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
+		code += Parts.makeIndent(indent) + "を， " + this.condition + " になるまで実行する\n";
+
+		if (this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_LoopBegin2.prototype.editMe = function editMe() {
+		var subtitle = ["条件（〜になるまで）"];
+		var values = [this.condition];
+		openModalWindow("繰り返しの編集", subtitle, values, this);
+	};
+
+	Parts_LoopBegin2.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0]);
 		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["条件（〜になるまで）"];
-			var values = [this.condition];
-			openModalWindow("繰り返しの編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
+	_createClass(Parts_LoopBegin2, [{
 		key: "condition",
 		get: function get() {
 			return this._cond;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_LoopBegin2();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			parts.next.next = new Parts_LoopEnd2();
-			parts.next.next.next = new Parts_Bar();
-			parts._end = parts.next.next;
-			parts.next.next._begin = parts;
-
-			return parts.end;
 		}
 	}]);
 
@@ -3984,50 +3758,58 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this55 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this55 = _possibleConstructorReturn(this, _Parts_LoopBegin3.call(this));
 
 		_this55.setValue("《変数》", "《値》", "《値》", "《値》");
 		return _this55;
 	}
 
-	_createClass(Parts_LoopBeginInc, [{
-		key: "setValue",
-		value: function setValue(variable, start, goal, step) {
-			this._var = variable;
-			this._start = start;
-			this._goal = goal;
-			this._step = step;
-			this._text = this.var + ':' + this.start + "→" + this.goal;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.var + " を " + this.start + " から " + this.goal + " まで " + this.step + " ずつ増やしながら，\n";
-			var code_inner = this.next.appendCode('', indent + 1);
-			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を繰り返す\n";
+	Parts_LoopBeginInc.prototype.setValue = function setValue(variable, start, goal, step) {
+		this._var = variable;
+		this._start = start;
+		this._goal = goal;
+		this._step = step;
+		this._text = this.var + ':' + this.start + "→" + this.goal;
+	};
 
-			if (this.end.next != null) return this.end.next.appendCode(code, indent);
-			return code;
+	Parts_LoopBeginInc.appendMe = function appendMe(bar) {
+		var parts = new Parts_LoopBeginInc();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		parts.next.next = new Parts_LoopEnd();
+		parts.next.next.next = new Parts_Bar();
+		parts._end = parts.next.next;
+		parts.next.next._begin = parts;
+
+		return parts.end;
+	};
+
+	Parts_LoopBeginInc.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.var + " を " + this.start + " から " + this.goal + " まで " + this.step + " ずつ増やしながら，\n";
+		var code_inner = this.next.appendCode('', indent + 1);
+		if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
+		code += Parts.makeIndent(indent) + "を繰り返す\n";
+
+		if (this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_LoopBeginInc.prototype.editMe = function editMe() {
+		var subtitle = ["変数", "〜から", "〜まで", "増加分"];
+		var values = [this.var, this.start, this.goal, this.step];
+		openModalWindow("繰り返しの編集", subtitle, values, this);
+	};
+
+	Parts_LoopBeginInc.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0], values[1], values[2], values[3]);
 		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["変数", "〜から", "〜まで", "増加分"];
-			var values = [this.var, this.start, this.goal, this.step];
-			openModalWindow("繰り返しの編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0], values[1], values[2], values[3]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
+	_createClass(Parts_LoopBeginInc, [{
 		key: "var",
 		get: function get() {
 			return this._var;
@@ -4052,19 +3834,6 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
 		get: function get() {
 			return this.step + "ずつ増";
 		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_LoopBeginInc();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			parts.next.next = new Parts_LoopEnd();
-			parts.next.next.next = new Parts_Bar();
-			parts._end = parts.next.next;
-			parts.next.next._begin = parts;
-
-			return parts.end;
-		}
 	}]);
 
 	return Parts_LoopBeginInc;
@@ -4083,50 +3852,58 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin4) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this56 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this56 = _possibleConstructorReturn(this, _Parts_LoopBegin4.call(this));
 
 		_this56.setValue("《変数》", "《値》", "《値》", "《値》");
 		return _this56;
 	}
 
-	_createClass(Parts_LoopBeginDec, [{
-		key: "setValue",
-		value: function setValue(variable, start, goal, step) {
-			this._var = variable;
-			this._start = start;
-			this._goal = goal;
-			this._step = step;
-			this._text = this.var + ':' + this.start + "→" + this.goal;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.var + " を " + this.start + " から " + this.goal + " まで " + this.step + " ずつ減らしながら，\n";
-			var code_inner = this.next.appendCode('', indent + 1);
-			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を繰り返す\n";
+	Parts_LoopBeginDec.prototype.setValue = function setValue(variable, start, goal, step) {
+		this._var = variable;
+		this._start = start;
+		this._goal = goal;
+		this._step = step;
+		this._text = this.var + ':' + this.start + "→" + this.goal;
+	};
 
-			if (this.end.next != null) return this.end.next.appendCode(code, indent);
-			return code;
+	Parts_LoopBeginDec.appendMe = function appendMe(bar) {
+		var parts = new Parts_LoopBeginDec();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		parts.next.next = new Parts_LoopEnd();
+		parts.next.next.next = new Parts_Bar();
+		parts._end = parts.next.next;
+		parts.next.next._begin = parts;
+
+		return parts.end;
+	};
+
+	Parts_LoopBeginDec.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.var + " を " + this.start + " から " + this.goal + " まで " + this.step + " ずつ減らしながら，\n";
+		var code_inner = this.next.appendCode('', indent + 1);
+		if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
+		code += Parts.makeIndent(indent) + "を繰り返す\n";
+
+		if (this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_LoopBeginDec.prototype.editMe = function editMe() {
+		var subtitle = ["変数", "〜から", "〜まで", "減少分"];
+		var values = [this.var, this.start, this.goal, this.step];
+		openModalWindow("繰り返しの編集", subtitle, values, this);
+	};
+
+	Parts_LoopBeginDec.prototype.edited = function edited(values) {
+		if (values != null) {
+			this.setValue(values[0], values[1], values[2], values[3]);
 		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["変数", "〜から", "〜まで", "減少分"];
-			var values = [this.var, this.start, this.goal, this.step];
-			openModalWindow("繰り返しの編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0], values[1], values[2], values[3]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
+	_createClass(Parts_LoopBeginDec, [{
 		key: "var",
 		get: function get() {
 			return this._var;
@@ -4151,19 +3928,6 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin4) {
 		get: function get() {
 			return this.step + "ずつ減";
 		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_LoopBeginDec();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			parts.next.next = new Parts_LoopEnd();
-			parts.next.next.next = new Parts_Bar();
-			parts._end = parts.next.next;
-			parts.next.next._begin = parts;
-
-			return parts.end;
-		}
 	}]);
 
 	return Parts_LoopBeginDec;
@@ -4175,114 +3939,104 @@ var Parts_LoopEnd = function (_Parts9) {
 	function Parts_LoopEnd() {
 		_classCallCheck(this, Parts_LoopEnd);
 
-		return _possibleConstructorReturn(this, (Parts_LoopEnd.__proto__ || Object.getPrototypeOf(Parts_LoopEnd)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Parts9.apply(this, arguments));
 	}
 
+	Parts_LoopEnd.prototype.editMe = function editMe() {
+		this.begin.editMe();
+	};
+
+	Parts_LoopEnd.prototype.calcTextsize = function calcTextsize() {
+		if (this.hasText) {
+			var size = FlowchartSetting.size;
+			this._textwidth = size * 6;
+			this._hspace = this._hspace2 = 0;
+			var tw = flowchart.context.measureText(this.text).width;
+			if (tw > this._textwidth) this._textwidth = tw;
+			var tw2 = flowchart.context.measureText(this.text2).width;
+			if (tw2 > this._textwidth) this._textwidth = tw2;
+			if (tw < this._textwidth) this._hspace = (this._textwidth - tw) / 2;
+			if (tw2 < this._textwidth) this._hspace2 = (this._textwidth - tw2) / 2;
+			this._textheight = FlowchartSetting.fontsize;
+			this._textheight = FlowchartSetting.fontsize;
+		} else {
+			this._textwidth = this.begin.textWidth;
+			this._textheight = this.begin.textHeight;
+		}
+	};
+
+	Parts_LoopEnd.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+
+		this._height = this.textHeight * (this.hasText ? 2 : 1) + size * 2;
+		this._width = this.textWidth + size * 2;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		return; // isBlockEnd is true.
+	};
+
+	Parts_LoopEnd.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2 - size);
+		flowchart.context.lineTo(this.x2 - size, this.y2);
+		flowchart.context.lineTo(this.x1 + size, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2 - size);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		if (this.hasText) {
+			flowchart.context.fillText(this.text, this.x1 + size + this.hspace, this.y1 + size + this.textHeight);
+			flowchart.context.fillText(this.text2, this.x1 + size + this.hspace2, this.y1 + size + this.textHeight * 2);
+		}
+
+		if (position != null) {
+			position.y = this.y2;
+		}
+		return this;
+	};
+
+	Parts_LoopEnd.prototype.appendCode = function appendCode(code, indent) {
+		return code;
+	};
+
+	Parts_LoopEnd.prototype.editMe = function editMe() {
+		//		this.highlight();
+		this.begin.editMe();
+	};
+
+	Parts_LoopEnd.prototype.deleteMe = function deleteMe() {
+		this.begin.deleteMe();
+	};
+
+	Parts_LoopEnd.prototype.cutMe = function cutMe() {
+		this.begin.cutMe();
+	};
+
+	Parts_LoopEnd.prototype.highlight = function highlight() {
+		this.paint_highlight();
+		this.begin.paint_highlight();
+	};
+
+	Parts_LoopEnd.prototype.unhighlight = function unhighlight() {
+		this.paint_unhighlight();
+		this.begin.paint_unhighlight();
+	};
+
 	_createClass(Parts_LoopEnd, [{
-		key: "editMe",
-		value: function editMe() {
-			this.begin.editMe();
-		}
-	}, {
-		key: "calcTextsize",
-		value: function calcTextsize() {
-			if (this.hasText) {
-				var size = FlowchartSetting.size;
-				this._textwidth = size * 6;
-				this._hspace = this._hspace2 = 0;
-				var tw = flowchart.context.measureText(this.text).width;
-				if (tw > this._textwidth) this._textwidth = tw;
-				var tw2 = flowchart.context.measureText(this.text2).width;
-				if (tw2 > this._textwidth) this._textwidth = tw2;
-				if (tw < this._textwidth) this._hspace = (this._textwidth - tw) / 2;
-				if (tw2 < this._textwidth) this._hspace2 = (this._textwidth - tw2) / 2;
-				this._textheight = FlowchartSetting.fontsize;
-				this._textheight = FlowchartSetting.fontsize;
-			} else {
-				this._textwidth = this.begin.textWidth;
-				this._textheight = this.begin.textHeight;
-			}
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-
-			this._height = this.textHeight * (this.hasText ? 2 : 1) + size * 2;
-			this._width = this.textWidth + size * 2;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			return; // isBlockEnd is true.
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x1, this.y1);
-			flowchart.context.lineTo(this.x2, this.y1);
-			flowchart.context.lineTo(this.x2, this.y2 - size);
-			flowchart.context.lineTo(this.x2 - size, this.y2);
-			flowchart.context.lineTo(this.x1 + size, this.y2);
-			flowchart.context.lineTo(this.x1, this.y2 - size);
-			flowchart.context.lineTo(this.x1, this.y1);
-			flowchart.context.stroke();
-			if (this.hasText) {
-				flowchart.context.fillText(this.text, this.x1 + size + this.hspace, this.y1 + size + this.textHeight);
-				flowchart.context.fillText(this.text2, this.x1 + size + this.hspace2, this.y1 + size + this.textHeight * 2);
-			}
-
-			if (position != null) {
-				position.y = this.y2;
-			}
-			return this;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			return code;
-		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			//		this.highlight();
-			this.begin.editMe();
-		}
-	}, {
-		key: "deleteMe",
-		value: function deleteMe() {
-			this.begin.deleteMe();
-		}
-	}, {
-		key: "cutMe",
-		value: function cutMe() {
-			this.begin.cutMe();
-		}
-	}, {
-		key: "highlight",
-		value: function highlight() {
-			this.paint_highlight();
-			this.begin.paint_highlight();
-		}
-	}, {
-		key: "unhighlight",
-		value: function unhighlight() {
-			this.paint_unhighlight();
-			this.begin.paint_unhighlight();
-		}
-	}, {
 		key: "hasText",
 		get: function get() {
 			return false;
@@ -4308,7 +4062,7 @@ var Parts_LoopEnd2 = function (_Parts_LoopEnd) {
 	function Parts_LoopEnd2() {
 		_classCallCheck(this, Parts_LoopEnd2);
 
-		return _possibleConstructorReturn(this, (Parts_LoopEnd2.__proto__ || Object.getPrototypeOf(Parts_LoopEnd2)).apply(this, arguments));
+		return _possibleConstructorReturn(this, _Parts_LoopEnd.apply(this, arguments));
 	}
 
 	_createClass(Parts_LoopEnd2, [{
@@ -4341,112 +4095,112 @@ var Parts_Misc = function (_Parts10) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this59 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this59 = _possibleConstructorReturn(this, _Parts10.call(this));
 
 		_this59.setValue("none", []);
 		return _this59;
 	}
 
-	_createClass(Parts_Misc, [{
-		key: "setValue",
-		value: function setValue(identifier, values) {
-			this._identifier = identifier;
-			this._values = [];
-			for (var i = 0; i < values.length; i++) {
-				this._values.push(values[i].getCode());
-			}for (var i = 0; i < misc_menu.length; i++) {
-				if (this._identifier != misc_menu[i][1]) continue;
-				this._command = misc_menu[i][0];
-				var code = misc_menu[i][2];
-				for (var j = 0; j < this.values.length; j++) {
-					code = code.replace("\t", this.values[j]);
-				}this._text = code;
-				break;
-			}
+	Parts_Misc.prototype.setValue = function setValue(identifier, values) {
+		this._identifier = identifier;
+		this._values = [];
+		for (var i = 0; i < values.length; i++) {
+			this._values.push(values[i].getCode());
+		}for (var i = 0; i < misc_menu.length; i++) {
+			if (this._identifier != misc_menu[i][1]) continue;
+			this._command = misc_menu[i][0];
+			var code = misc_menu[i][2];
+			for (var j = 0; j < this.values.length; j++) {
+				code = code.replace("\t", this.values[j]);
+			}this._text = code;
+			break;
 		}
-	}, {
-		key: "setValuebyText",
-		value: function setValuebyText(identifier, values) {
-			this._identifier = identifier;
-			this._values = [];
-			for (var i = 0; i < values.length; i++) {
-				this._values.push(values[i]);
-			}for (var i = 0; i < misc_menu.length; i++) {
-				if (this._identifier != misc_menu[i][1]) continue;
-				this._command = misc_menu[i][0];
-				var code = misc_menu[i][2];
-				for (var j = 0; j < this.values.length; j++) {
-					code = code.replace("\t", this.values[j]);
-				}this._text = code;
-				break;
-			}
-		}
-	}, {
-		key: "calcSize",
-		value: function calcSize(p0, p1, p2) {
-			this.calcTextsize(); // textWidth, textHeightの計算
-			var size = FlowchartSetting.size;
-			this._height = this._textheight + size * 2;
-			this._width = this._textwidth + size * 4;
-			var x1 = p0.x - this.width / 2;
-			var x2 = p0.x + this.width / 2;
-			var y2 = p0.y + this.height;
-			if (x1 < p1.x) p1.x = x1;
-			if (x2 > p2.x) p2.x = x2;
-			if (y2 > p2.y) p2.y = y2;
-			p0.y = y2;
-			if (this.next == null || this.isBlockEnd) return;
-			this.next.calcSize(p0, p1, p2);
-		}
-	}, {
-		key: "paint",
-		value: function paint(position) {
-			var size = FlowchartSetting.size;
-			if (position != null) {
-				this.x1 = position.x - this.width / 2;
-				this.x2 = position.x + this.width / 2;
-				this.y1 = position.y;
-				this.y2 = this.y1 + this.height;
-			}
-			flowchart.context.beginPath();
-			flowchart.context.moveTo(this.x1, this.y1);
-			flowchart.context.lineTo(this.x2, this.y1);
-			flowchart.context.lineTo(this.x2, this.y2);
-			flowchart.context.lineTo(this.x1, this.y2);
-			flowchart.context.lineTo(this.x1, this.y1);
-			flowchart.context.stroke();
-			flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+	};
 
-			if (position != null) {
-				position.y = this.y2;
-				if (this.end.next != null) return this.end.next.paint(position);
-				return this.end;
-			}
-			return this;
+	Parts_Misc.prototype.setValuebyText = function setValuebyText(identifier, values) {
+		this._identifier = identifier;
+		this._values = [];
+		for (var i = 0; i < values.length; i++) {
+			this._values.push(values[i]);
+		}for (var i = 0; i < misc_menu.length; i++) {
+			if (this._identifier != misc_menu[i][1]) continue;
+			this._command = misc_menu[i][0];
+			var code = misc_menu[i][2];
+			for (var j = 0; j < this.values.length; j++) {
+				code = code.replace("\t", this.values[j]);
+			}this._text = code;
+			break;
 		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent);
-			code += this.text + "\n";
-			if (this.next != null) return this.next.appendCode(code, indent);
-			return code;
+	};
+
+	Parts_Misc.prototype.calcSize = function calcSize(p0, p1, p2) {
+		this.calcTextsize(); // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+		this._height = this._textheight + size * 2;
+		this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if (x1 < p1.x) p1.x = x1;
+		if (x2 > p2.x) p2.x = x2;
+		if (y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if (this.next == null || this.isBlockEnd) return;
+		this.next.calcSize(p0, p1, p2);
+	};
+
+	Parts_Misc.prototype.paint = function paint(position) {
+		var size = FlowchartSetting.size;
+		if (position != null) {
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
 		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			openModalWindowforMisc(this);
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+
+		if (position != null) {
+			position.y = this.y2;
+			if (this.end.next != null) return this.end.next.paint(position);
+			return this.end;
 		}
-	}, {
-		key: "edited",
-		value: function edited(identifier, values) {
-			if (values != null) {
-				this.setValuebyText(identifier, values);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
+		return this;
+	};
+
+	Parts_Misc.appendMe = function appendMe(bar) {
+		var parts = new Parts_Misc();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	};
+
+	Parts_Misc.prototype.appendCode = function appendCode(code, indent) {
+		code += Parts.makeIndent(indent);
+		code += this.text + "\n";
+		if (this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	};
+
+	Parts_Misc.prototype.editMe = function editMe() {
+		openModalWindowforMisc(this);
+	};
+
+	Parts_Misc.prototype.edited = function edited(identifier, values) {
+		if (values != null) {
+			this.setValuebyText(identifier, values);
 		}
-	}, {
+		flowchart.paint();
+		flowchart.flowchart2code();
+	};
+
+	_createClass(Parts_Misc, [{
 		key: "identifier",
 		get: function get() {
 			return this._identifier;
@@ -4455,14 +4209,6 @@ var Parts_Misc = function (_Parts10) {
 		key: "values",
 		get: function get() {
 			return this._values;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_Misc();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			return parts.next;
 		}
 	}]);
 
