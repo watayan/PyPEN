@@ -49,6 +49,14 @@ function isInteger(v)
 	// return Number.isInteger(v);
 }
 
+function constructor_name(obj)
+{
+	var result = /^function\s+(\w+)\s*\(/.test(obj.constructor.toString());
+	return result ? result[1] : null;
+	// return obj.constructor.name;
+}
+
+
 function textareaAppend(v)
 {
 	textarea.value += v;
@@ -209,7 +217,7 @@ class Add extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus") brace1 = true;
 		if(c2 == "Minus") brace2 = true;
@@ -246,7 +254,7 @@ class Sub extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus") brace1 = true;
 		if(c2 == "Minus") brace2 = true;
@@ -283,7 +291,7 @@ class Mul extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
@@ -323,7 +331,7 @@ class Div extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
@@ -371,7 +379,7 @@ class Div2 extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
@@ -405,7 +413,7 @@ class Mod extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
@@ -438,7 +446,7 @@ class Minus extends Value
 	getCode()
 	{
 		let v1 = this.value;
-		let c1 = v1.constructor.name;
+		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
@@ -463,7 +471,7 @@ class And extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
@@ -489,7 +497,7 @@ class Or extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
@@ -509,7 +517,7 @@ class Not extends Value
 	getCode()
 	{
 		let v1 = this.value;
-		let c1 = v1.constructor.name;
+		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
@@ -528,7 +536,7 @@ class EQ extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' = '
@@ -547,7 +555,7 @@ class NE extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' != '
@@ -566,7 +574,7 @@ class GT extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' > '
@@ -585,7 +593,7 @@ class GE extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' >= '
@@ -604,7 +612,7 @@ class LT extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' < '
@@ -623,7 +631,7 @@ class LE extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = v1.constructor.name, c2 = v2.constructor.name;
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' <= '
@@ -2366,7 +2374,7 @@ class Flowchart
 		{
 			var p = statementlist[i];
 			if(!p) continue;
-			var statement = p.constructor.name;
+			var statement = constructor_name(p);
 			if(statement == "DefinitionInt")
 			{
 				document.getElementById("variable_int").value = p.getCode();

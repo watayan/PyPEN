@@ -57,6 +57,12 @@ function isInteger(v) {
 	// return Number.isInteger(v);
 }
 
+function constructor_name(obj) {
+	var result = /^function\s+(\w+)\s*\(/.test(obj.constructor.toString());
+	return result ? result[1] : null;
+	// return obj.constructor.name;
+}
+
 function textareaAppend(v) {
 	textarea.value += v;
 	textarea.scrollTop = textarea.scrollHeight;
@@ -299,8 +305,8 @@ var Add = function (_Value8) {
 	Add.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c1 == "Minus") brace1 = true;
@@ -339,8 +345,8 @@ var Sub = function (_Value9) {
 	Sub.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c1 == "Minus") brace1 = true;
@@ -379,8 +385,8 @@ var Mul = function (_Value10) {
 	Mul.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
@@ -421,8 +427,8 @@ var Div = function (_Value11) {
 	Div.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
@@ -469,8 +475,8 @@ var Div2 = function (_Value12) {
 	Div2.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
@@ -504,8 +510,8 @@ var Mod = function (_Value13) {
 	Mod.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
@@ -538,7 +544,7 @@ var Minus = function (_Value14) {
 
 	Minus.prototype.getCode = function getCode() {
 		var v1 = this.value;
-		var c1 = v1.constructor.name;
+		var c1 = constructor_name(v1);
 		var brace1 = false;
 		if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
@@ -569,8 +575,8 @@ var And = function (_Value15) {
 	And.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
@@ -602,8 +608,8 @@ var Or = function (_Value16) {
 	Or.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
@@ -629,7 +635,7 @@ var Not = function (_Value17) {
 
 	Not.prototype.getCode = function getCode() {
 		var v1 = this.value;
-		var c1 = v1.constructor.name;
+		var c1 = constructor_name(v1);
 		var brace1 = false;
 		if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
@@ -656,8 +662,8 @@ var EQ = function (_Value18) {
 	EQ.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -684,8 +690,8 @@ var NE = function (_Value19) {
 	NE.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -712,8 +718,8 @@ var GT = function (_Value20) {
 	GT.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -740,8 +746,8 @@ var GE = function (_Value21) {
 	GE.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -768,8 +774,8 @@ var LT = function (_Value22) {
 	LT.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -796,8 +802,8 @@ var LE = function (_Value23) {
 	LE.prototype.getCode = function getCode() {
 		var v1 = this.value[0],
 		    v2 = this.value[1];
-		var c1 = v1.constructor.name,
-		    c2 = v2.constructor.name;
+		var c1 = constructor_name(v1),
+		    c2 = constructor_name(v2);
 		var brace1 = false,
 		    brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2499,7 +2505,7 @@ var Flowchart = function () {
 		for (var i = 0; i < statementlist.length; i++) {
 			var p = statementlist[i];
 			if (!p) continue;
-			var statement = p.constructor.name;
+			var statement = constructor_name(p);
 			if (statement == "DefinitionInt") {
 				document.getElementById("variable_int").value = p.getCode();
 			} else if (statement == "DefinitionFloat") {
