@@ -26,7 +26,7 @@ function codeChange()
 	}
 	catch(e)
 	{
-		textareaAppend("構文エラーです\n" + e.message + "\n");
+		textarea.value = "構文エラーです\n" + e.message + "\n";
 		converting = false;
 	}
 }
@@ -173,7 +173,8 @@ class UNDEFINED extends Value
 	}
 	get varname()
 	{
-		throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		return this.value;
+//		throw new RuntimeError(this.first_line, "未完成のプログラムです");
 	}
 	getValue()
 	{
@@ -181,7 +182,7 @@ class UNDEFINED extends Value
 	}
 	getCode()
 	{
-		return "《" + v + "》";
+		return this.value;
 	}
 }
 
@@ -973,6 +974,8 @@ class DefinitionInt extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
+			if(this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+			
 			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
@@ -1047,6 +1050,7 @@ class DefinitionFloat extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
+			if(this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
@@ -1121,6 +1125,7 @@ class DefinitionString extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
+			if(this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
@@ -1195,6 +1200,7 @@ class DefinitionBoolean extends Statement
 	{
 		for(var i = 0; i < this.vars.length; i++)
 		{
+			if(this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			let varname = this.vars[i].varname;
 			let parameter = this.vars[i].parameter;
 			if(varsInt[varname] != undefined || varsFloat[varname] != undefined
@@ -1269,6 +1275,7 @@ class Assign extends Statement
 	}
 	run(index)
 	{
+		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		let vl = this.val.getValue();
 		if(vl instanceof ArrayValue)
 		{
@@ -1277,7 +1284,7 @@ class Assign extends Statement
 			for(var i = 0; i < len; i++)
 			{
 				var ag1 = this.varname.value[1] instanceof Array ? this.varname.value[1].concat() : [];
-				ag1.push(new IntValue(i, this.loc));
+				ag1.push(new IntValue(i + (setting.array_origin == 2 ? 1 : 0), this.loc));
 				var variable = new Variable(this.varname.value[0], ag1, this.loc);
 				var command = new Assign(variable,vl.value[i], this.loc);
 				command.run(index);
@@ -1331,6 +1338,7 @@ class Input extends Statement
 	}
 	run(index)
 	{
+		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
 		stack.push({statementlist: list, index: 0});
 		return index + 1;
@@ -1359,6 +1367,7 @@ class InputEnd extends Statement
 	}
 	run(index)
 	{
+		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		try{
 			let vn = this.varname.varname;
 			let vl = closeInputWindow();
@@ -1584,6 +1593,7 @@ class ForInc extends Statement
 	}
 	run(index)
 	{
+		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
 		if(setting.var_declaration != 0 &&
@@ -1621,6 +1631,7 @@ class ForDec extends Statement
 	}
 	run(index)
 	{
+		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
 		if(setting.var_declaration != 0 &&

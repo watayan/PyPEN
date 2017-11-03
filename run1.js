@@ -37,7 +37,7 @@ function codeChange() {
 		flowchart.code2flowchart(parse);
 		converting = false;
 	} catch (e) {
-		textareaAppend("構文エラーです\n" + e.message + "\n");
+		textarea.value = "構文エラーです\n" + e.message + "\n";
 		converting = false;
 	}
 }
@@ -262,13 +262,14 @@ var UNDEFINED = function (_Value7) {
 	};
 
 	UNDEFINED.prototype.getCode = function getCode() {
-		return "《" + v + "》";
+		return this.value;
 	};
 
 	_createClass(UNDEFINED, [{
 		key: "varname",
 		get: function get() {
-			throw new RuntimeError(this.first_line, "未完成のプログラムです");
+			return this.value;
+			//		throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		}
 	}]);
 
@@ -414,13 +415,13 @@ var Div = function (_Value11) {
 		if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
 		if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-			var _v = (v1.value - v1.value % v2.value) / v2.value;
-			if (!isSafeInteger(_v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			return new IntValue(_v, this.loc);
+			var v = (v1.value - v1.value % v2.value) / v2.value;
+			if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(v, this.loc);
 		} else {
-			var _v2 = v1.value / v2.value;
-			if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-			return new FloatValue(_v2, this.loc);
+			var _v = v1.value / v2.value;
+			if (!isFinite(_v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return new FloatValue(_v, this.loc);
 		}
 	};
 
@@ -456,18 +457,18 @@ var Div2 = function (_Value12) {
 		if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
 		if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-			var _v3 = (v1.value - v1.value % v2.value) / v2.value;
-			if (!isSafeInteger(_v3)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			return new IntValue(_v3, this.loc);
+			var v = (v1.value - v1.value % v2.value) / v2.value;
+			if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(v, this.loc);
 		} else {
 			if (setting.div_mode == 0) {
-				var _v4 = v1.value / v2.value;
-				if (!isFinite(_v4)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(_v4, this.loc);
+				var _v2 = v1.value / v2.value;
+				if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new FloatValue(_v2, this.loc);
 			} else {
-				var _v5 = Math.floor(v1.value / v2.value);
-				if (!isFinite(_v5)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new IntValue(_v5, this.loc);
+				var _v3 = Math.floor(v1.value / v2.value);
+				if (!isFinite(_v3)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new IntValue(_v3, this.loc);
 			}
 		}
 	};
@@ -501,9 +502,9 @@ var Mod = function (_Value13) {
 		    v2 = this.value[1].getValue();
 		if ((v1 instanceof IntValue || v1 instanceof NullValue) && (v2 instanceof IntValue || v2 instanceof NullValue)) {
 			if (v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			var _v6 = v1.value % v2.value;
-			if (!isSafeInteger(_v6)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			return new IntValue(_v6, this.loc);
+			var v = v1.value % v2.value;
+			if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			return new IntValue(v, this.loc);
 		} else throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
 	};
 
@@ -535,10 +536,10 @@ var Minus = function (_Value14) {
 		var v1 = this.value.getValue();
 		if (v1 instanceof NullValue) return v1;
 		if (v1 instanceof IntValue || v1 instanceof FloatValue) {
-			var _v7 = -v1.value;
-			if (_v7 instanceof IntValue && !isSafeInteger(_v7)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			if (_v7 instanceof FloatValue && !isFinite(_v7)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-			return v1 instanceof IntValue ? new IntValue(_v7, this.loc) : new FloatValue(_v7, this.loc);
+			var v = -v1.value;
+			if (v instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if (v instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
 		} else throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
 	};
 
@@ -847,8 +848,8 @@ var Variable = function (_Value24) {
 			if (pm != null) {
 				var ag = new Array(pm.length);
 				for (var i = 0; i < pm.length; i++) {
-					var _v8 = pm[i].getValue();
-					if (_v8 instanceof IntValue) ag[i] = _v8.value;else if (_v8 instanceof FloatValue) ag[i] = Math.floor(_v8.value);else throw new RuntimeError(this.first_line, "配列の添字に" + _v8.value + "は使えません");
+					var v = pm[i].getValue();
+					if (v instanceof IntValue) ag[i] = v.value;else if (v instanceof FloatValue) ag[i] = Math.floor(v.value);else throw new RuntimeError(this.first_line, "配列の添字に" + v.value + "は使えません");
 				}
 				vn += '[' + ag.join(',') + ']';
 			}
@@ -903,8 +904,8 @@ var CallFunction = function (_Value25) {
 			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
 			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-				var _v9 = Math.tan(par1.value);
-				if (isFinite(_v9)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				var _v4 = Math.tan(par1.value);
+				if (isFinite(_v4)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		} else if (func == 'sqrt') {
 			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
@@ -918,16 +919,16 @@ var CallFunction = function (_Value25) {
 			var par1 = param[0].getValue();
 			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 				if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
-				var _v10 = Math.log(par1.value);
-				if (isFinite(_v10)) return new FloatValue(_v10, this.loc);
+				var _v5 = Math.log(par1.value);
+				if (isFinite(_v5)) return new FloatValue(_v5, this.loc);
 				throw new RuntimeError(this.first_line, "オーバーフローしました");
 			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		} else if (func == 'exp') {
 			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
 			var par1 = param[0].getValue();
 			if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-				var _v11 = Math.exp(par1.value);
-				if (isFinite(_v11)) return new FloatValue(_v11, this.loc);
+				var _v6 = Math.exp(par1.value);
+				if (isFinite(_v6)) return new FloatValue(_v6, this.loc);
 				throw new RuntimeError(this.first_line, "オーバーフローしました");
 			} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
 		} else if (func == 'pow') {
@@ -936,14 +937,14 @@ var CallFunction = function (_Value25) {
 			var par2 = param[1].getValue();
 			if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
 				if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				var _v12 = Math.pow(par1.value, par2.value);
-				if (isSafeInteger(_v12)) return new IntValue(_v12, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				var _v7 = Math.pow(par1.value, par2.value);
+				if (isSafeInteger(_v7)) return new IntValue(_v7, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 			}
 			if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
 				if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
 				if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				var _v13 = Math.pow(par1.value, par2.value);
-				if (isFinite(_v13)) return new FloatValue(_v13, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				var _v8 = Math.pow(par1.value, par2.value);
+				if (isFinite(_v8)) return new FloatValue(_v8, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 			}
 		} else if (func == 'length') {
 			if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
@@ -1093,6 +1094,8 @@ var DefinitionInt = function (_Statement) {
 
 	DefinitionInt.prototype.run = function run(index) {
 		for (var i = 0; i < this.vars.length; i++) {
+			if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+
 			var varname = this.vars[i].varname;
 			var parameter = this.vars[i].parameter;
 			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
@@ -1101,8 +1104,8 @@ var DefinitionInt = function (_Statement) {
 			} else {
 				var parameterlist = [];
 				for (var j = 0; j < parameter.length; j++) {
-					var _v14 = parameter[j].getValue();
-					if (_v14 instanceof IntValue && _v14.value >= 0) parameterlist.push(_v14.value);else if (_v14 instanceof FloatValue && _v14.value >= 0) parameterlist.push(Math.round(_v14.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v14.value + "は使えません");
+					var v = parameter[j].getValue();
+					if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
 				}
 				var args = new Array(parameter.length);
 				for (var j = 0; j < parameter.length; j++) {
@@ -1158,6 +1161,7 @@ var DefinitionFloat = function (_Statement2) {
 
 	DefinitionFloat.prototype.run = function run(index) {
 		for (var i = 0; i < this.vars.length; i++) {
+			if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var varname = this.vars[i].varname;
 			var parameter = this.vars[i].parameter;
 			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
@@ -1166,8 +1170,8 @@ var DefinitionFloat = function (_Statement2) {
 			} else {
 				var parameterlist = [];
 				for (var j = 0; j < parameter.length; j++) {
-					var _v15 = parameter[j].getValue();
-					if (_v15 instanceof IntValue && _v15.value >= 0) parameterlist.push(_v15.value);else if (_v15 instanceof FloatValue && _v15.value >= 0) parameterlist.push(Math.round(_v15.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v15.value + "は使えません");
+					var v = parameter[j].getValue();
+					if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
 				}
 				var args = new Array(parameter.length);
 				for (var j = 0; j < parameter.length; j++) {
@@ -1223,6 +1227,7 @@ var DefinitionString = function (_Statement3) {
 
 	DefinitionString.prototype.run = function run(index) {
 		for (var i = 0; i < this.vars.length; i++) {
+			if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var varname = this.vars[i].varname;
 			var parameter = this.vars[i].parameter;
 			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
@@ -1231,8 +1236,8 @@ var DefinitionString = function (_Statement3) {
 			} else {
 				var parameterlist = [];
 				for (var j = 0; j < parameter.length; j++) {
-					var _v16 = parameter[j].getValue();
-					if (_v16 instanceof IntValue && _v16.value >= 0) parameterlist.push(_v16.value);else if (_v16 instanceof FloatValue && _v16.value >= 0) parameterlist.push(Math.round(_v16.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v16.value + "は使えません");
+					var v = parameter[j].getValue();
+					if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
 				}
 				var args = new Array(parameter.length);
 				for (var j = 0; j < parameter.length; j++) {
@@ -1288,6 +1293,7 @@ var DefinitionBoolean = function (_Statement4) {
 
 	DefinitionBoolean.prototype.run = function run(index) {
 		for (var i = 0; i < this.vars.length; i++) {
+			if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var varname = this.vars[i].varname;
 			var parameter = this.vars[i].parameter;
 			if (varsInt[varname] != undefined || varsFloat[varname] != undefined || varsString[varname] != undefined || varsBoolean[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
@@ -1296,8 +1302,8 @@ var DefinitionBoolean = function (_Statement4) {
 			} else {
 				var parameterlist = [];
 				for (var j = 0; j < parameter.length; j++) {
-					var _v17 = parameter[j].getValue();
-					if (_v17 instanceof IntValue && _v17.value >= 0) parameterlist.push(_v17.value);else if (_v17 instanceof FloatValue && _v17.value >= 0) parameterlist.push(Math.round(_v17.value));else throw new RuntimeError(this.first_line, "配列の番号に" + _v17.value + "は使えません");
+					var v = parameter[j].getValue();
+					if (v instanceof IntValue && v.value >= 0) parameterlist.push(v.value);else if (v instanceof FloatValue && v.value >= 0) parameterlist.push(Math.round(v.value));else throw new RuntimeError(this.first_line, "配列の番号に" + v.value + "は使えません");
 				}
 				var args = new Array(parameter.length);
 				for (var j = 0; j < parameter.length; j++) {
@@ -1353,13 +1359,14 @@ var Assign = function (_Statement5) {
 	}
 
 	Assign.prototype.run = function run(index) {
+		if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		var vl = this.val.getValue();
 		if (vl instanceof ArrayValue) {
 			var len = vl.value.length;
 			var ag = this.varname.value[1];
 			for (var i = 0; i < len; i++) {
 				var ag1 = this.varname.value[1] instanceof Array ? this.varname.value[1].concat() : [];
-				ag1.push(new IntValue(i, this.loc));
+				ag1.push(new IntValue(i + (setting.array_origin == 2 ? 1 : 0), this.loc));
 				var variable = new Variable(this.varname.value[0], ag1, this.loc);
 				var command = new Assign(variable, vl.value[i], this.loc);
 				command.run(index);
@@ -1400,6 +1407,7 @@ var Input = function (_Statement6) {
 	}
 
 	Input.prototype.run = function run(index) {
+		if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
 		stack.push({ statementlist: list, index: 0 });
 		return index + 1;
@@ -1438,6 +1446,7 @@ var InputEnd = function (_Statement8) {
 	}
 
 	InputEnd.prototype.run = function run(index) {
+		if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		try {
 			var vn = this.varname.varname;
 			var vl = closeInputWindow();
@@ -1669,6 +1678,7 @@ var ForInc = function (_Statement14) {
 	}
 
 	ForInc.prototype.run = function run(index) {
+		if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		var last_token = { first_line: this.last_line, last_line: this.last_line };
 		var last_loc = new Location(last_token, last_token);
 		if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
@@ -1707,6 +1717,7 @@ var ForDec = function (_Statement15) {
 	}
 
 	ForDec.prototype.run = function run(index) {
+		if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		var last_token = { first_line: this.last_line, last_line: this.last_line };
 		var last_loc = new Location(last_token, last_token);
 		if (setting.var_declaration != 0 && varsInt[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined && varsString[this.varname.varname] == undefined && varsFloat[this.varname.varname] == undefined) {
