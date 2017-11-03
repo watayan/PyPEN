@@ -2022,7 +2022,7 @@ function sampleButton(num) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
 	reset();
-	if (flowchart) flowchart.paint();
+	if (flowchart) codeChange();
 }
 
 function insertCode(add_code) {
@@ -2096,6 +2096,7 @@ onload = function onload() {
 		reader.onload = function (ev) {
 			sourceTextArea.value = reader.result;
 			reset();
+			if (flowchart) codeChange();
 		};
 	}, false);
 	downloadLink.onclick = function () {
@@ -2121,7 +2122,7 @@ onload = function onload() {
 			drawButton.style.display = "inline";
 			flowchart = new Flowchart();
 			codeChange();
-			flowchart.paint();
+			//			flowchart.paint();
 		} else {
 			flowchart_area.style.display = "none";
 			drawButton.style.display = "none";
