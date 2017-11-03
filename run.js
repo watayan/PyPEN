@@ -1958,7 +1958,11 @@ function sampleButton(num)
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
 	reset();
-	if(flowchart) flowchart.paint();
+	if(flowchart) 
+	{
+		codeChange();
+		flowchart.paint();
+	}
 }
 
 
