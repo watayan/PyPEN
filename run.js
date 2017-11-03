@@ -1958,11 +1958,7 @@ function sampleButton(num)
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	sourceTextArea.value = sample[num];
 	reset();
-	if(flowchart) 
-	{
-		codeChange();
-		flowchart.paint();
-	}
+	if(flowchart) codeChange();
 }
 
 
@@ -2049,6 +2045,7 @@ onload = function(){
 		{
 			sourceTextArea.value = reader.result;
 			reset();
+			if(flowchart) codeChange();
 		}
 	}
 	,false);
@@ -2083,7 +2080,7 @@ onload = function(){
 			drawButton.style.display = "inline";
 			flowchart = new Flowchart();
 			codeChange();
-			flowchart.paint();
+//			flowchart.paint();
 		}
 		else
 		{
