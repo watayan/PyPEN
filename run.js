@@ -1831,7 +1831,7 @@ function openInputWindow()
 	$input_overlay.fadeIn();
 	$input.fadeIn();
 	$input.html("<p>入力してください</p>"+
-	"<input type=\"text\" id=\"inputarea\" onkeydown=\"keydown();\">");
+	"<input type=\"text\" id=\"inputarea\" onkeydown=\"keydown(event);\">");
 //	var inputarea = document.getElementById("inputarea");
 //	if(inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);
 //	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
@@ -3861,7 +3861,7 @@ function openModalWindow(title, subtitle, values, parts)
 		html += "<tr><td>" + subtitle[i] + "</td><td><input type=\"text\" " +
 			"id=\"inputarea" + i + "\" value=\"" + values[i] + "\" " +
 			"onfocus=\"select();\" "+
-			"onkeydown=\"keydownModal();\" spellcheck=\"false\"></td></tr>";
+			"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "</table>";
 	html += "<button type=\"button\" onclick=\"closeModalWindow(true);\">OK</button>";
 	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
@@ -3883,7 +3883,7 @@ function openModalWindowforOutput(title, subtitle, values, parts)
 	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
 		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
 		"onfocus=\"select();\" "+
-		"onkeydown=\"keydownModal();\" spellcheck=\"false\"></td></tr>";
+		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "<tr><td></td><td><input type=\"checkbox\" " +
 		"id=\"inputarea1\"" + (values[1] ? " checked=\"checked\"" : "") + ">改行する</td></tr>";
 	html += "</table>";
@@ -3990,7 +3990,7 @@ function setIdentifierforMisc(identifier)
 			input.setAttribute("id", "inputarea" + j);
 			input.setAttribute("value", v);
 			input.setAttribute("onfocus", "select();");
-			input.setAttribute("onkeydown", "keydownModalforMisc();")
+			input.setAttribute("onkeydown", "keydownModalforMisc(event);")
 			input.setAttribute("spellcheck", "false");
 			td.appendChild(input);
 			tr.appendChild(td);
