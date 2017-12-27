@@ -1,7 +1,10 @@
 {
   "name": "WaPEN",
   "version": "0.0.0",
-  "description": "WaPEN (Web-aided PEN)",
+  "description": "Web-aided PEN",
+  "author": "watayan",
+  "maintainers": [{"name":"Wataru Nakanishi", "email":"watayan@watayan.net"}],
+  "license": "MIT",
   "main": "run1.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -12,16 +15,12 @@
     "type": "git",
     "url": "git+https://github.com/watayan/WaPEN.git"
   },
-  "author": "Wataru Nakanishi",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/watayan/WaPEN/issues"
   },
   "homepage": "https://github.com/watayan/WaPEN#readme",
   "babel": {
-    "presets": [
-      "env"
-    ]
+    "presets": ["env"]
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
