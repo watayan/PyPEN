@@ -2024,6 +2024,7 @@ onload = function(){
 		run();
 	}
 	newButton.onclick = function(){
+		if(!window.confirm("プログラムを削除していいですか？")) return;
 		sourceTextArea.value = "";
 		parse = null;
 		reset();
