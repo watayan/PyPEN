@@ -20,8 +20,12 @@ UNDEFINED		"《"[^》]*"》"
 
 %%
 
-"true"			{return 'true';}
-"false"			{return 'false';}
+"true"			{return 'TRUE';}
+"TRUE"			{return 'TRUE';}
+"真"				{return 'TRUE';}
+"false"			{return 'FALSE';}
+"FALSE"			{return 'FALSE';}
+"偽"				{return 'FALSE';}
 {String}		{return '文字列値';}
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
@@ -140,8 +144,8 @@ e
 	| '整数値'	{$$ = new IntValue(Number(yytext), new Location(@1,@1));}
 	| '実数値'	{$$ = new FloatValue(Number(yytext), new Location(@1,@1));}
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
-	| TRUE		{$$ = new BooleanValue(true, new Location(@1,@1));}
-	| FALSE		{$$ = new BooleanValue(false, new Location(@1,@1));}
+	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
+	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
 	| IDENTIFIER'('parameterlist')'
 				{$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable
