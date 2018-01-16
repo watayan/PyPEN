@@ -20,6 +20,7 @@ UNDEFINED		"《"[^》]*"》"
 
 %%
 
+"真偽"				{return '真偽';}
 "true"			{return 'TRUE';}
 "TRUE"			{return 'TRUE';}
 "真"				{return 'TRUE';}
@@ -88,7 +89,6 @@ UNDEFINED		"《"[^》]*"》"
 "整数"				{return '整数';}
 "実数"				{return '実数';}
 "文字列"				{return '文字列';}
-"真偽"				{return '真偽';}
 "と"					{return 'と';}
 "描画領域開く"		{return 'gOpenWindow';}
 "描画領域閉じる"		{return 'gCloseWindow';}
