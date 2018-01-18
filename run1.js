@@ -2226,7 +2226,6 @@ onload = function onload() {
 	};
 	newButton.onclick = function () {
 		if (!window.confirm("プログラムを削除していいですか？")) return;
-
 		sourceTextArea.value = "";
 		parse = null;
 		reset();
@@ -2843,7 +2842,7 @@ var Parts = function () {
 		this._text = "";
 		this._next = this._prev = null;
 		this._textwidth = this._textheight = this._width = this._height = 0;
-		this._hspace = 0;
+		this._hspace = this._hspace2 = 0;
 	}
 
 	_createClass(Parts, [{
@@ -3590,7 +3589,7 @@ var Parts_If = function (_Parts7) {
 			var pr1 = pr.clone(),
 			    pr2 = pr.clone();
 			this.right.calcSize(pr, pr1, pr2);
-			this.right_bar_expand = pr2.x - pr.x - this.width / 2;
+			this.right_bar_expand = pr.x - pr1.x - this.width / 2;
 			if (this.right_bar_expand < size * 2) this.right_bar_expand = size * 2;
 			pr1.x = pr1.x + this.right_bar_expand;
 			pr2.x = pr2.x + this.right_bar_expand;
@@ -3603,7 +3602,7 @@ var Parts_If = function (_Parts7) {
 				this.right_bar_expand += -distance / 2;
 			}
 			//		p0.y = this.end.y;
-			this.end.next.calcSize(p0, p1, p2);
+			this.end.next.calcSize(p0, pl1, pr2);
 		}
 	}, {
 		key: "paint",
