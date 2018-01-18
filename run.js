@@ -2619,8 +2619,8 @@ class Parts
     }
     calcSize(p0, p1, p2)
     {
-		if(this.next == null || this.isBlockEnd) return;
-		this.next.calcSize(p0,p1,p2);
+		if(this.next == null || this.isBlockEnd) return this;
+		return this.next.calcSize(p0,p1,p2);
     }
 	static appendMe(bar)
 	{
@@ -2691,7 +2691,7 @@ class Parts_Bar extends Parts
         this._height = FlowchartSetting.size * 4;
 		p0.y += this._height;
 		if(p0.y > p2.y) p2.y = p0.y;
-		this.next.calcSize(p0,p1,p2);
+		return this.next.calcSize(p0,p1,p2);
     }
 	inside(x, y)
 	{
@@ -2733,8 +2733,8 @@ class Parts_Terminal extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		if(this.next == null) return;
-		this.next.calcSize(p0,p1,p2);
+		if(this.next == null) return this;
+		return this.next.calcSize(p0,p1,p2);
     }
 	setValue(v)
 	{
@@ -2803,7 +2803,7 @@ class Parts_Output extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		this.next.calcSize(p0,p1,p2);
+		return this.next.calcSize(p0,p1,p2);
     }
     paint(position)
 	{
@@ -2912,8 +2912,8 @@ class Parts_Input extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		if(this.next == null || this.isBlockEnd) return;
-		this.next.calcSize(p0,p1,p2);
+		if(this.next == null || this.isBlockEnd) return this;
+		return this.next.calcSize(p0,p1,p2);
     }
     paint(position)
 	{
@@ -3001,8 +3001,8 @@ class Parts_Substitute extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		if(this.next == null || this.isBlockEnd) return;
-		this.next.calcSize(p0,p1,p2);
+		if(this.next == null || this.isBlockEnd) return this;
+		return this.next.calcSize(p0,p1,p2);
     }
     paint(position)
 	{
@@ -3112,32 +3112,27 @@ class Parts_If extends Parts
 		var pl = new point(); pl.x = x1; pl.y = p0.y;
 		var pl1 = pl.clone(), pl2 = pl.clone();
 		this.left.calcSize(pl, pl1, pl2);
-		this.left_bar_expand = pl.x - pl2.x - this.width / 2;
-		if(this.left_bar_expand < size * 2) this.left_bar_expand = size * 2;
-		pl1.x = pl1.x - this.left_bar_expand;
-		pl2.x = pl2.x - this.left_bar_expand;
+		this.left_bar_expand = (pl2.x - pl.x) - this.width / 2;
+		if(this.left_bar_expand < size) this.left_bar_expand = size;
+		pl1.x -= this.left_bar_expand / 2;
+		pl2.x -= this.left_bar_expand / 2;
 		if(pl1.x < p1.x) p1.x = pl1.x;
 		if(pl2.y > p2.y) p2.y = pl2.y;
 
 		// 右枝
-		var pr = new point(); pr.x = x2; pl.y = p0.y;
+		var pr = new point(); pr.x = x2; pr.y = p0.y;
 		var pr1 = pr.clone(), pr2 = pr.clone();
 		this.right.calcSize(pr, pr1, pr2);
-		this.right_bar_expand = pr.x - pr1.x - this.width / 2;
-		if(this.right_bar_expand < size * 2) this.right_bar_expand = size * 2;
-		pr1.x = pr1.x + this.right_bar_expand;
-		pr2.x = pr2.x + this.right_bar_expand;
+		this.right_bar_expand = (pr.x - pr1.x) - this.width / 2;
+		if(this.right_bar_expand < size) this.right_bar_expand = size;
+		pr1.x += this.right_bar_expand / 2;
+		pr2.x += this.right_bar_expand / 2;
 		if(pr2.x > p2.x) p2.x = pr2.x;
 		if(pl2.y > p2.y) p2.y = pr2.y;
-		// 左枝と右枝がぶつかっていたら，ちょっと伸ばす
-		var distance = pr1.x - pl2.x - size;
-		if(distance < 0)
-		{
-			this.left_bar_expand += -distance / 2;
-			this.right_bar_expand += -distance / 2;
-		}
-//		p0.y = this.end.y;
-		this.end.next.calcSize(p0,pl1,pr2);
+		// 左枝と右枝がぶつかっていたら，右枝をちょっと伸ばす
+		if(pr1.x < pl2.x)
+			this.right_bar_expand += pl2.x - pr1.x;
+		return this.end.next.calcSize(p0,p1,p2);
     }
     paint(position)
 	{
@@ -3176,9 +3171,11 @@ class Parts_If extends Parts
 			flowchart.context.stroke();
 			flowchart.context.fillText('N', this.x2 + size * 0, y0 - size);
 			var right_parts = this.right.paint({x:this.x2 + this.right_bar_expand, y:y0}).prev;
-			var y = left_parts.y2;
+			// 線の下の部分
+			var y; 
 			if(left_parts.y2 > right_parts.y2)
 			{
+				y = left_parts.y2;
 				flowchart.context.beginPath();
 				flowchart.context.moveTo(this.x2 + this.right_bar_expand, right_parts.y2);
 				flowchart.context.lineTo(this.x2 + this.right_bar_expand, y);
@@ -3200,7 +3197,7 @@ class Parts_If extends Parts
 			flowchart.context.stroke();
 			position.y = y;
 			if(this.end.next != null) return this.end.next.paint(position);
-			return this.end;
+//			return this.end;
 		}
 		return this.end.next;
 	}
@@ -3293,8 +3290,10 @@ class Parts_LoopBegin extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		this.next.calcSize(p0,p1,p2);
-		this.end.next.calcSize(p0,p1,p2);
+		var n = this.next;
+		while(n != this.end) n = n.calcSize(p0, p1, p2);
+//		this.next.calcSize(p0,p1,p2);
+		return this.end.next.calcSize(p0,p1,p2);
     }
 	paint(position)
 	{
@@ -3641,7 +3640,7 @@ class Parts_LoopEnd extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		return; // isBlockEnd is true.
+		return this; // isBlockEnd is true.
     }
 	paint(position)
 	{
@@ -3787,8 +3786,8 @@ class Parts_Misc extends Parts
 		if(x2 > p2.x) p2.x = x2;
 		if(y2 > p2.y) p2.y = y2;
 		p0.y = y2;
-		if(this.next == null || this.isBlockEnd) return;
-		this.next.calcSize(p0,p1,p2);
+		if(this.next == null || this.isBlockEnd) return this;
+		return this.next.calcSize(p0,p1,p2);
     }
     paint(position)
 	{
