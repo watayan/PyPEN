@@ -2192,6 +2192,8 @@ onload = function(){
 
 	// Add the one thing we want added to the window object.
 	window.setZeroTimeout = setZeroTimeout;
+
+	$(window).bind("beforeunload", function(){return "プログラムが消去されます";});
 }
 
 /**************************************** flowchart **********************************/
