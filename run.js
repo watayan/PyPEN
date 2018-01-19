@@ -1956,6 +1956,7 @@ function mouseClick()
 function sampleButton(num)
 {
 	var sourceTextArea = document.getElementById("sourceTextarea");
+	if(!/^\s*$/.exec(sourceTextArea.value) && !window.confirm("プログラムをサンプルプログラムに変更していいですか？")) return;
 	sourceTextArea.value = sample[num];
 	reset();
 	if(flowchart) codeChange();

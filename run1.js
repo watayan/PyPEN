@@ -2167,6 +2167,7 @@ function mouseClick() {
 
 function sampleButton(num) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
+	if (!/^\s*$/.exec(sourceTextArea.value) && !window.confirm("プログラムをサンプルプログラムに変更していいですか？")) return;
 	sourceTextArea.value = sample[num];
 	reset();
 	if (flowchart) codeChange();
@@ -2454,6 +2455,10 @@ onload = function onload() {
 
 	// Add the one thing we want added to the window object.
 	window.setZeroTimeout = setZeroTimeout;
+
+	$(window).bind("beforeunload", function () {
+		return "プログラムが消去されます";
+	});
 };
 
 /**************************************** flowchart **********************************/
