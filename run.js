@@ -2684,14 +2684,14 @@ class Parts
 	{
 		flowchart.context.strokeStyle = "rgb(255,0,0)";
 		flowchart.context.fillStyle = "rgb(255,0,0)";
-		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
+		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
 		this.paint(null);
 		flowchart.context.strokeStyle = "rgb(0,0,0)";
 		flowchart.context.fillStyle = "rgb(0,0,0)";
 	}
 	paint_unhighlight()
 	{
-		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y2);
+		flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
 		this.paint(null);
 	}
 
@@ -3139,26 +3139,31 @@ class Parts_If extends Parts
 		var pl = new point(); pl.x = x1; pl.y = p0.y;
 		var pl1 = pl.clone(), pl2 = pl.clone();
 		this.left.calcSize(pl, pl1, pl2);
-		this.left_bar_expand = (pl2.x - pl.x) - this.width / 2;
+		this.left_bar_expand = (pl2.x - pl.x); // - this.width / 2;
 		if(this.left_bar_expand < size) this.left_bar_expand = size;
-		pl1.x -= this.left_bar_expand / 2;
-		pl2.x -= this.left_bar_expand / 2;
+		pl1.x -= this.left_bar_expand;
+		pl2.x -= this.left_bar_expand;
 		if(pl1.x < p1.x) p1.x = pl1.x;
-		if(pl2.y > p2.y) p2.y = pl2.y;
+		if(pl1.y > p1.y) p1.y = pl1.y;
+		if(pl2.y > p1.y) p1.y = pl2.y;
 
 		// 右枝
 		var pr = new point(); pr.x = x2; pr.y = p0.y;
 		var pr1 = pr.clone(), pr2 = pr.clone();
 		this.right.calcSize(pr, pr1, pr2);
-		this.right_bar_expand = (pr.x - pr1.x) - this.width / 2;
+		this.right_bar_expand = (pr.x - pr1.x); // - this.width / 2;
 		if(this.right_bar_expand < size) this.right_bar_expand = size;
-		pr1.x += this.right_bar_expand / 2;
-		pr2.x += this.right_bar_expand / 2;
+		pr1.x += this.right_bar_expand;
+		pr2.x += this.right_bar_expand;
 		if(pr2.x > p2.x) p2.x = pr2.x;
-		if(pl2.y > p2.y) p2.y = pr2.y;
+		if(pr1.y > p2.y) p2.y = pr1.y;
+		if(pr2.y > p2.y) p2.y = pr2.y;
 		// 左枝と右枝がぶつかっていたら，右枝をちょっと伸ばす
-		if(pr1.x < pl2.x)
-			this.right_bar_expand += pl2.x - pr1.x;
+		if(pr1.x < pl2.x + size)
+		{
+			this.right_bar_expand += pl2.x - pr1.x + size;
+			p2.x += pl2.x - pr1.x + size;
+		}
 		return this.end.next.calcSize(p0,p1,p2);
     }
     paint(position)
