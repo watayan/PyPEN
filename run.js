@@ -2106,6 +2106,7 @@ onload = function(){
 					reader.onload = function(event)
 					{
 						sourceTextArea.value = event.target.result;
+						codeChange();
 					}
 					break;
 				}

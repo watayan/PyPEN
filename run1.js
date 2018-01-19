@@ -2289,6 +2289,7 @@ onload = function onload() {
 					var text = reader.readAsText(filelist[i]);
 					reader.onload = function (event) {
 						sourceTextArea.value = event.target.result;
+						codeChange();
 					};
 					break;
 				} catch (e) {}
