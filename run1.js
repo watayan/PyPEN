@@ -2278,6 +2278,24 @@ onload = function onload() {
 			flowchart = null;
 		}
 	};
+	sourceTextArea.ondrop = function (e) {
+		var filelist = e.dataTransfer.files;
+		if (!filelist) return;
+		for (var i = 0; i < filelist.length; i++) {
+			if (!/\.pen$/i.exec(filelist[i].name)) continue;
+			if (window.FileReader) {
+				try {
+					var reader = new FileReader();
+					var text = reader.readAsText(filelist[i]);
+					reader.onload = function (event) {
+						sourceTextArea.value = event.target.result;
+					};
+					break;
+				} catch (e) {}
+			}
+		}
+		return false;
+	};
 	registerEvent(sourceTextArea, "keyup", keyUp);
 	registerEvent(flowchart_canvas, "mousedown", mouseDown);
 	registerEvent(flowchart_canvas, "mouseup", mouseUp);
