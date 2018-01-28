@@ -25,7 +25,9 @@ var current_line = -1;
 var wait_time = 0;
 var flowchart_display = false;
 var converting = false;
+var dirty = null;
 
+// コードをフローチャートに反映させる
 function codeChange() {
 	if (converting || !flowchart_display) return;
 	var code = document.getElementById("sourceTextarea").value + "\n";
@@ -59,6 +61,13 @@ function constructor_name(obj) {
 	var result = /^(class|function)\s+([\w\d]+)/.exec(obj.constructor.toString());
 	return result ? result[2] : null;
 	// return obj.constructor.name;
+}
+
+function makeDirty(b) {
+	if (b !== dirty) {
+		dirty = b;
+		document.getElementById("dirty").style.visibility = dirty ? "visible" : "hidden";
+	}
 }
 
 function textareaAppend(v) {
@@ -2167,10 +2176,11 @@ function mouseClick() {
 
 function sampleButton(num) {
 	var sourceTextArea = document.getElementById("sourceTextarea");
-	if (!/^\s*$/.exec(sourceTextArea.value) && !window.confirm("プログラムをサンプルプログラムに変更していいですか？")) return;
+	if (dirty && !window.confirm("プログラムをサンプルプログラムに変更していいですか？")) return;
 	sourceTextArea.value = sample[num];
 	reset();
 	if (flowchart) codeChange();
+	makeDirty(false);
 }
 
 function insertCode(add_code) {
@@ -2186,299 +2196,6 @@ function insertCode(add_code) {
 function registerEvent(elem, ev, func) {
 	if (elem.addEventListener) elem.addEventListener(ev, func);else if (elem.attachEvent) elem.attachEvent('on' + ev, func);
 }
-
-onload = function onload() {
-	var sourceTextArea = document.getElementById("sourceTextarea");
-	var resultTextArea = document.getElementById("resultTextarea");
-	var parseButton = document.getElementById("parseButton");
-	var newButton = document.getElementById("newButton");
-	var runButton = document.getElementById("runButton");
-	var flowchartButton = document.getElementById("flowchartButton");
-	var resetButton = document.getElementById("resetButton");
-	var stepButton = document.getElementById("stepButton");
-	var loadButton = document.getElementById("loadButton");
-	var file_prefix = document.getElementById("file_prefix");
-	var flowchart_canvas = document.getElementById("flowchart");
-	$("#sourceTextarea").linedtextarea();
-	textarea = resultTextArea;
-	parseButton.onclick = function () {
-		var source = sourceTextArea.value + "\n";
-		try {
-			resultTextArea.value = '';
-			parse = dncl.parse(source);
-			resultTextArea.value = toString(parse);
-		} catch (e) {
-			resultTextArea.value += "構文エラーです\n" + e.message;
-		} finally {
-			parse = null;
-		}
-	};
-	runButton.onclick = function () {
-		if (run_flag && !step_flag) {
-			setRunflag(false);
-		} else {
-			step_flag = false;
-			run();
-		}
-	};
-	stepButton.onclick = function () {
-		step_flag = true;
-		run();
-	};
-	newButton.onclick = function () {
-		if (!window.confirm("プログラムを削除していいですか？")) return;
-		sourceTextArea.value = "";
-		parse = null;
-		reset();
-		if (flowchart) {
-			flowchart.makeEmpty();
-			flowchart.paint();
-		}
-	};
-	resetButton.onclick = function () {
-		reset();
-	};
-	loadButton.addEventListener("change", function (ev) {
-		var file = ev.target.files;
-		var reader = new FileReader();
-		reader.readAsText(file[0], "UTF-8");
-		reader.onload = function (ev) {
-			sourceTextArea.value = reader.result;
-			reset();
-			if (flowchart) codeChange();
-		};
-	}, false);
-	downloadLink.onclick = function () {
-		var now = new Date();
-		var filename = file_prefix.value.trim();
-		if (filename.length < 1) filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
-		filename += '.PEN';
-		var blob = new Blob([sourceTextArea.value], { type: "text/plain" });
-		if (window.navigator.msSaveBlob) {
-			window.navigator.msSaveBlob(blob, filename);
-		} else {
-			window.URL = window.URL || window.webkitURL;
-			downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
-			downloadLink.setAttribute("download", filename);
-		}
-	};
-	flowchartButton.onchange = function () {
-		flowchart_display = this.checked;
-		var flowchart_area = document.getElementById("Flowchart_area");
-		var drawButton = document.getElementById("drawButton");
-		if (flowchart_display) {
-			flowchart_area.style.display = "block";
-			drawButton.style.display = "inline";
-			flowchart = new Flowchart();
-			codeChange();
-			//			flowchart.paint();
-		} else {
-			flowchart_area.style.display = "none";
-			drawButton.style.display = "none";
-			flowchart = null;
-		}
-	};
-	sourceTextArea.ondrop = function (e) {
-		var filelist = e.dataTransfer.files;
-		if (!filelist) return;
-		for (var i = 0; i < filelist.length; i++) {
-			if (!/\.pen$/i.exec(filelist[i].name)) continue;
-			if (window.FileReader) {
-				try {
-					var reader = new FileReader();
-					var text = reader.readAsText(filelist[i]);
-					reader.onload = function (event) {
-						sourceTextArea.value = event.target.result;
-						codeChange();
-					};
-					break;
-				} catch (e) {}
-			}
-		}
-		return false;
-	};
-	registerEvent(sourceTextArea, "keyup", keyUp);
-	registerEvent(flowchart_canvas, "mousedown", mouseDown);
-	registerEvent(flowchart_canvas, "mouseup", mouseUp);
-	registerEvent(flowchart_canvas, "mousemove", mouseMove);
-	registerEvent(flowchart_canvas, "dblclick", doubleclick_Flowchart);
-
-	$.contextMenu({
-		selector: "#sourceTextarea",
-		items: {
-			copyAll: { name: "プログラムをコピー", callback: function callback(k, e) {
-					document.getElementById("sourceTextarea").select();document.execCommand('copy');
-				}
-			},
-			zenkaku: { name: "入力補助",
-				items: {
-					かつ: { name: "かつ", callback: function callback(k, e) {
-							insertCode("《値》 かつ 《値》");
-						}
-					},
-					または: { name: "または", callback: function callback(k, e) {
-							insertCode("《値》 または 《値》");
-						} },
-					でない: { name: "でない", callback: function callback(k, e) {
-							insertCode("《値》 でない");
-						} },
-					と: { name: "と", callback: function callback(k, e) {
-							insertCode("《値》と《値》");
-						} },
-					カッコ: { name: "「」", callback: function callback(k, e) {
-							insertCode("「《値》」");
-						} }
-				}
-			},
-			math: { name: "数学関数",
-				items: {
-					abs: { name: "abs 絶対値", callback: function callback(k, e) {
-							insertCode("abs(《値》)");
-						} },
-					random: { name: "random 乱数", callback: function callback(k, e) {
-							insertCode("random(《整数》)");
-						} },
-					ceil: { name: "ceil 切り上げ", callback: function callback(k, e) {
-							insertCode("ceil(《実数》)");
-						} },
-					floor: { name: "floor 切り捨て", callback: function callback(k, e) {
-							insertCode("floor(《実数》)");
-						} },
-					round: { name: "round 四捨五入", callback: function callback(k, e) {
-							insertCode("round(《実数》)");
-						} },
-					sin: { name: "sin サイン", callback: function callback(k, e) {
-							insertCode("sin(《実数》)");
-						} },
-					cos: { name: "cos コサイン", callback: function callback(k, e) {
-							insertCode("cos(《実数》)");
-						} },
-					tan: { name: "tan タンジェント", callback: function callback(k, e) {
-							insertCode("tan(《実数》)");
-						} },
-					sqrt: { name: "sqrt ルート", callback: function callback(k, e) {
-							insertCode("sqrt(《実数》)");
-						} },
-					log: { name: "log 自然対数", callback: function callback(k, e) {
-							insertCode("log(《実数》)");
-						} },
-					exp: { name: "exp 指数関数", callback: function callback(k, e) {
-							insertCode("exp(《実数》)");
-						} },
-					pow: { name: "pow 累乗", callback: function callback(k, e) {
-							insertCode("pow(《実数》,《実数》)");
-						} }
-				}
-			},
-			str: { name: "文字列関数",
-				items: {
-					length: { name: "length 長さ", callback: function callback(k, e) {
-							insertCode("length(《文字列》)");
-						} },
-					append: { name: "append 文字列結合", callback: function callback(k, e) {
-							insertCode("append(《文字列》,《文字列》)");
-						} },
-					substring1: { name: "substring 部分文字列（最後まで）", callback: function callback(k, e) {
-							insertCode("substring(《文字列》,《開始位置》)");
-						} },
-					substring2: { name: "substring 部分文字列（長さ指定）", callback: function callback(k, e) {
-							insertCode("substring(《文字列》,《開始位置》,《長さ》)");
-						} },
-					extract: { name: "extract 部分文字列（長さ指定）", callback: function callback(k, e) {
-							insertCode("extract(《文字列》,《区切文字列》,《番号》)");
-						} },
-					insert: { name: "insert 挿入", callback: function callback(k, e) {
-							insertCode("insert(《文字列》,《位置》,《文字列》)");
-						} },
-					replace: { name: "replace 置換", callback: function callback(k, e) {
-							insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");
-						} }
-				}
-			},
-			misc: { name: "各種命令",
-				items: {
-					gOpenWindow: { name: "描画領域開く", callback: function callback(k, e) {
-							insertCode("描画領域開く(《幅》,《高さ》)");
-						} },
-					gCloseWindow: { name: "描画領域閉じる", callback: function callback(k, e) {
-							insertCode("描画領域閉じる()");
-						} },
-					gClearWindow: { name: "描画領域全消去", callback: function callback(k, e) {
-							insertCode("描画領域全消去()");
-						} },
-					gSetLineColor: { name: "線色設定", callback: function callback(k, e) {
-							insertCode("線色設定(《赤》,《青》,《緑》)");
-						} },
-					gSetFillColor: { name: "塗色設定", callback: function callback(k, e) {
-							insertCode("塗色設定(《赤》,《青》,《緑》)");
-						} },
-					gSetLineWidth: { name: "線太さ設定", callback: function callback(k, e) {
-							insertCode("線太さ設定(《太さ》)");
-						} },
-					gSetFontSize: { name: "文字サイズ設定", callback: function callback(k, e) {
-							insertCode("文字サイズ設定(《サイズ》)");
-						} },
-					gDrawText: { name: "文字描画", callback: function callback(k, e) {
-							insertCode("文字描画(《文字列》,《x》,《y》)");
-						} },
-					gDrawLine: { name: "線描画", callback: function callback(k, e) {
-							insertCode("線描画(《x1》,《y1》,《x2》,《y2》)");
-						} },
-					gDrawBox: { name: "矩形描画", callback: function callback(k, e) {
-							insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");
-						} },
-					gFillBox: { name: "矩形塗描画", callback: function callback(k, e) {
-							insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");
-						} },
-					gDrawCircle: { name: "円描画", callback: function callback(k, e) {
-							insertCode("円描画(《x》,《y》,《半径》)");
-						} },
-					gFillCircle: { name: "円塗描画", callback: function callback(k, e) {
-							insertCode("円塗描画(《x》,《y》,《半径》)");
-						} },
-					sleep: { name: "待つ", callback: function callback(k, e) {
-							insertCode("《秒数》 秒待つ");
-						} }
-				}
-			}
-		}
-	});
-	$.contextMenu({
-		selector: "#flowchart",
-		build: contextMenu_Flowchart
-	});
-	// this code is from David Baron's Weblog
-	// https://dbaron.org/log/20100309-faster-timeouts
-	var timeouts = [];
-	var messageName = "zero-timeout-message";
-
-	// Like setTimeout, but only takes a function argument.  There's
-	// no time argument (always zero) and no arguments (you have to
-	// use a closure).
-	function setZeroTimeout(fn) {
-		timeouts.push(fn);
-		window.postMessage(messageName, "*");
-	}
-
-	function handleMessage(event) {
-		if (event.source == window && event.data == messageName) {
-			event.stopPropagation();
-			if (timeouts.length > 0) {
-				var fn = timeouts.shift();
-				fn();
-			}
-		}
-	}
-
-	if (window.addEventListener) window.addEventListener("message", handleMessage, true);else if (window.attachEvent) window.attachEvent("onmessage", handleMessage);
-
-	// Add the one thing we want added to the window object.
-	window.setZeroTimeout = setZeroTimeout;
-
-	$(window).bind("beforeunload", function () {
-		return "プログラムが消去されます";
-	});
-};
 
 /**************************************** flowchart **********************************/
 
@@ -2555,6 +2272,7 @@ function doubleclick_Flowchart(evt) {
 
 function variableChange(e) {
 	flowchart.flowchart2code();
+	makeDirty(true);
 }
 
 function contextMenu_Flowchart(trigger, event) {
@@ -2616,7 +2334,8 @@ function contextMenu_Flowchart(trigger, event) {
 
 function callbackPartsBar(bar, key) {
 	bar.highlight();
-	if (key == "input") Parts_Input.appendMe(bar);else if (key == "output") Parts_Output.appendMe(bar);else if (key == "substitute") Parts_Substitute.appendMe(bar);else if (key == "if") Parts_If.appendMe(bar);else if (key == "loop1") Parts_LoopBegin1.appendMe(bar);else if (key == "loop2") Parts_LoopBegin2.appendMe(bar);else if (key == "loopinc") Parts_LoopBeginInc.appendMe(bar);else if (key == "loopdec") Parts_LoopBeginDec.appendMe(bar);else if (key == "misc") Parts_Misc.appendMe(bar);
+	if (key == "input") Parts_Input.appendMe(bar);else if (key == "output") Parts_Output.appendMe(bar);else if (key == "substitute") Parts_Substitute.appendMe(bar);else if (key == "if") Parts_If.appendMe(bar);else if (key == "loop1") Parts_LoopBegin1.appendMe(bar);else if (key == "loop2") Parts_LoopBegin2.appendMe(bar);else if (key == "loopinc") Parts_LoopBeginInc.appendMe(bar);else if (key == "loopdec") Parts_LoopBeginDec.appendMe(bar);else if (key == "misc") Parts_Misc.appendMe(bar);else return;
+	makeDirty(true);
 }
 
 function callbackParts(parts, key) {
@@ -2624,9 +2343,9 @@ function callbackParts(parts, key) {
 	if (key == "edit") {
 		parts.editMe();
 	} else if (key == "delete") {
-		parts.deleteMe();
+		parts.deleteMe();makeDirty(true);
 	} else if (key == "cut") {
-		parts.cutMe();
+		parts.cutMe();makeDirty(true);
 	}
 }
 
@@ -4569,6 +4288,7 @@ function closeModalWindow(ok) {
 	$("#input").hide();
 	$("#input-overlay").hide();
 	modal_parts.unhighlight();
+	if (ok) makeDirty(true);
 	modal_parts.edited(ok ? modal_values : null); // parts must have function 'edited'
 }
 
@@ -4666,3 +4386,302 @@ function keydownModalforMisc(e) {
 		closeModalWindowforMisc(false);else if (evt.keyCode == 13) // Enter
 		closeModalWindowforMisc(true);
 }
+
+onload = function onload() {
+	var sourceTextArea = document.getElementById("sourceTextarea");
+	var resultTextArea = document.getElementById("resultTextarea");
+	var parseButton = document.getElementById("parseButton");
+	var newButton = document.getElementById("newButton");
+	var runButton = document.getElementById("runButton");
+	var flowchartButton = document.getElementById("flowchartButton");
+	var resetButton = document.getElementById("resetButton");
+	var stepButton = document.getElementById("stepButton");
+	var loadButton = document.getElementById("loadButton");
+	var file_prefix = document.getElementById("file_prefix");
+	var flowchart_canvas = document.getElementById("flowchart");
+	$("#sourceTextarea").linedtextarea();
+	sourceTextArea.onchange = function () {
+		makeDirty(true);
+	};
+	makeDirty(false);
+	textarea = resultTextArea;
+	parseButton.onclick = function () {
+		var source = sourceTextArea.value + "\n";
+		try {
+			resultTextArea.value = '';
+			parse = dncl.parse(source);
+			resultTextArea.value = toString(parse);
+		} catch (e) {
+			resultTextArea.value += "構文エラーです\n" + e.message;
+		} finally {
+			parse = null;
+		}
+	};
+	runButton.onclick = function () {
+		if (run_flag && !step_flag) {
+			setRunflag(false);
+		} else {
+			step_flag = false;
+			run();
+		}
+	};
+	stepButton.onclick = function () {
+		step_flag = true;
+		run();
+	};
+	newButton.onclick = function () {
+		if (dirty && !window.confirm("プログラムを削除していいですか？")) return;
+		sourceTextArea.value = "";
+		parse = null;
+		reset();
+		if (flowchart) {
+			flowchart.makeEmpty();
+			flowchart.paint();
+		}
+		makeDirty(false);
+	};
+	resetButton.onclick = function () {
+		reset();
+	};
+	loadButton.addEventListener("change", function (ev) {
+		var file = ev.target.files;
+		var reader = new FileReader();
+		reader.readAsText(file[0], "UTF-8");
+		reader.onload = function (ev) {
+			sourceTextArea.value = reader.result;
+			reset();
+			if (flowchart) codeChange();
+		};
+	}, false);
+	downloadLink.onclick = function () {
+		var now = new Date();
+		var filename = file_prefix.value.trim();
+		if (filename.length < 1) filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
+		filename += '.PEN';
+		var blob = new Blob([sourceTextArea.value], { type: "text/plain" });
+		if (window.navigator.msSaveBlob) {
+			window.navigator.msSaveBlob(blob, filename);
+		} else {
+			window.URL = window.URL || window.webkitURL;
+			downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
+			downloadLink.setAttribute("download", filename);
+		}
+		makeDirty(false);
+	};
+	flowchartButton.onchange = function () {
+		flowchart_display = this.checked;
+		var flowchart_area = document.getElementById("Flowchart_area");
+		var drawButton = document.getElementById("drawButton");
+		if (flowchart_display) {
+			flowchart_area.style.display = "block";
+			drawButton.style.display = "inline";
+			flowchart = new Flowchart();
+			codeChange();
+			//			flowchart.paint();
+		} else {
+			flowchart_area.style.display = "none";
+			drawButton.style.display = "none";
+			flowchart = null;
+		}
+	};
+	sourceTextArea.ondrop = function (e) {
+		var filelist = e.dataTransfer.files;
+		if (!filelist) return;
+		for (var i = 0; i < filelist.length; i++) {
+			if (!/\.pen$/i.exec(filelist[i].name)) continue;
+			if (window.FileReader) {
+				try {
+					var reader = new FileReader();
+					var text = reader.readAsText(filelist[i]);
+					reader.onload = function (event) {
+						sourceTextArea.value = event.target.result;
+						codeChange();
+					};
+					break;
+				} catch (e) {}
+			}
+		}
+		return false;
+	};
+	registerEvent(sourceTextArea, "keyup", keyUp);
+	registerEvent(flowchart_canvas, "mousedown", mouseDown);
+	registerEvent(flowchart_canvas, "mouseup", mouseUp);
+	registerEvent(flowchart_canvas, "mousemove", mouseMove);
+	registerEvent(flowchart_canvas, "dblclick", doubleclick_Flowchart);
+
+	$.contextMenu({
+		selector: "#sourceTextarea",
+		items: {
+			copyAll: { name: "プログラムをコピー", callback: function callback(k, e) {
+					document.getElementById("sourceTextarea").select();document.execCommand('copy');
+				}
+			},
+			zenkaku: { name: "入力補助",
+				items: {
+					かつ: { name: "かつ", callback: function callback(k, e) {
+							insertCode("《値》 かつ 《値》");
+						}
+					},
+					または: { name: "または", callback: function callback(k, e) {
+							insertCode("《値》 または 《値》");
+						} },
+					でない: { name: "でない", callback: function callback(k, e) {
+							insertCode("《値》 でない");
+						} },
+					と: { name: "と", callback: function callback(k, e) {
+							insertCode("《値》と《値》");
+						} },
+					カッコ: { name: "「」", callback: function callback(k, e) {
+							insertCode("「《値》」");
+						} }
+				}
+			},
+			math: { name: "数学関数",
+				items: {
+					abs: { name: "abs 絶対値", callback: function callback(k, e) {
+							insertCode("abs(《値》)");
+						} },
+					random: { name: "random 乱数", callback: function callback(k, e) {
+							insertCode("random(《整数》)");
+						} },
+					ceil: { name: "ceil 切り上げ", callback: function callback(k, e) {
+							insertCode("ceil(《実数》)");
+						} },
+					floor: { name: "floor 切り捨て", callback: function callback(k, e) {
+							insertCode("floor(《実数》)");
+						} },
+					round: { name: "round 四捨五入", callback: function callback(k, e) {
+							insertCode("round(《実数》)");
+						} },
+					sin: { name: "sin サイン", callback: function callback(k, e) {
+							insertCode("sin(《実数》)");
+						} },
+					cos: { name: "cos コサイン", callback: function callback(k, e) {
+							insertCode("cos(《実数》)");
+						} },
+					tan: { name: "tan タンジェント", callback: function callback(k, e) {
+							insertCode("tan(《実数》)");
+						} },
+					sqrt: { name: "sqrt ルート", callback: function callback(k, e) {
+							insertCode("sqrt(《実数》)");
+						} },
+					log: { name: "log 自然対数", callback: function callback(k, e) {
+							insertCode("log(《実数》)");
+						} },
+					exp: { name: "exp 指数関数", callback: function callback(k, e) {
+							insertCode("exp(《実数》)");
+						} },
+					pow: { name: "pow 累乗", callback: function callback(k, e) {
+							insertCode("pow(《実数》,《実数》)");
+						} }
+				}
+			},
+			str: { name: "文字列関数",
+				items: {
+					length: { name: "length 長さ", callback: function callback(k, e) {
+							insertCode("length(《文字列》)");
+						} },
+					append: { name: "append 文字列結合", callback: function callback(k, e) {
+							insertCode("append(《文字列》,《文字列》)");
+						} },
+					substring1: { name: "substring 部分文字列（最後まで）", callback: function callback(k, e) {
+							insertCode("substring(《文字列》,《開始位置》)");
+						} },
+					substring2: { name: "substring 部分文字列（長さ指定）", callback: function callback(k, e) {
+							insertCode("substring(《文字列》,《開始位置》,《長さ》)");
+						} },
+					extract: { name: "extract 部分文字列（長さ指定）", callback: function callback(k, e) {
+							insertCode("extract(《文字列》,《区切文字列》,《番号》)");
+						} },
+					insert: { name: "insert 挿入", callback: function callback(k, e) {
+							insertCode("insert(《文字列》,《位置》,《文字列》)");
+						} },
+					replace: { name: "replace 置換", callback: function callback(k, e) {
+							insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");
+						} }
+				}
+			},
+			misc: { name: "各種命令",
+				items: {
+					gOpenWindow: { name: "描画領域開く", callback: function callback(k, e) {
+							insertCode("描画領域開く(《幅》,《高さ》)");
+						} },
+					gCloseWindow: { name: "描画領域閉じる", callback: function callback(k, e) {
+							insertCode("描画領域閉じる()");
+						} },
+					gClearWindow: { name: "描画領域全消去", callback: function callback(k, e) {
+							insertCode("描画領域全消去()");
+						} },
+					gSetLineColor: { name: "線色設定", callback: function callback(k, e) {
+							insertCode("線色設定(《赤》,《青》,《緑》)");
+						} },
+					gSetFillColor: { name: "塗色設定", callback: function callback(k, e) {
+							insertCode("塗色設定(《赤》,《青》,《緑》)");
+						} },
+					gSetLineWidth: { name: "線太さ設定", callback: function callback(k, e) {
+							insertCode("線太さ設定(《太さ》)");
+						} },
+					gSetFontSize: { name: "文字サイズ設定", callback: function callback(k, e) {
+							insertCode("文字サイズ設定(《サイズ》)");
+						} },
+					gDrawText: { name: "文字描画", callback: function callback(k, e) {
+							insertCode("文字描画(《文字列》,《x》,《y》)");
+						} },
+					gDrawLine: { name: "線描画", callback: function callback(k, e) {
+							insertCode("線描画(《x1》,《y1》,《x2》,《y2》)");
+						} },
+					gDrawBox: { name: "矩形描画", callback: function callback(k, e) {
+							insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");
+						} },
+					gFillBox: { name: "矩形塗描画", callback: function callback(k, e) {
+							insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");
+						} },
+					gDrawCircle: { name: "円描画", callback: function callback(k, e) {
+							insertCode("円描画(《x》,《y》,《半径》)");
+						} },
+					gFillCircle: { name: "円塗描画", callback: function callback(k, e) {
+							insertCode("円塗描画(《x》,《y》,《半径》)");
+						} },
+					sleep: { name: "待つ", callback: function callback(k, e) {
+							insertCode("《秒数》 秒待つ");
+						} }
+				}
+			}
+		}
+	});
+	$.contextMenu({
+		selector: "#flowchart",
+		build: contextMenu_Flowchart
+	});
+	// this code is from David Baron's Weblog
+	// https://dbaron.org/log/20100309-faster-timeouts
+	var timeouts = [];
+	var messageName = "zero-timeout-message";
+
+	// Like setTimeout, but only takes a function argument.  There's
+	// no time argument (always zero) and no arguments (you have to
+	// use a closure).
+	function setZeroTimeout(fn) {
+		timeouts.push(fn);
+		window.postMessage(messageName, "*");
+	}
+
+	function handleMessage(event) {
+		if (event.source == window && event.data == messageName) {
+			event.stopPropagation();
+			if (timeouts.length > 0) {
+				var fn = timeouts.shift();
+				fn();
+			}
+		}
+	}
+
+	if (window.addEventListener) window.addEventListener("message", handleMessage, true);else if (window.attachEvent) window.attachEvent("onmessage", handleMessage);
+
+	// Add the one thing we want added to the window object.
+	window.setZeroTimeout = setZeroTimeout;
+
+	$(window).bind("beforeunload", function () {
+		if (dirty) return "プログラムが消去されます";
+	});
+};
