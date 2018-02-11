@@ -14,6 +14,7 @@ var varsInt = {},
     varsFloat = {},
     varsString = {},
     varsBoolean = {};
+var varsArray = {};
 var stack = [];
 var run_flag = false,
     step_flag = false;
@@ -913,7 +914,7 @@ var Variable = function (_Value24) {
 		key: "getValue",
 		value: function getValue() {
 			var vn = this.varname;
-			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else return new NullValue(this.loc);
+			if (varsInt[vn] != undefined) return new IntValue(varsInt[vn], this.loc);else if (varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);else if (varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);else if (varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);else if (varsArray[vn] != undefined) return variable2Array(vn, this.loc, []);else if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else return new NullValue(this.loc);
 		}
 	}, {
 		key: "getCode",
@@ -948,6 +949,23 @@ var Variable = function (_Value24) {
 
 	return Variable;
 }(Value);
+
+function variable2Array(vn, loc, args) {
+	var depth = args.length;
+	if (depth == varsArray[vn].length) {
+		var vnargs = vn + '[' + args.join(',') + ']';
+		if (varsInt[vnargs] != undefined) return new IntValue(varsInt[vnargs], loc);else if (varsFloat[vnargs] != undefined) return new FloatValue(varsFloat[vnargs], loc);else if (varsString[vnargs] != undefined) return new StringValue(varsString[vnargs], loc);else if (varsBoolean[vnargs] != undefined) return new BooleanValue(varsBoolean[vnargs], loc);else if (setting.var_declaration == 0) throw new RuntimeError(loc.first_line, "変数" + vnargs + "は宣言されていません");else return 0;
+	}
+	var i0 = setting.array_origin == 2 ? 1 : 0;
+	var i1 = varsArray[vn][depth].value - (setting.array_origin == 1 ? 1 : 0);
+	var val = [];
+	for (var i = i0; i <= i1; i++) {
+		args.push(i);
+		val.push(variable2Array(vn, loc, args));
+		args.pop();
+	}
+	return new ArrayValue(val, loc);
+}
 
 var CallFunction = function (_Value25) {
 	_inherits(CallFunction, _Value25);
@@ -1202,6 +1220,8 @@ var DefinitionInt = function (_Statement) {
 				if (!parameter) {
 					varsInt[varname] = 0;
 				} else {
+					if (varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+					varsArray[varname] = parameter.slice();
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
 						var v = parameter[j].getValue();
@@ -1272,6 +1292,8 @@ var DefinitionFloat = function (_Statement2) {
 				if (!parameter) {
 					varsFloat[varname] = 0.0;
 				} else {
+					if (varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+					varsArray[varname] = parameter.slice();
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
 						var v = parameter[j].getValue();
@@ -1342,6 +1364,8 @@ var DefinitionString = function (_Statement3) {
 				if (!parameter) {
 					varsString[varname] = '';
 				} else {
+					if (varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+					varsArray[varname] = parameter.slice();
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
 						var v = parameter[j].getValue();
@@ -1412,6 +1436,8 @@ var DefinitionBoolean = function (_Statement4) {
 				if (!parameter) {
 					varsBoolean[varname] = false;
 				} else {
+					if (varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+					varsArray[varname] = parameter.slice();
 					var parameterlist = [];
 					for (var j = 0; j < parameter.length; j++) {
 						var v = parameter[j].getValue();
@@ -1617,15 +1643,26 @@ var Output = function (_Statement9) {
 	_createClass(Output, [{
 		key: "run",
 		value: function run(index) {
-			var v = this.value.getValue().value;
+			var v = this.value.getValue();
 			if (this.value.getValue() instanceof NullValue) v = '';
-			textareaAppend(v + (this.ln ? "\n" : ""));
+			textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
 			return index + 1;
 		}
 	}]);
 
 	return Output;
 }(Statement);
+
+function array2text(v) {
+	if (v instanceof ArrayValue) {
+		var _v9 = [];
+		var _v10 = v.value;
+		for (var i = 0; i < v.value.length; i++) {
+			_v9.push(array2text(v.value[i]));
+		}return '[' + _v9.join(',') + ']';
+	} else if (v instanceof NullValue) return '';
+	return v.value;
+}
 
 var GraphicStatement = function (_Statement10) {
 	_inherits(GraphicStatement, _Statement10);
@@ -1974,6 +2011,7 @@ function highlightLine(l) {
 
 function reset() {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
+	varsArray = {};
 	current_line = -1;
 	textarea.value = '';
 	setRunflag(false);

@@ -3,6 +3,7 @@
 // edit run.js, and transpile with Babel to make run1.js
 
 var varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
+var varsArray = {};
 var stack = [];
 var run_flag = false, step_flag = false;
 var parse = null;
@@ -679,6 +680,7 @@ class Variable extends Value
 		else if(varsFloat[vn] != undefined) return new FloatValue(varsFloat[vn], this.loc);
 		else if(varsString[vn] != undefined) return new StringValue(varsString[vn], this.loc);
 		else if(varsBoolean[vn] != undefined) return new BooleanValue(varsBoolean[vn], this.loc);
+		else if(varsArray[vn] != undefined) return variable2Array(vn, this.loc, []);
 		else if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
 		else return new NullValue(this.loc);
 	}
@@ -698,6 +700,32 @@ class Variable extends Value
 		return vn;
 	}
 }
+
+function variable2Array(vn, loc, args)
+{
+	let depth = args.length;
+	if(depth == varsArray[vn].length)
+	{
+		let vnargs = vn + '[' + args.join(',') + ']';
+		if(varsInt[vnargs] != undefined) return new IntValue(varsInt[vnargs], loc);
+		else if(varsFloat[vnargs] != undefined) return new FloatValue(varsFloat[vnargs], loc);
+		else if(varsString[vnargs] != undefined) return new StringValue(varsString[vnargs], loc);
+		else if(varsBoolean[vnargs] != undefined) return new BooleanValue(varsBoolean[vnargs], loc);
+		else if(setting.var_declaration == 0) throw new RuntimeError(loc.first_line, "変数" + vnargs + "は宣言されていません");
+		else return 0;
+	}
+	let i0 = setting.array_origin == 2 ? 1 : 0;
+	let i1 = varsArray[vn][depth].value - (setting.array_origin == 1 ? 1 : 0);
+	let val = [];
+	for(let i = i0; i <= i1; i++)
+	{
+		args.push(i);
+		val.push(variable2Array(vn, loc, args))
+		args.pop();
+	}
+	return new ArrayValue(val, loc);
+}
+
 
 class CallFunction extends Value
 {
@@ -998,6 +1026,8 @@ class DefinitionInt extends Statement
 			}
 			else
 			{
+				if(varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+				varsArray[varname] = parameter.slice();
 				let parameterlist = [];
 				for(var j = 0; j < parameter.length; j++)
 				{
@@ -1073,6 +1103,8 @@ class DefinitionFloat extends Statement
 			}
 			else
 			{
+				if(varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+				varsArray[varname] = parameter.slice();
 				let parameterlist = [];
 				for(var j = 0; j < parameter.length; j++)
 				{
@@ -1148,6 +1180,8 @@ class DefinitionString extends Statement
 			}
 			else
 			{
+				if(varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+				varsArray[varname] = parameter.slice();
 				let parameterlist = [];
 				for(var j = 0; j < parameter.length; j++)
 				{
@@ -1223,6 +1257,8 @@ class DefinitionBoolean extends Statement
 			}
 			else
 			{
+				if(varsArray[varname] != undefined) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
+				varsArray[varname] = parameter.slice();
 				let parameterlist = [];
 				for(var j = 0; j < parameter.length; j++)
 				{
@@ -1427,11 +1463,24 @@ class Output extends Statement
 	}
 	run(index)
 	{
-		let v = this.value.getValue().value;
+		let v = this.value.getValue();
 		if(this.value.getValue() instanceof NullValue) v = '';
-		textareaAppend(v + (this.ln ? "\n" : ""));
+		textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
 		return index + 1;
 	}
+}
+
+function array2text(v)
+{
+	if(v instanceof ArrayValue)
+	{
+		let v1 = [];
+		let v2 = v.value;
+		for(let i = 0; i < v.value.length; i++) v1.push(array2text(v.value[i]));
+		return '[' + v1.join(',') + ']';
+	}
+	else if(v instanceof NullValue) return '';
+	return v.value;
 }
 
 class GraphicStatement extends Statement
@@ -1728,6 +1777,7 @@ function highlightLine(l)
 function reset()
 {
 	varsInt = {}, varsFloat = {}, varsString = {}, varsBoolean = {};
+	varsArray = {};
 	current_line = -1;
 	textarea.value = '';
 	setRunflag(false);
