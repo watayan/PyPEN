@@ -13,8 +13,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var varsInt = {},
     varsFloat = {},
     varsString = {},
-    varsBoolean = {};
-var varsArray = {};
+    varsBoolean = {},
+    varsArray = {};
 var stack = [];
 var run_flag = false,
     step_flag = false;
@@ -621,8 +621,8 @@ var And = function (_Value15) {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof BooleanValue) {
 				if (!v1.value) return new BooleanValue(false, this.loc);
-				var v2 = this.value[1].getValue();
-				if (v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
+				var _v4 = this.value[1].getValue();
+				if (_v4 instanceof BooleanValue) return new BooleanValue(_v4.value, this.loc);
 			}
 			throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
 		}
@@ -658,8 +658,8 @@ var Or = function (_Value16) {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof BooleanValue) {
 				if (v1.value) return new BooleanValue(true, this.loc);
-				var v2 = this.value[1].getValue();
-				if (v2 instanceof BooleanValue) return new BooleanValue(v2.value, this.loc);
+				var _v5 = this.value[1].getValue();
+				if (_v5 instanceof BooleanValue) return new BooleanValue(_v5.value, this.loc);
 			}
 			throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 		}
@@ -967,6 +967,166 @@ function variable2Array(vn, loc, args) {
 	return new ArrayValue(val, loc);
 }
 
+var DefinedFunction = function () {
+	function DefinedFunction(argc, func) {
+		_classCallCheck(this, DefinedFunction);
+
+		this.argc = argc;this.func = func;
+	}
+
+	_createClass(DefinedFunction, [{
+		key: "exec",
+		value: function exec(parameters, loc) {
+			if (this.argc instanceof Array && this.argc[0] <= parameters.length && this.argc[1] >= parameters.length || parameters.length == this.argc) return this.func(parameters, loc);
+			throw new RuntimeError(loc.first_line, "引数の個数が違います");
+		}
+	}]);
+
+	return DefinedFunction;
+}();
+
+var definedFunction = {
+	"abs": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
+	}),
+	"random": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
+	}),
+	"ceil": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"floor": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"round": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"sin": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"cos": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"tan": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+			var v = Math.tan(par1.value);
+			if (isFinite(v)) return new FloatValue(v, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"sqrt": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+			if (par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
+			return new FloatValue(Math.sqrt(par1.value), this.loc);
+		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"log": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+			if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
+			var v = Math.log(par1.value);
+			if (isFinite(v)) return new FloatValue(v, this.loc);
+			throw new RuntimeError(this.first_line, "オーバーフローしました");
+		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"exp": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+			var v = Math.exp(par1.value);
+			if (isFinite(v)) return new FloatValue(v, this.loc);
+			throw new RuntimeError(this.first_line, "オーバーフローしました");
+		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+	}),
+	"pow": new DefinedFunction(2, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
+			if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+			var v = Math.pow(par1.value, par2.value);
+			if (isSafeInteger(v)) return new IntValue(v, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+		}
+		if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
+			if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
+			if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+			var _v6 = Math.pow(par1.value, par2.value);
+			if (isFinite(_v6)) return new FloatValue(_v6, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+		}
+	}),
+	"length": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
+	}),
+	"substring": new DefinedFunction([2, 3], function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		var par3 = param.length == 3 ? param[2].getValue() : null;
+		if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 == null || par1 instanceof NullValue || par3 instanceof IntValue)) {
+			var v;
+			if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
+			return new StringValue(v, this.loc);
+		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}),
+	"append": new DefinedFunction(2, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if (par1 instanceof NullValue) return v2;else if (par2 instanceof NullValue) return v1;else if (par2 instanceof StringValue && par2 instanceof StringValue) {
+			return new StringValue(par1.value + par2.value, this.loc);
+		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}),
+	"extract": new DefinedFunction(3, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		var par3 = param[2].getValue();
+		if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof StringValue) && (par3 instanceof NullValue || par3 instanceof IntValue)) {
+			var v1 = par1 instanceof NullValue ? '' : par1.value;
+			var v2 = par2 instanceof NullValue ? '' : par2.value;
+			var v3 = par3.value;
+			var v = v1.split(v2);
+			if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
+		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}),
+	"insert": new DefinedFunction(3, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		var par3 = param[2].getValue();
+		if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof StringValue)) {
+			var v1 = par1 instanceof NullValue ? '' : par1.value;
+			var v2 = par2.value;
+			var v3 = par3 instanceof NullValue ? '' : par3.value;
+			if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+			var s1 = v1.substr(0, v2);
+			var s2 = v1.substr(v2);
+			return new StringValue(s1 + v3 + s2, this.loc);
+		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}),
+	"replace": new DefinedFunction(4, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		var par3 = param[2].getValue();
+		var par4 = param[3].getValue();
+		if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof IntValue) && (par4 instanceof NullValue || par4 instanceof StringValue)) {
+			var v1 = par1 instanceof NullValue ? '' : par1.value;
+			var v2 = par2.value;
+			var v3 = par3.value;
+			var v4 = par4 instanceof NullValue ? '' : par4.value;
+
+			if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+			if (v3 < 0 || v2 + v3 > v1.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
+			var s1 = v1.substr(0, v2);
+			var s2 = v1.substr(v2 + v3);
+			return new StringValue(s1 + v4 + s2, this.loc);
+		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	})
+};
+
 var CallFunction = function (_Value25) {
 	_inherits(CallFunction, _Value25);
 
@@ -981,146 +1141,8 @@ var CallFunction = function (_Value25) {
 		value: function getValue() {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
-			if (func == 'abs') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), this.loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'random') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
-			} else if (func == 'ceil') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'floor') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'round') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'sin') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'cos') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'tan') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v4 = Math.tan(par1.value);
-					if (isFinite(_v4)) return new FloatValue(Math.tan(par1.value), this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'sqrt') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					if (par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
-					return new FloatValue(Math.sqrt(par1.value), this.loc);
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'log') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					if (par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
-					var _v5 = Math.log(par1.value);
-					if (isFinite(_v5)) return new FloatValue(_v5, this.loc);
-					throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'exp') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
-					var _v6 = Math.exp(par1.value);
-					if (isFinite(_v6)) return new FloatValue(_v6, this.loc);
-					throw new RuntimeError(this.first_line, "オーバーフローしました");
-				} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-			} else if (func == 'pow') {
-				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
-					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v7 = Math.pow(par1.value, par2.value);
-					if (isSafeInteger(_v7)) return new IntValue(_v7, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				}
-				if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
-					if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
-					if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-					var _v8 = Math.pow(par1.value, par2.value);
-					if (isFinite(_v8)) return new FloatValue(_v8, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				}
-			} else if (func == 'length') {
-				if (param.length != 1) throw new RuntimeError(this.first_line, func + "の引数は1つです");
-				var par1 = param[0].getValue();
-				if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
-			} else if (func == 'substring') {
-				if (param.length != 2 && param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は2つか3つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param.length == 3 ? param[2].getValue() : null;
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 == null || par1 instanceof NullValue || par3 instanceof IntValue)) {
-					var v;
-					if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
-					return new StringValue(v, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'append') {
-				if (param.length != 2) throw new RuntimeError(this.first_line, func + "の引数は2つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				if (par1 instanceof NullValue) return v2;else if (par2 instanceof NullValue) return v1;else if (par2 instanceof StringValue && par2 instanceof StringValue) {
-					return new StringValue(par1.value + par2.value, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'extract') {
-				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param[2].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof StringValue) && (par3 instanceof NullValue || par3 instanceof IntValue)) {
-					var v1 = par1 instanceof NullValue ? '' : par1.value;
-					var v2 = par2 instanceof NullValue ? '' : par2.value;
-					var v3 = par3.value;
-					var v = v1.split(v2);
-					if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'insert') {
-				if (param.length != 3) throw new RuntimeError(this.first_line, func + "の引数は3つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param[2].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof StringValue)) {
-					var v1 = par1 instanceof NullValue ? '' : par1.value;
-					var v2 = par2.value;
-					var v3 = par3 instanceof NullValue ? '' : par3.value;
-					if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-					var s1 = v1.substr(0, v2);
-					var s2 = v1.substr(v2);
-					return new StringValue(s1 + v3 + s2, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else if (func == 'replace') {
-				if (param.length != 4) throw new RuntimeError(this.first_line, func + "の引数は4つです");
-				var par1 = param[0].getValue();
-				var par2 = param[1].getValue();
-				var par3 = param[2].getValue();
-				var par4 = param[3].getValue();
-				if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && (par3 instanceof NullValue || par3 instanceof IntValue) && (par4 instanceof NullValue || par4 instanceof StringValue)) {
-					var v1 = par1 instanceof NullValue ? '' : par1.value;
-					var v2 = par2.value;
-					var v3 = par3.value;
-					var v4 = par4 instanceof NullValue ? '' : par4.value;
-
-					if (v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-					if (v3 < 0 || v2 + v3 > v1.length) throw new RuntimeError(this.first_line, "長さの値が不正です");
-					var s1 = v1.substr(0, v2);
-					var s2 = v1.substr(v2 + v3);
-					return new StringValue(s1 + v4 + s2, this.loc);
-				} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
-			} else throw new RuntimeError(this.first_line, func + "という関数はありません");
+			if (definedFunction[func]) return definedFunction[func].exec(param, this.loc);
+			throw new RuntimeError(this.first_line, func + "という関数はありません");
 		}
 	}, {
 		key: "getCode",
@@ -1655,11 +1677,11 @@ var Output = function (_Statement9) {
 
 function array2text(v) {
 	if (v instanceof ArrayValue) {
-		var _v9 = [];
-		var _v10 = v.value;
+		var _v7 = [];
+		var _v8 = v.value;
 		for (var i = 0; i < v.value.length; i++) {
-			_v9.push(array2text(v.value[i]));
-		}return '[' + _v9.join(',') + ']';
+			_v7.push(array2text(v.value[i]));
+		}return '[' + _v7.join(',') + ']';
 	} else if (v instanceof NullValue) return '';
 	return v.value;
 }
