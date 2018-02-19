@@ -47,16 +47,31 @@ UNDEFINED		"《"[^》]*"》"
 "％"				{return '%';}
 "("					{return '(';}
 ")"					{return ')';}
+"（"					{return '(';}
+"）"					{return ')';}
 "["					{return '[';}
 "]"					{return ']';}
+"［"					{return '[';}
+"］"					{return ']';}
 "{"					{return '{';}
 "}"					{return '}';}
+"｛"					{return '{';}
+"｝"					{return '}';}
 ">="				{return '>=';}
 "<="				{return '<=';}
+"≧"				{return '>=';}
+"≦"				{return '<=';}
+"＞＝"			{return '>=';}
+"＜＝"			{return '<=';}
 ">"					{return '>';}
 "<"					{return '<';}
+"＞"					{return '>';}
+"＜"					{return '<';}
 "="					{return '=';}
+"＝"					{return '=';}
 "!="				{return '!=';}
+"≠"				{return '!=';}
+"！＝"			{return '!=';}
 "←"					{return '<-';}
 "かつ"				{return 'かつ';}
 "または"				{return 'または';}
@@ -71,13 +86,19 @@ UNDEFINED		"《"[^》]*"》"
 "を実行する"			{return 'を実行する';}
 "を実行"			{return 'を実行する';}
 "の間"{Comma}			{return 'の間，';}
+"の間"				{return 'の間，';}
 "繰り返し"{Comma}			{return '繰り返し，';}
 "繰返し"{Comma}			{return '繰り返し，';}
+"くりかえし"{Comma}			{return '繰り返し，';}
+"繰り返し"				{return '繰り返し，';}
+"繰返し"				{return '繰り返し，';}
+"くりかえし"			{return '繰り返し，';}
 "を"{Comma}			{return 'を，';}
 "になるまで実行する"	{return 'になるまで実行する';}
 "になるまで実行"		{return 'になるまで実行する';}
 "を繰り返す"			{return 'を繰り返す';}
 "を繰返す"			{return 'を繰り返す';}
+"をくりかえす"		{return 'を繰り返す';}
 "を"					{return 'を';}
 "から"				{return 'から';}
 "まで"				{return 'まで';}
@@ -86,9 +107,14 @@ UNDEFINED		"《"[^》]*"》"
 "減らしながら"{Comma}		{return '減らしながら，';}
 "増やしつつ"{Comma}		{return '増やしながら，';}
 "減らしつつ"{Comma}		{return '減らしながら，';}
+"増やしながら"		{return '増やしながら，';}
+"減らしながら"		{return '減らしながら，';}
+"増やしつつ"			{return '増やしながら，';}
+"減らしつつ"			{return '減らしながら，';}
 "整数"				{return '整数';}
 "実数"				{return '実数';}
 "文字列"				{return '文字列';}
+"と"{Comma}				{return 'と';}
 "と"					{return 'と';}
 "描画領域開く"		{return 'gOpenWindow';}
 "描画領域閉じる"		{return 'gCloseWindow';}
@@ -228,6 +254,8 @@ ForStatement
 
 LoopStatement
 	: '繰り返し，' 'NEWLINE' statementlist 'を，' e 'になるまで実行する' 'NEWLINE'
+		{$$ = new Until($3, $5, new Location(@1, @6));}
+	| '繰り返し，' 'NEWLINE' statementlist 'を' e 'になるまで実行する' 'NEWLINE'
 		{$$ = new Until($3, $5, new Location(@1, @6));}
 	;
 
