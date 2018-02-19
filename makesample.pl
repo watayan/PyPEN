@@ -14,6 +14,7 @@ while($f = <sample*.PEN>)
 		print OUT $_ ;
 	}
 	print OUT "\",\n";
+	close(IN);
 }
 print OUT<<EOT;
 ];
