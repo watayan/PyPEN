@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "description": "Web-aided PEN",
   "author": "watayan",
-  "maintainers": [{"name":"Wataru Nakanishi", "email":"watayan@watayan.net"}],
+  "maintainers": [
+    {
+      "name": "Wataru Nakanishi",
+      "email": "watayan@watayan.net"
+    }
+  ],
   "license": "MIT",
   "main": "run1.js",
   "scripts": {
@@ -20,7 +25,9 @@
   },
   "homepage": "https://github.com/watayan/WaPEN#readme",
   "babel": {
-    "presets": ["env"]
+    "presets": [
+      "env"
+    ]
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

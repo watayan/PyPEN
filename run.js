@@ -1875,6 +1875,8 @@ function openInputWindow()
 //	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
 	$("#inputarea").focus();
 	setRunflag(false);
+	document.getElementById("sourceTextarea").readOnly = true;
+
 }
 
 function closeInputWindow()
@@ -2004,6 +2006,11 @@ function sampleButton(num)
 
 function insertCode(add_code)
 {
+	if(document.getElementById("sourceTextarea").readOnly) 
+	{
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var pos1 = sourceTextArea.selectionStart;
 	var pos2 = sourceTextArea.selectionEnd;
@@ -2128,6 +2135,11 @@ function contextMenu_Flowchart(trigger, event)
 
 function callbackPartsBar(bar, key)
 {
+	if(document.getElementById("sourceTextarea").readOnly) 
+	{
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	bar.highlight();
 	if(key == "input") Parts_Input.appendMe(bar);
 	else if(key == "output") Parts_Output.appendMe(bar);
@@ -2144,6 +2156,11 @@ function callbackPartsBar(bar, key)
 
 function callbackParts(parts, key)
 {
+	if(document.getElementById("sourceTextarea").readOnly)
+	{
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	if(parts instanceof Parts_Terminal) return false;
 	if(key == "edit"){parts.editMe();}
 	else if(key == "delete"){parts.deleteMe(); makeDirty(true);}
@@ -3725,7 +3742,7 @@ function openModalWindowforOutput(title, subtitle, values, parts)
 	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
 	modal_parts.highlight();
 	$("#input").html(html);
-	$("#input").height(100 + subtitle.length * 30);
+	$("#input").height(100 + subtitle.length * 40);
 	$("#input-overlay").fadeIn();
 	$("#input").fadeIn();
 	$("#inputarea0").focus();
@@ -3833,7 +3850,7 @@ function setIdentifierforMisc(identifier)
 		}
 		modal_values = tmp_values;
 	}
-	$("#input").height(100 + modal_values.length * 30);
+	$("#input").height(120 + modal_values.length * 35);
 }
 
 function closeModalWindowforMisc(ok)
@@ -3896,6 +3913,7 @@ onload = function(){
 		if(run_flag && !step_flag)
 		{
 			setRunflag(false);
+			document.getElementById("sourceTextarea").readOnly = true;
 		}
 		else
 		{
@@ -4053,8 +4071,8 @@ onload = function(){
 						gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCode("描画領域開く(《幅》,《高さ》)");}},
 						gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCode("描画領域閉じる()");}},
 						gClearWindow:{name:"描画領域全消去", callback: function(k,e){insertCode("描画領域全消去()");}},
-						gSetLineColor:{name:"線色設定", callback: function(k,e){insertCode("線色設定(《赤》,《青》,《緑》)");}},
-						gSetFillColor:{name:"塗色設定", callback: function(k,e){insertCode("塗色設定(《赤》,《青》,《緑》)");}},
+						gSetLineColor:{name:"線色設定", callback: function(k,e){insertCode("線色設定(《赤》,《緑》,《青》)");}},
+						gSetFillColor:{name:"塗色設定", callback: function(k,e){insertCode("塗色設定(《赤》,《緑》,《青》)");}},
 						gSetLineWidth:{name:"線太さ設定", callback: function(k,e){insertCode("線太さ設定(《太さ》)");}},
 						gSetFontSize:{name:"文字サイズ設定", callback: function(k,e){insertCode("文字サイズ設定(《サイズ》)");}},
 						gDrawText:{name:"文字描画", callback: function(k,e){insertCode("文字描画(《文字列》,《x》,《y》)");}},

@@ -2131,6 +2131,7 @@ function openInputWindow() {
 	//	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
 	$("#inputarea").focus();
 	setRunflag(false);
+	document.getElementById("sourceTextarea").readOnly = true;
 }
 
 function closeInputWindow() {
@@ -2244,6 +2245,10 @@ function sampleButton(num) {
 }
 
 function insertCode(add_code) {
+	if (document.getElementById("sourceTextarea").readOnly) {
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var pos1 = sourceTextArea.selectionStart;
 	var pos2 = sourceTextArea.selectionEnd;
@@ -2393,12 +2398,20 @@ function contextMenu_Flowchart(trigger, event) {
 }
 
 function callbackPartsBar(bar, key) {
+	if (document.getElementById("sourceTextarea").readOnly) {
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	bar.highlight();
 	if (key == "input") Parts_Input.appendMe(bar);else if (key == "output") Parts_Output.appendMe(bar);else if (key == "substitute") Parts_Substitute.appendMe(bar);else if (key == "if") Parts_If.appendMe(bar);else if (key == "loop1") Parts_LoopBegin1.appendMe(bar);else if (key == "loop2") Parts_LoopBegin2.appendMe(bar);else if (key == "loopinc") Parts_LoopBeginInc.appendMe(bar);else if (key == "loopdec") Parts_LoopBeginDec.appendMe(bar);else if (key == "misc") Parts_Misc.appendMe(bar);else return;
 	makeDirty(true);
 }
 
 function callbackParts(parts, key) {
+	if (document.getElementById("sourceTextarea").readOnly) {
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	if (parts instanceof Parts_Terminal) return false;
 	if (key == "edit") {
 		parts.editMe();
@@ -4332,7 +4345,7 @@ function openModalWindowforOutput(title, subtitle, values, parts) {
 	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
 	modal_parts.highlight();
 	$("#input").html(html);
-	$("#input").height(100 + subtitle.length * 30);
+	$("#input").height(100 + subtitle.length * 40);
 	$("#input-overlay").fadeIn();
 	$("#input").fadeIn();
 	$("#inputarea0").focus();
@@ -4425,7 +4438,7 @@ function setIdentifierforMisc(identifier) {
 		}
 		modal_values = tmp_values;
 	}
-	$("#input").height(100 + modal_values.length * 30);
+	$("#input").height(120 + modal_values.length * 35);
 }
 
 function closeModalWindowforMisc(ok) {
@@ -4480,6 +4493,7 @@ onload = function onload() {
 	runButton.onclick = function () {
 		if (run_flag && !step_flag) {
 			setRunflag(false);
+			document.getElementById("sourceTextarea").readOnly = true;
 		} else {
 			step_flag = false;
 			run();
@@ -4673,10 +4687,10 @@ onload = function onload() {
 							insertCode("描画領域全消去()");
 						} },
 					gSetLineColor: { name: "線色設定", callback: function callback(k, e) {
-							insertCode("線色設定(《赤》,《青》,《緑》)");
+							insertCode("線色設定(《赤》,《緑》,《青》)");
 						} },
 					gSetFillColor: { name: "塗色設定", callback: function callback(k, e) {
-							insertCode("塗色設定(《赤》,《青》,《緑》)");
+							insertCode("塗色設定(《赤》,《緑》,《青》)");
 						} },
 					gSetLineWidth: { name: "線太さ設定", callback: function callback(k, e) {
 							insertCode("線太さ設定(《太さ》)");
