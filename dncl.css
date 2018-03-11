@@ -54,6 +54,15 @@
 	float: left;
 }
 
+#sourceTextarea:read-only{
+	background-color: lightgrey;
+}
+
+#sourceTextarea:-moz-read-only{ /* for firefox */
+	background-color: lightgrey;
+}
+
+
 #Flowchart_area{
 	float: left;
 	display: none;
