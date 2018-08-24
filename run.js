@@ -1793,11 +1793,11 @@ class SleepStatement extends Statement
 	constructor(sec, loc)
 	{
 		super(loc)
-		this.sec = sec.value; // milli seconds
+		this.sec = new IntValue(sec.value, loc); // milli seconds
 	}
 	run(index)
 	{
-		wait_time = this.sec * 1000;
+		wait_time = this.sec;
 		return index + 1;
 	}
 }
@@ -3633,7 +3633,7 @@ var misc_menu =[
 	["矩形塗描画"   , "gFillBox"       , "矩形塗描画(	,	,	,	)"    ,["x","y","幅","高さ"]],
 	["円描画"      , "gDrawCircle"     , "円描画(	,	,	)"          ,["x","y","半径"]],
 	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
-	["待つ"       , "sleep"           , "	 秒待つ"                 ,["秒数"]]
+	["待つ"       , "sleep"           , "	 ミリ秒待つ"                 ,["ミリ秒数"]]
 ];
 
 
@@ -4123,7 +4123,7 @@ onload = function(){
 						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
 						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
-						sleep:{name:"待つ", callback: function(k,e){insertCode("《秒数》 秒待つ");}}
+						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》 ミリ秒待つ");}}
 					}
 				}
 			}

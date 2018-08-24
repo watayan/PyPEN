@@ -129,7 +129,7 @@ UNDEFINED		"《"[^》]*"》"
 "矩形塗描画"				{return 'gFillBox';}
 "円描画"				{return 'gDrawCircle';}
 "円塗描画"				{return 'gFillCircle';}
-"秒待つ"				{return '秒待つ';}
+"ミリ秒待つ"				{return 'ミリ秒待つ';}
 <<EOF>>				{return 'EOF';}
 {NEWLINE}				{return 'NEWLINE';}
 {Whitespace}		/* skip whitespace */
@@ -294,7 +294,7 @@ GraphicStatement
 	;
 
 SleepStatement
-	: e '秒待つ' 'NEWLINE' {$$ = new SleepStatement($1, new Location(@1, @1));}
+	: e 'ミリ秒待つ' 'NEWLINE' {$$ = new SleepStatement($1, new Location(@1, @1));}
 	;
 
 Program
