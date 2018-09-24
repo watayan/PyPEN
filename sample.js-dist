@@ -1,3 +1,8 @@
+// このファイルを sample.js にコピーしてください。
+// サンプルプログラムは自由に書き換えてください。
+// 各行末に\nが必要だとかいうめんどくさいことはありますが…。
+// Internet Explorerを使う予定がなければtemplate stringで楽に書けます。
+
 "use strict";
 
 var sample=[

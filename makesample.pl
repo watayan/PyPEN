@@ -1,3 +1,5 @@
+# sample*.PENを読み込んで，sample.jsを作ります。
+#
 open(OUT, ">sample.js");
 print OUT<<EOT;
 "use strict";
