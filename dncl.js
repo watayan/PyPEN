@@ -159,7 +159,7 @@ case 26: case 27:
 this.$ = new ArrayValue($$[$0-1], new Location(_$[$0-2], _$[$0]));
 break;
 case 28:
-this.$ = new Variable($$[$0-3], $$[$0-1], new Location(_$[$0-3],_$[$0-3]));
+this.$ = new Variable($$[$0-3], new ArrayValue($$[$0-1]), new Location(_$[$0-3],_$[$0-3]));
 break;
 case 29:
 this.$ = new Variable($$[$0], null, new Location(_$[$0], _$[$0]));
@@ -168,13 +168,13 @@ case 30:
 this.$ = new UNDEFINED(yytext, new Location(_$[$0],_$[$0]));
 break;
 case 31:
-this.$ = $$[$0-5].concat({varname:$$[$0-3], parameter:$$[$0-1]});
+this.$ = $$[$0-5].concat({varname:$$[$0-3], parameter:new ArrayValue($$[$0-1], new Location(_$[$0-1],_$[$0-1]))});
 break;
 case 32:
 this.$ = $$[$0-2].concat({varname:$$[$0]});
 break;
 case 33:
-this.$ = [{varname:$$[$0-3], parameter:$$[$0-1]}];
+this.$ = [{varname:$$[$0-3], parameter:new ArrayValue($$[$0-1], new Location(_$[$0-1],_$[$0-1]))}];
 break;
 case 34:
 this.$ = [{varname:$$[$0]}];

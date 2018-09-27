@@ -180,15 +180,15 @@ e
 
 variable
 	: IDENTIFIER'['parameterlist']'
-			{$$ = new Variable($1, $3, new Location(@1,@1));}
+			{$$ = new Variable($1, new ArrayValue($3), new Location(@1,@1));}
 	| IDENTIFIER{$$ = new Variable($1, null, new Location(@1, @1));}
 	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
 	;
 
 variablelist
-	: variablelist 'COMMA' IDENTIFIER '['parameterlist']' {$$ = $1.concat({varname:$3, parameter:$5});}
+	: variablelist 'COMMA' IDENTIFIER '['parameterlist']' {$$ = $1.concat({varname:$3, parameter:new ArrayValue($5, new Location(@5,@5))});}
 	| variablelist 'COMMA' IDENTIFIER {$$ = $1.concat({varname:$3});}
-	| IDENTIFIER'['parameterlist']' {$$ = [{varname:$1, parameter:$3}];}
+	| IDENTIFIER'['parameterlist']' {$$ = [{varname:$1, parameter:new ArrayValue($3, new Location(@3,@3))}];}
 	| IDENTIFIER {$$ = [{varname:$1}];}
 	| UNDEFINED  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
 	;
