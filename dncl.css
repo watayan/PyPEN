@@ -79,3 +79,15 @@
 #drawButton{
 	display: none;
 }
+
+.context-menu-item{
+	background-repeat: no-repeat;
+	background-position: 2px 2px;
+	min-height: 18px;
+}
+.context-menu-item.context-menu-icon-input{background-image: url(images/input.png);}
+.context-menu-item.context-menu-icon-output{background-image: url(images/output.png);}
+.context-menu-item.context-menu-icon-if{background-image: url(images/if.png);}
+.context-menu-item.context-menu-icon-loop{background-image: url(images/loop.png);}
+.context-menu-item.context-menu-icon-assign{background-image: url(images/assign.png);}
+
