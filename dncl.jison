@@ -99,6 +99,12 @@ UNDEFINED		"《"[^》]*"》"
 "を繰り返す"			{return 'を繰り返す';}
 "を繰返す"			{return 'を繰り返す';}
 "をくりかえす"		{return 'を繰り返す';}
+"手続きを抜ける"  {return '手続きを抜ける';}
+"手続き終了"  {return '手続き終了';}
+"手続き" {return '手続き';}
+"関数終了" {return '関数終了';}
+"関数" {return '関数';}
+"を返す" {return 'を返す';}
 "を"					{return 'を';}
 "から"				{return 'から';}
 "まで"				{return 'まで';}
@@ -171,55 +177,118 @@ e
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
 	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
-	| IDENTIFIER'('parameterlist')'
-				{$$ = new CallFunction($1, $3, new Location(@1,@1));}
+	| IDENTIFIER '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable
-	| '[' parameterlist ']' {$$ = new ArrayValue($2, new Location(@1, @3));}
-	| '{' parameterlist '}' {$$ = new ArrayValue($2, new Location(@1, @3));}
+	| '[' args ']' {$$ = new ArrayValue($2, new Location(@1, @3));}
+	| '{' args '}' {$$ = new ArrayValue($2, new Location(@1, @3));}
 	;
 
 variable
-	: IDENTIFIER'['parameterlist']'
-			{$$ = new Variable($1, new ArrayValue($3), new Location(@1,@1));}
+	: IDENTIFIER '[' args ']' {$$ = new Variable($1, new ArrayValue($3), new Location(@1,@1));}
 	| IDENTIFIER{$$ = new Variable($1, null, new Location(@1, @1));}
 	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
 	;
 
 variablelist
-	: variablelist 'COMMA' IDENTIFIER '['parameterlist']' {$$ = $1.concat({varname:$3, parameter:new ArrayValue($5, new Location(@5,@5))});}
+	: variablelist 'COMMA' IDENTIFIER '[' args ']' {$$ = $1.concat({varname:$3, parameter:new ArrayValue($5, new Location(@5,@5))});}
 	| variablelist 'COMMA' IDENTIFIER {$$ = $1.concat({varname:$3});}
-	| IDENTIFIER'['parameterlist']' {$$ = [{varname:$1, parameter:new ArrayValue($3, new Location(@3,@3))}];}
+	| IDENTIFIER'[' args ']' {$$ = [{varname:$1, parameter:new ArrayValue($3, new Location(@3,@3))}];}
 	| IDENTIFIER {$$ = [{varname:$1}];}
 	| UNDEFINED  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
 	;
 
-parameterlist
-	: parameterlist 'COMMA' e {$$ = $1.concat($3);}
+args
+	: args 'COMMA' e {$$ = $1.concat($3);}
 	| e { $$ = [$1];}
 	|   { $$ = [];}
 	;
 
+parameters
+	: parameters 'COMMA' PrimitiveDatatype IDENTIFIER         {$$ = $1.concat({'varname':$4, 'datatype':$3, 'isArray': false});}
+	| parameters 'COMMA' PrimitiveDatatype IDENTIFIER '[' ']' {$$ = $1.concat({'varname':$4, 'datatype':$3, 'isArray': true });}
+	| PrimitiveDatatype IDENTIFIER         {$$ = [{'varname':$2, 'datatype':$1, 'isArray': false}];}
+	| PrimitiveDatatype IDENTIFIER '[' ']' {$$ = [{'varname':$2, 'datatype':$1, 'isArray': true }];}
+	;
+
 statementlist
-	: statementlist statement	{ if($2 != null) $$ = $1.concat($2);}
+	: statementlist BasicStatement	{ if($2 != null) $$ = $1.concat($2);}
+	| statementlist Statement4NotFunc {$$ = $1.concat($2);}
 	| 	{$$ = [];}
 	;
 
-statement
-	:EmptyStatement
-	|DefineStatement
-	|IfStatement
-	|ForStatement
-	|LoopStatement
-	|WhileStatement
-	|AssignStatement
-	|PrintStatement
-	|InputStatement
-	|GraphicStatement
-	|SleepStatement
+statementlist4step
+	: statementlist4step BasicStatement {if($2 != null) $$ = $1.concat($2);}
+	| statementlist4step Statement4NotFunc {$$ = $1.concat($2);}
+	| statementlist4step ExitStatement {$$ = $1.concat($2);}
+	|   {$$ = [];}
+	;
+
+ExitStatement
+	: '手続きを抜ける' 'NEWLINE' {$$ = new ExitStatement(new Location(@1,@1));}
+	;
+
+statementlist4func
+	: statementlist4func BasicStatement {if($2 != null) $$ = $1.concat($2);}
+	| statementlist4func Statement4Func {$$ = $1.concat($2);}
+	|   {$$ = [];}
+	;
+
+PrimitiveDatatype
+	: '整数'
+	| '実数'
+	| '文字列'
+	| '真偽'
+	;
+
+MainStatement
+	: DefineFuncStatement
+	| BasicStatement
+	| Statement4NotFunc
+	;
+
+BasicStatement
+	: EmptyStatement
+	| DefineStatement
+	| CallStatement
+	| AssignStatement
+	| PrintStatement
+	| InputStatement
+	| GraphicStatement
+	| SleepStatement
+	;
+
+Statement4NotFunc
+	: IfStatement
+	| ForStatement
+	| LoopStatement
+	| WhileStatement
+	;
+
+Statement4Func
+	: IfStatement4Func
+	| ForStatement4Func
+	| LoopStatement4Func
+	| WhileStatement4Func
+	| ReturnStatement
+	;
+
+ReturnStatement
+	: e 'を返す' 'NEWLINE' {$$ = new ReturnStatement($1, new Location(@1, @2));}
 	;
 
 EmptyStatement
 	: 'NEWLINE'	{ $$ = null;}
+	;
+
+DefineFuncStatement
+	: '手続き' IDENTIFIER '(' parameters ')' 'NEWLINE' statementlist4step '手続き終了' 'NEWLINE'
+		{$$ = new DefineStep($2, $4, $7, new Location(@1, @8));}
+	| '手続き' IDENTIFIER '(' ')' 'NEWLINE' statementlist4step '手続き終了' 'NEWLINE'
+		{$$ = new DefineStep($2, null, $6, new Location(@1, @7));}
+	| '関数' PrimitiveDatatype IDENTIFIER '(' parameters ')' 'NEWLINE' statementlist4func '関数終了' 'NEWLINE'
+		{$$ = new DefineFunction($2, $3, $5, $8, new Location(@1, @9));}
+	| '関数' PrimitiveDatatype IDENTIFIER '(' ')' 'NEWLINE' statementlist4func '関数終了' 'NEWLINE'
+		{$$ = new DefineFunction($2, $3, null, $7, new Location(@1, @8));}
 	;
 
 DefineStatement
@@ -227,6 +296,10 @@ DefineStatement
 	| '実数' variablelist 'NEWLINE'	{$$ = new DefinitionFloat($2, new Location(@1,@2));}
 	| '文字列' variablelist 'NEWLINE'		{$$ = new DefinitionString($2, new Location(@1,@2));}
 	| '真偽' variablelist 'NEWLINE'	{$$ = new DefinitionBoolean($2, new Location(@1,@2));}
+	;
+
+CallStatement
+	: IDENTIFIER '(' args ')' 'NEWLINE' {$$ = new CallStep($1, $3, new Location(@1,@4));}
 	;
 
 IfStatement
@@ -297,6 +370,36 @@ SleepStatement
 	: e 'ミリ秒待つ' 'NEWLINE' {$$ = new SleepStatement($1, new Location(@1, @1));}
 	;
 
+IfStatement4Func
+	: 'もし' e 'ならば' 'NEWLINE' statementlist4func4func 'を実行する' 'NEWLINE'
+		{$$ = new If($2,$5,null, new Location(@1, @6));}
+	| 'もし' e 'ならば' 'NEWLINE' statementlist4func 'を実行し，そうでなければ' 'NEWLINE' statementlist4func 'を実行する' 'NEWLINE'
+		{$$ = new If($2,$5,$8, new Location(@1, @9));}
+	;
+
+ForStatement4Func
+	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
+		{$$ = new ForInc($1, $3, $5, $7,$11, new Location(@1,@12));}
+	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
+		{$$ = new ForDec($1, $3, $5, $7,$11, new Location(@1,@12));}
+	| variable 'を' e 'から' e 'まで' '増やしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
+		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
+	| variable 'を' e 'FOR2' e 'まで' '減らしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
+	;
+
+LoopStatement4Func
+	: '繰り返し，' 'NEWLINE' statementlist4func 'を，' e 'になるまで実行する' 'NEWLINE'
+		{$$ = new Until($3, $5, new Location(@1, @6));}
+	| '繰り返し，' 'NEWLINE' statementlist4func 'を' e 'になるまで実行する' 'NEWLINE'
+		{$$ = new Until($3, $5, new Location(@1, @6));}
+	;
+
+WhileStatement4Func
+	: e 'の間，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
+		{$$ = new While($1, $4, new Location(@1, @5));}
+	;
+
 Program
 	: SourceElements 'EOF'
 	{ typeof console !== 'undefined' ? console.log($1) : print($1);
@@ -309,5 +412,5 @@ SourceElements
 	;
 
 SourceElement
-	:statement
+	: MainStatement
 	;
