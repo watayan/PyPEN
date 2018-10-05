@@ -5,8 +5,8 @@
 DecimalDigit	[0-9]
 NonZeroDigit	[1-9]
 
-IdentifierStart [a-zA-Z]
-IdentifierPart	[a-zA-Z0-9]
+IdentifierStart [a-zA-Z\u3041-\u3096\u30A1-\u30FA々〇〻\u3400-\u9FFF\uF900-\uFAFF]
+IdentifierPart	[a-zA-Z0-9\u3041-\u3096\u30A1-\u30FA々〇〻\u3400-\u9FFF\uF900-\uFAFF]
 Identifier		{IdentifierStart}{IdentifierPart}*
 
 Integer			[0] | ({NonZeroDigit}{DecimalDigit}*)
@@ -30,7 +30,6 @@ UNDEFINED		"《"[^》]*"》"
 {String}		{return '文字列値';}
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
-{Identifier}	{return 'IDENTIFIER';}
 {Comma}					{return 'COMMA';}
 {UNDEFINED}		{return 'UNDEFINED';}
 "+"					{return '+';}
@@ -136,6 +135,7 @@ UNDEFINED		"《"[^》]*"》"
 "円描画"				{return 'gDrawCircle';}
 "円塗描画"				{return 'gFillCircle';}
 "ミリ秒待つ"				{return 'ミリ秒待つ';}
+{Identifier}	{return 'IDENTIFIER';}
 <<EOF>>				{return 'EOF';}
 {NEWLINE}				{return 'NEWLINE';}
 {Whitespace}		/* skip whitespace */
