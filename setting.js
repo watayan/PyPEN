@@ -1,6 +1,6 @@
 var setting = 
 {
-    var_declaration: 1,
+    var_declaration: 0,
     // 変数の宣言が必要か否か
     // 0 宣言なしだとエラー
     // 1 宣言なしだとその場で生成

@@ -5,8 +5,8 @@
 DecimalDigit	[0-9]
 NonZeroDigit	[1-9]
 
-IdentifierStart [a-zA-Z\u3041-\u3096\u30A1-\u30FA々〇〻\u3400-\u9FFF\uF900-\uFAFF]
-IdentifierPart	[a-zA-Z0-9\u3041-\u3096\u30A1-\u30FA々〇〻\u3400-\u9FFF\uF900-\uFAFF]
+IdentifierStart [a-zA-Z]
+IdentifierPart	[a-zA-Z0-9]
 Identifier		{IdentifierStart}{IdentifierPart}*
 
 Integer			[0] | ({NonZeroDigit}{DecimalDigit}*)
@@ -69,41 +69,41 @@ UNDEFINED		"《"[^》]*"》"
 "="					{return '=';}
 "＝"					{return '=';}
 "!="				{return '!=';}
-"≠"				{return '!=';}
-"！＝"			{return '!=';}
-"←"					{return '<-';}
-"かつ"				{return 'かつ';}
+"≠"						{return '!=';}
+"！＝"					{return '!=';}
+"←"						{return '<-';}
+"かつ"					{return 'かつ';}
 "または"				{return 'または';}
 "でない"				{return 'でない';}
-"を"{Print}"する"			{return 'を表示する';}
+"を"{Print}"する"		{return 'を表示する';}
 "を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
 "を改行なしで"{Print}"する"	{return 'を改行無しで表示する';}
 "を入力する"			{return 'を入力する';}
-"もし"				{return 'もし';}
-"ならば"			{return 'ならば';}
+"もし"					{return 'もし';}
+"ならば"				{return 'ならば';}
 "を実行し"{Comma}"そうでなければ"			{return 'を実行し，そうでなければ';}
 "を実行する"			{return 'を実行する';}
-"を実行"			{return 'を実行する';}
+"を実行"				{return 'を実行する';}
 "の間"{Comma}			{return 'の間，';}
-"の間"				{return 'の間，';}
-"繰り返し"{Comma}			{return '繰り返し，';}
+"の間"					{return 'の間，';}
+"繰り返し"{Comma}		{return '繰り返し，';}
 "繰返し"{Comma}			{return '繰り返し，';}
-"くりかえし"{Comma}			{return '繰り返し，';}
+"くりかえし"{Comma}		{return '繰り返し，';}
 "繰り返し"				{return '繰り返し，';}
 "繰返し"				{return '繰り返し，';}
 "くりかえし"			{return '繰り返し，';}
-"を"{Comma}			{return 'を，';}
+"を"{Comma}				{return 'を，';}
 "になるまで実行する"	{return 'になるまで実行する';}
 "になるまで実行"		{return 'になるまで実行する';}
 "を繰り返す"			{return 'を繰り返す';}
-"を繰返す"			{return 'を繰り返す';}
-"をくりかえす"		{return 'を繰り返す';}
-"手続きを抜ける"  {return '手続きを抜ける';}
-"手続き終了"  {return '手続き終了';}
-"手続き" {return '手続き';}
-"関数終了" {return '関数終了';}
-"関数" {return '関数';}
-"を返す" {return 'を返す';}
+"を繰返す"				{return 'を繰り返す';}
+"をくりかえす"			{return 'を繰り返す';}
+"手続きを抜ける"		{return '手続きを抜ける';}
+"手続き終了"			{return '手続き終了';}
+"手続き"				{return '手続き';}
+"関数終了"				{return '関数終了';}
+"関数"					{return '関数';}
+"を返す"				{return 'を返す';}
 "を"					{return 'を';}
 "から"				{return 'から';}
 "まで"				{return 'まで';}
@@ -154,26 +154,26 @@ UNDEFINED		"《"[^》]*"》"
 %%
 
 e
-	: e '+' e	{ $$ = new Add($1, $3, new Location(@1, @3));}
-	| e '-' e	{ $$ = new Sub($1, $3, new Location(@1, @3));}
-	| e '*' e	{ $$ = new Mul($1, $3, new Location(@1, @3));}
-	| e '/' e	{ $$ = new Div($1, $3, new Location(@1, @3));}
-	| e '÷' e	{ $$ = new Div2($1, $3, new Location(@1, @3));}
-	| e '%' e	{ $$ = new Mod($1, $3, new Location(@1, @3));}
+	: e '+' e		{$$ = new Add($1, $3, new Location(@1, @3));}
+	| e '-' e		{$$ = new Sub($1, $3, new Location(@1, @3));}
+	| e '*' e		{$$ = new Mul($1, $3, new Location(@1, @3));}
+	| e '/' e		{$$ = new Div($1, $3, new Location(@1, @3));}
+	| e '÷' e		{$$ = new Div2($1, $3, new Location(@1, @3));}
+	| e '%' e		{$$ = new Mod($1, $3, new Location(@1, @3));}
 	| '-' e		%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
-	| '(' e ')'	{$$ = $2;}
-	| e '=' e			{$$ = new EQ($1, $3, new Location(@1, @3));}
-	| e '!=' e			{$$ = new NE($1, $3, new Location(@1, @3));}
-	| e '>' e			{$$ = new GT($1, $3, new Location(@1, @3));}
-	| e '<' e			{$$ = new LT($1, $3, new Location(@1, @3));}
-	| e '>=' e			{$$ = new GE($1, $3, new Location(@1, @3));}
-	| e '<=' e			{$$ = new LE($1, $3, new Location(@1, @3));}
+	| '(' e ')'		{$$ = $2;}
+	| e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
+	| e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
+	| e '>' e		{$$ = new GT($1, $3, new Location(@1, @3));}
+	| e '<' e		{$$ = new LT($1, $3, new Location(@1, @3));}
+	| e '>=' e		{$$ = new GE($1, $3, new Location(@1, @3));}
+	| e '<=' e		{$$ = new LE($1, $3, new Location(@1, @3));}
 	| e 'かつ' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'または' e	{$$ = new Or($1, $3, new Location(@1, @3));}
-	| e 'でない'		{$$ = new Not($1, new Location(@1, @1));}
-	| e 'と' e	{$$ = new Append($1, $3, new Location(@1, @3));}
-	| '整数値'	{$$ = new IntValue(Number(yytext), new Location(@1,@1));}
-	| '実数値'	{$$ = new FloatValue(Number(yytext), new Location(@1,@1));}
+	| e 'でない'	{$$ = new Not($1, new Location(@1, @1));}
+	| e 'と' e		{$$ = new Append($1, $3, new Location(@1, @3));}
+	| '整数値'		{$$ = new IntValue(Number(yytext), new Location(@1,@1));}
+	| '実数値'		{$$ = new FloatValue(Number(yytext), new Location(@1,@1));}
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
 	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
@@ -201,13 +201,6 @@ args
 	: args 'COMMA' e {$$ = $1.concat($3);}
 	| e { $$ = [$1];}
 	|   { $$ = [];}
-	;
-
-parameters
-	: parameters 'COMMA' PrimitiveDatatype IDENTIFIER         {$$ = $1.concat({'varname':$4, 'datatype':$3, 'isArray': false});}
-	| parameters 'COMMA' PrimitiveDatatype IDENTIFIER '[' ']' {$$ = $1.concat({'varname':$4, 'datatype':$3, 'isArray': true });}
-	| PrimitiveDatatype IDENTIFIER         {$$ = [{'varname':$2, 'datatype':$1, 'isArray': false}];}
-	| PrimitiveDatatype IDENTIFIER '[' ']' {$$ = [{'varname':$2, 'datatype':$1, 'isArray': true }];}
 	;
 
 statementlist
@@ -281,14 +274,10 @@ EmptyStatement
 	;
 
 DefineFuncStatement
-	: '手続き' IDENTIFIER '(' parameters ')' 'NEWLINE' statementlist4step '手続き終了' 'NEWLINE'
+	: '手続き' IDENTIFIER '(' args ')' 'NEWLINE' statementlist4step '手続き終了' 'NEWLINE'
 		{$$ = new DefineStep($2, $4, $7, new Location(@1, @8));}
-	| '手続き' IDENTIFIER '(' ')' 'NEWLINE' statementlist4step '手続き終了' 'NEWLINE'
-		{$$ = new DefineStep($2, null, $6, new Location(@1, @7));}
-	| '関数' PrimitiveDatatype IDENTIFIER '(' parameters ')' 'NEWLINE' statementlist4func '関数終了' 'NEWLINE'
-		{$$ = new DefineFunction($2, $3, $5, $8, new Location(@1, @9));}
-	| '関数' PrimitiveDatatype IDENTIFIER '(' ')' 'NEWLINE' statementlist4func '関数終了' 'NEWLINE'
-		{$$ = new DefineFunction($2, $3, null, $7, new Location(@1, @8));}
+	| '関数' IDENTIFIER '(' args ')' 'NEWLINE' statementlist4func '関数終了' 'NEWLINE'
+		{$$ = new DefineFunction($2, $4, $7, new Location(@1, @8));}
 	;
 
 DefineStatement
