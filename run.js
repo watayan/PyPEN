@@ -6,7 +6,6 @@ const typeInt = 1, typeFloat = 2, typeString = 3, typeBoolean = 4, typeArray = 5
 var code = null;		// コードを積む（関数・手続き単位で）
 var varTables = [];		// 変数テーブルを積む
 var myFuncs = {};		// プログラム中で定義される関数・手続き
-let returnTypes = [];
 let returnValues = [];
 var run_flag = false, step_flag = false;
 var flowchart = null;
@@ -73,6 +72,7 @@ function codeChange()
 	}
 	catch(e)
 	{
+		console.log(e);
 		textarea.value = "構文エラーです\n" + e.message + "\n";
 		converting = false;
 	}
@@ -1163,7 +1163,7 @@ class ReturnStatement extends Statement {
 		this.value = value;
 	}
 	run() {
-		returnValues.push(value.getValue().clone());
+		returnValues.push(this.value.getValue().clone());
 		code[0].stack[0].index = -1;
 	}
 }
@@ -1182,7 +1182,7 @@ class DefinitionStatement extends Statement {
 			if(pm)
 			{
 				var pl = [];
-				for(var j = 0; j < pm.length; j++) pl.push(pm[j].getCode());
+				for(var j = 0; j < pm.length; j++) pl.push(pm.nthValue(j).getCode());
 				vn += '[' + pl.join(',') + ']';
 			}
 			ag.push(vn);
@@ -1635,13 +1635,13 @@ class If extends Statement
 	}
 	run()
 	{
+		super.run();
 		if(this.condition.getValue() instanceof BooleanValue)
 		{
 			if(this.condition.getValue().value) code[0].stack.unshift({statementlist: this.state1, index: 0});
 			else if(this.state2 != null) code[0].stack.unshift({statementlist: this.state2, index: 0});
 		}
 		else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
-		super.run();
 	}
 }
 class LoopBegin extends Statement
@@ -1654,8 +1654,7 @@ class LoopBegin extends Statement
 	}
 	run()
 	{
-		if(this.condition == null || this.condition.getValue().value == this.continuous)
-			super.run();
+		if(this.condition == null || this.condition.getValue().value == this.continuous) super.run();
 		else code[0].stack[0].index = -1;
 	}
 }
@@ -1670,8 +1669,7 @@ class LoopEnd extends Statement
 	}
 	run()
 	{
-		if(this.condition == null || this.condition.getValue().value == this.continuous)
-			code[0].stack[0].index = 0;
+		if(this.condition == null || this.condition.getValue().value == this.continuous) code[0].stack[0].index = 0;
 		else code[0].stack[0].index = -1;
 	}
 }
@@ -1764,12 +1762,12 @@ class Until extends Statement
 	}
 	run(index)
 	{
+		super.run();
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let loop = [new LoopBegin(null, true, this.loc)];
 		for(var i = 0; i < this.state.length; i++) loop.push(this.state[i]);
 		loop.push(new LoopEnd(this.condition, false, new Location(last_token, last_token)));
 		code[0].stack.unshift({statementlist: loop, index: 0});
-		super.run();
 	}
 }
 
@@ -1783,12 +1781,12 @@ class While extends Statement
 	}
 	run(index)
 	{
+		super.run();
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let loop = [new LoopBegin(this.condition, true, this.loc)];
 		for(var i = 0; i < this.state.length; i++) loop.push(this.state[i]);
 		loop.push(new LoopEnd(null, false, new Location(last_token, last_token)));
 		code[0].stack.unshift({statementlist: loop, index: 0});
-		super.run();
 	}
 }
 
@@ -1816,7 +1814,6 @@ function reset()
 {
 	varTables = [new varTable()];
 	myFuncs = {};
-	returnTypes = [];
 	returnValues = [];
 	current_line = -1;
 	textarea.value = '';

@@ -21,7 +21,6 @@ var typeInt = 1,
 var code = null; // コードを積む（関数・手続き単位で）
 var varTables = []; // 変数テーブルを積む
 var myFuncs = {}; // プログラム中で定義される関数・手続き
-var returnTypes = [];
 var returnValues = [];
 var run_flag = false,
     step_flag = false;
@@ -98,6 +97,7 @@ function codeChange() {
 		flowchart.code2flowchart(parse);
 		converting = false;
 	} catch (e) {
+		console.log(e);
 		textarea.value = "構文エラーです\n" + e.message + "\n";
 		converting = false;
 	}
@@ -1506,7 +1506,7 @@ var ReturnStatement = function (_Statement5) {
 	_createClass(ReturnStatement, [{
 		key: "run",
 		value: function run() {
-			returnValues.push(value.getValue().clone());
+			returnValues.push(this.value.getValue().clone());
 			code[0].stack[0].index = -1;
 		}
 	}]);
@@ -1536,7 +1536,7 @@ var DefinitionStatement = function (_Statement6) {
 				if (pm) {
 					var pl = [];
 					for (var j = 0; j < pm.length; j++) {
-						pl.push(pm[j].getCode());
+						pl.push(pm.nthValue(j).getCode());
 					}vn += '[' + pl.join(',') + ']';
 				}
 				ag.push(vn);
@@ -2010,10 +2010,10 @@ var If = function (_Statement13) {
 	_createClass(If, [{
 		key: "run",
 		value: function run() {
+			_get(If.prototype.__proto__ || Object.getPrototypeOf(If.prototype), "run", this).call(this);
 			if (this.condition.getValue() instanceof BooleanValue) {
 				if (this.condition.getValue().value) code[0].stack.unshift({ statementlist: this.state1, index: 0 });else if (this.state2 != null) code[0].stack.unshift({ statementlist: this.state2, index: 0 });
 			} else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
-			_get(If.prototype.__proto__ || Object.getPrototypeOf(If.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -2170,13 +2170,13 @@ var Until = function (_Statement18) {
 	_createClass(Until, [{
 		key: "run",
 		value: function run(index) {
+			_get(Until.prototype.__proto__ || Object.getPrototypeOf(Until.prototype), "run", this).call(this);
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new LoopBegin(null, true, this.loc)];
 			for (var i = 0; i < this.state.length; i++) {
 				loop.push(this.state[i]);
 			}loop.push(new LoopEnd(this.condition, false, new Location(last_token, last_token)));
 			code[0].stack.unshift({ statementlist: loop, index: 0 });
-			_get(Until.prototype.__proto__ || Object.getPrototypeOf(Until.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -2199,13 +2199,13 @@ var While = function (_Statement19) {
 	_createClass(While, [{
 		key: "run",
 		value: function run(index) {
+			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), "run", this).call(this);
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new LoopBegin(this.condition, true, this.loc)];
 			for (var i = 0; i < this.state.length; i++) {
 				loop.push(this.state[i]);
 			}loop.push(new LoopEnd(null, false, new Location(last_token, last_token)));
 			code[0].stack.unshift({ statementlist: loop, index: 0 });
-			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -2243,7 +2243,6 @@ function highlightLine(l) {
 function reset() {
 	varTables = [new varTable()];
 	myFuncs = {};
-	returnTypes = [];
 	returnValues = [];
 	current_line = -1;
 	textarea.value = '';

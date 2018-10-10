@@ -293,13 +293,9 @@ CallStatement
 
 IfStatement
 	: 'もし' e 'ならば' 'NEWLINE' statementlist 'を実行する' 'NEWLINE'
-	{
-		$$ = new If($2,$5,null, new Location(@1, @6));
-	}
+	{$$ = new If($2,$5,null, new Location(@1, @6));}
 	| 'もし' e 'ならば' 'NEWLINE' statementlist 'を実行し，そうでなければ' 'NEWLINE' statementlist 'を実行する' 'NEWLINE'
-	{
-		$$ = new If($2,$5,$8, new Location(@1, @9));
-	}
+	{$$ = new If($2,$5,$8, new Location(@1, @9));}
 	;
 
 ForStatement

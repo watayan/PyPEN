@@ -233,15 +233,11 @@ break;
 case 82:
 this.$ = new CallStep($$[$0-4], $$[$0-2], new Location(_$[$0-4],_$[$0-1]));
 break;
-case 83:
-
-		this.$ = new If($$[$0-5],$$[$0-2],null, new Location(_$[$0-6], _$[$0-1]));
-	
+case 83: case 110:
+this.$ = new If($$[$0-5],$$[$0-2],null, new Location(_$[$0-6], _$[$0-1]));
 break;
-case 84:
-
-		this.$ = new If($$[$0-8],$$[$0-5],$$[$0-2], new Location(_$[$0-9], _$[$0-1]));
-	
+case 84: case 111:
+this.$ = new If($$[$0-8],$$[$0-5],$$[$0-2], new Location(_$[$0-9], _$[$0-1]));
 break;
 case 85: case 112:
 this.$ = new ForInc($$[$0-12], $$[$0-10], $$[$0-8], $$[$0-6],$$[$0-2], new Location(_$[$0-12],_$[$0-1]));
@@ -314,12 +310,6 @@ this.$ = new GraphicStatement('gFillCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new L
 break;
 case 109:
 this.$ = new SleepStatement($$[$0-2], new Location(_$[$0-2], _$[$0-2]));
-break;
-case 110:
-this.$ = new If($$[$0-5],$$[$0-2],null, new Location(_$[$0-6], _$[$0-1]));
-break;
-case 111:
-this.$ = new If($$[$0-8],$$[$0-5],$$[$0-2], new Location(_$[$0-9], _$[$0-1]));
 break;
 case 119:
  typeof console !== 'undefined' ? console.log($$[$0-1]) : print($$[$0-1]);
