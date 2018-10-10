@@ -12,10 +12,13 @@
         <h1>xDNCLの文法</h1>
         <p><a href="index.html">戻る</a></p>
         <h2>値</h2>
+        <div class="part">
         <p>数は整数と実数が区別される。小数部分を含まない数は整数とする。例：3.0は実数</p>
         <p>文字列は「」または""で囲む。</p>
         <p>真偽値はTRUEとFALSEのどちらかである。</p>
+        </div>
         <h2>変数の宣言</h2>
+        <div class="part">
         <p>プログラムの冒頭で使う変数を宣言することができる。
             現在の設定では<script>var_declaration();</script>
             変数には整数，実数，文字列，真偽の型がある。
@@ -24,22 +27,24 @@
             a[n]と宣言した場合，使える添字の範囲は現在の設定では<script>array_origin();</script>となる。
             二次元以上の配列はa[1,2]などのように使う。
         </p>
+        </div>
         <h2>計算</h2>
         <h3>四則計算</h3>
-        <p>
+        <p class="part">
         +,-,×,*,÷,/,%が使える。*は掛け算，/は割り算，%は割り算の余り（整数どうしに限る）を表す。
         整数どうしの割り算では設定によって/と÷の挙動が違うことがある。
         現在の設定では<script>div_mode();</script>
         </p>
         <h3>条件式</h3>
-        <p>=,≠,!=,&gt;,&lt;,≧,&gt;=,≦,&lt;=が使える。!=は≠，&gt;=は≧，&lt;=は≦とそれぞれ同じである。
+        <p class="part">=,≠,!=,&gt;,&lt;,≧,&gt;=,≦,&lt;=が使える。!=は≠，&gt;=は≧，&lt;=は≦とそれぞれ同じである。
         条件式を「または」「かつ」でつないだり，「でない」を後置することで否定することができる。
         ただし「または」「かつ」「でない」を使った条件は左から順に評価される。
         </p>
         <h3>文字列結合</h3>
-        <p>「と」で文字列を結合することができる。数値は文字列に変換してから結合される。
+        <p class="part">「と」で文字列を結合することができる。数値は文字列に変換してから結合される。
             例：「こん」と「にちは」→「こんにちは」。1と2→12</p>
         <h3>関数</h3>
+        <div class="part">
         <p>次のような関数を使うことができる。文字列の位置や番号は0から始まる。</p>
         <table class="def_table">
             <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
@@ -64,12 +69,13 @@
             <tr><td>insert(《文字列》,《位置》,《文字列》)</td><td>文字列挿入</td><td>insert(「こんは」,2,「にち」)→「こんにちは」</td></tr>
             <tr><td>replace(《文字列》,《位置》,《長さ》,《文字列》)</td><td>文字列置換</td><td>replace(「こんにちは」,2,2,「ばん」)→「こんばんは」</td></tr>
         </table>
+        </div>
         <h2>代入</h2>
         <div class="part">
-        <pre>
+        <pre class="code">
 《変数》←《値》
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowsubstitute.png" alt="代入">
         </p>
         <p>{ }や[ ]を使って，配列にまとめて値を代入することができる。</p>
@@ -80,29 +86,32 @@ a←<script>a6();</script>
         </div>
         <h2>入力</h2>
         <div class="part">
-        <pre>
+        <pre class="code">
 《変数》を入力する
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowinput.png" alt="代入">
         </p>
         </div>
         <h2>出力</h2>
         <div class="part">
-        <pre>
+        <pre class="code">
 《値》を表示する
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowoutput.png" alt="代入">
         </p>
-        <pre>
+        <pre class="code">
 《値》を改行無しで表示する
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowoutput1.png" alt="代入">
         </p>
+        <p>《値》に配列を指定すると，配列の全要素が表示される。</p>
         </div>
         <h2>分岐（選択）</h2>
+        <div class="part">
+        <div class="code">
         <pre>
 もし《条件》ならば
 ｜
@@ -115,52 +124,57 @@ a←<script>a6();</script>
 ｜
 を実行する
         </pre>
-                        <p>
+        </div>
+        <p class="flowchart">
             <img src="flowif.png" alt="代入">
         </p>
+        </div>
         <h2>ループ</h2>
+        <div class="part">
         <h3>前条件・後条件</h3>
-        <pre>
+        <pre class="code">
 《条件》の間，
 ｜
 を繰り返す
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowwhile.png" alt="代入">
         </p>
-        <pre>
+        <pre class="code">
 繰り返し，
 ｜
 を，《条件》になるまで実行する
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowuntil.png" alt="代入">
         </p>
         <h3>増やしながら・減らしながら</h3>
-        <pre>
+        <pre class="code">
 《変数》を《値》から《値》まで《値》ずつ増やしながら，
 ｜
 を繰り返す
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowforinc.png" alt="代入">
         </p>
-        <pre>
+        <pre class="code">
 《変数》を《値》から《値》まで《値》ずつ減らしながら，
 ｜
 を繰り返す
         </pre>
-        <p>
+        <p class="flowchart">
             <img src="flowfordec.png" alt="代入">
         </p>
-        <h2>グラフィック関係など</h2>
+        </div>
+        <h2>グラフィック関係などの命令</h2>
+        <div class="part">
         <table class="def_table">
             <tr><th>命令</th><th>補足</th></tr>
             <tr><td>描画領域開く(《幅》,《高さ》)</td><td>1つしか開けない</td></tr>
             <tr><td>描画領域閉じる()</td><td></td></tr>
             <tr><td>描画領域全消去()</td><td></td></tr>
             <tr><td>線色設定(《赤》,《緑》,《青》)</td><td>各色の数は0〜255</td></tr>
-            <tr><td>塗色設定(《赤》,《緑》,《青》)</td><td></td></tr>
+            <tr><td>塗色設定(《赤》,《緑》,《青》)</td><td>文字の色もこれ</td></tr>
             <tr><td>線太さ設定(《太さ》)</td><td></td></tr>
             <tr><td>文字サイズ設定(《サイズ》)</td><td></td></tr>
             <tr><td>文字描画(《文字列》,《x》,《y》)</td><td>(x,y)は文字列の左下の座標</td></tr>
@@ -171,9 +185,11 @@ a←<script>a6();</script>
             <tr><td>円塗描画(《x》,《y》,《半径》)</td><td></td></tr>
             <tr><td>《ミリ秒数》 ミリ秒待つ</td><td>未実装</td></tr>
         </table>
+        </div>
     <h2>関数・手続きの定義</h2>
-    <p>注意：関数や手続きを定義したプログラムについては，フローチャートの実装がまだできていません。
-        この状態で間違ってフローチャートを変更するとプログラムがごそっと消えてしまいますので，
+    <div class="part">
+    <p>注意：関数や手続きを定義したプログラムについては，フローチャートの実装がまだできていない。
+        この状態で間違ってフローチャートを変更するとプログラムがごそっと消えてしまうので，
         関数や手続きを定義するプログラムではフローチャートの表示をしないことをお勧めします。
     </p>
     <pre>
@@ -189,9 +205,13 @@ a←<script>a6();</script>
 ｜…
 手続き終了
     </pre>
-    <p>関数は値を返さないとエラーになります。手続きは値を返すことができません。
-        関数・手続きともに，引数を取らない場合であってもカッコが必要です（定義するときも呼び出すときも）。</p>
-    <p>現時点では，関数内で入力を行うことができません。</p>
+    <p>関数は値を返さないとエラーになる。手続きは値を返すことができない。
+        関数・手続きともに，引数を取らない場合であってもカッコが必要（定義するときも呼び出すときも）。</p>
+    <p>現時点では，関数内で入力を行うことができない（手続き内では可能）。</p>
+    </div>
+    <p>
+        注意：この文法はPENのxDNCLと若干違います。
+    </p>
     </div>
     </body>
 </html>
