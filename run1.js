@@ -32,11 +32,12 @@ var wait_time = 0;
 var flowchart_display = false;
 var converting = false;
 var dirty = null;
+var timeouts = [];
 
 var parsedCode = function parsedCode(statementlist) {
 	_classCallCheck(this, parsedCode);
 
-	this.stack = [{ statementlist: statementlist, index: 0 }], this.rtnv = null;
+	this.stack = [{ statementlist: statementlist, index: 0 }];
 };
 
 var parsedMainRoutine = function (_parsedCode) {
@@ -60,6 +61,30 @@ var parsedMainRoutine = function (_parsedCode) {
 	}]);
 
 	return parsedMainRoutine;
+}(parsedCode);
+
+var parsedFunction = function (_parsedCode2) {
+	_inherits(parsedFunction, _parsedCode2);
+
+	function parsedFunction(statementlist) {
+		_classCallCheck(this, parsedFunction);
+
+		return _possibleConstructorReturn(this, (parsedFunction.__proto__ || Object.getPrototypeOf(parsedFunction)).call(this, statementlist));
+	}
+
+	return parsedFunction;
+}(parsedCode);
+
+var parsedStep = function (_parsedCode3) {
+	_inherits(parsedStep, _parsedCode3);
+
+	function parsedStep(statementlist) {
+		_classCallCheck(this, parsedStep);
+
+		return _possibleConstructorReturn(this, (parsedStep.__proto__ || Object.getPrototypeOf(parsedStep)).call(this, statementlist));
+	}
+
+	return parsedStep;
 }(parsedCode);
 
 var varTable = function () {
@@ -326,10 +351,10 @@ var IntValue = function (_Value3) {
 	function IntValue(v, loc) {
 		_classCallCheck(this, IntValue);
 
-		var _this4 = _possibleConstructorReturn(this, (IntValue.__proto__ || Object.getPrototypeOf(IntValue)).call(this, v, loc));
+		var _this6 = _possibleConstructorReturn(this, (IntValue.__proto__ || Object.getPrototypeOf(IntValue)).call(this, v, loc));
 
-		if (!isSafeInteger(v)) throw new RuntimeError(_this4.first_line, "整数で表せない値です");
-		return _this4;
+		if (!isSafeInteger(v)) throw new RuntimeError(_this6.first_line, "整数で表せない値です");
+		return _this6;
 	}
 
 	_createClass(IntValue, [{
@@ -348,10 +373,10 @@ var FloatValue = function (_Value4) {
 	function FloatValue(v, loc) {
 		_classCallCheck(this, FloatValue);
 
-		var _this5 = _possibleConstructorReturn(this, (FloatValue.__proto__ || Object.getPrototypeOf(FloatValue)).call(this, v, loc));
+		var _this7 = _possibleConstructorReturn(this, (FloatValue.__proto__ || Object.getPrototypeOf(FloatValue)).call(this, v, loc));
 
-		if (!isFinite(v)) throw new RuntimeError(_this5.first_line, "オーバーフローしました");
-		return _this5;
+		if (!isFinite(v)) throw new RuntimeError(_this7.first_line, "オーバーフローしました");
+		return _this7;
 	}
 
 	_createClass(FloatValue, [{
@@ -1258,22 +1283,13 @@ var definedFunction = {
 	})
 };
 
-var afterCallFunction = function () {
-	function afterCallFunction() {
-		_classCallCheck(this, afterCallFunction);
+function wait_return_value() {
+	if (returnValues.length == 0) {
+		setTimeout(wait_return_value, 10);
+		return;
 	}
-
-	_createClass(afterCallFunction, [{
-		key: "run",
-		value: function run() {
-			returnValues.push(code[0].stack[0].rtnv);
-			code.shift();
-			varTables.shift();
-		}
-	}]);
-
-	return afterCallFunction;
-}();
+	this.rtnv = returnValues.pop();
+};
 
 var CallFunction = function (_Value25) {
 	_inherits(CallFunction, _Value25);
@@ -1281,25 +1297,39 @@ var CallFunction = function (_Value25) {
 	function CallFunction(funcname, parameter, loc) {
 		_classCallCheck(this, CallFunction);
 
-		return _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
+		var _this28 = _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
+
+		_this28.rtnv = new StringValue("関数が終了していません", loc);
+		return _this28;
 	}
 
 	_createClass(CallFunction, [{
-		key: "getValue",
-		value: function getValue() {
+		key: "exec",
+		value: function exec() {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
-			if (definedFunction[func]) return definedFunction[func].exec(param, this.loc);
-			if (myFuncs[func]) {
+			if (definedFunction[func]) this.rtnv = definedFunction[func].exec(param, this.loc);else if (myFuncs[func]) {
+				var fn = myFuncs[func];
 				var vt = new varTable();
-				for (var i = 0; i < myFuncs[func].params.length; i++) {
-					vt.vars[myFuncs[func].params[i].varname] = param[i].getValue().clone();
-				}varTables.unshift(vt);
-				var statementlist = myFuncs[func].statementlist.concat();
-				statementlist.push(new afterCallFunction());
-				code.unshift(new parsedCode(statementlist));
-				return returnValues.pop();
+				for (var i = 0; i < fn.params.length; i++) {
+					//				if(param[i].getValue() instanceof CallFunction) param[i].getValue().exec();
+					vt.vars[fn.params[i].varname] = param[i].getValue().clone();
+				}
+				var statementlist = fn.statementlist.concat();
+				statementlist.push(new notReturnedFunction(fn.loc));
+				code.unshift(new parsedFunction(statementlist));
+				varTables.unshift(vt);
+				//timeouts.unshift([]);
+				step(true);
+				this.rtnv = returnValues.pop();
+				//timeouts.shift();
 			} else throw new RuntimeError(this.first_line, '関数 ' + func + ' は定義されていません');
+		}
+	}, {
+		key: "getValue",
+		value: function getValue() {
+			this.exec();
+			return this.rtnv;
 		}
 	}, {
 		key: "getCode",
@@ -1383,14 +1413,14 @@ var DefineStep = function (_Statement) {
 	function DefineStep(funcName, params, statementlist, loc) {
 		_classCallCheck(this, DefineStep);
 
-		var _this28 = _possibleConstructorReturn(this, (DefineStep.__proto__ || Object.getPrototypeOf(DefineStep)).call(this, loc));
+		var _this30 = _possibleConstructorReturn(this, (DefineStep.__proto__ || Object.getPrototypeOf(DefineStep)).call(this, loc));
 
-		if (definedFunction[funcName]) throw new RuntimeError(_this28.first_line, '手続き ' + funcName + ' と同名の標準関数が存在します');
-		if (myFuncs[funcName]) throw new RuntimeError(_this28.first_line, '手続き ' + funcName + ' と同名の関数、または手続きが既に定義されています');
-		_this28.params = params;
-		_this28.statementlist = statementlist;
-		myFuncs[funcName] = _this28;
-		return _this28;
+		if (definedFunction[funcName]) throw new RuntimeError(_this30.first_line, '手続き ' + funcName + ' と同名の標準関数が存在します');
+		if (myFuncs[funcName]) throw new RuntimeError(_this30.first_line, '手続き ' + funcName + ' と同名の関数、または手続きが既に定義されています');
+		_this30.params = params;
+		_this30.statementlist = statementlist;
+		myFuncs[funcName] = _this30;
+		return _this30;
 	}
 
 	return DefineStep;
@@ -1419,11 +1449,11 @@ var CallStep = function (_Statement2) {
 	function CallStep(funcName, args, loc) {
 		_classCallCheck(this, CallStep);
 
-		var _this29 = _possibleConstructorReturn(this, (CallStep.__proto__ || Object.getPrototypeOf(CallStep)).call(this, loc));
+		var _this31 = _possibleConstructorReturn(this, (CallStep.__proto__ || Object.getPrototypeOf(CallStep)).call(this, loc));
 
-		_this29.funcName = funcName;
-		_this29.args = args;
-		return _this29;
+		_this31.funcName = funcName;
+		_this31.args = args;
+		return _this31;
 	}
 
 	_createClass(CallStep, [{
@@ -1436,8 +1466,9 @@ var CallStep = function (_Statement2) {
 				for (var i = 0; i < myFuncs[fn].params.length; i++) {
 					vt.vars[myFuncs[fn].params[i].varname] = args[i].getValue().clone();
 				}var statementlist = myFuncs[fn].statementlist.concat();
+				// TODO 呼ばれる保証がない
 				statementlist.push(new afterCallStep());
-				code.unshift(new parsedCode(statementlist));
+				code.unshift(new parsedStep(statementlist));
 				varTables.unshift(vt);
 			} else throw new RuntimeError(this.first_line, '手続き ' + fn + ' は定義されていません');
 		}
@@ -1458,7 +1489,12 @@ var ExitStatement = function (_Statement3) {
 	_createClass(ExitStatement, [{
 		key: "run",
 		value: function run() {
-			code[0].stack[0].index = -1;
+			if (code[0] instanceof parsedStep) {
+				code[0].stack[0].index = -1;
+				code.shift();
+				varTables.shift();
+				code[0].stack[0].index++;
+			} else throw new RuntimeError(this.first_line, "手続きの中ではありません");
 		}
 	}]);
 
@@ -1471,14 +1507,14 @@ var DefineFunction = function (_Statement4) {
 	function DefineFunction(funcName, params, statementlist, loc) {
 		_classCallCheck(this, DefineFunction);
 
-		var _this31 = _possibleConstructorReturn(this, (DefineFunction.__proto__ || Object.getPrototypeOf(DefineFunction)).call(this, loc));
+		var _this33 = _possibleConstructorReturn(this, (DefineFunction.__proto__ || Object.getPrototypeOf(DefineFunction)).call(this, loc));
 
-		if (definedFunction[funcName]) throw new RuntimeError(_this31.first_line, '関数 ' + funcName + ' と同名の標準関数が存在します');
-		if (myFuncs[funcName]) throw new RuntimeError(_this31.first_line, '関数 ' + funcName + ' と同名の関数、または手続きが既に定義されています');
-		_this31.params = params;
-		myFuncs[funcName] = _this31;
-		_this31.statementlist = statementlist;
-		return _this31;
+		if (definedFunction[funcName]) throw new RuntimeError(_this33.first_line, '関数 ' + funcName + ' と同名の標準関数が存在します');
+		if (myFuncs[funcName]) throw new RuntimeError(_this33.first_line, '関数 ' + funcName + ' と同名の関数、または手続きが既に定義されています');
+		_this33.params = params;
+		myFuncs[funcName] = _this33;
+		_this33.statementlist = statementlist;
+		return _this33;
 	}
 
 	_createClass(DefineFunction, [{
@@ -1497,28 +1533,50 @@ var ReturnStatement = function (_Statement5) {
 	function ReturnStatement(value, loc) {
 		_classCallCheck(this, ReturnStatement);
 
-		var _this32 = _possibleConstructorReturn(this, (ReturnStatement.__proto__ || Object.getPrototypeOf(ReturnStatement)).call(this, loc));
+		var _this34 = _possibleConstructorReturn(this, (ReturnStatement.__proto__ || Object.getPrototypeOf(ReturnStatement)).call(this, loc));
 
-		_this32.value = value;
-		return _this32;
+		_this34.value = value;
+		return _this34;
 	}
 
 	_createClass(ReturnStatement, [{
 		key: "run",
 		value: function run() {
-			returnValues.push(this.value.getValue().clone());
-			code[0].stack[0].index = -1;
+			if (code[0] instanceof parsedFunction) {
+				returnValues.push(this.value.getValue().clone());
+				code.shift();
+				varTables.shift();
+			} else throw new RuntimeError(this.first_line, "関数の中ではありません");
 		}
 	}]);
 
 	return ReturnStatement;
 }(Statement);
 
+var notReturnedFunction = function (_Statement6) {
+	_inherits(notReturnedFunction, _Statement6);
+
+	function notReturnedFunction(loc) {
+		_classCallCheck(this, notReturnedFunction);
+
+		return _possibleConstructorReturn(this, (notReturnedFunction.__proto__ || Object.getPrototypeOf(notReturnedFunction)).call(this, loc));
+	}
+
+	_createClass(notReturnedFunction, [{
+		key: "run",
+		value: function run() {
+			throw new RuntimeError(this.last_line, "関数が値を返さずに終了しました");
+		}
+	}]);
+
+	return notReturnedFunction;
+}(Statement);
+
 /******************************************************* 追加ここまで *************************************************/
 
 
-var DefinitionStatement = function (_Statement6) {
-	_inherits(DefinitionStatement, _Statement6);
+var DefinitionStatement = function (_Statement7) {
+	_inherits(DefinitionStatement, _Statement7);
 
 	function DefinitionStatement(loc) {
 		_classCallCheck(this, DefinitionStatement);
@@ -1554,15 +1612,16 @@ var DefinitionInt = function (_DefinitionStatement) {
 	function DefinitionInt(x, loc) {
 		_classCallCheck(this, DefinitionInt);
 
-		var _this34 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
+		var _this37 = _possibleConstructorReturn(this, (DefinitionInt.__proto__ || Object.getPrototypeOf(DefinitionInt)).call(this, loc));
 
-		_this34.vars = x;
-		return _this34;
+		_this37.vars = x;
+		return _this37;
 	}
 
 	_createClass(DefinitionInt, [{
 		key: "run",
 		value: function run() {
+			_get(DefinitionInt.prototype.__proto__ || Object.getPrototypeOf(DefinitionInt.prototype), "run", this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -1572,7 +1631,6 @@ var DefinitionInt = function (_DefinitionStatement) {
 				if (v) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
 				if (!parameter) varTables[0].vars[varname] = new IntValue(0, this.loc);else varTables[0].vars[varname] = makeArray(parameter, [], this.loc, typeInt);
 			}
-			_get(DefinitionInt.prototype.__proto__ || Object.getPrototypeOf(DefinitionInt.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -1585,15 +1643,16 @@ var DefinitionFloat = function (_DefinitionStatement2) {
 	function DefinitionFloat(x, loc) {
 		_classCallCheck(this, DefinitionFloat);
 
-		var _this35 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
+		var _this38 = _possibleConstructorReturn(this, (DefinitionFloat.__proto__ || Object.getPrototypeOf(DefinitionFloat)).call(this, loc));
 
-		_this35.vars = x;
-		return _this35;
+		_this38.vars = x;
+		return _this38;
 	}
 
 	_createClass(DefinitionFloat, [{
 		key: "run",
 		value: function run() {
+			_get(DefinitionFloat.prototype.__proto__ || Object.getPrototypeOf(DefinitionFloat.prototype), "run", this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -1603,7 +1662,6 @@ var DefinitionFloat = function (_DefinitionStatement2) {
 				if (v) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
 				if (!parameter) varTables[0].vars[varname] = new FloatValue(0.0, this.loc);else varTables[0].vars[varname] = makeArray(parameter, [], this.loc, typeFloat);
 			}
-			_get(DefinitionFloat.prototype.__proto__ || Object.getPrototypeOf(DefinitionFloat.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -1616,15 +1674,16 @@ var DefinitionString = function (_DefinitionStatement3) {
 	function DefinitionString(x, loc) {
 		_classCallCheck(this, DefinitionString);
 
-		var _this36 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
+		var _this39 = _possibleConstructorReturn(this, (DefinitionString.__proto__ || Object.getPrototypeOf(DefinitionString)).call(this, loc));
 
-		_this36.vars = x;
-		return _this36;
+		_this39.vars = x;
+		return _this39;
 	}
 
 	_createClass(DefinitionString, [{
 		key: "run",
 		value: function run() {
+			_get(DefinitionString.prototype.__proto__ || Object.getPrototypeOf(DefinitionString.prototype), "run", this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -1634,7 +1693,6 @@ var DefinitionString = function (_DefinitionStatement3) {
 				if (v) throw new RuntimeError(this.first_line, varname + "の宣言が重複しています");
 				if (!parameter) varTables[0].vars[varname] = new StringValue('', this.loc);else varTables[0].vars[varname] = makeArray(parameter, [], this.loc, typeString);
 			}
-			_get(DefinitionString.prototype.__proto__ || Object.getPrototypeOf(DefinitionString.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -1647,15 +1705,16 @@ var DefinitionBoolean = function (_DefinitionStatement4) {
 	function DefinitionBoolean(x, loc) {
 		_classCallCheck(this, DefinitionBoolean);
 
-		var _this37 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
+		var _this40 = _possibleConstructorReturn(this, (DefinitionBoolean.__proto__ || Object.getPrototypeOf(DefinitionBoolean)).call(this, loc));
 
-		_this37.vars = x;
-		return _this37;
+		_this40.vars = x;
+		return _this40;
 	}
 
 	_createClass(DefinitionBoolean, [{
 		key: "run",
 		value: function run() {
+			_get(DefinitionBoolean.prototype.__proto__ || Object.getPrototypeOf(DefinitionBoolean.prototype), "run", this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				for (var i = 0; i < this.vars.length; i++) {
 					if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -1667,7 +1726,6 @@ var DefinitionBoolean = function (_DefinitionStatement4) {
 					if (!parameter) varTables[0].vars[varname] = new BooleanValue(true, this.loc);else varTables[0].vars[varname] = makeArray(parameter, [], this.loc, typeBoolean);
 				}
 			}
-			_get(DefinitionBoolean.prototype.__proto__ || Object.getPrototypeOf(DefinitionBoolean.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -1684,17 +1742,17 @@ function argsString(args) {
 	return '';
 }
 
-var Assign = function (_Statement7) {
-	_inherits(Assign, _Statement7);
+var Assign = function (_Statement8) {
+	_inherits(Assign, _Statement8);
 
 	function Assign(variable, value, loc) {
 		_classCallCheck(this, Assign);
 
-		var _this38 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
+		var _this41 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
 
-		_this38.variable = variable;
-		_this38.value = value;
-		return _this38;
+		_this41.variable = variable;
+		_this41.value = value;
+		return _this41;
 	}
 
 	_createClass(Assign, [{
@@ -1702,6 +1760,7 @@ var Assign = function (_Statement7) {
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
+			if (this.value instanceof CallFunction) this.value.exec();
 			var index = code[0].stack[0].index;
 
 			var vn = this.variable.varname;
@@ -1774,33 +1833,33 @@ var Assign = function (_Statement7) {
 	return Assign;
 }(Statement);
 
-var Input = function (_Statement8) {
-	_inherits(Input, _Statement8);
+var Input = function (_Statement9) {
+	_inherits(Input, _Statement9);
 
 	function Input(x, loc) {
 		_classCallCheck(this, Input);
 
-		var _this39 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
+		var _this42 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
 
-		_this39.varname = x;
-		return _this39;
+		_this42.varname = x;
+		return _this42;
 	}
 
 	_createClass(Input, [{
 		key: "run",
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-			_get(Input.prototype.__proto__ || Object.getPrototypeOf(Input.prototype), "run", this).call(this);
 			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
-			code[0].stack.unshift({ statementlist: list, index: 0 });
+			code.unshift(new parsedCode(list));
+			step();
 		}
 	}]);
 
 	return Input;
 }(Statement);
 
-var InputBegin = function (_Statement9) {
-	_inherits(InputBegin, _Statement9);
+var InputBegin = function (_Statement10) {
+	_inherits(InputBegin, _Statement10);
 
 	function InputBegin(loc) {
 		_classCallCheck(this, InputBegin);
@@ -1819,16 +1878,16 @@ var InputBegin = function (_Statement9) {
 	return InputBegin;
 }(Statement);
 
-var InputEnd = function (_Statement10) {
-	_inherits(InputEnd, _Statement10);
+var InputEnd = function (_Statement11) {
+	_inherits(InputEnd, _Statement11);
 
 	function InputEnd(x, loc) {
 		_classCallCheck(this, InputEnd);
 
-		var _this41 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
+		var _this44 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
 
-		_this41.varname = x;
-		return _this41;
+		_this44.varname = x;
+		return _this44;
 	}
 
 	_createClass(InputEnd, [{
@@ -1841,38 +1900,40 @@ var InputEnd = function (_Statement10) {
 				var v0 = va.getValue();
 				var assign = null;
 				var re = /真|true/i;
-				if (v0 instanceof IntValue) assign = new Assign(va, new IntValue(new Number(vl), this.loc), this.loc);else if (v0 instanceof FloatValue) assign = new Assign(va, new FloatValue(new Number(vl), this.loc), this.loc);else if (v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);else if (v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				code.shift();
+				if (v0 instanceof IntValue) assign = new Assign(va, new IntValue(Number(vl), this.loc), this.loc);else if (v0 instanceof FloatValue) assign = new Assign(va, new FloatValue(Number(vl), this.loc), this.loc);else if (v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);else if (v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
 				assign.run();
 			} catch (e) {
 				closeInputWindow();
+				code.shift();
 				throw e;
 			}
-			_get(InputEnd.prototype.__proto__ || Object.getPrototypeOf(InputEnd.prototype), "run", this).call(this);
 		}
 	}]);
 
 	return InputEnd;
 }(Statement);
 
-var Output = function (_Statement11) {
-	_inherits(Output, _Statement11);
+var Output = function (_Statement12) {
+	_inherits(Output, _Statement12);
 
 	function Output(x, ln, loc) {
 		_classCallCheck(this, Output);
 
-		var _this42 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
+		var _this45 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
 
-		_this42.value = x;
-		_this42.ln = ln;
-		return _this42;
+		_this45.value = x;
+		_this45.ln = ln;
+		return _this45;
 	}
 
 	_createClass(Output, [{
 		key: "run",
 		value: function run() {
+			//		if(this.value instanceof CallFunction) this.value.exec();
+			_get(Output.prototype.__proto__ || Object.getPrototypeOf(Output.prototype), "run", this).call(this);
 			var v = this.value.getValue();
 			textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
-			_get(Output.prototype.__proto__ || Object.getPrototypeOf(Output.prototype), "run", this).call(this);
 		}
 	}]);
 
@@ -1891,22 +1952,23 @@ function array2text(v) {
 	return v0.value;
 }
 
-var GraphicStatement = function (_Statement12) {
-	_inherits(GraphicStatement, _Statement12);
+var GraphicStatement = function (_Statement13) {
+	_inherits(GraphicStatement, _Statement13);
 
 	function GraphicStatement(command, args, loc) {
 		_classCallCheck(this, GraphicStatement);
 
-		var _this43 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
+		var _this46 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
 
-		_this43.command = command;
-		_this43.args = args;
-		return _this43;
+		_this46.command = command;
+		_this46.args = args;
+		return _this46;
 	}
 
 	_createClass(GraphicStatement, [{
 		key: "run",
 		value: function run() {
+			_get(GraphicStatement.prototype.__proto__ || Object.getPrototypeOf(GraphicStatement.prototype), "run", this).call(this);
 			if (this.command == 'gOpenWindow') {
 				var canvas = document.getElementById('canvas');
 				context = canvas.getContext('2d');
@@ -1986,25 +2048,24 @@ var GraphicStatement = function (_Statement12) {
 			} else {
 				throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
 			}
-			_get(GraphicStatement.prototype.__proto__ || Object.getPrototypeOf(GraphicStatement.prototype), "run", this).call(this);
 		}
 	}]);
 
 	return GraphicStatement;
 }(Statement);
 
-var If = function (_Statement13) {
-	_inherits(If, _Statement13);
+var If = function (_Statement14) {
+	_inherits(If, _Statement14);
 
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
-		var _this44 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
+		var _this47 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
 
-		_this44.condition = condition;
-		_this44.state1 = state1;
-		_this44.state2 = state2;
-		return _this44;
+		_this47.condition = condition;
+		_this47.state1 = state1;
+		_this47.state2 = state2;
+		return _this47;
 	}
 
 	_createClass(If, [{
@@ -2020,17 +2081,17 @@ var If = function (_Statement13) {
 	return If;
 }(Statement);
 
-var LoopBegin = function (_Statement14) {
-	_inherits(LoopBegin, _Statement14);
+var LoopBegin = function (_Statement15) {
+	_inherits(LoopBegin, _Statement15);
 
 	function LoopBegin(condition, continuous, loc) {
 		_classCallCheck(this, LoopBegin);
 
-		var _this45 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
+		var _this48 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
 
-		_this45.condition = condition;
-		_this45.continuous = continuous;
-		return _this45;
+		_this48.condition = condition;
+		_this48.continuous = continuous;
+		return _this48;
 	}
 
 	_createClass(LoopBegin, [{
@@ -2043,17 +2104,17 @@ var LoopBegin = function (_Statement14) {
 	return LoopBegin;
 }(Statement);
 
-var LoopEnd = function (_Statement15) {
-	_inherits(LoopEnd, _Statement15);
+var LoopEnd = function (_Statement16) {
+	_inherits(LoopEnd, _Statement16);
 
 	function LoopEnd(condition, continuous, loc) {
 		_classCallCheck(this, LoopEnd);
 
-		var _this46 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
+		var _this49 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
 
-		_this46.condition = condition;
-		_this46.continuous = continuous;
-		return _this46;
+		_this49.condition = condition;
+		_this49.continuous = continuous;
+		return _this49;
 	}
 
 	_createClass(LoopEnd, [{
@@ -2066,25 +2127,25 @@ var LoopEnd = function (_Statement15) {
 	return LoopEnd;
 }(Statement);
 
-var ForInc = function (_Statement16) {
-	_inherits(ForInc, _Statement16);
+var ForInc = function (_Statement17) {
+	_inherits(ForInc, _Statement17);
 
 	function ForInc(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForInc);
 
-		var _this47 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
+		var _this50 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
 
-		_this47.varname = varname;
-		_this47.begin = begin;
-		_this47.end = end;
-		_this47.step = step;
-		_this47.state = state;
-		return _this47;
+		_this50.varname = varname;
+		_this50.begin = begin;
+		_this50.end = end;
+		_this50.step = step;
+		_this50.state = state;
+		return _this50;
 	}
 
 	_createClass(ForInc, [{
 		key: "run",
-		value: function run(index) {
+		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
@@ -2110,25 +2171,25 @@ var ForInc = function (_Statement16) {
 	return ForInc;
 }(Statement);
 
-var ForDec = function (_Statement17) {
-	_inherits(ForDec, _Statement17);
+var ForDec = function (_Statement18) {
+	_inherits(ForDec, _Statement18);
 
 	function ForDec(varname, begin, end, step, state, loc) {
 		_classCallCheck(this, ForDec);
 
-		var _this48 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
+		var _this51 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
 
-		_this48.varname = varname;
-		_this48.begin = begin;
-		_this48.end = end;
-		_this48.step = step;
-		_this48.state = state;
-		return _this48;
+		_this51.varname = varname;
+		_this51.begin = begin;
+		_this51.end = end;
+		_this51.step = step;
+		_this51.state = state;
+		return _this51;
 	}
 
 	_createClass(ForDec, [{
 		key: "run",
-		value: function run(index) {
+		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
@@ -2154,22 +2215,22 @@ var ForDec = function (_Statement17) {
 	return ForDec;
 }(Statement);
 
-var Until = function (_Statement18) {
-	_inherits(Until, _Statement18);
+var Until = function (_Statement19) {
+	_inherits(Until, _Statement19);
 
 	function Until(state, condition, loc) {
 		_classCallCheck(this, Until);
 
-		var _this49 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
+		var _this52 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
 
-		_this49.condition = condition;
-		_this49.state = state;
-		return _this49;
+		_this52.condition = condition;
+		_this52.state = state;
+		return _this52;
 	}
 
 	_createClass(Until, [{
 		key: "run",
-		value: function run(index) {
+		value: function run() {
 			_get(Until.prototype.__proto__ || Object.getPrototypeOf(Until.prototype), "run", this).call(this);
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new LoopBegin(null, true, this.loc)];
@@ -2183,22 +2244,22 @@ var Until = function (_Statement18) {
 	return Until;
 }(Statement);
 
-var While = function (_Statement19) {
-	_inherits(While, _Statement19);
+var While = function (_Statement20) {
+	_inherits(While, _Statement20);
 
 	function While(condition, state, loc) {
 		_classCallCheck(this, While);
 
-		var _this50 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
+		var _this53 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
 
-		_this50.condition = condition;
-		_this50.state = state;
-		return _this50;
+		_this53.condition = condition;
+		_this53.state = state;
+		return _this53;
 	}
 
 	_createClass(While, [{
 		key: "run",
-		value: function run(index) {
+		value: function run() {
 			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), "run", this).call(this);
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new LoopBegin(this.condition, true, this.loc)];
@@ -2212,16 +2273,16 @@ var While = function (_Statement19) {
 	return While;
 }(Statement);
 
-var SleepStatement = function (_Statement20) {
-	_inherits(SleepStatement, _Statement20);
+var SleepStatement = function (_Statement21) {
+	_inherits(SleepStatement, _Statement21);
 
 	function SleepStatement(sec, loc) {
 		_classCallCheck(this, SleepStatement);
 
-		var _this51 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
+		var _this54 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
 
-		_this51.sec = new IntValue(sec.value, loc); // milli seconds
-		return _this51;
+		_this54.sec = new IntValue(sec.value, loc); // milli seconds
+		return _this54;
 	}
 
 	_createClass(SleepStatement, [{
@@ -2253,6 +2314,7 @@ function reset() {
 	canvas.style.display = 'none';
 	context = null;
 	wait_time = 0;
+	timeouts = [];
 }
 
 function setRunflag(b) {
@@ -2280,18 +2342,29 @@ function run() {
 }
 
 function step() {
-	// 次の行まで進める
-	var l = current_line;
-	do {
-		next_line();
-	} while (run_flag && l == current_line);
-	if (!code) return;
-	if (code[0].stack.length > 0) {
-		if (run_flag && !step_flag) {
-			if (wait_time > 0) setTimeout(step, wait_time);else setZeroTimeout(step);
-		}
-	} else if (code[0].finish) code[0].finish();
-	wait_time = 0;
+	var flag = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+	if (flag) //setZeroTImeoutを呼ばずにcode[0].stackが空になるまで繰り返す
+		{
+			var _l = code.length;
+			do {
+				next_line();
+				if (code.length < _l) break;
+			} while (run_flag && code[0].stack.length > 0);
+		} else {
+		// 次の行まで進める
+		var l = current_line;
+		do {
+			next_line();
+		} while (run_flag && l == current_line);
+		if (!code) return;
+		if (code[0].stack.length > 0) {
+			if (run_flag && !step_flag) {
+				if (wait_time > 0) setTimeout(step, wait_time);else setZeroTimeout(step);
+			}
+		} else if (code[0].finish) code[0].finish();
+		wait_time = 0;
+	}
 }
 
 function next_line() {
@@ -2302,7 +2375,7 @@ function next_line() {
 			statement.run();
 		} catch (e) {
 			console.log(e);
-			textareaAppend("実行時エラーです\n" + e.line + "行目:" + e.message + "\n");
+			if (e instanceof RuntimeError) textareaAppend("実行時エラーです\n" + e.line + "行目:" + e.message + "\n");else textareaAppend("実行時エラーです\n" + e + "\n");
 			setRunflag(false);
 			code = null;
 		}
@@ -2326,6 +2399,7 @@ function next_line() {
 function openInputWindow() {
 	var $input = $("#input");
 	var $input_overlay = $("#input-overlay");
+	setRunflag(false);
 	$input_overlay.fadeIn();
 	$input.fadeIn();
 	$input.html("<p>入力してください</p>" + "<input type=\"text\" id=\"inputarea\" onkeydown=\"keydown(event);\">");
@@ -2333,7 +2407,6 @@ function openInputWindow() {
 	//	if(inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);
 	//	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
 	$("#inputarea").focus();
-	setRunflag(false);
 	document.getElementById("sourceTextarea").readOnly = true;
 }
 
@@ -2348,9 +2421,11 @@ function keydown(e) {
 	var evt = e || window.event;
 	if (evt.keyCode == 13) {
 		setRunflag(true);
-		setTimeout(run(), 100);
+		run();
+		//		setTimeout(run, 100);
 	} else if (evt.keyCode == 27) {
 		closeInputWindow();
+		code.shift();
 	}
 }
 
@@ -2390,6 +2465,7 @@ function keyUp(e) {
 	var re2 = /^[^》《]*》/;
 	var re3 = /\n?([｜|]*)([^｜|\n]*?)\n$/;
 	var re4 = /(ならば|なければ|(の間|繰り返し|繰返し|(増|減)やし(ながら|つつ))[，,、])$/;
+	var re4a = /^(関数|手続き).*\(.*\)$/;
 	var re5 = /^\n/;
 	var tab = "";
 	switch (evt.keyCode) {
@@ -2408,7 +2484,7 @@ function keyUp(e) {
 			var match = re3.exec(code1);
 			if (match) {
 				tab = match[1];
-				if (re4.exec(match[2])) tab = "｜" + tab;
+				if (re4.exec(match[2]) || re4a.exec(match[2])) tab = "｜" + tab;
 			}
 			sourceTextArea.value = code1 + tab + code2;
 			pos = code1.length + tab.length;
@@ -3213,10 +3289,10 @@ var Parts_Output = function (_Parts4) {
 	function Parts_Output() {
 		_classCallCheck(this, Parts_Output);
 
-		var _this55 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
+		var _this58 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
 
-		_this55.setValue("《値》", true);
-		return _this55;
+		_this58.setValue("《値》", true);
+		return _this58;
 	}
 
 	_createClass(Parts_Output, [{
@@ -3337,10 +3413,10 @@ var Parts_Input = function (_Parts5) {
 	function Parts_Input() {
 		_classCallCheck(this, Parts_Input);
 
-		var _this56 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
+		var _this59 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
 
-		_this56.setValue("《変数》");
-		return _this56;
+		_this59.setValue("《変数》");
+		return _this59;
 	}
 
 	_createClass(Parts_Input, [{
@@ -3439,10 +3515,10 @@ var Parts_Substitute = function (_Parts6) {
 	function Parts_Substitute() {
 		_classCallCheck(this, Parts_Substitute);
 
-		var _this57 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
+		var _this60 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
 
-		_this57.setValue("《変数》", "《値》");
-		return _this57;
+		_this60.setValue("《変数》", "《値》");
+		return _this60;
 	}
 
 	_createClass(Parts_Substitute, [{
@@ -3549,12 +3625,12 @@ var Parts_If = function (_Parts7) {
 	function Parts_If() {
 		_classCallCheck(this, Parts_If);
 
-		var _this58 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
+		var _this61 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
 
-		_this58.setValue("《条件》");
-		_this58.left = _this58.right = null;
-		_this58.left_bar_expand = _this58.right_bar_expand = 0;
-		return _this58;
+		_this61.setValue("《条件》");
+		_this61.left = _this61.right = null;
+		_this61.left_bar_expand = _this61.right_bar_expand = 0;
+		return _this61;
 	}
 
 	_createClass(Parts_If, [{
@@ -3878,10 +3954,10 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	function Parts_LoopBegin1() {
 		_classCallCheck(this, Parts_LoopBegin1);
 
-		var _this60 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
+		var _this63 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
 
-		_this60.setValue("《条件》");
-		return _this60;
+		_this63.setValue("《条件》");
+		return _this63;
 	}
 
 	_createClass(Parts_LoopBegin1, [{
@@ -3952,10 +4028,10 @@ var Parts_LoopBegin2 = function (_Parts_LoopBegin2) {
 	function Parts_LoopBegin2() {
 		_classCallCheck(this, Parts_LoopBegin2);
 
-		var _this61 = _possibleConstructorReturn(this, (Parts_LoopBegin2.__proto__ || Object.getPrototypeOf(Parts_LoopBegin2)).call(this));
+		var _this64 = _possibleConstructorReturn(this, (Parts_LoopBegin2.__proto__ || Object.getPrototypeOf(Parts_LoopBegin2)).call(this));
 
-		_this61.setValue("《条件》");
-		return _this61;
+		_this64.setValue("《条件》");
+		return _this64;
 	}
 
 	_createClass(Parts_LoopBegin2, [{
@@ -4027,10 +4103,10 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this62 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this65 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
 
-		_this62.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this62;
+		_this65.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this65;
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
@@ -4126,10 +4202,10 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin4) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this63 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this66 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
 
-		_this63.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this63;
+		_this66.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this66;
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
@@ -4384,10 +4460,10 @@ var Parts_Misc = function (_Parts10) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this66 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this69 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
 
-		_this66.setValue("none", []);
-		return _this66;
+		_this69.setValue("none", []);
+		return _this69;
 	}
 
 	_createClass(Parts_Misc, [{
@@ -4919,7 +4995,7 @@ onload = function onload() {
 	});
 	// this code is from David Baron's Weblog
 	// https://dbaron.org/log/20100309-faster-timeouts
-	var timeouts = [];
+	//	var timeouts = [];
 	var messageName = "zero-timeout-message";
 
 	// Like setTimeout, but only takes a function argument.  There's

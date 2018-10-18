@@ -86,6 +86,9 @@ UNDEFINED		"《"[^》]*"》"
 "を実行"				{return 'を実行する';}
 "の間"{Comma}			{return 'の間，';}
 "の間"					{return 'の間，';}
+"繰り返しを抜ける"		{return '繰り返しを抜ける';}
+"繰返しを抜ける"		{return '繰り返しを抜ける';}
+"くりかえしを抜ける"	{return '繰り返しを抜ける';}
 "繰り返し"{Comma}		{return '繰り返し，';}
 "繰返し"{Comma}			{return '繰り返し，';}
 "くりかえし"{Comma}		{return '繰り返し，';}
@@ -204,42 +207,10 @@ args
 	;
 
 statementlist
-	: statementlist BasicStatement	{ if($2 != null) $$ = $1.concat($2);}
-	| statementlist Statement4NotFunc {$$ = $1.concat($2);}
+	: statementlist statement	{ if($2 != null) $$ = $1.concat($2);}
 	| 	{$$ = [];}
 	;
-
-statementlist4step
-	: statementlist4step BasicStatement {if($2 != null) $$ = $1.concat($2);}
-	| statementlist4step Statement4NotFunc {$$ = $1.concat($2);}
-	| statementlist4step ExitStatement {$$ = $1.concat($2);}
-	|   {$$ = [];}
-	;
-
-ExitStatement
-	: '手続きを抜ける' 'NEWLINE' {$$ = new ExitStatement(new Location(@1,@1));}
-	;
-
-statementlist4func
-	: statementlist4func BasicStatement {if($2 != null) $$ = $1.concat($2);}
-	| statementlist4func Statement4Func {$$ = $1.concat($2);}
-	|   {$$ = [];}
-	;
-
-PrimitiveDatatype
-	: '整数'
-	| '実数'
-	| '文字列'
-	| '真偽'
-	;
-
-MainStatement
-	: DefineFuncStatement
-	| BasicStatement
-	| Statement4NotFunc
-	;
-
-BasicStatement
+statement
 	: EmptyStatement
 	| DefineStatement
 	| CallStatement
@@ -247,37 +218,29 @@ BasicStatement
 	| PrintStatement
 	| InputStatement
 	| GraphicStatement
-	| SleepStatement
-	;
-
-Statement4NotFunc
-	: IfStatement
 	| ForStatement
-	| LoopStatement
 	| WhileStatement
-	;
-
-Statement4Func
-	: IfStatement4Func
-	| ForStatement4Func
-	| LoopStatement4Func
-	| WhileStatement4Func
+	| LoopStatement
+	| IfStatement
+	| SleepStatement
+	| DefineFuncStatement
 	| ReturnStatement
 	;
 
-ReturnStatement
-	: e 'を返す' 'NEWLINE' {$$ = new ReturnStatement($1, new Location(@1, @2));}
-	;
-
 EmptyStatement
-	: 'NEWLINE'	{ $$ = null;}
+	: 'NEWLINE'	{$$ = null;}
 	;
 
 DefineFuncStatement
-	: '手続き' IDENTIFIER '(' args ')' 'NEWLINE' statementlist4step '手続き終了' 'NEWLINE'
+	: '手続き' IDENTIFIER '(' args ')' 'NEWLINE' statementlist '手続き終了' 'NEWLINE'
 		{$$ = new DefineStep($2, $4, $7, new Location(@1, @8));}
-	| '関数' IDENTIFIER '(' args ')' 'NEWLINE' statementlist4func '関数終了' 'NEWLINE'
+	| '関数' IDENTIFIER '(' args ')' 'NEWLINE' statementlist '関数終了' 'NEWLINE'
 		{$$ = new DefineFunction($2, $4, $7, new Location(@1, @8));}
+	;
+
+ReturnStatement
+	: '手続きを抜ける' 'NEWLINE' {$$ = new ExitStatement(new Location(@1,@1));}
+	| e 'を返す' 'NEWLINE' {$$ = new ReturnStatement($1, new Location(@1, @2));}
 	;
 
 DefineStatement
@@ -355,36 +318,6 @@ SleepStatement
 	: e 'ミリ秒待つ' 'NEWLINE' {$$ = new SleepStatement($1, new Location(@1, @1));}
 	;
 
-IfStatement4Func
-	: 'もし' e 'ならば' 'NEWLINE' statementlist4func4func 'を実行する' 'NEWLINE'
-		{$$ = new If($2,$5,null, new Location(@1, @6));}
-	| 'もし' e 'ならば' 'NEWLINE' statementlist4func 'を実行し，そうでなければ' 'NEWLINE' statementlist4func 'を実行する' 'NEWLINE'
-		{$$ = new If($2,$5,$8, new Location(@1, @9));}
-	;
-
-ForStatement4Func
-	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
-		{$$ = new ForInc($1, $3, $5, $7,$11, new Location(@1,@12));}
-	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
-		{$$ = new ForDec($1, $3, $5, $7,$11, new Location(@1,@12));}
-	| variable 'を' e 'から' e 'まで' '増やしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
-		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
-	| variable 'を' e 'FOR2' e 'まで' '減らしながら，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
-	;
-
-LoopStatement4Func
-	: '繰り返し，' 'NEWLINE' statementlist4func 'を，' e 'になるまで実行する' 'NEWLINE'
-		{$$ = new Until($3, $5, new Location(@1, @6));}
-	| '繰り返し，' 'NEWLINE' statementlist4func 'を' e 'になるまで実行する' 'NEWLINE'
-		{$$ = new Until($3, $5, new Location(@1, @6));}
-	;
-
-WhileStatement4Func
-	: e 'の間，' 'NEWLINE' statementlist4func 'を繰り返す' 'NEWLINE'
-		{$$ = new While($1, $4, new Location(@1, @5));}
-	;
-
 Program
 	: SourceElements 'EOF'
 	{ typeof console !== 'undefined' ? console.log($1) : print($1);
@@ -397,5 +330,5 @@ SourceElements
 	;
 
 SourceElement
-	: MainStatement
+	: statement
 	;
