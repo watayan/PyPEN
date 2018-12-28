@@ -1224,7 +1224,7 @@ function argsString(args)
 	if(args instanceof ArrayValue)
 	{
 		let a = [];
-		for(let i = 0; i < args.value.length; i++) a.push(args.value[i].value);
+		for(let i = 0; i < args.value.length; i++) a.push(args.value[i].getValue().value);
 		return '[' + a.join(',') + ']';
 	}
 	return '';

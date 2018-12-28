@@ -1510,7 +1510,7 @@ function argsString(args) {
 	if (args instanceof ArrayValue) {
 		var a = [];
 		for (var i = 0; i < args.value.length; i++) {
-			a.push(args.value[i].value);
+			a.push(args.value[i].getValue().value);
 		}return '[' + a.join(',') + ']';
 	}
 	return '';
