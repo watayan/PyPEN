@@ -786,10 +786,10 @@ class Variable extends Value
 	getValue()
 	{
 		let vn = this.value[0];
-		let varTable = findVarTable(vn);	// 変数は定義されてるか
-		if(varTable)
+		let vt = findVarTable(vn);	// 変数は定義されてるか
+		if(vt)
 		{
-			let v = varTable.vars[vn];
+			let v = vt.vars[vn];
 			if(v instanceof IntValue) return new IntValue(v.value, this.loc);
 			else if(v instanceof FloatValue) return new FloatValue(v.value, this.loc);
 			else if(v instanceof StringValue) return new StringValue(v.value, this.loc);
@@ -1062,10 +1062,10 @@ class CallFunction extends Value
 			statementlist.push(new notReturnedFunction(fn.loc));
 			code.unshift(new parsedFunction(statementlist));
 			varTables.unshift(vt);
-			//timeouts.unshift([]);
-			step(true);
-			this.rtnv = returnValues.pop();
-			//timeouts.shift();
+			let org_length = code.length;
+			while(code.length >= org_length && run_flag) next_line();
+			this.rtnv = returnValues.pop().clone();
+			varTables.shift();
 		}
 		else
 			throw new RuntimeError(this.first_line, '関数 '+func+' は定義されていません');
@@ -1200,7 +1200,6 @@ class ReturnStatement extends Statement {
 		{
 			returnValues.push(this.value.getValue().clone());
 			code.shift();
-			varTables.shift();
 		}
 		else throw new RuntimeError(this.first_line, "関数の中ではありません");
 	}
@@ -1356,7 +1355,6 @@ class Assign extends Statement
 	{
 		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
-		if(this.value instanceof CallFunction) this.value.exec();
 		let index = code[0].stack[0].index;
 
 		let vn = this.variable.varname;
@@ -1486,7 +1484,7 @@ class Input extends Statement
 		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
 		code.unshift(new parsedCode(list));
-		step();
+		code[0].stack[0].statementlist[0].run();
 	}
 }
 
@@ -1546,7 +1544,6 @@ class Output extends Statement
 	}
 	run()
 	{
-//		if(this.value instanceof CallFunction) this.value.exec();
 		super.run();
 		let v = this.value.getValue();
 		textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
@@ -1778,15 +1775,15 @@ class ForDec extends Statement
 		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
-		let varTable = findVarTable(this.varname.varname);
-		if(setting.var_declaration != 0 && !varTable)
+		let vt = findVarTable(this.varname.varname);
+		if(setting.var_declaration != 0 && !vt)
 		{
-			varTable = varTables[0];
-			if(this.begin.getValue() instanceof IntValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
-			else if(this.begin.getValue() instanceof FloatValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
-			else varTable = null;
+			vt = varTables[0];
+			if(this.begin.getValue() instanceof IntValue)vt.vars[this.varname.varname] = new IntValue(0, this.loc);
+			else if(this.begin.getValue() instanceof FloatValue)vt.vars[this.varname.varname] = new IntValue(0, this.loc);
+			else vt = null;
 		}
-		if(varTable)
+		if(vt)
 		{
 			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 			assign.run(0);
@@ -1906,35 +1903,24 @@ function run()
 	step();
 }
 
-function step(flag = false)
+function step()
 {
-	if(flag)//setZeroTImeoutを呼ばずにcode[0].stackが空になるまで繰り返す
+	// 次の行まで進める
+	var l = current_line;
+	do{
+		next_line();
+	}while(run_flag && l == current_line);
+	if(!code) return;
+	if(code[0].stack.length > 0)
 	{
-		let l = code.length;
-		do{
-			next_line();
-			if(code.length < l) break;
-		}while(run_flag && code[0].stack.length > 0);
-	}
-	else
-	{
-		// 次の行まで進める
-		var l = current_line;
-		do{
-			next_line();
-		}while(run_flag && l == current_line);
-		if(!code) return;
-		if(code[0].stack.length > 0)
+		if(run_flag && !step_flag)
 		{
-			if(run_flag && !step_flag)
-			{
-				if(wait_time > 0) setTimeout(step, wait_time);
-				else setZeroTimeout(step);
-			}
+			if(wait_time > 0) setTimeout(step, wait_time);
+			else setZeroTimeout(step);
 		}
-		else if(code[0].finish) code[0].finish();
-		wait_time = 0;
 	}
+	else if(code[0].finish) code[0].finish();
+	wait_time = 0;
 }
 
 function next_line()
@@ -1957,7 +1943,7 @@ function next_line()
 		}
 	}
 	else code[0].stack[0].index++;
-	if(!code) return;
+	if(!code || !code[0]) return;
 	// 不要になったコードをstackから捨てる
 	index = code[0].stack[0] ? code[0].stack[0].index : -1;
 	while(index < 0 || index > code[0].stack[0].statementlist.length)
@@ -2008,8 +1994,8 @@ function keydown(e)
 	if(evt.keyCode == 13)
 	{
 		setRunflag(true);
-		run();
-//		setTimeout(run, 100);
+		step();
+		//setTimeout(, 100);
 	}
 	else if(evt.keyCode == 27)
 	{
@@ -4132,7 +4118,7 @@ onload = function(){
 		{
 			selector: "#sourceTextarea",
 			items:{
-				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
+//				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 				zenkaku: {name: "入力補助",
 					items:{
 						かつ:		{name:"かつ",	callback(k,e){insertCode("《値》 かつ 《値》");}},

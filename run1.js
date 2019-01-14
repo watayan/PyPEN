@@ -1085,9 +1085,9 @@ var Variable = function (_Value24) {
 		key: "getValue",
 		value: function getValue() {
 			var vn = this.value[0];
-			var varTable = findVarTable(vn); // 変数は定義されてるか
-			if (varTable) {
-				var v = varTable.vars[vn];
+			var vt = findVarTable(vn); // 変数は定義されてるか
+			if (vt) {
+				var v = vt.vars[vn];
 				if (v instanceof IntValue) return new IntValue(v.value, this.loc);else if (v instanceof FloatValue) return new FloatValue(v.value, this.loc);else if (v instanceof StringValue) return new StringValue(v.value, this.loc);else if (v instanceof BooleanValue) return new BooleanValue(v.value, this.loc);else if (v instanceof ArrayValue) return v.getValueFromArray(this.args, this.loc);
 				throw new RuntimeError(this.first_line, "Unknown Error");
 			} else {
@@ -1319,10 +1319,11 @@ var CallFunction = function (_Value25) {
 				statementlist.push(new notReturnedFunction(fn.loc));
 				code.unshift(new parsedFunction(statementlist));
 				varTables.unshift(vt);
-				//timeouts.unshift([]);
-				step(true);
-				this.rtnv = returnValues.pop();
-				//timeouts.shift();
+				var org_length = code.length;
+				while (code.length >= org_length && run_flag) {
+					next_line();
+				}this.rtnv = returnValues.pop().clone();
+				varTables.shift();
 			} else throw new RuntimeError(this.first_line, '関数 ' + func + ' は定義されていません');
 		}
 	}, {
@@ -1545,7 +1546,6 @@ var ReturnStatement = function (_Statement5) {
 			if (code[0] instanceof parsedFunction) {
 				returnValues.push(this.value.getValue().clone());
 				code.shift();
-				varTables.shift();
 			} else throw new RuntimeError(this.first_line, "関数の中ではありません");
 		}
 	}]);
@@ -1760,7 +1760,6 @@ var Assign = function (_Statement8) {
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
-			if (this.value instanceof CallFunction) this.value.exec();
 			var index = code[0].stack[0].index;
 
 			var vn = this.variable.varname;
@@ -1851,7 +1850,7 @@ var Input = function (_Statement9) {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
 			code.unshift(new parsedCode(list));
-			step();
+			code[0].stack[0].statementlist[0].run();
 		}
 	}]);
 
@@ -1930,7 +1929,6 @@ var Output = function (_Statement12) {
 	_createClass(Output, [{
 		key: "run",
 		value: function run() {
-			//		if(this.value instanceof CallFunction) this.value.exec();
 			_get(Output.prototype.__proto__ || Object.getPrototypeOf(Output.prototype), "run", this).call(this);
 			var v = this.value.getValue();
 			textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
@@ -2193,12 +2191,12 @@ var ForDec = function (_Statement18) {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
-			var varTable = findVarTable(this.varname.varname);
-			if (setting.var_declaration != 0 && !varTable) {
-				varTable = varTables[0];
-				if (this.begin.getValue() instanceof IntValue) varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else if (this.begin.getValue() instanceof FloatValue) varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else varTable = null;
+			var vt = findVarTable(this.varname.varname);
+			if (setting.var_declaration != 0 && !vt) {
+				vt = varTables[0];
+				if (this.begin.getValue() instanceof IntValue) vt.vars[this.varname.varname] = new IntValue(0, this.loc);else if (this.begin.getValue() instanceof FloatValue) vt.vars[this.varname.varname] = new IntValue(0, this.loc);else vt = null;
 			}
-			if (varTable) {
+			if (vt) {
 				var assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 				assign.run(0);
 				var loop = [new LoopBegin(new GE(new Variable(this.varname.varname, this.varname.args, this.loc), this.end, this.loc), true, this.loc)];
@@ -2342,29 +2340,18 @@ function run() {
 }
 
 function step() {
-	var flag = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-
-	if (flag) //setZeroTImeoutを呼ばずにcode[0].stackが空になるまで繰り返す
-		{
-			var _l = code.length;
-			do {
-				next_line();
-				if (code.length < _l) break;
-			} while (run_flag && code[0].stack.length > 0);
-		} else {
-		// 次の行まで進める
-		var l = current_line;
-		do {
-			next_line();
-		} while (run_flag && l == current_line);
-		if (!code) return;
-		if (code[0].stack.length > 0) {
-			if (run_flag && !step_flag) {
-				if (wait_time > 0) setTimeout(step, wait_time);else setZeroTimeout(step);
-			}
-		} else if (code[0].finish) code[0].finish();
-		wait_time = 0;
-	}
+	// 次の行まで進める
+	var l = current_line;
+	do {
+		next_line();
+	} while (run_flag && l == current_line);
+	if (!code) return;
+	if (code[0].stack.length > 0) {
+		if (run_flag && !step_flag) {
+			if (wait_time > 0) setTimeout(step, wait_time);else setZeroTimeout(step);
+		}
+	} else if (code[0].finish) code[0].finish();
+	wait_time = 0;
 }
 
 function next_line() {
@@ -2380,7 +2367,7 @@ function next_line() {
 			code = null;
 		}
 	} else code[0].stack[0].index++;
-	if (!code) return;
+	if (!code || !code[0]) return;
 	// 不要になったコードをstackから捨てる
 	index = code[0].stack[0] ? code[0].stack[0].index : -1;
 	while (index < 0 || index > code[0].stack[0].statementlist.length) {
@@ -2421,8 +2408,8 @@ function keydown(e) {
 	var evt = e || window.event;
 	if (evt.keyCode == 13) {
 		setRunflag(true);
-		run();
-		//		setTimeout(run, 100);
+		step();
+		//setTimeout(, 100);
 	} else if (evt.keyCode == 27) {
 		closeInputWindow();
 		code.shift();
@@ -4852,10 +4839,7 @@ onload = function onload() {
 	$.contextMenu({
 		selector: "#sourceTextarea",
 		items: {
-			copyAll: { name: "プログラムをコピー", callback: function callback(k, e) {
-					document.getElementById("sourceTextarea").select();document.execCommand('copy');
-				}
-			},
+			//				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 			zenkaku: { name: "入力補助",
 				items: {
 					かつ: { name: "かつ", callback: function callback(k, e) {
