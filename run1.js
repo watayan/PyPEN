@@ -2942,7 +2942,7 @@ var Parts_Bar = function (_Parts2) {
 		key: "calcSize",
 		value: function calcSize(p0, p1, p2) {
 			this._width = 0;
-			this._height = FlowchartSetting.size * 4;
+			this._height = FlowchartSetting.size * 3;
 			p0.y += this._height;
 			if (p0.y > p2.y) p2.y = p0.y;
 			return this.next.calcSize(p0, p1, p2);
@@ -4584,6 +4584,7 @@ onload = function onload() {
 			flowchart = null;
 		}
 	};
+	flowchartButton.click();
 	sourceTextArea.ondrop = function (e) {
 		var filelist = e.dataTransfer.files;
 		if (!filelist) return;
