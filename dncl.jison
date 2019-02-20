@@ -71,7 +71,7 @@ UNDEFINED		"《"[^》]*"》"
 "!="				{return '!=';}
 "≠"						{return '!=';}
 "！＝"					{return '!=';}
-"←"						{return '<-';}
+"←"						{return '←';}
 "かつ"					{return 'かつ';}
 "または"				{return 'または';}
 "でない"				{return 'でない';}
@@ -103,8 +103,10 @@ UNDEFINED		"《"[^》]*"》"
 "をくりかえす"			{return 'を繰り返す';}
 "手続きを抜ける"		{return '手続きを抜ける';}
 "手続き終了"			{return '手続き終了';}
+"手続き終わり"			{return '手続き終了';}
 "手続き"				{return '手続き';}
 "関数終了"				{return '関数終了';}
+"関数終わり"				{return '関数終了';}
 "関数"					{return '関数';}
 "を返す"				{return 'を返す';}
 "を"					{return 'を';}
@@ -286,7 +288,7 @@ WhileStatement
 
 
 AssignStatement
-	: variable '<-' e 'NEWLINE'		{$$ = new Assign($1, $3, new Location(@1,@3));}
+	: variable '←' e 'NEWLINE'		{$$ = new Assign($1, $3, new Location(@1,@3));}
 	;
 
 PrintStatement
