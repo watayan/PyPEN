@@ -1337,7 +1337,7 @@ function argsString(args)
 	if(args instanceof ArrayValue)
 	{
 		let a = [];
-		for(let i = 0; i < args.value.length; i++) a.push(args.value[i].value);
+		for(let i = 0; i < args.value.length; i++) a.push(args.value[i].getValue().value);
 		return '[' + a.join(',') + ']';
 	}
 	return '';
@@ -2638,7 +2638,7 @@ class Parts_Bar extends Parts
     calcSize(p0,p1,p2)
     {
         this._width = 0;
-        this._height = FlowchartSetting.size * 4;
+        this._height = FlowchartSetting.size * 3;
 		p0.y += this._height;
 		if(p0.y > p2.y) p2.y = p0.y;
 		return this.next.calcSize(p0,p1,p2);
@@ -4084,6 +4084,7 @@ onload = function(){
 			flowchart = null;
 		}
 	}
+	flowchartButton.click();
 	sourceTextArea.ondrop = function(e)
 	{
 		var filelist = e.dataTransfer.files;

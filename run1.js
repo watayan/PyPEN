@@ -1736,7 +1736,7 @@ function argsString(args) {
 	if (args instanceof ArrayValue) {
 		var a = [];
 		for (var i = 0; i < args.value.length; i++) {
-			a.push(args.value[i].value);
+			a.push(args.value[i].getValue().value);
 		}return '[' + a.join(',') + ']';
 	}
 	return '';
@@ -3169,7 +3169,7 @@ var Parts_Bar = function (_Parts2) {
 		key: "calcSize",
 		value: function calcSize(p0, p1, p2) {
 			this._width = 0;
-			this._height = FlowchartSetting.size * 4;
+			this._height = FlowchartSetting.size * 3;
 			p0.y += this._height;
 			if (p0.y > p2.y) p2.y = p0.y;
 			return this.next.calcSize(p0, p1, p2);
@@ -4811,6 +4811,7 @@ onload = function onload() {
 			flowchart = null;
 		}
 	};
+	flowchartButton.click();
 	sourceTextArea.ondrop = function (e) {
 		var filelist = e.dataTransfer.files;
 		if (!filelist) return;

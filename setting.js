@@ -1,4 +1,4 @@
-var setting = 
+﻿var setting = 
 {
     var_declaration: 0,
     // 変数の宣言が必要か否か
