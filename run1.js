@@ -123,7 +123,7 @@ function codeChange() {
 		converting = false;
 	} catch (e) {
 		console.log(e);
-		textarea.value = "構文エラーです\n" + e.message + "\n";
+		textarea.value = "\u69CB\u6587\u30A8\u30E9\u30FC\u3067\u3059\n" + e.message + "\n";
 		converting = false;
 	}
 }
@@ -894,6 +894,7 @@ var EQ = function (_Value18) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
 			return new BooleanValue(v1.value == v2.value, this.loc);
 		}
 	}, {
@@ -926,6 +927,7 @@ var NE = function (_Value19) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
 			return new BooleanValue(v1.value != v2.value, this.loc);
 		}
 	}, {
@@ -958,6 +960,7 @@ var GT = function (_Value20) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
 			return new BooleanValue(v1.value > v2.value, this.loc);
 		}
 	}, {
@@ -990,6 +993,7 @@ var GE = function (_Value21) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
 			return new BooleanValue(v1.value >= v2.value, this.loc);
 		}
 	}, {
@@ -1022,6 +1026,7 @@ var LT = function (_Value22) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
 			return new BooleanValue(v1.value < v2.value, this.loc);
 		}
 	}, {
@@ -1054,6 +1059,7 @@ var LE = function (_Value23) {
 		value: function getValue() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
 			return new BooleanValue(v1.value <= v2.value, this.loc);
 		}
 	}, {

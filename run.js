@@ -82,7 +82,7 @@ function codeChange()
 	catch(e)
 	{
 		console.log(e);
-		textarea.value = "構文エラーです\n" + e.message + "\n";
+		textarea.value = `構文エラーです\n${e.message}\n`;
 		converting = false;
 	}
 }
@@ -670,6 +670,7 @@ class EQ extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		return new BooleanValue(v1.value == v2.value, this.loc);
 	}
 	getCode()
@@ -689,6 +690,7 @@ class NE extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		return new BooleanValue(v1.value != v2.value, this.loc);
 	}
 	getCode()
@@ -708,6 +710,7 @@ class GT extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		return new BooleanValue(v1.value > v2.value, this.loc);
 	}
 	getCode()
@@ -727,6 +730,7 @@ class GE extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		return new BooleanValue(v1.value >= v2.value, this.loc);
 	}
 	getCode()
@@ -746,6 +750,7 @@ class LT extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		return new BooleanValue(v1.value < v2.value, this.loc);
 	}
 	getCode()
@@ -765,6 +770,7 @@ class LE extends Value
 	getValue()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		return new BooleanValue(v1.value <= v2.value, this.loc);
 	}
 	getCode()
