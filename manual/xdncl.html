@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="index.css"/>
+        <link rel="icon" href="../wapen.ico"/>
+        <script src="../setting.js"></script>
+        <script src="manual.js"></script>
+        <title>xDNCLの文法</title>
+    </head>
+    <body>
+        <h1>xDNCLの文法</h1>
+        <p><a href="index.html">戻る</a></p>
+        <h2>値</h2>
+        <p>数は整数と実数が区別される。小数部分を含まない数は整数とする。例：3.0は実数</p>
+        <p>文字列は「」または""で囲む。</p>
+        <p>真偽値はTRUEとFALSEのどちらかである。</p>
+        <h2>変数の宣言</h2>
+        <p>プログラムの冒頭で使う変数を宣言することができる。
+            現在の設定では<script>var_declaration();</script>
+            変数には整数，実数，文字列，真偽の型がある。
+        </p>
+        <p>変数名の後に番号をいれた[ ]をつけて配列を使うことができる。
+            a[n]と宣言した場合，使える添字の範囲は現在の設定では<script>array_origin();</script>となる。
+            二次元以上の配列はa[1,2]などのように使う。
+        </p>
+        <h2>計算</h2>
+        <h3>四則計算</h3>
+        <p>
+        +,-,×,*,÷,/,%が使える。*は掛け算，/は割り算，%は割り算の余り（整数どうしに限る）を表す。
+        整数どうしの割り算では設定によって/と÷の挙動が違うことがある。
+        現在の設定では<script>div_mode();</script>
+        </p>
+        <h3>条件式</h3>
+        <p>=,≠,!=,&gt;,&lt;,≧,&gt;=,≦,&lt;=が使える。!=は≠，&gt;=は≧，&lt;=は≦とそれぞれ同じである。
+        条件式を「または」「かつ」でつないだり，「でない」を後置することで否定することができる。
+        ただし「または」「かつ」「でない」を使った条件は左から順に評価される。
+        </p>
+        <h3>文字列結合</h3>
+        <p>「と」で文字列を結合することができる。数値は文字列に変換してから結合される。
+            例：「こん」と「にちは」→「こんにちは」。1と2→12</p>
+        <h3>関数</h3>
+        <p>次のような関数を使うことができる。文字列の位置や番号は0から始まる。</p>
+        <table class="def_table">
+            <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
+            <tr><td>abs(《値》)</td><td>絶対値</td><td>abs(-3)→3</td></tr>
+            <tr><td>random(《整数》)</td><td>乱数</td><td>random(5)→0以上5以下の乱数（整数）</td></tr>
+            <tr><td>ceil(《実数》)</td><td>小数部分切り捨て</td><td>ceil(3.5)→3</td></tr>
+            <tr><td>floor(《実数》)</td><td>小数部分切り上げ</td><td>floor(3.5)→4</td></tr>
+            <tr><td>round(《実数》)</td><td>小数部分四捨五入</td><td>round(3.5)→4</td></tr>
+            <tr><td>sin(《実数》)</td><td>三角関数のサイン（単位はラジアン）</td><td>sin(0)→0</td></tr>
+            <tr><td>cos(《実数》)</td><td>三角関数のコサイン（単位はラジアン）</td><td>cos(0)→1</td></tr>
+            <tr><td>tan(《実数》)</td><td>三角関数のタンジェント（単位はラジアン）</td><td>tan(0)→0</td></tr>
+            <tr><td>sqrt(《実数》)</td><td>ルート</td><td>sqrt(2)→1.414…</td></tr>
+            <tr><td>log(《実数》)</td><td>自然対数</td><td>log(10)→2.302…</td></tr>
+            <tr><td>exp(《実数》)</td><td>指数関数（底は自然対数の底）</td><td>exp(1)→2.718…</td></tr>
+            <tr><td>pow(《実数》,《実数》)</td><td>累乗</td><td>pow(2,3)→8</td></tr>
+            <tr><td>length(《文字列》)</td><td>文字列の長さ（文字数）</td><td>length(「こんにちは」)→5</td></tr>
+            <tr><td>append(《文字列》,《文字列》)</td><td>文字列結合</td><td>append(「Wa」,「PEN」)→「WaPEN」</td></tr>
+            <tr><td>substring(《文字列》,《開始位置》)</td><td>部分文字列（最後まで）</td><td>substring(「こんにちは」,2)→「にちは」</td></tr>
+            <tr><td>substring(《文字列》,《開始位置》,《長さ》)</td><td>部分文字列（長さ指定）</td><td>substring(「こんにちは」,2,1)→「に」</td></tr>
+            <tr><td>extract(《文字列》,《区切文字列》,《番号》)</td><td>部分文字列（区切り文字列指定）</td><td>extract(「a:b:c:d」,「:」,2)→「c」</td></tr>
+            <tr><td>insert(《文字列》,《位置》,《文字列》)</td><td>文字列挿入</td><td>insert(「こんは」,2,「にち」)→「こんにちは」</td></tr>
+            <tr><td>replace(《文字列》,《位置》,《長さ》,《文字列》)</td><td>文字列置換</td><td>replace(「こんにちは」,2,2,「ばん」)→「こんばんは」</td></tr>
+        </table>
+        <h2>代入</h2>
+        <pre>
+《変数》←《値》
+        </pre>
+        <p>
+            <img src="flowsubstitute.png" alt="代入">
+        </p>
+        <p>{ }や[ ]を使って，配列にまとめて値を代入することができる。</p>
+        <pre>
+整数 a[6]
+a←<script>a6();</script>
+        </pre>
+        <h2>入力</h2>
+        <pre>
+《変数》を入力する
+        </pre>
+        <p>
+            <img src="flowinput.png" alt="代入">
+        </p>
+        <h2>出力</h2>
+        <pre>
+《値》を表示する
+        </pre>
+        <p>
+            <img src="flowoutput.png" alt="代入">
+        </p>
+        <h2>分岐（選択）</h2>
+        <pre>
+もし《条件》ならば
+｜
+を実行する
+        </pre>
+        <pre>
+もし《条件》ならば
+｜
+を実行し，そうでなければ
+｜
+を実行する
+        </pre>
+                        <p>
+            <img src="flowif.png" alt="代入">
+        </p>
+        <h2>ループ</h2>
+        <h3>前条件・後条件</h3>
+        <pre>
+《条件》の間，
+｜
+を繰り返す
+        </pre>
+        <p>
+            <img src="flowwhile.png" alt="代入">
+        </p>
+        <pre>
+繰り返し，
+｜
+を，《条件》になるまで実行する
+        </pre>
+        <p>
+            <img src="flowuntil.png" alt="代入">
+        </p>
+        <h3>増やしながら・減らしながら</h3>
+        <pre>
+《変数》を《値》から《値》まで《値》ずつ増やしながら，
+｜
+を繰り返す
+        </pre>
+        <p>
+            <img src="flowforinc.png" alt="代入">
+        </p>
+        <pre>
+《変数》を《値》から《値》まで《値》ずつ減らしながら，
+｜
+を繰り返す
+        </pre>
+        <p>
+            <img src="flowfordec.png" alt="代入">
+        </p>
+        <h2>グラフィック関係など</h2>
+        <table class="def_table">
+            <tr><th>命令</th><th>補足</th></tr>
+            <tr><td>描画領域開く(《幅》,《高さ》)</td><td>1つしか開けない</td></tr>
+            <tr><td>描画領域閉じる()</td><td></td></tr>
+            <tr><td>描画領域全消去()</td><td></td></tr>
+            <tr><td>線色設定(《赤》,《緑》,《青》)</td><td>各色の数は0〜255</td></tr>
+            <tr><td>塗色設定(《赤》,《緑》,《青》)</td><td></td></tr>
+            <tr><td>線太さ設定(《太さ》)</td><td></td></tr>
+            <tr><td>文字サイズ設定(《サイズ》)</td><td></td></tr>
+            <tr><td>文字描画(《文字列》,《x》,《y》)</td><td>(x,y)は文字列の左下の座標</td></tr>
+            <tr><td>線描画(《x1》,《y1》,《x2》,《y2》)</td><td></td></tr>
+            <tr><td>矩形描画(《x》,《y》,《幅》,《高さ》)</td><td>(x,y)は矩形の左上の座標</td></tr>
+            <tr><td>矩形塗描画(《x》,《y》,《幅》,《高さ》)</td><td></td></tr>
+            <tr><td>円描画(《x》,《y》,《半径》)</td><td></td></tr>
+            <tr><td>円塗描画(《x》,《y》,《半径》)</td><td></td></tr>
+            <tr><td>《ミリ秒数》 ミリ秒待つ</td><td>未実装</td></tr>
+        </table>
+    </body>
+</html>

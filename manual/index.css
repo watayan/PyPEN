@@ -1,0 +1,7 @@
+table.def_table{
+    border: 1pt solid black;
+}
+
+table.def_table th, td{
+    border: 1pt solid black;
+}
