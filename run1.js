@@ -2316,6 +2316,11 @@ function reset() {
 	highlightLine(-1);
 	var canvas = document.getElementById('canvas');
 	canvas.style.display = 'none';
+	var input_area = document.getElementById('input_area');
+	input_area.readOnly = true;
+	input_area.value = '';
+	document.get;
+	document.getElementById('input_status').style.visibility = 'hidden';
 	context = null;
 	wait_time = 0;
 	timeouts = [];
@@ -2390,23 +2395,33 @@ function next_line() {
 }
 
 function openInputWindow() {
-	var $input = $("#input");
-	var $input_overlay = $("#input-overlay");
+	// 	var $input = $("#input");
+	// 	var $input_overlay = $("#input-overlay");
+	// 	setRunflag(false);
+	// 	$input_overlay.fadeIn();
+	// 	$input.fadeIn();
+	// 	$input.html("<p>入力してください</p>"+
+	// 	"<input type=\"text\" id=\"inputarea\" onkeydown=\"keydown(event);\">");
+	// //	var inputarea = document.getElementById("inputarea");
+	// //	if(inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);
+	// //	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
+	// 	$("#inputarea").focus();
 	setRunflag(false);
-	$input_overlay.fadeIn();
-	$input.fadeIn();
-	$input.html("<p>入力してください</p>" + "<input type=\"text\" id=\"inputarea\" onkeydown=\"keydown(event);\">");
-	//	var inputarea = document.getElementById("inputarea");
-	//	if(inputarea.addEventListener) inputarea.addEventListener("keydown", keydown);
-	//	else if(inputarea.attachEvent) inputarea.attachEvent("onkeydown", keydown);
-	$("#inputarea").focus();
+	var input_area = document.getElementById("input_area");
+	input_area.value = '';
+	input_area.readOnly = false;
+	input_area.focus();
+	document.getElementById("input_status").style.visibility = 'visible';
 	document.getElementById("sourceTextarea").readOnly = true;
 }
 
 function closeInputWindow() {
-	var val = $("#input input").val();
-	$("#input").hide();
-	$("#input-overlay").hide();
+	var val = document.getElementById("input_area").value;
+	document.getElementById("input_area").readOnly = true;
+	document.getElementById("input_status").style.visibility = 'hidden';
+	// var val = $("#input input").val();
+	// $("#input").hide();
+	// $("#input-overlay").hide();
 	return val;
 }
 
@@ -4743,6 +4758,7 @@ onload = function onload() {
 	var loadButton = document.getElementById("loadButton");
 	var file_prefix = document.getElementById("file_prefix");
 	var flowchart_canvas = document.getElementById("flowchart");
+	var resultArea = document.getElementById("resultArea");
 	$("#sourceTextarea").linedtextarea();
 	sourceTextArea.onchange = function () {
 		makeDirty(true);
@@ -5015,4 +5031,6 @@ onload = function onload() {
 	$(window).bind("beforeunload", function () {
 		if (dirty) return "プログラムが消去されます";
 	});
+
+	reset();
 };

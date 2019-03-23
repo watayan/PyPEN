@@ -1,5 +1,19 @@
 /* by watayan <watayan@watayan.net> */
 
+#input_status{
+	background: #ff0;
+	font-size: 50%;
+}
+
+#input_area{
+	background-color: white;
+}
+
+#input_area:read-only{
+	background-color: lightgrey;
+}
+
+
 #input{
 	display: none;
 	position: absolute;
