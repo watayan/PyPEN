@@ -123,7 +123,8 @@ function codeChange() {
 		for (var i = 0; i < parse.length; i++) {
 			if (parse[i] instanceof DefineFunction || parse[i] instanceof DefineStep) flag = true;
 		}if (flag) {
-			textarea.value = "まだ関数定義や手続き定義のあるプログラムのフローチャートは実装していません。";
+			textarea.value = "関数定義や手続き定義のあるプログラムのフローチャートはまだ実装していません。\n";
+			return;
 		}
 		converting = true;
 		flowchart.code2flowchart(parse);

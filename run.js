@@ -82,6 +82,7 @@ function codeChange()
 		if(flag)
 		{
 			textarea.value = "関数定義や手続き定義のあるプログラムのフローチャートはまだ実装していません。\n";
+			return;
 		}
 		converting = true;
 		flowchart.code2flowchart(parse);
