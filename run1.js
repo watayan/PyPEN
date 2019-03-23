@@ -1232,7 +1232,7 @@ var definedFunction = {
 	}),
 	"length": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
-		if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else throw new RuntimeError(this.first_line, func + "は文字列にしか使えません");
+		if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else if (par1 instanceof ArrayValue) return new IntValue(par1.length, this.loc);else throw new RuntimeError(this.first_line, func + "は文字列と配列にしか使えません");
 	}),
 	"substring": new DefinedFunction([2, 3], function (param, loc) {
 		var par1 = param[0].getValue();
