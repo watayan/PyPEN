@@ -1906,7 +1906,7 @@ var InputEnd = function (_Statement11) {
 				var assign = null;
 				var re = /真|true/i;
 				code.shift();
-				if (v0 instanceof IntValue) assign = new Assign(va, new IntValue(Number(vl), this.loc), this.loc);else if (v0 instanceof FloatValue) assign = new Assign(va, new FloatValue(Number(vl), this.loc), this.loc);else if (v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);else if (v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				if (v0 instanceof IntValue) assign = new Assign(va, new IntValue(Number(toHalf(vl)), this.loc), this.loc);else if (v0 instanceof FloatValue) assign = new Assign(va, new FloatValue(Number(toHalf(vl)), this.loc), this.loc);else if (v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);else if (v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
 				assign.run();
 			} catch (e) {
 				closeInputWindow();
@@ -5034,3 +5034,8 @@ onload = function onload() {
 
 	reset();
 };
+function toHalf(s) {
+	return s.replace(/[Ａ-Ｚａ-ｚ０-９．−]/g, function (s) {
+		return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+	});
+}
