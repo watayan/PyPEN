@@ -117,7 +117,14 @@ function codeChange() {
 	if (converting || !flowchart_display) return;
 	var code = document.getElementById("sourceTextarea").value + "\n";
 	try {
+		myFuncs = {};
 		var parse = dncl.parse(code);
+		var flag = false; // 関数・手続き定義がないか調べる
+		for (var i = 0; i < parse.length; i++) {
+			if (parse[i] instanceof DefineFunction || parse[i] instanceof DefineStep) flag = true;
+		}if (flag) {
+			textarea.value = "まだ関数定義や手続き定義のあるプログラムのフローチャートは実装していません。";
+		}
 		converting = true;
 		flowchart.code2flowchart(parse);
 		converting = false;
