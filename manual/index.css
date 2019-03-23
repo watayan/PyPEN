@@ -1,7 +1,64 @@
+html{
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	font-size: 100%; 
+	font-weight: normal; 
+	color: #442200; 
+	background-color: #77aaaa;
+	margin: 0;
+	height: 100%;
+	line-height: 1.4;
+}
+
+
+@media screen and (min-width:1000px){
+	div#whole{
+		background-color: #ffffff;
+		width:990px;
+		margin: 0 auto;
+		padding: 8px;
+		min-height: 100%;
+	}
+}
+
+@media screen and (min-width: 768px) and (max-width:999px){
+	div#whole{
+		background-color: #ffffff;
+		padding: 8px;
+		min-height: 100%;
+	}
+	
+}
+
+@media screen and (max-width:767px){
+	div#whole{
+		background-color: #ffffff;
+		padding: 8px;
+		min-height: 100%;
+	}
+	
+}
+
+
 table.def_table{
     border: 1pt solid black;
 }
 
 table.def_table th, td{
     border: 1pt solid black;
+}
+
+h1{
+    font-size: 200%;
+}
+
+h2{
+    font-size: 150%;
+}
+
+#part{
+    background-color: antiquewhite;
 }
