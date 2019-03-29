@@ -1,4 +1,5 @@
 "use strict";
+
 // programmed by watayan <watayan@watayan.net>
 // edit run.js, and transpile with Babel to make run1.js
 
@@ -632,13 +633,21 @@ var Div = function (_Value11) {
 			if (v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 			if (v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
 			if ((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue) {
-				var v = (v1.value - v1.value % v2.value) / v2.value;
-				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				return new IntValue(v, this.loc);
+				if (setting.div_mode == 0) // 商の整数部分
+					{
+						var v = (v1.value - v1.value % v2.value) / v2.value;
+						if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+						return new IntValue(v, this.loc);
+					} else // 商
+					{
+						var _v = v1.value / v2.value;
+						if (!isFinite(_v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+						return new FloatValue(_v, this.loc);
+					}
 			} else {
-				var _v = v1.value / v2.value;
-				if (!isFinite(_v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(_v, this.loc);
+				var _v2 = v1.value / v2.value;
+				if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new FloatValue(_v2, this.loc);
 			}
 		}
 	}, {
@@ -657,7 +666,8 @@ var Div = function (_Value11) {
 	}]);
 
 	return Div;
-}(Value);
+}(Value // /
+);
 
 var Div2 = function (_Value12) {
 	_inherits(Div2, _Value12);
@@ -682,15 +692,9 @@ var Div2 = function (_Value12) {
 				if (!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 				return new IntValue(v, this.loc);
 			} else {
-				if (setting.div_mode == 0) {
-					var _v2 = v1.value / v2.value;
-					if (!isFinite(_v2)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					return new FloatValue(_v2, this.loc);
-				} else {
-					var _v3 = Math.floor(v1.value / v2.value);
-					if (!isFinite(_v3)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					return new IntValue(_v3, this.loc);
-				}
+				var _v3 = v1.value / v2.value;
+				if (!isFinite(_v3)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new FloatValue(_v3, this.loc);
 			}
 		}
 	}, {
@@ -709,7 +713,8 @@ var Div2 = function (_Value12) {
 	}]);
 
 	return Div2;
-}(Value);
+}(Value // ÷ 必ず商の整数部分を返す
+);
 
 var Mod = function (_Value13) {
 	_inherits(Mod, _Value13);

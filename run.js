@@ -1,4 +1,5 @@
 "use strict";
+
 // programmed by watayan <watayan@watayan.net>
 // edit run.js, and transpile with Babel to make run1.js
 const typeInt = 1, typeFloat = 2, typeString = 3, typeBoolean = 4, typeArray = 5;
@@ -450,7 +451,55 @@ class Mul extends Value
 
 }
 
-class Div extends Value
+class Div extends Value	// /
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	getValue()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
+		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
+		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
+		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
+		if((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue)
+		{
+			if(setting.div_mode == 0) // 商の整数部分
+			{
+				let v = (v1.value - v1.value % v2.value) / v2.value
+				if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				return new IntValue(v, this.loc);
+			}
+			else // 商
+			{
+				let v = v1.value / v2.value;
+				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				return new FloatValue(v, this.loc);
+			}
+		}
+		else
+		{
+			let v = v1.value / v2.value;
+			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			return new FloatValue(v, this.loc);
+		}
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' / '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+}
+
+class Div2 extends Value	// ÷ 必ず商の整数部分を返す
 {
 	constructor(x, y, loc)
 	{
@@ -474,54 +523,6 @@ class Div extends Value
 			let v = v1.value / v2.value;
 			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			return new FloatValue(v, this.loc);
-		}
-	}
-	getCode()
-	{
-		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' / '
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-}
-
-class Div2 extends Value
-{
-	constructor(x, y, loc)
-	{
-		super([x,y], loc);
-	}
-	getValue()
-	{
-		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
-		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
-		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
-		if((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue)
-		{
-			let v = (v1.value - v1.value % v2.value) / v2.value
-			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			return new IntValue(v, this.loc);
-		}
-		else
-		{
-			if(setting.div_mode == 0)
-			{
-				let v = v1.value / v2.value;
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new FloatValue(v, this.loc);
-			}
-			else
-			{
-				let v = Math.floor(v1.value / v2.value);
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				return new IntValue(v, this.loc);
-			}
 		}
 	}
 	getCode()
