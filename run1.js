@@ -2438,7 +2438,7 @@ function closeInputWindow() {
 	return val;
 }
 
-function keydown(e) {
+function keydownInput(e) {
 	var evt = e || window.event;
 	if (evt.keyCode == 13) {
 		setRunflag(true);
