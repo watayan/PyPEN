@@ -138,10 +138,10 @@ case 18:
 this.$ = new Append($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
 break;
 case 19:
-this.$ = new IntValue(Number(toHalf(yytext)), new Location(_$[$0],_$[$0]));
+this.$ = new IntValue(Number(toHalf(yytext,_$[$0])), new Location(_$[$0],_$[$0]));
 break;
 case 20:
-this.$ = new FloatValue(Number(toHalf(yytext)), new Location(_$[$0],_$[$0]));
+this.$ = new FloatValue(Number(toHalf(yytext,_$[$0])), new Location(_$[$0],_$[$0]));
 break;
 case 21:
 this.$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(_$[$0], _$[$0]));
@@ -155,29 +155,32 @@ break;
 case 24:
 this.$ = new CallFunction($$[$0-3], $$[$0-1], new Location(_$[$0-3],_$[$0-3]));
 break;
+case 25:
+this.$ = $$[$0];
+break;
 case 26: case 27:
 this.$ = new ArrayValue($$[$0-1], new Location(_$[$0-2], _$[$0]));
 break;
 case 28:
-this.$ = new Variable(toHalf($$[$0-3]), new ArrayValue($$[$0-1]), new Location(_$[$0-3],_$[$0-3]));
+this.$ = new Variable(toHalf($$[$0-3], _$[$0-3]), new ArrayValue($$[$0-1]), new Location(_$[$0-3],_$[$0-3]));
 break;
 case 29:
-this.$ = new Variable(toHalf($$[$0]), null, new Location(_$[$0], _$[$0]));
+this.$ = new Variable(toHalf($$[$0], _$[$0]), null, new Location(_$[$0], _$[$0]));
 break;
 case 30:
 this.$ = new UNDEFINED(yytext, new Location(_$[$0],_$[$0]));
 break;
 case 31:
-this.$ = $$[$0-5].concat({varname:toHalf($$[$0-3]), parameter:new ArrayValue($$[$0-1], new Location(_$[$0-1],_$[$0-1]))});
+this.$ = $$[$0-5].concat({varname:toHalf($$[$0-3], _$[$0-5]), parameter:new ArrayValue($$[$0-1], new Location(_$[$0-1],_$[$0-1]))});
 break;
 case 32:
-this.$ = $$[$0-2].concat({varname:toHalf($$[$0])});
+this.$ = $$[$0-2].concat({varname:toHalf($$[$0], _$[$0-2])});
 break;
 case 33:
-this.$ = [{varname:toHalf($$[$0-3]), parameter:new ArrayValue($$[$0-1], new Location(_$[$0-1],_$[$0-1]))}];
+this.$ = [{varname:toHalf($$[$0-3], _$[$0-3]), parameter:new ArrayValue($$[$0-1], new Location(_$[$0-1],_$[$0-1]))}];
 break;
 case 34:
-this.$ = [{varname:toHalf($$[$0])}];
+this.$ = [{varname:toHalf($$[$0], _$[$0])}];
 break;
 case 35:
 this.$ = [new UNDEFINED(yytext, new Location(_$[$0],_$[$0]))];
@@ -210,28 +213,28 @@ case 58:
 this.$ = new ExitStatement(new Location(_$[$0-1],_$[$0-1]));
 break;
 case 59:
-this.$ = new ReturnStatement($$[$0-2], new Location(_$[$0-2], _$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-2]), new ReturnStatement($$[$0-2], new Location(_$[$0-2], _$[$0-1]))];
 break;
 case 60:
-this.$ = new DefinitionInt($$[$0-1], new Location(_$[$0-2],_$[$0-1]));
+this.$ = [new runArgsBeforeGetValue([$$[$0-1]], _$[$0-2]), new DefinitionInt($$[$0-1], new Location(_$[$0-2],_$[$0-1]))];
 break;
 case 61:
-this.$ = new DefinitionFloat($$[$0-1], new Location(_$[$0-2],_$[$0-1]));
+this.$ = [new runArgsBeforeGetValue([$$[$0-1]], _$[$0-2]), new DefinitionFloat($$[$0-1], new Location(_$[$0-2],_$[$0-1]))];
 break;
 case 62:
-this.$ = new DefinitionString($$[$0-1], new Location(_$[$0-2],_$[$0-1]));
+this.$ = [new runArgsBeforeGetValue([$$[$0-1]], _$[$0-2]), new DefinitionString($$[$0-1], new Location(_$[$0-2],_$[$0-1]))];
 break;
 case 63:
-this.$ = new DefinitionBoolean($$[$0-1], new Location(_$[$0-2],_$[$0-1]));
+this.$ = [new runArgsBeforeGetValue([$$[$0-1]], _$[$0-2]), new DefinitionBoolean($$[$0-1], new Location(_$[$0-2],_$[$0-1]))];
 break;
 case 64:
-this.$ = new CallStep($$[$0-4], $$[$0-2], new Location(_$[$0-4],_$[$0-1]));
+this.$ = [new runBeforeGetValue($$[$0-2], _$[$0-4]), new CallStep($$[$0-4], $$[$0-2], new Location(_$[$0-4],_$[$0-1]))];
 break;
 case 65:
-this.$ = new If($$[$0-5],$$[$0-2],null, new Location(_$[$0-6], _$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-5]], _$[$0-6]), new If($$[$0-5],$$[$0-2],null, new Location(_$[$0-6], _$[$0-1]))];
 break;
 case 66:
-this.$ = new If($$[$0-8],$$[$0-5],$$[$0-2], new Location(_$[$0-9], _$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-8]], _$[$0-9]), new If($$[$0-8],$$[$0-5],$$[$0-2], new Location(_$[$0-9], _$[$0-1]))];
 break;
 case 67:
 this.$ = new ForInc($$[$0-12], $$[$0-10], $$[$0-8], $$[$0-6],$$[$0-2], new Location(_$[$0-12],_$[$0-1]));
@@ -252,19 +255,19 @@ case 73:
 this.$ = new While($$[$0-5], $$[$0-2], new Location(_$[$0-5], _$[$0-1]));
 break;
 case 74:
-this.$ = new Assign($$[$0-3], $$[$0-1], new Location(_$[$0-3],_$[$0-1]));
+this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], new Location(_$[$0-3],_$[$0-1]))];
 break;
 case 75:
-this.$ = new Output($$[$0-2], false, new Location(_$[$0-2],_$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-2]), new Output($$[$0-2], false, new Location(_$[$0-2],_$[$0-1]))];
 break;
 case 76:
-this.$ = new Output($$[$0-2], true, new Location(_$[$0-2],_$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-2]), new Output($$[$0-2], true, new Location(_$[$0-2],_$[$0-1]))];
 break;
 case 77:
-this.$ = new Input($$[$0-2], new Location(_$[$0-2], _$[$0-1]));
+this.$ = [new runArgsBeforeGetValue([$$[$0-2]], _$[$0-2]), new Input($$[$0-2], new Location(_$[$0-2], _$[$0-1]))];
 break;
 case 78:
-this.$ = new GraphicStatement('gOpenWindow', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6], _$[$0-6]));
+this.$ = [new runBeforeGetValue([$$[$0-4],$$[$0-2]], _$[$0-6]), new GraphicStatement('gOpenWindow', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6], _$[$0-6]))];
 break;
 case 79:
 this.$ = new GraphicStatement('gCloseWindow', [], new Location(_$[$0-3],_$[$0-3]));
@@ -273,37 +276,37 @@ case 80:
 this.$ = new GraphicStatement('gClearWindow', [], new Location(_$[$0-3],_$[$0-3]));
 break;
 case 81:
-this.$ = new GraphicStatement('gSetLineColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]));
+this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gSetLineColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]))];
 break;
 case 82:
-this.$ = new GraphicStatement('gSetFillColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]));
+this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gSetFillColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]))];
 break;
 case 83:
-this.$ = new GraphicStatement('gSetLineWidth', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]));
+this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-4]), new GraphicStatement('gSetLineWidth', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]))];
 break;
 case 84:
-this.$ = new GraphicStatement('gSetFontSize', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]));
+this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-4]), new GraphicStatement('gSetFontSize', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]))];
 break;
 case 85:
-this.$ = new GraphicStatement('gDrawText', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
+this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gDrawText', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
 break;
 case 86:
-this.$ = new GraphicStatement('gDrawLine', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
+this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gDrawLine', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
 break;
 case 87:
-this.$ = new GraphicStatement('gDrawBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
+this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gDrawBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
 break;
 case 88:
-this.$ = new GraphicStatement('gFillBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
+this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gFillBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
 break;
 case 89:
-this.$ = new GraphicStatement('gDrawCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
+this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gDrawCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
 break;
 case 90:
-this.$ = new GraphicStatement('gFillCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
+this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gFillCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
 break;
 case 91:
-this.$ = new SleepStatement($$[$0-2], new Location(_$[$0-2], _$[$0-2]));
+this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-2]), new SleepStatement($$[$0-2], new Location(_$[$0-2], _$[$0-2]))];
 break;
 case 92:
  typeof console !== 'undefined' ? console.log($$[$0-1]) : print($$[$0-1]);
@@ -463,8 +466,13 @@ parse: function parse(input) {
     return true;
 }};
 
-	function toHalf(s)
+	function toHalf(s, token)
 	{
+		if(setting.zenkaku_mode == 1)
+		{
+			if(/[Ａ-Ｚａ-ｚ０-９．−]/.exec(s))
+				throw {message:token.first_line + "行目に全角文字が間違って使われています"};
+		}
 		return s.replace(/[Ａ-Ｚａ-ｚ０-９．−]/g, function(s) {
 			return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);}
 		);
