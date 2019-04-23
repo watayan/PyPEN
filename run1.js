@@ -2815,8 +2815,8 @@ var SleepStatement = function (_Statement23) {
 
 	_createClass(SleepStatement, [{
 		key: "run",
-		value: function run(index) {
-			wait_time = this.sec;
+		value: function run() {
+			wait_time = this.sec.value;
 			_get(SleepStatement.prototype.__proto__ || Object.getPrototypeOf(SleepStatement.prototype), "run", this).call(this);
 		}
 	}]);
@@ -2873,6 +2873,12 @@ function run() {
 	step();
 }
 
+// busy wait !!
+function wait(ms) {
+	var t1 = new Date();
+	while (new Date() - t1 < ms) {}
+}
+
 function step() {
 	// 次の行まで進める
 	var l = current_line;
@@ -2882,10 +2888,13 @@ function step() {
 	if (!code) return;
 	if (code[0].stack.length > 0) {
 		if (run_flag && !step_flag) {
-			if (wait_time > 0) setTimeout(step, wait_time);else setZeroTimeout(step);
+			if (wait_time > 0) {
+				wait(wait_time);
+				wait_time = 0;
+			}
+			setZeroTimeout(step, 0);
 		}
 	} else if (code[0].finish) code[0].finish();
-	wait_time = 0;
 }
 
 function next_line() {

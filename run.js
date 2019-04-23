@@ -2302,9 +2302,9 @@ class SleepStatement extends Statement
 		super(loc)
 		this.sec = new IntValue(sec.value, loc); // milli seconds
 	}
-	run(index)
+	run()
 	{
-		wait_time = this.sec;
+		wait_time = this.sec.value;
 		super.run();
 	}
 }
@@ -2366,6 +2366,14 @@ function run()
 	step();
 }
 
+// busy wait !!
+function wait(ms)
+{
+	let t1 = new Date();
+	while(new Date() - t1 < ms)
+		;
+}
+
 function step()
 {
 	// 次の行まで進める
@@ -2378,12 +2386,15 @@ function step()
 	{
 		if(run_flag && !step_flag)
 		{
-			if(wait_time > 0) setTimeout(step, wait_time);
-			else setZeroTimeout(step);
+			if(wait_time > 0) 
+			{
+				wait(wait_time);
+				wait_time = 0;
+			}
+			setZeroTimeout(step, 0);
 		}
 	}
 	else if(code[0].finish) code[0].finish();
-	wait_time = 0;
 }
 
 function next_line()
