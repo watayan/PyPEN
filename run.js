@@ -1578,10 +1578,10 @@ class runArgsBeforeGetValue extends Statement
 	{
 		super.run();
 		let queue = [];
-		for(let v of this.args)
+		for(let i = 0; i < this.args.length; i++)
 		{
-			if(v.parameter) valuelist2stack(v.parameter, queue);
-			if(v.args) valuelist2stack(v.args, queue);
+			if(this.args[i].parameter) valuelist2stack(this.args[i].parameter, queue);
+			if(this.args[i].args) valuelist2stack(this.args[i].args, queue);
 		}
 		code[0].stack.unshift({statementlist: queue, index: 0});
 	}
