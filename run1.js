@@ -366,7 +366,7 @@ var Value = function () {
 
 		this._value = v;
 		this._loc = loc;
-		this.rtnv = null;
+		this.rtnv = v;
 	}
 	/**
   * @returns 生のJavaScriptにおける値
@@ -394,7 +394,7 @@ var Value = function () {
 	}, {
 		key: "run",
 		value: function run() {
-			this.rtnv = this;
+			//		this.rtnv = this;
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -623,10 +623,10 @@ var FloatValue = function (_Value4) {
 var StringValue = function (_Value5) {
 	_inherits(StringValue, _Value5);
 
-	function StringValue() {
+	function StringValue(v, loc) {
 		_classCallCheck(this, StringValue);
 
-		return _possibleConstructorReturn(this, (StringValue.__proto__ || Object.getPrototypeOf(StringValue)).apply(this, arguments));
+		return _possibleConstructorReturn(this, (StringValue.__proto__ || Object.getPrototypeOf(StringValue)).call(this, v, loc));
 	}
 
 	_createClass(StringValue, [{
@@ -652,10 +652,10 @@ var StringValue = function (_Value5) {
 var BooleanValue = function (_Value6) {
 	_inherits(BooleanValue, _Value6);
 
-	function BooleanValue() {
+	function BooleanValue(v, loc) {
 		_classCallCheck(this, BooleanValue);
 
-		return _possibleConstructorReturn(this, (BooleanValue.__proto__ || Object.getPrototypeOf(BooleanValue)).apply(this, arguments));
+		return _possibleConstructorReturn(this, (BooleanValue.__proto__ || Object.getPrototypeOf(BooleanValue)).call(this, v, loc));
 	}
 
 	_createClass(BooleanValue, [{
@@ -1045,8 +1045,7 @@ var And = function (_Value15) {
 					if (_v10 instanceof BooleanValue) this.rtnv = new BooleanValue(_v10.value, this.loc);
 				}
 				code[0].stack[0].index++;
-			}
-			throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+			} else throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
 		}
 	}, {
 		key: "getCode",
@@ -1084,8 +1083,7 @@ var Or = function (_Value16) {
 					if (_v11 instanceof BooleanValue) this.rtnv = new BooleanValue(_v11.value, this.loc);
 				}
 				code[0].stack[0].index++;
-			}
-			throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
+			} else throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 		}
 	}, {
 		key: "getCode",

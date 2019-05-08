@@ -300,7 +300,7 @@ class Value
 	{
 		this._value = v;
 		this._loc = loc;
-		this.rtnv = null;
+		this.rtnv = v;
 	}
 	/**
 	 * @returns 生のJavaScriptにおける値
@@ -324,7 +324,7 @@ class Value
 	}
 	run()
 	{
-		this.rtnv = this;
+//		this.rtnv = this;
 		code[0].stack[0].index++;
 	}
 }
@@ -484,6 +484,10 @@ class FloatValue extends Value
 }
 class StringValue extends Value 
 {
+	constructor(v, loc)
+	{
+		super(v, loc);
+	}
 	getCode()
 	{
 		if(this.value.match(/[「」]/)) return '"' + this.value + '"';
@@ -500,6 +504,10 @@ class StringValue extends Value
 }
 class BooleanValue extends Value 
 {
+	constructor(v, loc)
+	{
+		super(v, loc);
+	}
 	getCode()
 	{
 		return this.value ? 'true' : 'false';
@@ -829,7 +837,8 @@ class And extends Value
 			}
 			code[0].stack[0].index++;
 		}
-		throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+		else
+			throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
 	}
 	getCode()
 	{
@@ -859,7 +868,8 @@ class Or extends Value
 			}
 			code[0].stack[0].index++;
 		}
-		throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
+		else
+			throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 	}
 	getCode()
 	{
