@@ -15,6 +15,7 @@
 	<script src="./dncl.js" type="text/javascript"></script>
 	<!--script src="./disp.js" type="text/javascript"></script-->
 	<script src="./sample.js" type="text/javascript"></script>
+	<script src="./answer.js" type="text/javascript"></script>
 	<script src="./run1.js" type="text/javascript"></script>
 </head>
 <body>
@@ -29,6 +30,9 @@
 	Upload <input id="loadButton" type="file"/>
 	<a href="#" id="downloadLink">Download</a>
 	ファイル名：<input id="file_prefix" type="text"/><br>
+	<select id="quiz_select"></select>
+	<button id="quiz_marking">採点</button>
+	<p id="quiz_question"></p>
 	<textarea id="sourceTextarea" rows="20" cols="50" onmouseup="mouseClick();" spellcheck="false"></textarea>
 	<div id="Result_area">
 		<input id="input_area" type="text" size="25" onkeydown="keydownInput(event);"><span id="input_status">入力待ち</span><br>

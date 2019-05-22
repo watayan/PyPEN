@@ -25,6 +25,8 @@ var flowchart_display = false;
 var converting = false;
 var dirty = null;
 var timeouts = [];
+var selected_quiz = -1, selected_quiz_case = -1, selected_quiz_input = 0, selected_quiz_output = 0;
+var output_str = '';
 
 /** parsedCodeクラス */
 class parsedCode
@@ -51,7 +53,7 @@ class parsedMainRoutine extends parsedCode
 	 */
 	finish()
 	{
-		textareaAppend("---\n");
+		if(selected_quiz < 0) textareaAppend("---\n");
 		highlightLine(-1);
 		setRunflag(false);
 		wait_time = 0;
@@ -209,8 +211,9 @@ function constructor_name(obj)
  */
 function toHalf(s, loc)
 {
+	s = s.toString();
 	if(setting.zenkaku_mode == 1 && /[Ａ-Ｚａ-ｚ０-９．−]/.exec(s))
-		throw new RuntimeError(loc.first_line, "数値を全角文字で入力してはいけません");
+		throw new RuntimeError(loc.first_line, "数値や変数名を全角文字で入力してはいけません");
 	return s.replace(/[Ａ-Ｚａ-ｚ０-９．−]/g, function(s) {
 		return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);}
 	);
@@ -1621,7 +1624,6 @@ class DefinitionStatement extends Statement {
 		return ag.join(',');
 	}
 }
-
 class DefinitionInt extends DefinitionStatement
 {
 	constructor(x, loc)
@@ -1877,11 +1879,34 @@ class Input extends Statement
 	}
 	run()
 	{
-//		code[0].stack[0].index++;
-		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-		var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
-		code.unshift(new parsedCode(list));
-//		code[0].stack[0].statementlist[0].run();
+		if(selected_quiz < 0)	// 通常時
+		{
+			if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
+			code.unshift(new parsedCode(list));
+		}
+		else	// 自動採点時
+		{
+			if(selected_quiz_input < Quizzes[selected_quiz].input(selected_quiz_case).length)
+			{
+				let index = code[0].stack[0].index;
+				if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+				let va = new Variable(this.varname.varname, this.varname.args, this.loc);
+				let vl = Quizzes[selected_quiz].input(selected_quiz_case)[selected_quiz_input++];
+				va.run();
+				let v0 = va.getValue();
+				let assign = null;
+				let re = /真|true/i;
+				if(v0 instanceof IntValue)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
+				else if(v0 instanceof FloatValue)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
+				else if(v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				else if(v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
+				else if(v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				assign.run();
+				code[0].stack[0].index = index + 1;
+			}
+			else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
+		}
 	}
 }
 
@@ -1962,7 +1987,14 @@ class Output extends Statement
 		let index = code[0].stack[0].index;
 		//this.value.run();
 		let v = this.value.getValue();
-		textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
+		if(selected_quiz < 0)
+		{
+			textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
+		}
+		else
+		{
+			output_str += array2text(v) + (this.ln ? "\n" : "");
+		}
 		code[0].stack[0].index = index + 1;
 	}
 }
@@ -2330,7 +2362,7 @@ function reset()
 	varTables = [new varTable()];
 	myFuncs = {};
 	current_line = -1;
-	textareaClear();
+	if(selected_quiz < 0) textareaClear();
 	setRunflag(false);
 	code = null;
 	highlightLine(-1);
@@ -2344,6 +2376,8 @@ function reset()
 	context = null;
 	wait_time = 0;
 	timeouts = [];
+	selected_quiz_input = selected_quiz_output = 0;
+	output_str = '';
 }
 
 function setRunflag(b)
@@ -2365,7 +2399,6 @@ function run()
 		}
 		catch(e)
 		{
-			console.log(e);
 			textareaAppend("構文エラーです\n" + e.message + "\n");
 			setRunflag(false);
 			code = null;
@@ -2386,25 +2419,34 @@ function wait(ms)
 
 function step()
 {
-	// 次の行まで進める
-	var l = current_line;
-	do{
-		next_line();
-	}while(run_flag && l == current_line);
-	if(!code) return;
-	if(code[0].stack.length > 0)
+	if(selected_quiz < 0)
 	{
-		if(run_flag && !step_flag)
+		// 次の行まで進める
+		var l = current_line;
+		do{
+			next_line();
+		}while(run_flag && l == current_line);
+		if(!code) return;
+		if(code[0].stack.length > 0)
 		{
-			if(wait_time > 0) 
+			if(run_flag && !step_flag)
 			{
-				wait(wait_time);
-				wait_time = 0;
+				if(wait_time > 0) 
+				{
+					wait(wait_time);
+					wait_time = 0;
+				}
+				setZeroTimeout(step, 0);
 			}
-			setZeroTimeout(step, 0);
 		}
+		else if(code[0].finish) code[0].finish();
 	}
-	else if(code[0].finish) code[0].finish();
+	else
+	{
+		do{
+			next_line();
+		}while(run_flag && code[0].stack.length > 0);
+	}
 }
 
 function next_line()
@@ -2418,12 +2460,14 @@ function next_line()
 		}
 		catch(e)
 		{
-			console.log(e);
-			if(e instanceof RuntimeError)
-				textareaAppend("実行時エラーです\n" + e.line + "行目:" + e.message + "\n");
-			else textareaAppend("実行時エラーです\n" + e + "\n");
-			setRunflag(false);
-			code = null;
+			if(selected_quiz < 0)
+			{
+				if(e instanceof RuntimeError) textareaAppend("実行時エラーです\n" + e.line + "行目:" + e.message + "\n");
+				else textareaAppend("実行時エラーです\n" + e + "\n");
+				setRunflag(false);
+				code = null;
+			}
+			else throw e;
 		}
 	}
 	else code[0].stack[0].index++;
@@ -4697,5 +4741,83 @@ onload = function(){
 	$(window).bind("beforeunload", function(){if(dirty) return "プログラムが消去されます";});
 
 	reset();
+
+	let quiz_select = document.getElementById('quiz_select');
+	quiz_select.onchange = function ()
+	{
+		let i = quiz_select.selectedIndex;
+		if(i > 0) document.getElementById('quiz_question').innerText = Quizzes[i - 1].question();
+		else document.getElementById('quiz_question').innerText = '';
+	};
+	let option = document.createElement('option');
+	option.val = 0;
+	option.text = '問題選択';
+	quiz_select.appendChild(option);
+
+	for(let i = 0; i < Quizzes.length; i++)
+	{
+		option = document.createElement('option');
+		option.val = i + 1;
+		option.text = 'Q' + (i + 1) + ':' + Quizzes[i].title();
+		quiz_select.appendChild(option);
+	}
+	document.getElementById('quiz_marking').onclick = function ()
+	{
+		let i = quiz_select.selectedIndex;
+		if(i > 0) auto_marking(i - 1);
+		else textarea.value='問題が選択されていないので採点できません。'; 
+	}
+}
+
+class RuntimeSuccess
+{
+}
+
+function auto_marking(i)
+{
+	setRunflag(true);
+	document.getElementById('runButton').disabled = true;
+	document.getElementById('stepButton').disabled = true;
+	document.getElementById('resetButton').disabled = true;
+	textareaClear();
+	textareaAppend('***採点開始***\n');
+	selected_quiz = i;
+	let all_clear = true;
+	for(let j = 0; j < Quizzes[i].cases(); j++)
+	{
+		let clear = true;
+		textareaAppend('ケース' + (j + 1) + '...');
+		try{
+			selected_quiz_case = j;
+			let id = setTimeout(function(){throw new RuntimeError(-1, '時間がかかりすぎです。');},5000);
+			run();
+			clearTimeout(id);
+			if(selected_quiz_input != Quizzes[selected_quiz].input(selected_quiz_case).length) throw new RuntimeError(-1, '入力の回数がおかしいです。');
+			else if(output_str.trim() != Quizzes[selected_quiz].output(selected_quiz_case).toString().trim()) throw new RuntimeError(-1, '結果が違います。');
+			throw new RuntimeSuccess();
+		}
+		catch(e)
+		{
+			if(e instanceof RuntimeSuccess)
+			{
+				textareaAppend('成功\n');
+			}
+			else
+			{
+				textareaAppend('失敗\n');
+//				textareaAppend(e.message+"\n");
+				clear = false;
+			}
+		}
+		all_clear &= clear;
+		code = null;
+	}
+	if(all_clear)textareaAppend('*** 合格 ***\n');
+	else textareaAppend('--- 不合格 ---\n');
+	selected_quiz = -1;
+	document.getElementById('runButton').disabled = false;
+	document.getElementById('stepButton').disabled = false;
+	document.getElementById('resetButton').disabled = false;
+	setRunflag(false);
 }
 

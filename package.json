@@ -35,6 +35,7 @@
     "jison": "^0.4.18"
   },
   "dependencies": {
+    "eslint": "^5.16.0",
     "npm": "^6.9.0"
   }
 }
