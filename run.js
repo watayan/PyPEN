@@ -2399,10 +2399,14 @@ function run()
 		}
 		catch(e)
 		{
-			textareaAppend("構文エラーです\n" + e.message + "\n");
-			setRunflag(false);
-			code = null;
-			return;
+			if(selected_quiz < 0)
+			{
+				textareaAppend("構文エラーです\n" + e.message + "\n");
+				setRunflag(false);
+				code = null;
+				return;
+			}
+			else throw e;
 		}
 	}
 	setRunflag(true);
@@ -4742,31 +4746,50 @@ onload = function(){
 
 	reset();
 
-	let quiz_select = document.getElementById('quiz_select');
-	quiz_select.onchange = function ()
+	let sample_area = document.getElementById('SampleButtons')
+	for(let i = 0; i < sample.length; i++)
 	{
-		let i = quiz_select.selectedIndex;
-		if(i > 0) document.getElementById('quiz_question').innerText = Quizzes[i - 1].question();
-		else document.getElementById('quiz_question').innerText = '';
-	};
-	let option = document.createElement('option');
-	option.val = 0;
-	option.text = '問題選択';
-	quiz_select.appendChild(option);
-
-	for(let i = 0; i < Quizzes.length; i++)
+		let button = document.createElement('button');
+		button.innerText = 'サンプル' + (i + 1);
+		button.setAttribute('type', 'button');
+		button.setAttribute('class', 'sampleButton');
+		button.onclick = function(){sampleButton(i);};
+		if(i > 0 && i % 8 == 0) sample_area.appendChild(document.createElement('br'));
+		sample_area.appendChild(button);
+	}
+	if(setting.quiz_mode == 1 && Quizzes.length > 0)
 	{
-		option = document.createElement('option');
-		option.val = i + 1;
-		option.text = 'Q' + (i + 1) + ':' + Quizzes[i].title();
+		let quiz_select = document.getElementById('quiz_select');
+		quiz_select.onchange = function ()
+		{
+			let i = quiz_select.selectedIndex;
+			if(i > 0) document.getElementById('quiz_question').innerHTML = Quizzes[i - 1].question();
+			else document.getElementById('quiz_question').innerHTML = '';
+		};
+		let option = document.createElement('option');
+		option.val = 0;
+		option.text = '問題選択';
 		quiz_select.appendChild(option);
+	
+		for(let i = 0; i < Quizzes.length; i++)
+		{
+			option = document.createElement('option');
+			option.val = i + 1;
+			option.text = 'Q' + (i + 1) + ':' + Quizzes[i].title();
+			quiz_select.appendChild(option);
+		}
+		document.getElementById('quiz_marking').onclick = function ()
+		{
+			let i = quiz_select.selectedIndex;
+			if(i > 0) auto_marking(i - 1);
+			else textarea.value='問題が選択されていないので採点できません。'; 
+		}
 	}
-	document.getElementById('quiz_marking').onclick = function ()
+	else
 	{
-		let i = quiz_select.selectedIndex;
-		if(i > 0) auto_marking(i - 1);
-		else textarea.value='問題が選択されていないので採点できません。'; 
+		document.getElementById('Quiz_area').style.display = 'none';
 	}
+
 }
 
 class RuntimeSuccess

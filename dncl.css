@@ -51,6 +51,10 @@
 	margin-top: 1em;
 }
 
+.sampleButton{
+	margin:2px 2px;
+}
+
 #sourceTextarea{
 	float: left;
 }
