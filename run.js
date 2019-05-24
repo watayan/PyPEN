@@ -4775,7 +4775,7 @@ onload = function(){
 		{
 			option = document.createElement('option');
 			option.val = i + 1;
-			option.text = 'Q' + (i + 1) + ':' + Quizzes[i].title();
+			option.appendChild(document.createTextNode('Q' + (i + 1) + ':' + Quizzes[i].title()));
 			quiz_select.appendChild(option);
 		}
 		document.getElementById('quiz_marking').onclick = function ()
