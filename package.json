@@ -13,7 +13,7 @@
   "main": "run1.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel run.js -o run1.js",
+    "build": "babel run.js -o run1.js; babel answer.js -o answer1.js",
     "jison": "jison dncl.jison"
   },
   "repository": {
