@@ -27,6 +27,7 @@ var dirty = null;
 var timeouts = [];
 var selected_quiz = -1, selected_quiz_case = -1, selected_quiz_input = 0, selected_quiz_output = 0;
 var output_str = '';
+var test_limit_time = 0;
 
 /** parsedCodeクラス */
 class parsedCode
@@ -2416,8 +2417,8 @@ function run()
 // busy wait !!
 function wait(ms)
 {
-	let t1 = new Date();
-	while(new Date() - t1 < ms)
+	let t1 = Date.now();
+	while(Date.now() - t1 < ms)
 		;
 }
 
@@ -2449,6 +2450,7 @@ function step()
 	{
 		do{
 			next_line();
+			if(Date.now() > test_limit_time) throw new RuntimeError(-1, '時間がかかりすぎです。');
 		}while(run_flag && code[0].stack.length > 0);
 	}
 }
@@ -4803,7 +4805,7 @@ function auto_marking(i)
 	document.getElementById('stepButton').disabled = true;
 	document.getElementById('resetButton').disabled = true;
 	textareaClear();
-	textareaAppend('***採点開始***\n');
+	textareaAppend('*** 採点開始 ***\n');
 	selected_quiz = i;
 	let all_clear = true;
 	for(let j = 0; j < Quizzes[i].cases(); j++)
@@ -4812,9 +4814,8 @@ function auto_marking(i)
 		textareaAppend('ケース' + (j + 1) + '...');
 		try{
 			selected_quiz_case = j;
-			let id = setTimeout(function(){throw new RuntimeError(-1, '時間がかかりすぎです。');},5000);
+			test_limit_time = Date.now() + Quizzes[selected_quiz].timeout();
 			run();
-			clearTimeout(id);
 			if(selected_quiz_input != Quizzes[selected_quiz].input(selected_quiz_case).length) throw new RuntimeError(-1, '入力の回数がおかしいです。');
 			else if(output_str.trim() != Quizzes[selected_quiz].output(selected_quiz_case).toString().trim()) throw new RuntimeError(-1, '結果が違います。');
 			throw new RuntimeSuccess();
@@ -4828,7 +4829,7 @@ function auto_marking(i)
 			else
 			{
 				textareaAppend('失敗\n');
-//				textareaAppend(e.message+"\n");
+				textareaAppend(e.message+"\n");
 				clear = false;
 			}
 		}

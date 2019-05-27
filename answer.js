@@ -11,16 +11,19 @@ class Quiz
      * @param {string} question 
      * @param {Array} inputs 
      * @param {Array} outputs 
+     * @param {Number} timeout
      */
-    constructor(title, question,inputs,outputs)
+    constructor(title, question,inputs,outputs,timeout = 10000)
     {
         this._title = title;
         this._question = question;
         this._inputs = inputs;
         this._outputs = outputs;
+        this._timeout = timeout;
     }
     title(){return this._title;}
-	question(){return this._question;}
+    question(){return this._question;}
+    timeout(){return this._timeout;}
 	/**
 	 * @returns {Number} 入力値セットの数
 	 */
@@ -43,6 +46,9 @@ let Quizzes=[
     new Quiz('出力','「ABC」と出力しなさい',
     [[]],
     ['ABC']),
+    new Quiz('敬称をつける','文字列を1つ受け取って，それの後ろに「さん」をつけて表示しなさい。',
+    [['ABC'],['わたやん'],['さかなクン'],['いちにの'],['']],
+    ['ABCさん','わたやんさん','さかなクンさん','いちにのさん','さん']),
     new Quiz('一次方程式','一次方程式ax=bのaとbを受け取って，xの値を表示しなさい。<br>ただし，解がないときは「解なし」，xが何でもいいときは「すべての値」と表示しなさい。',
     [[2,6],[2,5],[1.5,3.0],[0,0],[0,1]],
     [3,2.5,2,'すべての値','解なし']),
@@ -50,9 +56,9 @@ let Quizzes=[
     [[23,21],[100,200],[10,10],[-13,12]],
     [23,200,10,12]),
     new Quiz('最大公約数', '2つの整数を受け取って，最大公約数を表示しなさい。',
-    [[35,21],[21,35],[24,25],[23,23]],
-    [7,7,1,23]),
+    [[35,21],[21,35],[24,25],[23,23],[19661220,20190528],[527215277,20190528]],
+    [7,7,1,23,36,1]),
     new Quiz('曜日の計算','3つの整数（西暦年，月，日）を受け取って，<br>その日の曜日を番号（0:日曜，1:月曜，…，6:土曜）で表示しなさい。',
-    [[1966,12,20],[2019,5,24]],
-    [2,5]),
+    [[1966,12,20],[2019,5,24],[2019,1,1],[2019,1,31],[2019,3,1],[2020,1,1],[2020,3,1],[2100,3,1],[2100,2,1]],
+    [2,5,2,4,5,3,0,1,1]),
 ];
