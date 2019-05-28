@@ -21,6 +21,7 @@
 </head>
 <body>
 	<div id="Program_area">
+	<div id="Button_area">
 	<button   id="newButton" type="button">新規</button>
 	<button   id="runButton" type="button">実行</button>
 	<button   id="stepButton" type="button">ステップ実行</button>
@@ -30,7 +31,8 @@
 	<button   id="drawButton" type="button" onclick="codeChange();">コード→フローチャート</button><br>
 	Upload <input id="loadButton" type="file"/>
 	<a href="#" id="downloadLink">Download</a>
-	ファイル名：<input id="file_prefix" type="text"/>
+	ファイル名：<input id="file_prefix" type="text"/><br>
+	</div>
 	<div id="Quiz_area">
 		<select id="quiz_select"></select>
 		<button id="quiz_marking">採点</button>
@@ -38,8 +40,8 @@
 	</div>
 	<textarea id="sourceTextarea" rows="20" cols="50" onmouseup="mouseClick();" spellcheck="false"></textarea>
 	<div id="Result_area">
-		<input id="input_area" type="text" size="25" onkeydown="keydownInput(event);"><span id="input_status">入力待ち</span><br>
-		<textarea id="resultTextarea" rows="20" cols="30" readonly></textarea>
+		<input id="input_area" type="text" size="20" onkeydown="keydownInput(event);"><span id="input_status">入力待ち</span><br>
+		<textarea id="resultTextarea" rows="20" cols="25" readonly></textarea>
 	</div>
 	<div id="EditButtons">
 	<button type="button" class="editButton" onclick='editButton("整数 《変数》");'>整数</button>

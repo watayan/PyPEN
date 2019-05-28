@@ -82,7 +82,7 @@
 
 
 #Flowchart_area{
-	float: left;
+	/* float: left; */
 	display: none;
 }
 
