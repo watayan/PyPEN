@@ -1888,12 +1888,12 @@ class Input extends Statement
 		}
 		else	// 自動採点時
 		{
-			if(selected_quiz_input < Quizzes[selected_quiz].input(selected_quiz_case).length)
+			if(selected_quiz_input < Quizzes[selected_quiz].inputs(selected_quiz_case).length)
 			{
 				let index = code[0].stack[0].index;
 				if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 				let va = new Variable(this.varname.varname, this.varname.args, this.loc);
-				let vl = Quizzes[selected_quiz].input(selected_quiz_case)[selected_quiz_input++];
+				let vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
 				va.run();
 				let v0 = va.getValue();
 				let assign = null;
@@ -2486,17 +2486,21 @@ function next_line()
 		if(code[0].stack.length < 1) break;
 		index = code[0].stack[0].index;
 	}
-	// 次の行をハイライト表示する
-	if(code[0].stack[0])
+	if(selected_quiz < 0)
 	{
-		index = code[0].stack[0].index;
-		statement = code[0].stack[0].statementlist[index];
-		if(statement)
+		// 次の行をハイライト表示する
+		if(code[0].stack[0])
 		{
-			highlightLine(current_line = statement.first_line);
+			index = code[0].stack[0].index;
+			statement = code[0].stack[0].statementlist[index];
+			if(statement)
+			{
+				highlightLine(current_line = statement.first_line);
+			}
 		}
+		else highlightLine(++current_line);
+
 	}
-	else highlightLine(++current_line);
 }
 
 
@@ -4816,7 +4820,7 @@ function auto_marking(i)
 			selected_quiz_case = j;
 			test_limit_time = Date.now() + Quizzes[selected_quiz].timeout();
 			run();
-			if(selected_quiz_input != Quizzes[selected_quiz].input(selected_quiz_case).length) throw new RuntimeError(-1, '入力の回数がおかしいです。');
+			if(selected_quiz_input != Quizzes[selected_quiz].inputs(selected_quiz_case).length) throw new RuntimeError(-1, '入力の回数がおかしいです。');
 			else if(output_str.trim() != Quizzes[selected_quiz].output(selected_quiz_case).toString().trim()) throw new RuntimeError(-1, '結果が違います。');
 			throw new RuntimeSuccess();
 		}

@@ -1,54 +1,12 @@
 "use strict";
 
-/**
- * 自動採点用問題および解答
- */
-class Quiz
-{
-    /**
-     * 
-     * @param {string} title
-     * @param {string} question 
-     * @param {Array} inputs 
-     * @param {Array} outputs 
-     * @param {Number} timeout
-     */
-    constructor(title, question,inputs,outputs,timeout = 10000)
-    {
-        this._title = title;
-        this._question = question;
-        this._inputs = inputs;
-        this._outputs = outputs;
-        this._timeout = timeout;
-    }
-    title(){return this._title;}
-    question(){return this._question;}
-    timeout(){return this._timeout;}
-	/**
-	 * @returns {Number} 入力値セットの数
-	 */
-    cases(){return this._inputs.length;}
-    /**
-     * n番目の入力値セットを返す
-     * @param {int} n 
-     * @returns {Array}
-     */
-    input(n){return this._inputs[n];}
-
-    /**
-     * n番目の出力値を返す
-     * @returns {string|number}
-     */
-    output(n){return this._outputs[n];}
-}
-
 let Quizzes=[
     new Quiz('出力','「ABC」と出力しなさい',
     [[]],
     ['ABC']),
     new Quiz('敬称をつける','文字列を1つ受け取って，それの後ろに「さん」をつけて表示しなさい。',
-    [['ABC'],['わたやん'],['さかなクン'],['いちにの'],['']],
-    ['ABCさん','わたやんさん','さかなクンさん','いちにのさん','さん']),
+    [['12'],['わたやん'],['さかなクン'],['いちにの'],['']],
+    ['12さん','わたやんさん','さかなクンさん','いちにのさん','さん']),
     new Quiz('一次方程式','一次方程式ax=bのaとbを受け取って，xの値を表示しなさい。<br>ただし，解がないときは「解なし」，xが何でもいいときは「すべての値」と表示しなさい。',
     [[2,6],[2,5],[1.5,3.0],[0,0],[0,1]],
     [3,2.5,2,'すべての値','解なし']),
