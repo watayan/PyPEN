@@ -8,13 +8,14 @@
  * @param {Array} output 
  * @param {Number} timeout 
  */
- function Quiz(title,question,inputs,output,timeout=10000)
+function Quiz(title,question,inputs,output,timeout)
 {
     this._title = title;
     this._question = question;
     this._inputs = inputs;
     this._output = output;
     this._timeout = timeout;
+    if(timeout instanceof undefined) this._timeout = 10000;
 }
 
 Quiz.prototype = {
