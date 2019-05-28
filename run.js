@@ -4774,7 +4774,7 @@ onload = function(){
 		};
 		let option = document.createElement('option');
 		option.val = 0;
-		option.text = '問題選択';
+		option.appendChild(document.createTextNode('問題選択'));
 		quiz_select.appendChild(option);
 	
 		for(let i = 0; i < Quizzes.length; i++)
