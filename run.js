@@ -111,6 +111,17 @@ class varTable
 		if(this.vars[varname]) return this;
 		else return null;
 	}
+	/**
+	 * 
+	 * @param {Array<string>} oldvars 
+	 */
+	varnames(oldvars)
+	{
+		var names = oldvars;
+		for(var name in this.vars)
+			if(!names[name]) names.push(name);
+		return names.sort();
+	}
 }
 
 /**
@@ -1521,6 +1532,27 @@ class notReturnedFunction extends Statement {
 	}
 }
 
+
+class Dump extends Statement
+{
+	constructor(loc){super(loc);}
+	run()
+	{
+		textareaAppend("確認----------\n");
+		var vars = varTables[0].varnames([]);
+		if(varTables.length > 1) vars = varTable[varTables.length - 1].varnames(vars);
+		for(var i = 0; i < vars.length; i++)
+		{
+			let vartable = findVarTable(vars[i]);
+			let v = vartable.vars[vars[i]];
+			textareaAppend(vars[i] + ":" + array2code(v) + "\n");
+		}
+		textareaAppend("--------------\n");
+		super.run();
+	}
+}
+
+
 /**
  * ValueのArrayをcode[0].stackに積む
  * @param {Array<Value>|ArrayValue} args 
@@ -2010,6 +2042,20 @@ function array2text(v)
 		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
 		return '[' + v1.join(',') + ']';
 	}
+	return v0.value;
+}
+
+function array2code(v)
+{
+	if(v instanceof NullValue || !v) return '';
+	let v0 = v.getValue();
+	if(v0 instanceof ArrayValue)
+	{
+		let v1 = [];
+		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
+		return '[' + v1.join(',') + ']';
+	}
+	else if(v0 instanceof StringValue) return "「" + v0.value + "」";
 	return v0.value;
 }
 
@@ -2553,7 +2599,7 @@ function editButton(add_code)
 	var tab = "";
 	var array = re1.exec(code1);
 	if(array != null) tab = array[0];
-//	console.log("["+code[pos]+"]");
+	console.log("[" + pos + ":" +code[pos]+"]");
 	if((code[pos] && code[pos] != "\n") || (pos > 0 && !re2.exec(code[pos - 1])))
 	{
 		alert("この位置で入力支援ボタンを押してはいけません");
