@@ -119,7 +119,7 @@ class varTable
 	{
 		var names = oldvars;
 		for(var name in this.vars)
-			if(!names[name]) names.push(name);
+			if(names.indexOf(name) < 0) names.push(name);
 		return names.sort();
 	}
 }
@@ -1538,16 +1538,15 @@ class Dump extends Statement
 	constructor(loc){super(loc);}
 	run()
 	{
-		textareaAppend("確認----------\n");
+		textareaAppend("*** 変数確認 ***\n");
 		var vars = varTables[0].varnames([]);
-		if(varTables.length > 1) vars = varTable[varTables.length - 1].varnames(vars);
+		if(varTables.length > 1) vars = varTables[varTables.length - 1].varnames(vars);
 		for(var i = 0; i < vars.length; i++)
 		{
 			let vartable = findVarTable(vars[i]);
 			let v = vartable.vars[vars[i]];
 			textareaAppend(vars[i] + ":" + array2code(v) + "\n");
 		}
-		textareaAppend("--------------\n");
 		super.run();
 	}
 }

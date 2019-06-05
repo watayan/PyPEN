@@ -156,7 +156,7 @@ UNDEFINED		"《"[^》]*"》"
 "円描画"				{return 'gDrawCircle';}
 "円塗描画"				{return 'gFillCircle';}
 "ミリ秒待つ"				{return 'ミリ秒待つ';}
-"確認する"				{return '確認する';}
+"変数を確認する"				{return '変数を確認する';}
 {Identifier}	{return 'IDENTIFIER';}
 <<EOF>>				{return 'EOF';}
 {NEWLINE}				{return 'NEWLINE';}
@@ -252,7 +252,7 @@ EmptyStatement
 	;
 
 DumpStatement
-	: '確認する' 'NEWLINE'
+	: '変数を確認する' 'NEWLINE'
 		{$$ = new Dump(new Location(@1, @1));}
 	;
 
