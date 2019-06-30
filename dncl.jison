@@ -254,6 +254,8 @@ EmptyStatement
 DumpStatement
 	: '変数を確認する' 'NEWLINE'
 		{$$ = new DumpStatement(new Location(@1, @1));}
+	|'変数を確認する' '(' ')' 'NEWLINE'
+		{$$ = new DumpStatement(new Location(@1, @1));}
 	;
 
 DefineFuncStatement
