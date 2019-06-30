@@ -1533,7 +1533,7 @@ class notReturnedFunction extends Statement {
 }
 
 
-class Dump extends Statement
+class DumpStatement extends Statement
 {
 	constructor(loc){super(loc);}
 	run()
@@ -3032,6 +3032,14 @@ class Flowchart
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
+			else if(statement == "DumpStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue("dump",[]);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
 		}
 	}
 
@@ -4260,7 +4268,8 @@ var misc_menu =[
 	["矩形塗描画"   , "gFillBox"       , "矩形塗描画(	,	,	,	)"    ,["x","y","幅","高さ"]],
 	["円描画"      , "gDrawCircle"     , "円描画(	,	,	)"          ,["x","y","半径"]],
 	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
-	["待つ"       , "sleep"           , "	 ミリ秒待つ"                 ,["ミリ秒数"]]
+	["待つ"       , "sleep"           , "	 ミリ秒待つ"                 ,["ミリ秒数"]],
+	["変数を確認する", "dump"			,"変数を確認する",[]]
 ];
 
 
@@ -4752,7 +4761,8 @@ onload = function(){
 						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
 						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
-						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》 ミリ秒待つ");}}
+						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》 ミリ秒待つ");}},
+						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}
 					}
 				}
 			}

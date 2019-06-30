@@ -1923,16 +1923,16 @@ var notReturnedFunction = function (_Statement6) {
 	return notReturnedFunction;
 }(Statement);
 
-var Dump = function (_Statement7) {
-	_inherits(Dump, _Statement7);
+var DumpStatement = function (_Statement7) {
+	_inherits(DumpStatement, _Statement7);
 
-	function Dump(loc) {
-		_classCallCheck(this, Dump);
+	function DumpStatement(loc) {
+		_classCallCheck(this, DumpStatement);
 
-		return _possibleConstructorReturn(this, (Dump.__proto__ || Object.getPrototypeOf(Dump)).call(this, loc));
+		return _possibleConstructorReturn(this, (DumpStatement.__proto__ || Object.getPrototypeOf(DumpStatement)).call(this, loc));
 	}
 
-	_createClass(Dump, [{
+	_createClass(DumpStatement, [{
 		key: "run",
 		value: function run() {
 			textareaAppend("*** 変数確認 ***\n");
@@ -1943,11 +1943,11 @@ var Dump = function (_Statement7) {
 				var _v18 = vartable.vars[vars[i]];
 				textareaAppend(vars[i] + ":" + array2code(_v18) + "\n");
 			}
-			_get(Dump.prototype.__proto__ || Object.getPrototypeOf(Dump.prototype), "run", this).call(this);
+			_get(DumpStatement.prototype.__proto__ || Object.getPrototypeOf(DumpStatement.prototype), "run", this).call(this);
 		}
 	}]);
 
-	return Dump;
+	return DumpStatement;
 }(Statement);
 
 /**
@@ -3518,6 +3518,12 @@ var Flowchart = function () {
 					p1.setValue("sleep", [p.sec]);
 					parts.next = p1;
 					parts = p1.next = b1;
+				} else if (statement == "DumpStatement") {
+					var p1 = new Parts_Misc();
+					var b1 = new Parts_Bar();
+					p1.setValue("dump", []);
+					parts.next = p1;
+					parts = p1.next = b1;
 				}
 			}
 		}
@@ -5048,7 +5054,7 @@ var Parts_LoopEnd2 = function (_Parts_LoopEnd) {
 
 var misc_menu = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]]];
+["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["変数を確認する", "dump", "変数を確認する", []]];
 
 var Parts_Misc = function (_Parts10) {
 	_inherits(Parts_Misc, _Parts10);
@@ -5579,6 +5585,9 @@ onload = function onload() {
 						} },
 					sleep: { name: "待つ", callback: function callback(k, e) {
 							insertCode("《ミリ秒数》 ミリ秒待つ");
+						} },
+					dump: { name: "変数を確認する", callback: function callback(k, e) {
+							insertCode("変数を確認する");
 						} }
 				}
 			}

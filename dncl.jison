@@ -253,7 +253,7 @@ EmptyStatement
 
 DumpStatement
 	: '変数を確認する' 'NEWLINE'
-		{$$ = new Dump(new Location(@1, @1));}
+		{$$ = new DumpStatement(new Location(@1, @1));}
 	;
 
 DefineFuncStatement

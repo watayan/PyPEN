@@ -204,7 +204,7 @@ case 56:
 this.$ = null;
 break;
 case 57:
-this.$ = new Dump(new Location(_$[$0-1], _$[$0-1]));
+this.$ = new DumpStatement(new Location(_$[$0-1], _$[$0-1]));
 break;
 case 58:
 this.$ = new DefineStep($$[$0-7], $$[$0-5], $$[$0-2], new Location(_$[$0-8], _$[$0-1]));
