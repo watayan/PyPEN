@@ -5674,10 +5674,6 @@ onload = function onload() {
 	}
 };
 
-var RuntimeSuccess = function RuntimeSuccess() {
-	_classCallCheck(this, RuntimeSuccess);
-};
-
 function auto_marking(i) {
 	setRunflag(true);
 	document.getElementById('runButton').disabled = true;
@@ -5695,15 +5691,11 @@ function auto_marking(i) {
 			test_limit_time = Date.now() + Quizzes[selected_quiz].timeout();
 			run();
 			if (selected_quiz_input != Quizzes[selected_quiz].inputs(selected_quiz_case).length) throw new RuntimeError(-1, '入力の回数がおかしいです。');else if (output_str.trim() != Quizzes[selected_quiz].output(selected_quiz_case).toString().trim()) throw new RuntimeError(-1, '結果が違います。');
-			throw new RuntimeSuccess();
+			textareaAppend('成功\n');
 		} catch (e) {
-			if (e instanceof RuntimeSuccess) {
-				textareaAppend('成功\n');
-			} else {
-				textareaAppend('失敗\n');
-				textareaAppend(e.message + "\n");
-				clear = false;
-			}
+			textareaAppend('失敗\n');
+			textareaAppend(e.message + "\n");
+			clear = false;
 		}
 		all_clear &= clear;
 		code = null;
