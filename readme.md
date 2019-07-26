@@ -4,7 +4,7 @@
 フローチャートについては中西のPenFlowchartを移植したものです。
 
 ## 使用方法
-sample.js-distをsample.jsにコピーしてください。
+answer.js-distとsample.js-distをそれぞれanswer.jsとsample.jsにコピーしてください。
 その後，適当なプログラムに書き換えてください
 （クォートでくくったり\nを行末に挿入したり面倒ではありますが）。
 Perlがインストールされていれば，
