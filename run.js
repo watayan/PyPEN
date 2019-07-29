@@ -918,14 +918,32 @@ class Not extends Value
 	}
 }
 
+
+/**
+ * @returns boolean
+ * @param {ArrayValue} v1 
+ * @param {ArrayValue} v2 
+ */
+function ArrayCompare(v1, v2)
+{
+	var rtnv = true;
+	if(v1 instanceof ArrayValue && v2 instanceof ArrayValue)
+	{
+		if(v1.length != v2.length) return false;
+		for(let i = 0; i < v1.length; i++) rtnv = rtnv && ArrayCompare(v1.nthValue(i), v2.nthValue(i));
+	}
+	else rtnv = rtnv && typeof v1 == typeof v2 && v1.value == v2.value;
+	return rtnv;
+}
+
 class EQ extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-		this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);
+		else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()

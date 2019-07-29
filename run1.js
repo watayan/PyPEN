@@ -5,6 +5,8 @@
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -1152,6 +1154,24 @@ var Not = function (_Value17) {
 	return Not;
 }(Value);
 
+/**
+ * @returns boolean
+ * @param {ArrayValue} v1 
+ * @param {ArrayValue} v2 
+ */
+
+
+function ArrayCompare(v1, v2) {
+	var rtnv = true;
+	if (v1 instanceof ArrayValue && v2 instanceof ArrayValue) {
+		if (v1.length != v2.length) return false;
+		for (var i = 0; i < v1.length; i++) {
+			rtnv = rtnv && ArrayCompare(v1.nthValue(i), v2.nthValue(i));
+		}
+	} else rtnv = rtnv && (typeof v1 === "undefined" ? "undefined" : _typeof(v1)) == (typeof v2 === "undefined" ? "undefined" : _typeof(v2)) && v1.value == v2.value;
+	return rtnv;
+}
+
 var EQ = function (_Value18) {
 	_inherits(EQ, _Value18);
 
@@ -1166,8 +1186,7 @@ var EQ = function (_Value18) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
-			this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
 	}, {

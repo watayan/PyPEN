@@ -4,8 +4,8 @@
 フローチャートについては中西のPenFlowchartを移植したものです。
 
 ## 使用方法
-sample.js-distをsample.jsにコピーしてください。
-その後，適当なプログラムに書き換えてください
+sample.js-distをsample.jsに，answer.js-distをanswer.jsにそれぞれコピーしてください。
+その後，適当な内容に書き換えてください
 （クォートでくくったり\nを行末に挿入したり面倒ではありますが）。
 Perlがインストールされていれば，
 sample1.PEN，sample2.PEN，…をWaPENのディレクトリに置いて
