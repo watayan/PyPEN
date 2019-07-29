@@ -1268,8 +1268,8 @@ var definedFunction = {
 	"append": new DefinedFunction(2, function(param, loc){
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
-		if(par1 instanceof NullValue) return v2;
-		else if(par2 instanceof NullValue) return v1;
+		if(par1 instanceof NullValue) return par2;
+		else if(par2 instanceof NullValue) return par1;
 		else if(par2 instanceof StringValue && par2 instanceof StringValue)
 		{
 			return new StringValue(par1.value + par2.value, this.loc);
@@ -1398,10 +1398,14 @@ class Append extends Value
 	constructor(x,y,loc){super([x,y],loc);}
 	run()
 	{
-		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		let v1, v2;
 		if(this.value[0].getValue() instanceof NullValue) v1 = '';
+		else if(this.value[0].getValue() instanceof ArrayValue) v1 = array2text(this.value[0].getValue());
+		else v1 = String(this.value[0].getValue().value);
 		if(this.value[1].getValue() instanceof NullValue) v2 = '';
-		let v = String(v1.value) + String(v2.value);
+		else if(this.value[1].getValue() instanceof ArrayValue) v2 = array2text(this.value[1].getValue());
+		else v2 = String(this.value[1].getValue().value);
+		let v = v1 + v2;
 		this.rtnv = new StringValue(v, this.loc);
 		code[0].stack[0].index++;
 	}
