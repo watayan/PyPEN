@@ -204,7 +204,8 @@ function codeChange() {
 	var code = document.getElementById("sourceTextarea").value + "\n";
 	try {
 		myFuncs = {};
-		var parse = dncl.parse(code);
+		var dncl_code = python_to_dncl(code);
+		var parse = dncl.parse(dncl_code);
 		var flag = false; // 関数・手続き定義がないか調べる
 		for (var i = 0; i < parse.length; i++) {
 			if (parse[i] instanceof DefineFunction || parse[i] instanceof DefineStep) flag = true;
@@ -2935,8 +2936,10 @@ function run() {
 	if (code == null) {
 		try {
 			reset();
-			var source = document.getElementById("sourceTextarea").value + "\n";
-			code = [new parsedMainRoutine(dncl.parse(source))];
+			var python_source = document.getElementById("sourceTextarea").value + "\n";
+			var dncl_source = python_to_dncl(python_source);
+			//textareaAppend(dncl_source);	// for debug
+			code = [new parsedMainRoutine(dncl.parse(dncl_source))];
 		} catch (e) {
 			if (selected_quiz < 0) {
 				textareaAppend("構文エラーです\n" + e.message + "\n");
@@ -3078,8 +3081,8 @@ function keyUp(e) {
 	var code2 = code.slice(pos, code.length);
 	var re1 = /《[^》《]*$/;
 	var re2 = /^[^》《]*》/;
-	var re3 = /\n?([｜|]*)([^｜|\n]*?)\n$/;
-	var re4 = /(ならば|なければ|(の間|繰り返し|繰返し|(増|減)やし(ながら|つつ))[，,、])$/;
+	var re3 = /\n?([　 ]*)([^　 \n]+.*)\n$/;
+	var re4 = /[：:]$/;
 	var re4a = /^(関数|手続き).*\(.*\)$/;
 	var re5 = /^\n/;
 	var tab = "";
@@ -3099,12 +3102,13 @@ function keyUp(e) {
 			var match = re3.exec(code1);
 			if (match) {
 				tab = match[1];
-				if (re4.exec(match[2]) || re4a.exec(match[2])) tab = "｜" + tab;
+				if (re4.exec(match[2]) || re4a.exec(match[2])) tab = "    " + tab;
 			}
 			sourceTextArea.value = code1 + tab + code2;
 			pos = code1.length + tab.length;
 			sourceTextArea.setSelectionRange(pos, pos);
 			return false;
+		// TODO backspace 
 		default:
 			//		console.log(window.event.keyCode);
 			break;
@@ -3260,8 +3264,7 @@ function contextMenu_Flowchart(trigger, event) {
 			if: { name: "分岐", icon: "if" },
 			loop: { name: "ループ", icon: "loop",
 				items: {
-					loop1: { name: "前条件" },
-					loop2: { name: "後条件" },
+					loop1: { name: "〜の間" },
 					loopinc: { name: "増やしながら" },
 					loopdec: { name: "減らしながら" }
 				}
@@ -3297,7 +3300,7 @@ function callbackPartsBar(bar, key) {
 		return;
 	}
 	bar.highlight();
-	if (key == "input") Parts_Input.appendMe(bar);else if (key == "output") Parts_Output.appendMe(bar);else if (key == "substitute") Parts_Substitute.appendMe(bar);else if (key == "if") Parts_If.appendMe(bar);else if (key == "loop1") Parts_LoopBegin1.appendMe(bar);else if (key == "loop2") Parts_LoopBegin2.appendMe(bar);else if (key == "loopinc") Parts_LoopBeginInc.appendMe(bar);else if (key == "loopdec") Parts_LoopBeginDec.appendMe(bar);else if (key == "misc") Parts_Misc.appendMe(bar);else return;
+	if (key == "input") Parts_Input.appendMe(bar);else if (key == "output") Parts_Output.appendMe(bar);else if (key == "substitute") Parts_Substitute.appendMe(bar);else if (key == "if") Parts_If.appendMe(bar);else if (key == "loop1") Parts_LoopBegin1.appendMe(bar);else if (key == "loopinc") Parts_LoopBeginInc.appendMe(bar);else if (key == "loopdec") Parts_LoopBeginDec.appendMe(bar);else if (key == "misc") Parts_Misc.appendMe(bar);else return;
 	makeDirty(true);
 }
 
@@ -3498,17 +3501,6 @@ var Flowchart = function () {
 					var b1 = new Parts_Bar(),
 					    b2 = new Parts_Bar();
 					p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
-					parts.next = p1;
-					p1.next = b1;b1.next = p2;p2.next = b2;
-					p1._end = p2;p2._begin = p1;
-					Flowchart.appendParts(b1, p.statementlist);
-					parts = b2;
-				} else if (statement == "Until") {
-					var p1 = new Parts_LoopBegin2(),
-					    p2 = new Parts_LoopEnd2();
-					var b1 = new Parts_Bar(),
-					    b2 = new Parts_Bar();
-					p1.setValue(p.condition.getCode());
 					parts.next = p1;
 					p1.next = b1;b1.next = p2;p2.next = b2;
 					p1._end = p2;p2._begin = p1;
@@ -3763,7 +3755,7 @@ var Parts = function () {
 		value: function makeIndent(indent_level) {
 			var s = "";
 			for (var i = 0; i < indent_level; i++) {
-				s += "｜";
+				s += "    ";
 			}return s;
 		}
 	}]);
@@ -3990,7 +3982,7 @@ var Parts_Output = function (_Parts4) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.text + " を" + (this.newline ? "" : "改行なしで") + "表示する\n";
+			code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
 			if (this.next != null) return this.next.appendCode(code, indent);
 			return code;
 		}
@@ -4092,7 +4084,7 @@ var Parts_Input = function (_Parts5) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + " を入力する\n";
+			code += this.var + "を入力する\n";
 			if (this.next != null) return this.next.appendCode(code, indent);
 			return code;
 		}
@@ -4197,7 +4189,7 @@ var Parts_Substitute = function (_Parts6) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + " ← " + this.val + "\n";
+			code += this.var + "←" + this.val + "\n";
 			if (this.next != null) return this.next.appendCode(code, indent);
 			return code;
 		}
@@ -4387,14 +4379,12 @@ var Parts_If = function (_Parts7) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += "もし " + this.condition + " ならば\n";
+			code += "もし" + this.condition + "ならば：\n";
 			if (this.left.next instanceof Parts_Null) code += Parts.makeIndent(indent + 1) + "\n";else code += this.left.appendCode('', indent + 1);
 			if (!(this.right.next instanceof Parts_Null)) {
-				code += Parts.makeIndent(indent) + "を実行し，そうでなければ\n";
+				code += Parts.makeIndent(indent) + "そうでなければ：\n";
 				code += this.right.appendCode('', indent + 1);
 			}
-			code += Parts.makeIndent(indent);
-			code += "を実行する\n";
 
 			if (this.end.next != null) return this.end.next.appendCode(code, indent);
 			return code;
@@ -4591,10 +4581,9 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.condition + " の間，\n";
+			code += this.condition + " の間繰り返す：\n";
 			var code_inner = this.next.appendCode('', indent + 1);
 			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を繰り返す\n";
 
 			if (this.end.next != null) return this.end.next.appendCode(code, indent);
 			return code;
@@ -4643,76 +4632,8 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	return Parts_LoopBegin1;
 }(Parts_LoopBegin);
 
-var Parts_LoopBegin2 = function (_Parts_LoopBegin2) {
-	_inherits(Parts_LoopBegin2, _Parts_LoopBegin2);
-
-	function Parts_LoopBegin2() {
-		_classCallCheck(this, Parts_LoopBegin2);
-
-		var _this67 = _possibleConstructorReturn(this, (Parts_LoopBegin2.__proto__ || Object.getPrototypeOf(Parts_LoopBegin2)).call(this));
-
-		_this67.setValue("《条件》");
-		return _this67;
-	}
-
-	_createClass(Parts_LoopBegin2, [{
-		key: "setValue",
-		value: function setValue(cond) {
-			this._cond = cond;
-			this._text = this._cond;
-		}
-	}, {
-		key: "appendCode",
-		value: function appendCode(code, indent) {
-			code += Parts.makeIndent(indent) + "繰り返し，\n";
-			var code_inner = this.next.appendCode('', indent + 1);
-			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を， " + this.condition + " になるまで実行する\n";
-
-			if (this.end.next != null) return this.end.next.appendCode(code, indent);
-			return code;
-		}
-	}, {
-		key: "editMe",
-		value: function editMe() {
-			var subtitle = ["条件（〜になるまで）"];
-			var values = [this.condition];
-			openModalWindow("繰り返しの編集", subtitle, values, this);
-		}
-	}, {
-		key: "edited",
-		value: function edited(values) {
-			if (values != null) {
-				this.setValue(values[0]);
-			}
-			flowchart.paint();
-			flowchart.flowchart2code();
-		}
-	}, {
-		key: "condition",
-		get: function get() {
-			return this._cond;
-		}
-	}], [{
-		key: "appendMe",
-		value: function appendMe(bar) {
-			var parts = new Parts_LoopBegin2();
-			bar.next = parts;
-			parts.next = new Parts_Bar();
-			parts.next.next = new Parts_LoopEnd2();
-			parts.next.next.next = new Parts_Bar();
-			parts._end = parts.next.next;
-			parts.next.next._begin = parts;
-
-			return parts.end;
-		}
-	}]);
-
-	return Parts_LoopBegin2;
-}(Parts_LoopBegin);
-
-var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
-	_inherits(Parts_LoopBeginInc, _Parts_LoopBegin3);
+var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
+	_inherits(Parts_LoopBeginInc, _Parts_LoopBegin2);
 
 	_createClass(Parts_LoopBeginInc, [{
 		key: "hasText",
@@ -4724,10 +4645,10 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this68 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this67 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
 
-		_this68.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this68;
+		_this67.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this67;
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
@@ -4743,10 +4664,9 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + " を " + this.start + " から " + this.goal + " まで " + this.step + " ずつ増やしながら，\n";
+			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら繰り返す：\n";
 			var code_inner = this.next.appendCode('', indent + 1);
 			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を繰り返す\n";
 
 			if (this.end.next != null) return this.end.next.appendCode(code, indent);
 			return code;
@@ -4810,8 +4730,8 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin3) {
 	return Parts_LoopBeginInc;
 }(Parts_LoopBegin);
 
-var Parts_LoopBeginDec = function (_Parts_LoopBegin4) {
-	_inherits(Parts_LoopBeginDec, _Parts_LoopBegin4);
+var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
+	_inherits(Parts_LoopBeginDec, _Parts_LoopBegin3);
 
 	_createClass(Parts_LoopBeginDec, [{
 		key: "hasText",
@@ -4823,10 +4743,10 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin4) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this69 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this68 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
 
-		_this69.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this69;
+		_this68.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this68;
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
@@ -4842,10 +4762,9 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin4) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + " を " + this.start + " から " + this.goal + " まで " + this.step + " ずつ減らしながら，\n";
+			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら繰り返す：\n";
 			var code_inner = this.next.appendCode('', indent + 1);
 			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
-			code += Parts.makeIndent(indent) + "を繰り返す\n";
 
 			if (this.end.next != null) return this.end.next.appendCode(code, indent);
 			return code;
@@ -5042,35 +4961,6 @@ var Parts_LoopEnd = function (_Parts9) {
 	return Parts_LoopEnd;
 }(Parts);
 
-var Parts_LoopEnd2 = function (_Parts_LoopEnd) {
-	_inherits(Parts_LoopEnd2, _Parts_LoopEnd);
-
-	function Parts_LoopEnd2() {
-		_classCallCheck(this, Parts_LoopEnd2);
-
-		return _possibleConstructorReturn(this, (Parts_LoopEnd2.__proto__ || Object.getPrototypeOf(Parts_LoopEnd2)).apply(this, arguments));
-	}
-
-	_createClass(Parts_LoopEnd2, [{
-		key: "hasText",
-		get: function get() {
-			return true;
-		}
-	}, {
-		key: "text",
-		get: function get() {
-			return this.begin.text;
-		}
-	}, {
-		key: "text2",
-		get: function get() {
-			return "になるまで";
-		}
-	}]);
-
-	return Parts_LoopEnd2;
-}(Parts_LoopEnd);
-
 var misc_menu = [
 //表示            識別子            プログラム上の表現            [引数の意味]
 ["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["変数を確認する", "dump", "変数を確認する", []]];
@@ -5081,10 +4971,10 @@ var Parts_Misc = function (_Parts10) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this72 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this70 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
 
-		_this72.setValue("none", []);
-		return _this72;
+		_this70.setValue("none", []);
+		return _this70;
 	}
 
 	_createClass(Parts_Misc, [{
@@ -5419,7 +5309,7 @@ onload = function onload() {
 		var now = new Date();
 		var filename = file_prefix.value.trim();
 		if (filename.length < 1) filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
-		filename += '.PEN';
+		filename += '.PyPEN';
 		var blob = new Blob([sourceTextArea.value], { type: "text/plain" });
 		if (window.navigator.msSaveBlob) {
 			window.navigator.msSaveBlob(blob, filename);

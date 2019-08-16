@@ -28,8 +28,9 @@ Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			{Integer}[.．]{DecimalDigit}+
 String			"「"[^」]*"」"|"｢"[^｣]*"｣"|"\""[^"]*"\""
 Comma			[，,、]
+Colon			[:：]
 Print			"表示"|"印刷"|"出力"
-Whitespace		[\s\t 　|｜]
+Whitespace		[\s\t 　]
 NEWLINE			\r\n|\r|\n
 UNDEFINED		"《"[^》]*"》"
 
@@ -45,7 +46,8 @@ UNDEFINED		"《"[^》]*"》"
 {String}		{return '文字列値';}
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
-{Comma}				{return 'COMMA';}
+{Comma}			{return 'COMMA';}
+{Colon}			{return 'COLON'}
 {UNDEFINED}		{return 'UNDEFINED';}
 "+"				{return '+';}
 "＋"			{return '+';}
@@ -91,52 +93,33 @@ UNDEFINED		"《"[^》]*"》"
 "かつ"			{return 'かつ';}
 "または"		{return 'または';}
 "でない"		{return 'でない';}
+"■"				{return 'EOB'}
 "を"{Print}"する"		{return 'を表示する';}
 "を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
 "を改行なしで"{Print}"する"	{return 'を改行無しで表示する';}
 "を入力する"			{return 'を入力する';}
 "もし"					{return 'もし';}
 "ならば"				{return 'ならば';}
-"を実行し"{Comma}"そうでなければ"			{return 'を実行し，そうでなければ';}
-"を実行する"			{return 'を実行する';}
-"を実行"				{return 'を実行する';}
-"の間"{Comma}			{return 'の間，';}
-"の間"					{return 'の間，';}
+"そうでなければ"		{return 'そうでなければ';}
+"の間繰り返す"			{return 'の間繰返す';}
+"の間繰返す"			{return 'の間繰返す';}
 "繰り返しを抜ける"		{return '繰り返しを抜ける';}
 "繰返しを抜ける"		{return '繰り返しを抜ける';}
 "くりかえしを抜ける"	{return '繰り返しを抜ける';}
-"繰り返し"{Comma}		{return '繰り返し，';}
-"繰返し"{Comma}			{return '繰り返し，';}
-"くりかえし"{Comma}		{return '繰り返し，';}
-"繰り返し"				{return '繰り返し，';}
-"繰返し"				{return '繰り返し，';}
-"くりかえし"			{return '繰り返し，';}
-"を"{Comma}				{return 'を，';}
-"になるまで実行する"	{return 'になるまで実行する';}
-"になるまで実行"		{return 'になるまで実行する';}
-"を繰り返す"			{return 'を繰り返す';}
-"を繰返す"				{return 'を繰り返す';}
-"をくりかえす"			{return 'を繰り返す';}
 "手続きを抜ける"		{return '手続きを抜ける';}
-"手続き終了"			{return '手続き終了';}
-"手続き終わり"			{return '手続き終了';}
 "手続き"				{return '手続き';}
-"関数終了"				{return '関数終了';}
-"関数終わり"			{return '関数終了';}
 "関数"					{return '関数';}
 "を返す"				{return 'を返す';}
 "を"					{return 'を';}
 "から"				{return 'から';}
 "まで"				{return 'まで';}
 "ずつ"				{return 'ずつ';}
-"増やしながら"{Comma}		{return '増やしながら，';}
-"減らしながら"{Comma}		{return '減らしながら，';}
-"増やしつつ"{Comma}		{return '増やしながら，';}
-"減らしつつ"{Comma}		{return '減らしながら，';}
-"増やしながら"		{return '増やしながら，';}
-"減らしながら"		{return '減らしながら，';}
-"増やしつつ"			{return '増やしながら，';}
-"減らしつつ"			{return '減らしながら，';}
+"増やしながら"		{return '増やしながら';}
+"減らしながら"		{return '減らしながら';}
+"増やしつつ"		{return '増やしながら';}
+"減らしつつ"		{return '減らしながら';}
+"繰り返す"			{return '繰り返す';}
+"繰返す"			{return '繰り返す';}
 "整数"				{return '整数';}
 "実数"				{return '実数';}
 "文字列"				{return '文字列';}
@@ -239,7 +222,6 @@ statement
 	| GraphicStatement
 	| ForStatement
 	| WhileStatement
-	| LoopStatement
 	| IfStatement
 	| SleepStatement
 	| DefineFuncStatement
@@ -259,10 +241,10 @@ DumpStatement
 	;
 
 DefineFuncStatement
-	: '手続き' IDENTIFIER '(' args ')' 'NEWLINE' statementlist '手続き終了' 'NEWLINE'
-		{$$ = new DefineStep($2, $4, $7, new Location(@1, @8));}
-	| '関数' IDENTIFIER '(' args ')' 'NEWLINE' statementlist '関数終了' 'NEWLINE'
-		{$$ = new DefineFunction($2, $4, $7, new Location(@1, @8));}
+	: '手続き' IDENTIFIER '(' args ')' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new DefineStep($2, $4, $8, new Location(@1, @9));}
+	| '関数' IDENTIFIER '(' args ')' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @9));}
 	;
 
 ReturnStatement
@@ -288,33 +270,26 @@ CallStatement
 	;
 
 IfStatement
-	: 'もし' e 'ならば' 'NEWLINE' statementlist 'を実行する' 'NEWLINE'
-		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$5,null, new Location(@1, @6))];}
-	| 'もし' e 'ならば' 'NEWLINE' statementlist 'を実行し，そうでなければ' 'NEWLINE' statementlist 'を実行する' 'NEWLINE'
-		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$5,$8, new Location(@1, @9))];}
+	: 'もし' e 'ならば' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,null, new Location(@1, @7))];}
+	| 'もし' e 'ならば' 'COLON' 'NEWLINE' statementlist 'そうでなければ' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,$10, new Location(@1, @11))];}
 	;
 
 ForStatement
-	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら，' 'NEWLINE' statementlist 'を繰り返す' 'NEWLINE'
-		{$$ = new ForInc($1, $3, $5, $7,$11, new Location(@1,@12));}
-	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら，' 'NEWLINE' statementlist 'を繰り返す' 'NEWLINE'
-		{$$ = new ForDec($1, $3, $5, $7,$11, new Location(@1,@12));}
-	| variable 'を' e 'から' e 'まで' '増やしながら，' 'NEWLINE' statementlist 'を繰り返す' 'NEWLINE'
-		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
-	| variable 'を' e 'FOR2' e 'まで' '減らしながら，' 'NEWLINE' statementlist 'を繰り返す' 'NEWLINE'
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$9, new Location(@1,@10));}
-	;
-
-LoopStatement
-	: '繰り返し，' 'NEWLINE' statementlist 'を，' e 'になるまで実行する' 'NEWLINE'
-		{$$ = new Until($3, $5, new Location(@1, @6));}
-	| '繰り返し，' 'NEWLINE' statementlist 'を' e 'になるまで実行する' 'NEWLINE'
-		{$$ = new Until($3, $5, new Location(@1, @6));}
+	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@14));}
+	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@14));}
+	| variable 'を' e 'から' e 'まで' '増やしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
+	| variable 'を' e 'FOR2' e 'まで' '減らしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
 	;
 
 WhileStatement
-	: e 'の間，' 'NEWLINE' statementlist 'を繰り返す' 'NEWLINE'
-		{$$ = new While($1, $4, new Location(@1, @5));}
+	: e 'の間繰返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+		{$$ = new While($1, $5, new Location(@1, @6));}
 	;
 
 

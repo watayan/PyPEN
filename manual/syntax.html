@@ -6,11 +6,11 @@
         <link rel="icon" href="../wapen.ico"/>
         <script src="../setting.js"></script>
         <script src="manual.js"></script>
-        <title>xDNCLの文法</title>
+        <title>PyPENの文法</title>
     </head>
     <body>
         <div id="whole">
-        <h1>xDNCLの文法</h1>
+        <h1>PyPENの文法</h1>
         <p><a href="index.html">戻る</a></p>
         <h2>値</h2>
         <div class="part">
@@ -114,16 +114,14 @@ a←<script>a6();</script>
         <div class="part">
         <div class="code">
         <pre>
-もし《条件》ならば
-｜
-を実行する
+もし《条件》ならば：
+    《命令》
         </pre>
         <pre>
-もし《条件》ならば
-｜
-を実行し，そうでなければ
-｜
-を実行する
+もし《条件》ならば：
+    《命令》
+そうでなければ：
+    《命令》
         </pre>
         </div>
         <p class="flowchart">
@@ -132,36 +130,25 @@ a←<script>a6();</script>
         </div>
         <h2>ループ</h2>
         <div class="part">
-        <h3>前条件・後条件</h3>
+        <h3>〜の間</h3>
         <pre class="code">
-《条件》の間，
-｜
-を繰り返す
+《条件》の間繰り返す：
+    《命令》
         </pre>
         <p class="flowchart">
             <img src="flowwhile.png" alt="代入">
         </p>
-        <pre class="code">
-繰り返し，
-｜
-を，《条件》になるまで実行する
-        </pre>
-        <p class="flowchart">
-            <img src="flowuntil.png" alt="代入">
-        </p>
         <h3>増やしながら・減らしながら</h3>
         <pre class="code">
-《変数》を《値》から《値》まで《値》ずつ増やしながら，
-｜
-を繰り返す
+《変数》を《値》から《値》まで《値》ずつ増やしながら繰り返す：
+    《命令》
         </pre>
         <p class="flowchart">
             <img src="flowforinc.png" alt="代入">
         </p>
         <pre class="code">
-《変数》を《値》から《値》まで《値》ずつ減らしながら，
-｜
-を繰り返す
+《変数》を《値》から《値》まで《値》ずつ減らしながら繰り返す：
+    《命令》
         </pre>
         <p class="flowchart">
             <img src="flowfordec.png" alt="代入">
@@ -195,24 +182,20 @@ a←<script>a6();</script>
         関数や手続きを定義するプログラムではフローチャートの表示をしないことをお勧めします。
     </p>
     <pre>
-関数 hoge(x)
-｜…
-｜《値》を返す
-関数終了
+関数 hoge(x)：
+     …
+    《値》を返す
     </pre>
     <pre>
-手続き hoge(x)
-｜…
-｜手続きを抜ける
-｜…
-手続き終了
+手続き hoge(x)：
+    …
+    手続きを抜ける
+    …
     </pre>
     <p>関数は値を返さないとエラーになる。手続きは値を返すことができない。
         関数・手続きともに，引数を取らない場合であってもカッコが必要（定義するときも呼び出すときも）。</p>
     </div>
-    <p>
-        注意：この文法はPENのxDNCLと若干違います。
-    </p>
+    <p>Python風のインデントが合ってないとエラーになります。インデントする前の行末は「：」が必要です。</p>
     </div>
     </body>
 </html>

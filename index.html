@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>WaPEN</title>
+	<title>PyPEN</title>
 	<link rel="icon" href="wapen.ico">
 	<link href="./jquery/jquery-linedtextarea.css" type="text/css" rel="stylesheet"/>
 	<link href="./jquery/jquery.contextMenu.min.css" type="text/css" rel="stylesheet"/>
@@ -17,6 +17,7 @@
 	<script src="./sample.js" type="text/javascript"></script>
 	<script src="./quiz.js" type="text/javascript"></script>
 	<script src="./answer.js" type="text/javascript"></script>
+	<script src="./pypen.js" type="text/javascript"></script>
 	<script src="./run1.js" type="text/javascript"></script>
 </head>
 <body>
@@ -29,7 +30,7 @@
 	<span     id="dirty">*</span>  
 	<input    id="flowchartButton" type="checkbox">フローチャート
 	<button   id="drawButton" type="button" onclick="codeChange();">コード→フローチャート</button><br>
-	Upload <input id="loadButton" type="file"/>
+	Upload <input id="loadButton" type="file"  accept=".PyPEN"/>
 	<a href="#" id="downloadLink">Download</a>
 	ファイル名：<input id="file_prefix" type="text"/><br>
 	</div>
@@ -47,18 +48,17 @@
 	<button type="button" class="editButton" onclick='editButton("整数 《変数》");'>整数</button>
 	<button type="button" class="editButton" onclick='editButton("実数 《変数》");'>実数</button>
 	<button type="button" class="editButton" onclick='editButton("文字列 《変数》");'>文字列</button> <br>
-	<button type="button" class="editButton" onclick='editButton("《変数》 を入力する");'>入力</button>
-	<button type="button" class="editButton" onclick='editButton("《値》 を表示する");'>出力</button>
-	<button type="button" class="editButton" onclick='editButton("《値》 を改行なしで表示する");'>改行無出力</button>
-	<button type="button" class="editButton" onclick='editButton("《変数》 ← 《値》");'>代入</button><br>
-	<button type="button" class="editButton" onclick='editButton("もし 《条件式》 ならば\n｜\nを実行する");'>もし</button>
-	<button type="button" class="editButton" onclick='editButton("もし 《条件式》 ならば\n｜\nを実行し，そうでなければ\n｜\nを実行する");'>もし〜そうでなければ</button><br>
-	<button type="button" class="editButton" onclick='editButton("《条件式》 の間，\n｜\nを繰り返す");'>〜の間，繰り返す</button>
-	<button type="button" class="editButton" onclick='editButton("繰り返し，\n｜\nを， 《条件式》 になるまで実行する");'>〜になるまで実行する</button>
-	<button type="button" class="editButton" onclick='editButton("《変数》 を 《値》 から 《値》 まで 《値》 ずつ増やしながら，\n｜\nを繰り返す");'>増やしながら</button>
-	<button type="button" class="editButton" onclick='editButton("《変数》 を 《値》 から 《値》 まで 《値》 ずつ減らしながら，\n｜\nを繰り返す");'>減らしながら</button><br>
-	<button type="button" class="editButton" onclick='editButton("関数 《関数名》()\n関数終了");'>関数</button>
-	<button type="button" class="editButton" onclick='editButton("手続き 《手続き名》()\n手続き終了");'>手続き</button>
+	<button type="button" class="editButton" onclick='editButton("《変数》を入力する");'>入力</button>
+	<button type="button" class="editButton" onclick='editButton("《値》を表示する");'>出力</button>
+	<button type="button" class="editButton" onclick='editButton("《値》を改行なしで表示する");'>改行無出力</button>
+	<button type="button" class="editButton" onclick='editButton("《変数》←《値》");'>代入</button><br>
+	<button type="button" class="editButton" onclick='editButton("もし《条件式》ならば：\n    ");'>もし</button>
+	<button type="button" class="editButton" onclick='editButton("もし《条件式》ならば：\n    \nそうでなければ：\n    ");'>もし〜そうでなければ</button><br>
+	<button type="button" class="editButton" onclick='editButton("《条件式》の間：\n    ");'>〜の間，繰り返す</button>
+	<button type="button" class="editButton" onclick='editButton("《変数》を《値》から《値》まで《値》ずつ増やしながら繰り返す：\n    ");'>増やしながら</button>
+	<button type="button" class="editButton" onclick='editButton("《変数》を《値》から《値》まで《値》ずつ減らしながら繰り返す：\n    ");'>減らしながら</button><br>
+	<button type="button" class="editButton" onclick='editButton("関数 《関数名》()\n    ");'>関数</button>
+	<button type="button" class="editButton" onclick='editButton("手続き 《手続き名》()\n    ");'>手続き</button>
     </div>
 	<div id="SampleButtons">
 	</div>
