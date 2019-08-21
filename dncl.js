@@ -654,6 +654,7 @@ test_match:function(match, indexed_rule) {
             }
         }
 
+        if(match[0].match(/^■$/)) this.yylineno--; // added
         lines = match[0].match(/(?:\r\n?|\n).*/g);
         if (lines) {
             this.yylineno += lines.length;
