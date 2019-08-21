@@ -3087,6 +3087,46 @@ function editButton(add_code) {
 	sourceTextArea.focus();
 }
 
+function keyDown(e) {
+	var evt = e || window.event;
+	var sourceTextArea = document.getElementById("sourceTextarea");
+	var pos = sourceTextArea.selectionStart;
+	var code = sourceTextArea.value;
+	var code1 = code.slice(0, pos);
+	var code2 = code.slice(pos, code.length);
+	var re5 = /[ 　]$/;
+	var tab = '    ';
+	var count;
+	switch (evt.keyCode) {
+		case 9:
+			// tab
+			evt.preventDefault();
+			sourceTextArea.value = code1 + tab + code2;
+			pos = code1.length + tab.length;
+			sourceTextArea.setSelectionRange(pos, pos);
+			return false;
+		case 8:
+			// backspace
+			count = 4;
+			while (re5.exec(code1) && count > 0) {
+				count -= code1.slice(-1) == ' ' ? 1 : 2;
+				code1 = code1.slice(0, -1);
+			}
+			if (count == 0) {
+				evt.preventDefault();
+				sourceTextArea.value = code1 + code2;
+				pos = code1.length;
+				sourceTextArea.setSelectionRange(pos, pos);
+				return false;
+			}
+			return true;
+		default:
+			//		console.log(window.event.keyCode);
+			break;
+	}
+	return true;
+}
+
 function keyUp(e) {
 	var evt = e || window.event;
 	var sourceTextArea = document.getElementById("sourceTextarea");
@@ -3099,8 +3139,8 @@ function keyUp(e) {
 	var re3 = /\n?([　 ]*)([^　 \n]+.*)\n$/;
 	var re4 = /[：:]$/;
 	var re4a = /^(関数|手続き).*\(.*\)$/;
-	var re5 = /^\n/;
 	var tab = "";
+	var count;
 	switch (evt.keyCode) {
 		case 37:case 38:case 39:case 40:
 			if (pos > 0) {
@@ -3111,9 +3151,10 @@ function keyUp(e) {
 					return false;
 				}
 			}
+			break;
 		case 13:
 			// \n
-			if (!re5.exec(code2)) return true;
+			//		if(!re5.exec(code2)) return true;
 			var match = re3.exec(code1);
 			if (match) {
 				tab = match[1];
@@ -3123,7 +3164,6 @@ function keyUp(e) {
 			pos = code1.length + tab.length;
 			sourceTextArea.setSelectionRange(pos, pos);
 			return false;
-		// TODO backspace 
 		default:
 			//		console.log(window.event.keyCode);
 			break;
@@ -5373,6 +5413,7 @@ onload = function onload() {
 		return false;
 	};
 	registerEvent(sourceTextArea, "keyup", keyUp);
+	registerEvent(sourceTextArea, "keydown", keyDown);
 	registerEvent(flowchart_canvas, "mousedown", mouseDown);
 	registerEvent(flowchart_canvas, "mouseup", mouseUp);
 	registerEvent(flowchart_canvas, "mousemove", mouseMove);
