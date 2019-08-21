@@ -44,6 +44,7 @@ var selected_quiz = -1,
     selected_quiz_output = 0;
 var output_str = '';
 var test_limit_time = 0;
+var fontsize = 16;
 
 /** parsedCodeクラス */
 
@@ -2900,8 +2901,22 @@ var SleepStatement = function (_Statement24) {
 }(Statement);
 
 function highlightLine(l) {
-	$(".codelines").children().removeClass("lineselect");
-	if (l > 0) $(".codelines :nth-child(" + l + ")").addClass("lineselect");
+	var elem = document.getElementById('bcralnit_sourceTextarea0').firstElementChild;
+	var child = elem.firstElementChild;
+	var line = 1;
+	//	$("#sourceTextarea").focus();
+	while (child) {
+		if (child.tagName == 'SPAN') {
+			if (line++ == l) {
+				child.style.background = 'red';
+				child.style.color = 'white';
+			} else {
+				child.style.background = 'transparent';
+				child.style.color = 'black';
+			}
+		}
+		child = child.nextElementSibling;
+	}
 }
 
 function reset() {
@@ -5262,7 +5277,7 @@ onload = function onload() {
 	var file_prefix = document.getElementById("file_prefix");
 	var flowchart_canvas = document.getElementById("flowchart");
 	var resultArea = document.getElementById("resultArea");
-	$("#sourceTextarea").linedtextarea();
+	$("#sourceTextarea").bcralnit();
 	sourceTextArea.onchange = function () {
 		makeDirty(true);
 	};
@@ -5615,4 +5630,18 @@ function auto_marking(i) {
 	document.getElementById('stepButton').disabled = false;
 	document.getElementById('resetButton').disabled = false;
 	setRunflag(false);
+}
+
+function font_size(updown) {
+	if (fontsize + updown < 12 || fontsize + updown > 30) return;
+	fontsize += updown;
+	var elem = document.getElementById('sourceTextarea');
+	elem.style.fontSize = fontsize + 'px';
+	elem.style.lineHeight = fontsize + 2 + 'px';
+	elem = document.getElementById('resultTextarea');
+	elem.style.fontSize = fontsize + 'px';
+	elem.style.lineHeight = fontsize + 2 + 'px';
+	elem = document.getElementsByClassName('bcr_number')[0];
+	elem.style.fontSize = fontsize + 'px';
+	elem.style.lineHeight = fontsize + 2 + 'px';
 }

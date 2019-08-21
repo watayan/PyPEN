@@ -17,6 +17,6 @@ gitから入手すると，バージョンアップの際にgit pullするだけ
 
 ## 使用しているプラグイン
 * jQuery
-* jQuery LinedTextArea
+* bcralnit.js
 * jQuery contextMenu
 * jQuery ui.position
