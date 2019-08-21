@@ -2730,6 +2730,7 @@ function sampleButton(num)
 	sourceTextArea.value = sample[num];
 	reset();
 	if(flowchart) codeChange();
+	$('#sourceTextarea').focus();
 	makeDirty(false);
 }
 
