@@ -33,7 +33,7 @@ Comma			[，,、]
 Colon			[:：]
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　]
-NEWLINE			\r\n|\r|\n
+Newline			\r\n|\r|\n
 UNDEFINED		"《"[^》]*"》"
 
 %%
@@ -49,7 +49,7 @@ UNDEFINED		"《"[^》]*"》"
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
 {Comma}			{return 'COMMA';}
-{Colon}			{return 'COLON'}
+{Colon}			{return ':'}
 {UNDEFINED}		{return 'UNDEFINED';}
 "+"				{return '+';}
 "＋"			{return '+';}
@@ -142,9 +142,9 @@ UNDEFINED		"《"[^》]*"》"
 "円塗描画"				{return 'gFillCircle';}
 "ミリ秒待つ"				{return 'ミリ秒待つ';}
 "変数を確認する"				{return '変数を確認する';}
-{Identifier}	{return 'IDENTIFIER';}
+{Identifier}	{return '識別子';}
 <<EOF>>				{return 'EOF';}
-{NEWLINE}				{return 'NEWLINE';}
+{Newline}				{return '改行';}
 {Whitespace}		/* skip whitespace */
 
 /lex
@@ -184,24 +184,24 @@ e
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
 	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
-	| IDENTIFIER '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
+	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
 	| '{' args '}'	{$$ = new ArrayValue($2, new Location(@1, @3));}
 	;
 
 variable
-	: IDENTIFIER '[' args ']' {$$ = new Variable(toHalf($1, @1), new ArrayValue($3), new Location(@1,@1));}
-	| IDENTIFIER{$$ = new Variable(toHalf($1, @1), null, new Location(@1, @1));}
+	: '識別子' '[' args ']' {$$ = new Variable(toHalf($1, @1), new ArrayValue($3), new Location(@1,@1));}
+	| '識別子' {$$ = new Variable(toHalf($1, @1), null, new Location(@1, @1));}
 	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
 	;
 
 variablelist
-	: variablelist 'COMMA' IDENTIFIER '[' args ']' {$$ = $1.concat({varname:toHalf($3, @1), parameter:new ArrayValue($5, new Location(@5,@5))});}
-	| variablelist 'COMMA' IDENTIFIER {$$ = $1.concat({varname:toHalf($3, @1)});}
-	| IDENTIFIER'[' args ']' {$$ = [{varname:toHalf($1, @1), parameter:new ArrayValue($3, new Location(@3,@3))}];}
-	| IDENTIFIER {$$ = [{varname:toHalf($1, @1)}];}
-	| UNDEFINED  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
+	: variablelist 'COMMA' '識別子' '[' args ']' {$$ = $1.concat({varname:toHalf($3, @1), parameter:new ArrayValue($5, new Location(@5,@5))});}
+	| variablelist 'COMMA' '識別子' {$$ = $1.concat({varname:toHalf($3, @1)});}
+	| '識別子' '[' args ']' {$$ = [{varname:toHalf($1, @1), parameter:new ArrayValue($3, new Location(@3,@3))}];}
+	| '識別子' {$$ = [{varname:toHalf($1, @1)}];}
+	| 'UNDEFINED'  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
 	;
 
 args
@@ -232,117 +232,117 @@ statement
 	;
 
 EmptyStatement
-	: 'NEWLINE'	{$$ = null;}
+	: '改行'	{$$ = null;}
 	;
 
 DumpStatement
-	: '変数を確認する' 'NEWLINE'
+	: '変数を確認する' '改行'
 		{$$ = new DumpStatement(new Location(@1, @1));}
-	|'変数を確認する' '(' ')' 'NEWLINE'
+	|'変数を確認する' '(' ')' '改行'
 		{$$ = new DumpStatement(new Location(@1, @1));}
 	;
 
 DefineFuncStatement
-	: '手続き' IDENTIFIER '(' args ')' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	: '手続き' '識別子' '(' args ')' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new DefineStep($2, $4, $8, new Location(@1, @9));}
-	| '関数' IDENTIFIER '(' args ')' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	| '関数' '識別子' '(' args ')' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @9));}
 	;
 
 ReturnStatement
-	: '手続きを抜ける' 'NEWLINE' {$$ = new ExitStatement(new Location(@1,@1));}
-	| e 'を返す' 'NEWLINE' 
+	: '手続きを抜ける' '改行' {$$ = new ExitStatement(new Location(@1,@1));}
+	| e 'を返す' '改行' 
 		{$$ = [new runBeforeGetValue([$1], @1), new ReturnStatement($1, new Location(@1, @2))];}
 	;
 
 DefineStatement
-	: '整数' variablelist 'NEWLINE'		
+	: '整数' variablelist '改行'		
 		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionInt($2, new Location(@1,@2))];}
-	| '実数' variablelist 'NEWLINE'	
+	| '実数' variablelist '改行'	
 		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionFloat($2, new Location(@1,@2))];}
-	| '文字列' variablelist 'NEWLINE'		
+	| '文字列' variablelist '改行'		
 		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionString($2, new Location(@1,@2))];}
-	| '真偽' variablelist 'NEWLINE'	
+	| '真偽' variablelist '改行'	
 		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionBoolean($2, new Location(@1,@2))];}
 	;
 
 CallStatement
-	: IDENTIFIER '(' args ')' 'NEWLINE' 
+	: '識別子' '(' args ')' '改行' 
 		{$$ = [new runBeforeGetValue($3, @1), new CallStep($1, $3, new Location(@1,@4))];}
 	;
 
 IfStatement
-	: 'もし' e 'ならば' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	: 'もし' e 'ならば' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,null, new Location(@1, @7))];}
-	| 'もし' e 'ならば' 'COLON' 'NEWLINE' statementlist 'そうでなければ' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	| 'もし' e 'ならば' ':' '改行' statementlist 'そうでなければ' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,$10, new Location(@1, @11))];}
 	;
 
 ForStatement
-	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@14));}
-	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@14));}
-	| variable 'を' e 'から' e 'まで' '増やしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	| variable 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
-	| variable 'を' e 'FOR2' e 'まで' '減らしながら' '繰り返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	| variable 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
 	;
 
 WhileStatement
-	: e 'の間繰返す' 'COLON' 'NEWLINE' statementlist 'EOB' 'NEWLINE'
+	: e 'の間繰返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new While($1, $5, new Location(@1, @6));}
 	;
 
 
 AssignStatement
-	: variable '←' e 'NEWLINE'		
+	: variable '←' e '改行'		
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, new Location(@1,@3))];}
 	;
 
 PrintStatement
-	: e 'を改行無しで表示する' 'NEWLINE' 
+	: e 'を改行無しで表示する' '改行' 
 		{$$ = [new runBeforeGetValue([$1], @1), new Output($1, false, new Location(@1,@2))];}
-	| e 'を表示する' 'NEWLINE' 
+	| e 'を表示する' '改行' 
 		{$$ = [new runBeforeGetValue([$1], @1), new Output($1, true, new Location(@1,@2))];}
 	;
 
 InputStatement
-	: variable 'を入力する' 'NEWLINE'	
+	: variable 'を入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, new Location(@1, @2))];}
 	;
 
 GraphicStatement
-	: 'gOpenWindow' '(' e 'COMMA' e ')'	'NEWLINE'
+	: 'gOpenWindow' '(' e 'COMMA' e ')'	'改行'
 		{$$ = [new runBeforeGetValue([$3,$5], @1), new GraphicStatement('gOpenWindow', [$3,$5], new Location(@1, @1))];}
-	| 'gCloseWindow' '(' ')' 'NEWLINE'	
+	| 'gCloseWindow' '(' ')' '改行'	
 		{$$ = new GraphicStatement('gCloseWindow', [], new Location(@1,@1));}
-	| 'gClearWindow' '(' ')' 'NEWLINE'	
+	| 'gClearWindow' '(' ')' '改行'	
 		{$$ = new GraphicStatement('gClearWindow', [], new Location(@1,@1));}
-	| 'gSetLineColor' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gSetLineColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetLineColor', [$3,$5,$7], new Location(@1, @1))];}
-	| 'gSetFillColor' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gSetFillColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetFillColor', [$3,$5,$7], new Location(@1, @1))];}
-	| 'gSetLineWidth' '(' e ')' 'NEWLINE'
+	| 'gSetLineWidth' '(' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new GraphicStatement('gSetLineWidth', [$3], new Location(@1, @1))];}
-	| 'gSetFontSize' '(' e ')' 'NEWLINE'
+	| 'gSetFontSize' '(' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new GraphicStatement('gSetFontSize', [$3], new Location(@1, @1))];}
-	| 'gDrawText' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gDrawText' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawText', [$3,$5,$7], new Location(@1,@1))];}
-	| 'gDrawLine' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gDrawLine' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawLine', [$3,$5,$7,$9], new Location(@1,@1))];}
-	| 'gDrawBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gDrawBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawBox', [$3,$5,$7,$9], new Location(@1,@1))];}
-	| 'gFillBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gFillBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gFillBox', [$3,$5,$7,$9], new Location(@1,@1))];}
-	| 'gDrawCircle' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gDrawCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1))];}
-	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' 'NEWLINE'
+	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1))];}
 	;
 
 SleepStatement
-	: e 'ミリ秒待つ' 'NEWLINE' 
+	: e 'ミリ秒待つ' '改行' 
 		{$$ = [new runBeforeGetValue([$1], @1), new SleepStatement($1, new Location(@1, @1))];}
 	;
 
