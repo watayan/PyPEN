@@ -1,0 +1,73 @@
+*** dncl.js	2019-08-25 14:08:54.865856323 +0900
+--- dncl.js	2019-08-25 14:04:22.653595932 +0900
+***************
+*** 389,397 ****
+                      }
+                  }
+                  if (lexer.showPosition) {
+!                     errStr = 'Parse error on line ' + (yylineno + 1) + ':\n' + lexer.showPosition() + '\nExpecting ' + expected.join(', ') + ', got \'' + (this.terminals_[symbol] || symbol) + '\'';
+                  } else {
+!                     errStr = 'Parse error on line ' + (yylineno + 1) + ': Unexpected ' + (symbol == EOF ? 'end of input' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
+                  }
+                  this.parseError(errStr, {
+                      text: lexer.match,
+--- 389,397 ----
+                      }
+                  }
+                  if (lexer.showPosition) {
+!                     errStr = yylineno + 1 + '\u884C\u76EE\u306B\u69CB\u6587\u30A8\u30E9\u30FC:\n' + lexer.showPosition() + '\n\'' + (this.terminals_[symbol] || symbol) + '\'\u306E\u8FD1\u304F\u304C\u304A\u304B\u3057\u3044\uFF08\u2605\u306E\u3042\u305F\u308A\uFF09';
+                  } else {
+!                     errStr = yylineno + 1 + '\u884C\u76EE\u306B\u69CB\u6587\u30A8\u30E9\u30FC: \u4E88\u671F\u3057\u306A\u304B\u3063\u305F' + (symbol == EOF ? '\u30D7\u30ED\u30B0\u30E9\u30E0\u306E\u7D42\u308F\u308A' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
+                  }
+                  this.parseError(errStr, {
+                      text: lexer.match,
+***************
+*** 616,624 ****
+  
+  // displays the character position where the lexing error occurred, i.e. for error messages
+  showPosition:function () {
+          var pre = this.pastInput();
+          var c = new Array(pre.length + 1).join("-");
+!         return pre + this.upcomingInput() + "\n" + c + "^";
+      },
+  
+  // test the lexed token: return FALSE when not a match, otherwise return token
+--- 616,626 ----
+  
+  // displays the character position where the lexing error occurred, i.e. for error messages
+  showPosition:function () {
++         var re = /■/g;
+          var pre = this.pastInput();
+          var c = new Array(pre.length + 1).join("-");
+! //        return pre + this.upcomingInput() + "\n" + c + "^";
+!         return pre.replace(re,'') + '★' + this.upcomingInput().replace(re, '') + '...\n';
+      },
+  
+  // test the lexed token: return FALSE when not a match, otherwise return token
+***************
+*** 654,659 ****
+--- 656,662 ----
+              }
+          }
+  
++         if(match[0].match(/^■$/)) this.yylineno--; // added
+          lines = match[0].match(/(?:\r\n?|\n).*/g);
+          if (lines) {
+              this.yylineno += lines.length;
+***************
+*** 743,749 ****
+          if (this._input === "") {
+              return this.EOF;
+          } else {
+!             return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. Unrecognized text.\n' + this.showPosition(), {
+                  text: "",
+                  token: null,
+                  line: this.yylineno
+--- 746,752 ----
+          if (this._input === "") {
+              return this.EOF;
+          } else {
+!             return this.parseError((this.yylineno + 1) + '行目にエラー。\n★の近くに不明なテキスト。\n' + this.showPosition(), {
+                  text: "",
+                  token: null,
+                  line: this.yylineno
