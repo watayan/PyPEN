@@ -1,7 +1,7 @@
 {
-  "name": "wapen",
+  "name": "pypen",
   "version": "1.0.0",
-  "description": "Web-aided PEN",
+  "description": "PEN like Python",
   "author": "watayan",
   "maintainers": [
     {
@@ -14,16 +14,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "babel run.js -o run1.js",
-    "jison": "jison dncl.jison"
+    "jison": "jison dncl.jison; patch < dncl.patch"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/watayan/WaPEN.git"
+    "url": "git+https://github.com/watayan/PyPEN.git"
   },
   "bugs": {
-    "url": "https://github.com/watayan/WaPEN/issues"
+    "url": "https://github.com/watayan/PyPEN/issues"
   },
-  "homepage": "https://github.com/watayan/WaPEN#readme",
+  "homepage": "https://github.com/watayan/PyPEN#readme",
   "babel": {
     "presets": [
       "env"
@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "eslint": "^5.16.0",
-    "npm": "^6.9.0"
+    "jison-lex": "^0.3.4",
+    "npm": "^6.11.2"
   }
 }

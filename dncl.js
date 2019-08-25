@@ -746,7 +746,7 @@ next:function () {
         if (this._input === "") {
             return this.EOF;
         } else {
-            return this.parseError((this.yylineno + 1) + '行目にエラー。\n「★」の近くに不明なテキスト。\n' + this.showPosition(), {
+            return this.parseError((this.yylineno + 1) + '行目にエラー。\n★の近くに不明なテキスト。\n' + this.showPosition(), {
                 text: "",
                 token: null,
                 line: this.yylineno
