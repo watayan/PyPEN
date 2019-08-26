@@ -407,10 +407,11 @@ class ArrayValue extends Value
 		let v = this;
 		for(let i = 0; i < l; i++)
 		{
-//			args.value[i].run();
-			v = v.nthValue(args.value[i].getValue().value);
+			if(v instanceof ArrayValue)
+				v = v.nthValue(args.value[i].getValue().value);
+			else v = null;
 		}
-		return v;
+		return v ? v : new NullValue(loc);
 	}
 	/**
 	 * 同じ値を持つArrayValueを作る
@@ -1033,6 +1034,86 @@ class LE extends Value
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' <= '
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+}
+
+class ConvertInt extends Value
+{
+	constructor(x, loc){ super([x], loc);}
+	run()
+	{
+		let v = this.value[0].getValue();
+		let r = Number.NaN;
+		if(v instanceof IntValue) r = v.value;
+		else if(v instanceof FloatValue) r = Math.floor(v.value);
+		else if(v instanceof StringValue) r = Math.floor(Number(v.value));
+		else if(v instanceof BooleanValue) r = v.value ? 1 : 0;
+		if(isSafeInteger(r)) this.rtnv = new IntValue(r, this.loc);
+		else throw new RuntimeError(this.loc.first_line, '整数に直せません');
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		return '整数(' + this.value[0].getCode() + ')';
+	}
+}
+
+class ConvertFloat extends Value
+{
+	constructor(x, loc){ super([x], loc);}
+	run()
+	{
+		let v = this.value[0].getValue();
+		let r = Number.NaN;
+		if(v instanceof IntValue || v instanceof FloatValue) r = v.value;
+		else if(v instanceof StringValue) r = Number(v.value);
+		else if(v instanceof BooleanValue) r = v.value ? 1 : 0;
+		if(isFinite(r)) this.rtnv = new FloatValue(r, this.loc);
+		else throw new RuntimeError(this.loc.first_line, '実数に直せません');
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		return '実数(' + this.value[0].getCode() + ')';
+	}
+}
+
+class ConvertString extends Value
+{
+	constructor(x, loc){ super([x], loc);}
+	run()
+	{
+		let v = this.value[0].getValue();
+		let r = '';
+		if(v instanceof IntValue || v instanceof FloatValue) r = String(v.value);
+		else if(v instanceof StringValue) r = v.value
+		else if(v instanceof BooleanValue) r = v.value ? 'TRUE' : 'FALSE';
+		this.rtnv = new StringValue(r, this.loc);
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		return '文字列(' + this.value[0].getCode() + ')';
+	}
+}
+
+class ConvertBool extends Value
+{
+	constructor(x, loc){ super([x], loc);}
+	run()
+	{
+		let v = this.value[0].getValue();
+		let r = '';
+		let re = /^(0|false|偽|)$/i;
+		if(v instanceof IntValue || v instanceof FloatValue) r = v.value != 0;
+		else if(v instanceof StringValue) r = re.exec(v.value) ? false : true;
+		else if(v instanceof BooleanValue) r = v.value;
+		this.rtnv = new BooleanValue(r, this.loc);
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		return '真偽(' + this.value[0].getCode() + ')';
 	}
 }
 
@@ -1792,84 +1873,60 @@ class Assign extends Statement
 		{
 			let va = vt.vars[vn];
 			if(ag) // 配列の添字がある
+			{
+				if(setting.var_declaration != 0 && !(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc);
 				for(let i = 0; i < ag.value.length; i++) 
 				{
-					if(va.nthValue(ag.value[i].getValue().value))
-						va = va.nthValue(ag.value[i].getValue().value);
-					else
+					if(va instanceof ArrayValue)
 					{
-						if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
-						// 配列を延長する
-						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
-						else va = new NullValue(this.loc);
-					}
+						if(va.nthValue(ag.value[i].getValue().value))
+							va = va.nthValue(ag.value[i].getValue().value);
+						else
+						{
+							if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
+							// 配列を延長する
+							if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
+							else va = new NullValue(this.loc);
+						}
+					} 
+					else throw new RuntimeError(this.first_line, vn + ag.getCode() + 'は配列ではありません');
 				}
-			if(va.getValue() instanceof IntValue)
-			{
-				let v = 0;
-				if(vl instanceof IntValue) v = vl.value;
-				else if(vl instanceof FloatValue) v = Math.floor(vl.value);
-				else throw new RuntimeError(this.first_line, vn + argsString(this.variable.args) + "に数値以外の値を代入しようとしました");
-				if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				if(ag)	vt.vars[vn].setValueToArray(ag, new IntValue(v, this.loc));
-				else vt.vars[vn] = new IntValue(v, this.loc);
 			}
-			else if(va.getValue() instanceof FloatValue)
+			if(vl.getValue() instanceof IntValue)
 			{
-				let v = 0.0;
-				if(vl instanceof IntValue || vl instanceof FloatValue) v = vl.value + 0.0;
-				else throw new RuntimeError(this.first_line, vn + argsString(this.variable.args) + "に数値以外の値を代入しようとしました");
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				if(ag)	vt.vars[vn].setValueToArray(ag, new FloatValue(v, this.loc));
-				else vt.vars[vn] = new FloatValue(v, this.loc);
+				if(ag)	vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
+				else vt.vars[vn] = new IntValue(vl.value, this.loc);
 			}
-			else if(va.getValue() instanceof StringValue)
+			else if(vl.getValue() instanceof FloatValue)
 			{
-				let v = '';
-				if(vl instanceof StringValue) v = vl.value;
-				else v = text(vl.value);
-				if(ag)	vt.vars[vn].setValueToArray(ag, new StringValue(v, this.loc));
-				else vt.vars[vn] = new StringValue(v, this.loc);
+				if(ag)	vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
+				else vt.vars[vn] = new FloatValue(vl.value, this.loc);
 			}
-			else if(va.getValue() instanceof BooleanValue)
+			else if(vl.getValue() instanceof StringValue)
 			{
-				let v;
-				if(vl instanceof BooleanValue) v = vl.value;
-				else throw new RuntimeError(this.first_line, vn + argsString(this.variable.args) + "に真偽以外の値を代入しようとしました");
-				if(ag)	vt.vars[vn].setValueToArray(ag, new BooleanValue(v, this.loc));
-				else vt.vars[vn] = new BooleanValue(v, this.loc);
+				if(ag)	vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
+				else vt.vars[vn] = new StringValue(vl.value, this.loc);
 			}
-			else if(va.getValue() instanceof ArrayValue)
+			else if(vl.getValue() instanceof BooleanValue)
 			{
-				if(vl.value instanceof Array)
+				if(ag)	vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
+				else vt.vars[vn] = new BooleanValue(vl.value, this.loc);
+			}
+			else if(vl.getValue() instanceof ArrayValue)
+			{
+				var len = vl.value.length;
+				for(var i = 0; i < len; i++)
 				{
-					var len = vl.value.length;
-					for(var i = 0; i < len; i++)
-					{
-						var ag1 = this.variable.args instanceof ArrayValue ? this.variable.args.value.slice() : [];
-						ag1.push(new IntValue(i + (setting.array_origin == 2 ? 1 : 0), this.loc));
-						var command = new Assign(new Variable(this.variable.varname, new ArrayValue(ag1, this.loc), this.loc),vl.value[i], this.loc);
-						command.run();
-					}
+					var ag1 = this.variable.args instanceof ArrayValue ? this.variable.args.value.slice() : [];
+					ag1.push(new IntValue(i + (setting.array_origin == 2 ? 1 : 0), this.loc));
+					var command = new Assign(new Variable(this.variable.varname, new ArrayValue(ag1, this.loc), this.loc),vl.value[i], this.loc);
+					command.run();
 				}
-				else throw new RuntimeError(this.first_line, "配列" + vn + argsString(this.variable.args) + "に配列以外の値を代入しようとしました");
 			}
-			else if(va.getValue() instanceof NullValue)
+			else if(vl.getValue() instanceof NullValue)
 			{
-				if(ag)
-				{
-					if(vl instanceof IntValue)vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
-					else if(vl instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
-					else if(vl instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
-					else if(vl instanceof BooleanValue)vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
-				}
-				else
-				{
-					if(vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);
-					else if(vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
-					else if(vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
-					else if(vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
-				}
+				if(ag) vt.vars[vn].setValueToArray(ag, new NullValue(this.loc));
+				else vt.vars[vn] = new NullValue(vl.value, this.loc);
 			}
 		}
 		else // 変数が定義されていない
@@ -1880,6 +1937,7 @@ class Assign extends Statement
 				vt = varTables[0];
 				if(ag)
 				{
+					vt.vars[vn] = new ArrayValue([],this.loc);
 					if(vl instanceof IntValue)vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
 					else if(vl instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
 					else if(vl instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
@@ -1891,6 +1949,10 @@ class Assign extends Statement
 					else if(vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
 					else if(vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
 					else if(vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
+					else if(vl.getValue() instanceof ArrayValue)
+					{
+						vt.vars[vn] = new ArrayValue(vl.value, this.loc);
+					}
 				}
 			}
 		}
@@ -1994,6 +2056,23 @@ class InputEnd extends Statement
 			throw e;
 		}
 	}
+}
+
+class Newline extends Statement
+{
+	constructor(loc){super(loc);}
+	run()
+	{
+		if(selected_quiz < 0)
+		{
+			textareaAppend("\n");
+		}
+		else
+		{
+			output_str += "\n";
+		}
+		super.run();
+	}	
 }
 
 class Output extends Statement
@@ -2255,7 +2334,7 @@ class ForInc extends Statement
 		let varTable = findVarTable(this.varname.varname);
 		if(setting.var_declaration != 0 && !varTable)
 		{
-			let varTable = varTables[0];
+			varTable = varTables[0];
 			if(this.begin.getValue() instanceof IntValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
 			else if(this.begin.getValue() instanceof FloatValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
 			else varTable = null;
@@ -3017,6 +3096,14 @@ class Flowchart
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
+			else if(statement == "Newline")
+			{
+				var p1 = new Parts_Output();
+				var b1 = new Parts_Bar();
+				p1.setValue('改行', true);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
 			else if(statement == "If")
 			{
 				var p1 = new Parts_If();
@@ -3415,7 +3502,7 @@ class Parts_Output extends Parts
 
 		flowchart.context.fillText(this.text, this.x1 + size * 2 + this.hspace, this.y2 - size);
 
-		if(!this.newline)	// 改行なしマーク
+		if(!this.newline && this.text != '改行')	// 改行なしマーク
 		{
 			var x = this.x2 - this.height / 2;
 			var y = this.y1 + size;
@@ -3451,7 +3538,8 @@ class Parts_Output extends Parts
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
+		if(this.text == '改行') code += '改行する';
+		else code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
 	}
@@ -4700,6 +4788,14 @@ onload = function(){
 						でない:	{name:"でない",	callback: function(k,e){insertCode("《値》 でない");}},
 						と:		{name:"と",		callback: function(k,e){insertCode("《値》と《値》");}},
 						カッコ:	{name:"「」",	callback: function(k,e){insertCode("「《値》」");}},
+					}
+				},
+				convert:{name:"変換",
+					items:{
+						int:	{name:"整数", callback: function(k,e){insertCode("整数(《値》)");}},
+						float:	{name:"実数", callback: function(k,e){insertCode("実数(《値》)");}},
+						string:	{name:"文字列", callback: function(k,e){insertCode("文字列(《値》)");}},
+						bool:	{name:"真偽", callback: function(k,e){insertCode("真偽(《値》)");}}
 					}
 				},
 				math:{ name:"数学関数",

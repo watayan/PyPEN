@@ -143,6 +143,7 @@ UNDEFINED		"《"[^》]*"》"
 "円塗描画"				{return 'gFillCircle';}
 "ミリ秒待つ"				{return 'ミリ秒待つ';}
 "変数を確認する"				{return '変数を確認する';}
+"改行する"				{return '改行する';}
 {Identifier}	{return '識別子';}
 <<EOF>>				{return 'EOF';}
 {Newline}				{return '改行';}
@@ -185,6 +186,10 @@ e
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
 	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
+	| '整数' '(' e ')' {$$ = new ConvertInt($3, new Location(@1, @4));}
+	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
+	| '文字列' '(' e ')' {$$ = new ConvertString($3, new Location(@1, @4));}
+	| '真偽' '(' e ')' {$$ = new ConvertBool($3, new Location(@1, @4));}
 	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
@@ -306,6 +311,8 @@ PrintStatement
 		{$$ = [new runBeforeGetValue([$1], @1), new Output($1, false, new Location(@1,@2))];}
 	| e 'を表示する' '改行' 
 		{$$ = [new runBeforeGetValue([$1], @1), new Output($1, true, new Location(@1,@2))];}
+	| '改行する' '改行'
+		{$$ = new Newline(new Location(@1, @1));}
 	;
 
 InputStatement

@@ -1,7 +1,7 @@
-*** dncl.js	2019-08-25 14:08:54.865856323 +0900
---- dncl.js	2019-08-25 14:04:22.653595932 +0900
+*** dncl.js	2019-08-26 12:43:54.158557442 +0900
+--- dncl.js	2019-08-26 12:43:54.166557487 +0900
 ***************
-*** 389,397 ****
+*** 404,412 ****
                       }
                   }
                   if (lexer.showPosition) {
@@ -11,7 +11,7 @@
                   }
                   this.parseError(errStr, {
                       text: lexer.match,
---- 389,397 ----
+--- 404,412 ----
                       }
                   }
                   if (lexer.showPosition) {
@@ -22,7 +22,7 @@
                   this.parseError(errStr, {
                       text: lexer.match,
 ***************
-*** 616,624 ****
+*** 631,639 ****
   
   // displays the character position where the lexing error occurred, i.e. for error messages
   showPosition:function () {
@@ -32,7 +32,7 @@
       },
   
   // test the lexed token: return FALSE when not a match, otherwise return token
---- 616,626 ----
+--- 631,641 ----
   
   // displays the character position where the lexing error occurred, i.e. for error messages
   showPosition:function () {
@@ -45,8 +45,8 @@
   
   // test the lexed token: return FALSE when not a match, otherwise return token
 ***************
-*** 654,659 ****
---- 656,662 ----
+*** 669,674 ****
+--- 671,677 ----
               }
           }
   
@@ -55,7 +55,7 @@
           if (lines) {
               this.yylineno += lines.length;
 ***************
-*** 743,749 ****
+*** 758,764 ****
           if (this._input === "") {
               return this.EOF;
           } else {
@@ -63,7 +63,7 @@
                   text: "",
                   token: null,
                   line: this.yylineno
---- 746,752 ----
+--- 761,767 ----
           if (this._input === "") {
               return this.EOF;
           } else {
