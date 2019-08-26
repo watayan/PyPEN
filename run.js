@@ -695,27 +695,9 @@ class Div extends Value	// /
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
-		if((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue)
-		{
-			if(setting.div_mode == 0) // 商の整数部分
-			{
-				let v = (v1.value - v1.value % v2.value) / v2.value
-				if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				this.rtnv = new IntValue(v, this.loc);
-			}
-			else // 商
-			{
-				let v = v1.value / v2.value;
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				this.rtnv = new FloatValue(v, this.loc);
-			}
-		}
-		else
-		{
-			let v = v1.value / v2.value;
-			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-			this.rtnv = new FloatValue(v, this.loc);
-		}
+		let v = v1.value / v2.value;
+		if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+		this.rtnv = new FloatValue(v, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
@@ -731,7 +713,7 @@ class Div extends Value	// /
 	}
 }
 
-class Div2 extends Value	// ÷ 整数どうしなら必ず商の整数部分を返す
+class DivInt extends Value // //
 {
 	constructor(x, y, loc)
 	{
@@ -744,18 +726,9 @@ class Div2 extends Value	// ÷ 整数どうしなら必ず商の整数部分を�
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
-		if((v1 instanceof IntValue || v1 instanceof NullValue) && v2 instanceof IntValue)
-		{
-			let v = (v1.value - v1.value % v2.value) / v2.value
-			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			this.rtnv = new IntValue(v, this.loc);
-		}
-		else
-		{
-			let v = v1.value / v2.value;
-			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-			this.rtnv = new FloatValue(v, this.loc);
-		}
+		let v = (v1.value - v1.value % v2.value) / v2.value
+		if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+		this.rtnv = new IntValue(v, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
@@ -765,11 +738,10 @@ class Div2 extends Value	// ÷ 整数どうしなら必ず商の整数部分を�
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' ÷ '
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' / '
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
-
 }
 
 

@@ -75,8 +75,8 @@ var dncl = (function(){
 var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[5,10,22,23,24,25,26,27,30,32,34,53,54,55,58,59,61,62,63,64,65,80,81,82,83,84,85,86,87,88,89,90,91,92,96],$V1=[1,47],$V2=[1,48],$V3=[1,49],$V4=[1,50],$V5=[1,51],$V6=[1,52],$V7=[1,53],$V8=[1,25],$V9=[1,54],$Va=[1,55],$Vb=[1,46],$Vc=[1,20],$Vd=[1,45],$Ve=[1,42],$Vf=[1,43],$Vg=[1,44],$Vh=[1,21],$Vi=[1,22],$Vj=[1,23],$Vk=[1,24],$Vl=[1,41],$Vm=[1,28],$Vn=[1,29],$Vo=[1,30],$Vp=[1,31],$Vq=[1,32],$Vr=[1,33],$Vs=[1,34],$Vt=[1,35],$Vu=[1,36],$Vv=[1,37],$Vw=[1,38],$Vx=[1,39],$Vy=[1,40],$Vz=[5,10,22,23,24,25,26,27,30,32,34,53,54,55,57,58,59,61,62,63,64,65,67,80,81,82,83,84,85,86,87,88,89,90,91,92,96],$VA=[1,57],$VB=[1,58],$VC=[2,29],$VD=[1,63],$VE=[4,5,6,7,8,9,12,13,14,15,16,17,18,19,20,21,60,75,77,78,93],$VF=[2,25],$VG=[1,72],$VH=[1,73],$VI=[1,74],$VJ=[1,75],$VK=[1,76],$VL=[1,77],$VM=[1,78],$VN=[1,79],$VO=[1,80],$VP=[1,81],$VQ=[1,82],$VR=[1,83],$VS=[1,84],$VT=[1,85],$VU=[1,86],$VV=[1,87],$VW=[1,102],$VX=[4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,20,21,31,33,36,53,60,66,68,69,70,71,75,76,77,78,79,93],$VY=[4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,20,21,31,33,36,53,60,66,69,70,71,75,77,78,93],$VZ=[31,36],$V_=[2,38],$V$=[1,115],$V01=[36,53],$V11=[11,36],$V21=[1,165],$V31=[11,31,33,36],$V41=[4,5,11,12,13,14,15,16,17,18,19,20,21,31,33,36,53,60,66,69,70,71,75,77,78,93],$V51=[11,18,19,20,21,31,33,36,53,60,66,69,70,71,75,77,78,93],$V61=[2,24],$V71=[5,10,22,23,24,25,26,27,30,32,34,53,54,55,57,58,59,61,62,63,64,65,80,81,82,83,84,85,86,87,88,89,90,91,92],$V81=[2,40],$V91=[5,10,22,23,24,25,26,27,30,32,34,53,54,55,57,58,59,61,62,63,64,65,67,80,81,82,83,84,85,86,87,88,89,90,91,92];
 var parser = {trace: function trace () { },
 yy: {},
-symbols_: {"error":2,"e":3,"+":4,"-":5,"*":6,"/":7,"÷":8,"%":9,"(":10,")":11,"=":12,"!=":13,">":14,"<":15,">=":16,"<=":17,"かつ":18,"または":19,"でない":20,"と":21,"整数値":22,"実数値":23,"文字列値":24,"TRUE":25,"FALSE":26,"識別子":27,"args":28,"variable":29,"[":30,"]":31,"{":32,"}":33,"UNDEFINED":34,"variablelist":35,"COMMA":36,"statementlist":37,"statement":38,"EmptyStatement":39,"DefineStatement":40,"CallStatement":41,"AssignStatement":42,"PrintStatement":43,"InputStatement":44,"GraphicStatement":45,"ForStatement":46,"WhileStatement":47,"IfStatement":48,"SleepStatement":49,"DefineFuncStatement":50,"ReturnStatement":51,"DumpStatement":52,"改行":53,"変数を確認する":54,"手続き":55,":":56,"EOB":57,"関数":58,"手続きを抜ける":59,"を返す":60,"整数":61,"実数":62,"文字列":63,"真偽":64,"もし":65,"ならば":66,"そうでなければ":67,"を":68,"から":69,"まで":70,"ずつ":71,"増やしながら":72,"繰り返す":73,"減らしながら":74,"の間繰返す":75,"←":76,"を改行無しで表示する":77,"を表示する":78,"を入力する":79,"gOpenWindow":80,"gCloseWindow":81,"gClearWindow":82,"gSetLineColor":83,"gSetFillColor":84,"gSetLineWidth":85,"gSetFontSize":86,"gDrawText":87,"gDrawLine":88,"gDrawBox":89,"gFillBox":90,"gDrawCircle":91,"gFillCircle":92,"ミリ秒待つ":93,"Program":94,"SourceElements":95,"EOF":96,"SourceElement":97,"$accept":0,"$end":1},
-terminals_: {2:"error",4:"+",5:"-",6:"*",7:"/",8:"÷",9:"%",10:"(",11:")",12:"=",13:"!=",14:">",15:"<",16:">=",17:"<=",18:"かつ",19:"または",20:"でない",21:"と",22:"整数値",23:"実数値",24:"文字列値",25:"TRUE",26:"FALSE",27:"識別子",30:"[",31:"]",32:"{",33:"}",34:"UNDEFINED",36:"COMMA",53:"改行",54:"変数を確認する",55:"手続き",56:":",57:"EOB",58:"関数",59:"手続きを抜ける",60:"を返す",61:"整数",62:"実数",63:"文字列",64:"真偽",65:"もし",66:"ならば",67:"そうでなければ",68:"を",69:"から",70:"まで",71:"ずつ",72:"増やしながら",73:"繰り返す",74:"減らしながら",75:"の間繰返す",76:"←",77:"を改行無しで表示する",78:"を表示する",79:"を入力する",80:"gOpenWindow",81:"gCloseWindow",82:"gClearWindow",83:"gSetLineColor",84:"gSetFillColor",85:"gSetLineWidth",86:"gSetFontSize",87:"gDrawText",88:"gDrawLine",89:"gDrawBox",90:"gFillBox",91:"gDrawCircle",92:"gFillCircle",93:"ミリ秒待つ",96:"EOF"},
+symbols_: {"error":2,"e":3,"+":4,"-":5,"*":6,"/":7,"//":8,"%":9,"(":10,")":11,"=":12,"!=":13,">":14,"<":15,">=":16,"<=":17,"かつ":18,"または":19,"でない":20,"と":21,"整数値":22,"実数値":23,"文字列値":24,"TRUE":25,"FALSE":26,"識別子":27,"args":28,"variable":29,"[":30,"]":31,"{":32,"}":33,"UNDEFINED":34,"variablelist":35,"COMMA":36,"statementlist":37,"statement":38,"EmptyStatement":39,"DefineStatement":40,"CallStatement":41,"AssignStatement":42,"PrintStatement":43,"InputStatement":44,"GraphicStatement":45,"ForStatement":46,"WhileStatement":47,"IfStatement":48,"SleepStatement":49,"DefineFuncStatement":50,"ReturnStatement":51,"DumpStatement":52,"改行":53,"変数を確認する":54,"手続き":55,":":56,"EOB":57,"関数":58,"手続きを抜ける":59,"を返す":60,"整数":61,"実数":62,"文字列":63,"真偽":64,"もし":65,"ならば":66,"そうでなければ":67,"を":68,"から":69,"まで":70,"ずつ":71,"増やしながら":72,"繰り返す":73,"減らしながら":74,"の間繰返す":75,"←":76,"を改行無しで表示する":77,"を表示する":78,"を入力する":79,"gOpenWindow":80,"gCloseWindow":81,"gClearWindow":82,"gSetLineColor":83,"gSetFillColor":84,"gSetLineWidth":85,"gSetFontSize":86,"gDrawText":87,"gDrawLine":88,"gDrawBox":89,"gFillBox":90,"gDrawCircle":91,"gFillCircle":92,"ミリ秒待つ":93,"Program":94,"SourceElements":95,"EOF":96,"SourceElement":97,"$accept":0,"$end":1},
+terminals_: {2:"error",4:"+",5:"-",6:"*",7:"/",8:"//",9:"%",10:"(",11:")",12:"=",13:"!=",14:">",15:"<",16:">=",17:"<=",18:"かつ",19:"または",20:"でない",21:"と",22:"整数値",23:"実数値",24:"文字列値",25:"TRUE",26:"FALSE",27:"識別子",30:"[",31:"]",32:"{",33:"}",34:"UNDEFINED",36:"COMMA",53:"改行",54:"変数を確認する",55:"手続き",56:":",57:"EOB",58:"関数",59:"手続きを抜ける",60:"を返す",61:"整数",62:"実数",63:"文字列",64:"真偽",65:"もし",66:"ならば",67:"そうでなければ",68:"を",69:"から",70:"まで",71:"ずつ",72:"増やしながら",73:"繰り返す",74:"減らしながら",75:"の間繰返す",76:"←",77:"を改行無しで表示する",78:"を表示する",79:"を入力する",80:"gOpenWindow",81:"gCloseWindow",82:"gClearWindow",83:"gSetLineColor",84:"gSetFillColor",85:"gSetLineWidth",86:"gSetFontSize",87:"gDrawText",88:"gDrawLine",89:"gDrawBox",90:"gFillBox",91:"gDrawCircle",92:"gFillCircle",93:"ミリ秒待つ",96:"EOF"},
 productions_: [0,[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,2],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,2],[3,3],[3,1],[3,1],[3,1],[3,1],[3,1],[3,4],[3,1],[3,3],[3,3],[29,4],[29,1],[29,1],[35,6],[35,3],[35,4],[35,1],[35,1],[28,3],[28,1],[28,0],[37,2],[37,0],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[38,1],[39,1],[52,2],[52,4],[50,10],[50,10],[51,2],[51,3],[40,3],[40,3],[40,3],[40,3],[41,5],[48,8],[48,12],[46,15],[46,15],[46,13],[46,13],[47,7],[42,4],[43,3],[43,3],[44,3],[45,7],[45,4],[45,4],[45,9],[45,9],[45,5],[45,5],[45,9],[45,11],[45,11],[45,11],[45,9],[45,9],[49,3],[94,2],[95,2],[95,0],[97,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
@@ -96,7 +96,7 @@ case 4:
 this.$ = new Div($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
 break;
 case 5:
-this.$ = new Div2($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new DivInt($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
 break;
 case 6:
 this.$ = new Mod($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
@@ -389,9 +389,9 @@ parse: function parse(input) {
                     }
                 }
                 if (lexer.showPosition) {
-                    errStr = yylineno + 1 + '\u884C\u76EE\u306B\u69CB\u6587\u30A8\u30E9\u30FC:\n' + lexer.showPosition() + '\n\'' + (this.terminals_[symbol] || symbol) + '\'\u306E\u8FD1\u304F\u304C\u304A\u304B\u3057\u3044\uFF08\u2605\u306E\u3042\u305F\u308A\uFF09';
+                    errStr = yylineno + 1 + '行目に構文エラー：\n' + lexer.showPosition() + '\n\'' + (this.terminals_[symbol] || symbol) + '\'の近く（★のあたり）がおかしい';
                 } else {
-                    errStr = yylineno + 1 + '\u884C\u76EE\u306B\u69CB\u6587\u30A8\u30E9\u30FC: \u4E88\u671F\u3057\u306A\u304B\u3063\u305F' + (symbol == EOF ? '\u30D7\u30ED\u30B0\u30E9\u30E0\u306E\u7D42\u308F\u308A' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
+                    errStr = yylineno + 1 + '行目に構文エラー：\n予期しない' + (symbol == EOF ? 'プログラムの終わり' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
                 }
                 this.parseError(errStr, {
                     text: lexer.match,
@@ -853,184 +853,190 @@ case 19:return 6;
 break;
 case 20:return 6;
 break;
-case 21:return 7;
+case 21:return 8
 break;
-case 22:return 7;
+case 22:return 8
 break;
-case 23:return 8;
+case 23:return 7;
 break;
-case 24:return 9;
+case 24:return 7;
 break;
-case 25:return 9;
+case 25:return 8;
 break;
-case 26:return 10;
+case 26:return 7;
 break;
-case 27:return 11;
+case 27:return 9;
 break;
-case 28:return 10;
+case 28:return 9;
 break;
-case 29:return 11;
+case 29:return 10;
 break;
-case 30:return 30;
+case 30:return 11;
 break;
-case 31:return 31;
+case 31:return 10;
 break;
-case 32:return 30;
+case 32:return 11;
 break;
-case 33:return 31;
+case 33:return 30;
 break;
-case 34:return 32;
+case 34:return 31;
 break;
-case 35:return 33;
+case 35:return 30;
 break;
-case 36:return 32;
+case 36:return 31;
 break;
-case 37:return 33;
+case 37:return 32;
 break;
-case 38:return 16;
+case 38:return 33;
 break;
-case 39:return 17;
+case 39:return 32;
 break;
-case 40:return 16;
+case 40:return 33;
 break;
-case 41:return 17;
+case 41:return 16;
 break;
-case 42:return 16;
+case 42:return 17;
 break;
-case 43:return 17;
+case 43:return 16;
 break;
-case 44:return 14;
+case 44:return 17;
 break;
-case 45:return 15;
+case 45:return 16;
 break;
-case 46:return 14;
+case 46:return 17;
 break;
-case 47:return 15;
+case 47:return 14;
 break;
-case 48:return 12;
+case 48:return 15;
 break;
-case 49:return 12;
+case 49:return 14;
 break;
-case 50:return 13;
+case 50:return 15;
 break;
-case 51:return 13;
+case 51:return 12;
 break;
-case 52:return 13;
+case 52:return 12;
 break;
-case 53:return 76;
+case 53:return 13;
 break;
-case 54:return 18;
+case 54:return 13;
 break;
-case 55:return 19;
+case 55:return 13;
 break;
-case 56:return 20;
+case 56:return 76;
 break;
-case 57:return 57
+case 57:return 18;
 break;
-case 58:return 78;
+case 58:return 19;
 break;
-case 59:return 77;
+case 59:return 20;
 break;
-case 60:return 77;
+case 60:return 57
 break;
-case 61:return 79;
+case 61:return 78;
 break;
-case 62:return 65;
+case 62:return 77;
 break;
-case 63:return 66;
+case 63:return 77;
 break;
-case 64:return 67;
+case 64:return 79;
 break;
-case 65:return 75;
+case 65:return 65;
 break;
-case 66:return 75;
+case 66:return 66;
 break;
-case 67:return '繰り返しを抜ける';
+case 67:return 67;
 break;
-case 68:return '繰り返しを抜ける';
+case 68:return 75;
 break;
-case 69:return '繰り返しを抜ける';
+case 69:return 75;
 break;
-case 70:return 59;
+case 70:return '繰り返しを抜ける';
 break;
-case 71:return 55;
+case 71:return '繰り返しを抜ける';
 break;
-case 72:return 58;
+case 72:return '繰り返しを抜ける';
 break;
-case 73:return 60;
+case 73:return 59;
 break;
-case 74:return 68;
+case 74:return 55;
 break;
-case 75:return 69;
+case 75:return 58;
 break;
-case 76:return 70;
+case 76:return 60;
 break;
-case 77:return 71;
+case 77:return 68;
 break;
-case 78:return 72;
+case 78:return 69;
 break;
-case 79:return 74;
+case 79:return 70;
 break;
-case 80:return 72;
+case 80:return 71;
 break;
-case 81:return 74;
+case 81:return 72;
 break;
-case 82:return 73;
+case 82:return 74;
 break;
-case 83:return 73;
+case 83:return 72;
 break;
-case 84:return 61;
+case 84:return 74;
 break;
-case 85:return 62;
+case 85:return 73;
 break;
-case 86:return 63;
+case 86:return 73;
 break;
-case 87:return 21;
+case 87:return 61;
 break;
-case 88:return 21;
+case 88:return 62;
 break;
-case 89:return 80;
+case 89:return 63;
 break;
-case 90:return 81;
+case 90:return 21;
 break;
-case 91:return 82;
+case 91:return 21;
 break;
-case 92:return 83;
+case 92:return 80;
 break;
-case 93:return 84;
+case 93:return 81;
 break;
-case 94:return 85;
+case 94:return 82;
 break;
-case 95:return 86;
+case 95:return 83;
 break;
-case 96:return 87;
+case 96:return 84;
 break;
-case 97:return 88;
+case 97:return 85;
 break;
-case 98:return 89;
+case 98:return 86;
 break;
-case 99:return 90;
+case 99:return 87;
 break;
-case 100:return 91;
+case 100:return 88;
 break;
-case 101:return 92;
+case 101:return 89;
 break;
-case 102:return 93;
+case 102:return 90;
 break;
-case 103:return 54;
+case 103:return 91;
 break;
-case 104:return 27;
+case 104:return 92;
 break;
-case 105:return 96;
+case 105:return 93;
 break;
-case 106:return 53;
+case 106:return 54;
 break;
-case 107:/* skip whitespace */
+case 107:return 27;
+break;
+case 108:return 96;
+break;
+case 109:return 53;
+break;
+case 110:/* skip whitespace */
 break;
 }
 },
-rules: [/^(?:真偽)/,/^(?:true\b)/,/^(?:TRUE\b)/,/^(?:真)/,/^(?:false\b)/,/^(?:FALSE\b)/,/^(?:偽)/,/^(?:(「[^」]*」|｢[^｣]*｣|"[^"]*"))/,/^(?:(([0０]|(([1-9１-９])([0-9０-９])*))[.．]([0-9０-９])+))/,/^(?:([0０]|(([1-9１-９])([0-9０-９])*)))/,/^(?:([，,、]))/,/^(?:([:：]))/,/^(?:(《[^》]*》))/,/^(?:\+)/,/^(?:＋)/,/^(?:-)/,/^(?:ー)/,/^(?:−)/,/^(?:\*)/,/^(?:＊)/,/^(?:✕)/,/^(?:\/)/,/^(?:／)/,/^(?:÷)/,/^(?:%)/,/^(?:％)/,/^(?:\()/,/^(?:\))/,/^(?:（)/,/^(?:）)/,/^(?:\[)/,/^(?:\])/,/^(?:［)/,/^(?:］)/,/^(?:\{)/,/^(?:\})/,/^(?:｛)/,/^(?:｝)/,/^(?:>=)/,/^(?:<=)/,/^(?:≧)/,/^(?:≦)/,/^(?:＞＝)/,/^(?:＜＝)/,/^(?:>)/,/^(?:<)/,/^(?:＞)/,/^(?:＜)/,/^(?:=)/,/^(?:＝)/,/^(?:!=)/,/^(?:≠)/,/^(?:！＝)/,/^(?:←)/,/^(?:かつ)/,/^(?:または)/,/^(?:でない)/,/^(?:■)/,/^(?:を(表示|印刷|出力)する)/,/^(?:を改行無しで(表示|印刷|出力)する)/,/^(?:を改行なしで(表示|印刷|出力)する)/,/^(?:を入力する)/,/^(?:もし)/,/^(?:ならば)/,/^(?:そうでなければ)/,/^(?:の間繰り返す)/,/^(?:の間繰返す)/,/^(?:繰り返しを抜ける)/,/^(?:繰返しを抜ける)/,/^(?:くりかえしを抜ける)/,/^(?:手続きを抜ける)/,/^(?:手続き)/,/^(?:関数)/,/^(?:を返す)/,/^(?:を)/,/^(?:から)/,/^(?:まで)/,/^(?:ずつ)/,/^(?:増やしながら)/,/^(?:減らしながら)/,/^(?:増やしつつ)/,/^(?:減らしつつ)/,/^(?:繰り返す)/,/^(?:繰返す)/,/^(?:整数)/,/^(?:実数)/,/^(?:文字列)/,/^(?:と([，,、]))/,/^(?:と)/,/^(?:描画領域開く)/,/^(?:描画領域閉じる)/,/^(?:描画領域全消去)/,/^(?:線色設定)/,/^(?:塗色設定)/,/^(?:線太さ設定)/,/^(?:文字サイズ設定)/,/^(?:文字描画)/,/^(?:線描画)/,/^(?:矩形描画)/,/^(?:矩形塗描画)/,/^(?:円描画)/,/^(?:円塗描画)/,/^(?:ミリ秒待つ)/,/^(?:変数を確認する)/,/^(?:(([a-zA-Zａ-ｚＡ-Ｚ])([a-zA-Z0-9ａ-ｚＡ-Ｚ０-９])*))/,/^(?:$)/,/^(?:(\r\n|\r|\n))/,/^(?:([\s\t 　]))/],
-conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107],"inclusive":true}}
+rules: [/^(?:真偽)/,/^(?:true\b)/,/^(?:TRUE\b)/,/^(?:真)/,/^(?:false\b)/,/^(?:FALSE\b)/,/^(?:偽)/,/^(?:(「[^」]*」|｢[^｣]*｣|"[^"]*"))/,/^(?:(([0０]|(([1-9１-９])([0-9０-９])*))[.．]([0-9０-９])+))/,/^(?:([0０]|(([1-9１-９])([0-9０-９])*)))/,/^(?:([，,、]))/,/^(?:([:：]))/,/^(?:(《[^》]*》))/,/^(?:\+)/,/^(?:＋)/,/^(?:-)/,/^(?:ー)/,/^(?:−)/,/^(?:\*)/,/^(?:＊)/,/^(?:✕)/,/^(?:\/\/)/,/^(?:／／)/,/^(?:\/)/,/^(?:／)/,/^(?:÷÷)/,/^(?:÷)/,/^(?:%)/,/^(?:％)/,/^(?:\()/,/^(?:\))/,/^(?:（)/,/^(?:）)/,/^(?:\[)/,/^(?:\])/,/^(?:［)/,/^(?:］)/,/^(?:\{)/,/^(?:\})/,/^(?:｛)/,/^(?:｝)/,/^(?:>=)/,/^(?:<=)/,/^(?:≧)/,/^(?:≦)/,/^(?:＞＝)/,/^(?:＜＝)/,/^(?:>)/,/^(?:<)/,/^(?:＞)/,/^(?:＜)/,/^(?:=)/,/^(?:＝)/,/^(?:!=)/,/^(?:≠)/,/^(?:！＝)/,/^(?:←)/,/^(?:かつ)/,/^(?:または)/,/^(?:でない)/,/^(?:■)/,/^(?:を(表示|印刷|出力)する)/,/^(?:を改行無しで(表示|印刷|出力)する)/,/^(?:を改行なしで(表示|印刷|出力)する)/,/^(?:を入力する)/,/^(?:もし)/,/^(?:ならば)/,/^(?:そうでなければ)/,/^(?:の間繰り返す)/,/^(?:の間繰返す)/,/^(?:繰り返しを抜ける)/,/^(?:繰返しを抜ける)/,/^(?:くりかえしを抜ける)/,/^(?:手続きを抜ける)/,/^(?:手続き)/,/^(?:関数)/,/^(?:を返す)/,/^(?:を)/,/^(?:から)/,/^(?:まで)/,/^(?:ずつ)/,/^(?:増やしながら)/,/^(?:減らしながら)/,/^(?:増やしつつ)/,/^(?:減らしつつ)/,/^(?:繰り返す)/,/^(?:繰返す)/,/^(?:整数)/,/^(?:実数)/,/^(?:文字列)/,/^(?:と([，,、]))/,/^(?:と)/,/^(?:描画領域開く)/,/^(?:描画領域閉じる)/,/^(?:描画領域全消去)/,/^(?:線色設定)/,/^(?:塗色設定)/,/^(?:線太さ設定)/,/^(?:文字サイズ設定)/,/^(?:文字描画)/,/^(?:線描画)/,/^(?:矩形描画)/,/^(?:矩形塗描画)/,/^(?:円描画)/,/^(?:円塗描画)/,/^(?:ミリ秒待つ)/,/^(?:変数を確認する)/,/^(?:(([a-zA-Zａ-ｚＡ-Ｚ])([a-zA-Z0-9ａ-ｚＡ-Ｚ０-９])*))/,/^(?:$)/,/^(?:(\r\n|\r|\n))/,/^(?:([\s\t 　]))/],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110],"inclusive":true}}
 });
 return lexer;
 })();

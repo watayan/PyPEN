@@ -1,7 +1,5 @@
 /* by watayan <watayan@watayan.net> */
-/* jison-lex/regexp-lexer.js 309行目に次の行を挿入しておく。
-    if(match[0].match(/^■$/)) this.yylineno--; // added
- */
+
 %{
 	function toHalf(s, token)
 	{
@@ -59,9 +57,12 @@ UNDEFINED		"《"[^》]*"》"
 "*"				{return '*';}
 "＊"			{return '*';}
 "✕"				{return '*';}
+"//"			{return '//'}
+"／／"			{return '//'}
 "/"				{return '/';}
 "／"			{return '/';}
-"÷"				{return '÷';}
+"÷÷"			{return '//';}
+"÷"				{return '/';}
 "%"				{return '%';}
 "％"			{return '%';}
 "("				{return '(';}
@@ -153,7 +154,7 @@ UNDEFINED		"《"[^》]*"》"
 %left 'かつ' 'または' 'でない'
 %nonassoc '=' '!=' '>' '<' '>=' '<='
 %left '+' '-'
-%left '*' '/' '÷' '%'
+%left '*' '/' '//' '%'
 %left UMINUS
 %
 %start Program
@@ -165,7 +166,7 @@ e
 	| e '-' e		{$$ = new Sub($1, $3, new Location(@1, @3));}
 	| e '*' e		{$$ = new Mul($1, $3, new Location(@1, @3));}
 	| e '/' e		{$$ = new Div($1, $3, new Location(@1, @3));}
-	| e '÷' e		{$$ = new Div2($1, $3, new Location(@1, @3));}
+	| e '//' e		{$$ = new DivInt($1, $3, new Location(@1, @3));}
 	| e '%' e		{$$ = new Mod($1, $3, new Location(@1, @3));}
 	| '-' e		%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
 	| '(' e ')'		{$$ = $2;}
