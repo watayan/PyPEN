@@ -4962,9 +4962,10 @@ function auto_marking(i)
 
 function font_size(updown)
 {
-	if(fontsize + updown < 12 || fontsize + updown > 30) return;
+	if(fontsize + updown < 14 || fontsize + updown > 30) return;
 	fontsize += updown;
 	var elem = document.getElementById('sourceTextarea');
+	elem.style.backgroundSize = (fontsize * 4) + 'px '+ (fontsize * 4) + 'px';
 	elem.style.fontSize = fontsize + 'px';
 	elem.style.lineHeight = (fontsize + 2) + 'px';
 	elem = document.getElementById('resultTextarea');

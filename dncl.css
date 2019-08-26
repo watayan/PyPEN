@@ -130,6 +130,8 @@
 #sourceTextarea {
 	font-size: 16px;
 	line-height: 18px;
+	background-image: url("bg.png");
+	background-size: 64px 64px;
 }
 
 #resultTextarea{
