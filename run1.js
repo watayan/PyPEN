@@ -505,7 +505,7 @@ var ArrayValue = function (_Value2) {
 	}, {
 		key: "setValueToArray",
 		value: function setValueToArray(args, va) {
-			var l = args ? args.value.length : 0;
+			var l = args ? args.value.length : 1;
 			var v = this;
 			for (var i = 0; i < l - 1; i++) {
 				if (v.nthValue(args.value[i].getValue().value)) v = v.nthValue(args.value[i].getValue().value);else v = v._value[args.value[i].getValue().value] = new ArrayValue([], this.loc);
@@ -532,7 +532,7 @@ var ArrayValue = function (_Value2) {
 		value: function clone() {
 			var rtnv = [];
 			for (var i = 0; i < this.length; i++) {
-				rtnv.push(this.value[i].clone());
+				rtnv.push(this.value[i].getValue().clone());
 			}return new ArrayValue(rtnv, this.loc);
 		}
 	}, {
@@ -2361,17 +2361,15 @@ var Assign = function (_Statement11) {
 			if (vt) // 変数が定義されている
 				{
 					var va = vt.vars[vn];
-					if (ag) // 配列の添字がある
+					if (ag && ag.value.length > 0) // 配列の添字がある
 						{
-							if (setting.var_declaration != 0 && !(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc);
-							for (var _i2 = 0; _i2 < ag.value.length; _i2++) {
-								if (va instanceof ArrayValue) {
-									if (va.nthValue(ag.value[_i2].getValue().value)) va = va.nthValue(ag.value[_i2].getValue().value);else {
-										if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
-										// 配列を延長する
-										if (_i2 < ag.value.length - 1) va = new ArrayValue([], this.loc);else va = new NullValue(this.loc);
-									}
-								} else throw new RuntimeError(this.first_line, vn + ag.getCode() + 'は配列ではありません');
+							if (!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
+							for (var i = 0; i < ag.value.length; i++) {
+								if (va.nthValue(ag.value[i].getValue().value)) va = va.nthValue(ag.value[i].getValue().value);else {
+									if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
+									// 配列を延長する
+									if (i < ag.value.length - 1) va = new ArrayValue([], this.loc);else va = new NullValue(this.loc);
+								}
 							}
 						}
 					if (vl.getValue() instanceof IntValue) {
@@ -2383,13 +2381,7 @@ var Assign = function (_Statement11) {
 					} else if (vl.getValue() instanceof BooleanValue) {
 						if (ag) vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));else vt.vars[vn] = new BooleanValue(vl.value, this.loc);
 					} else if (vl.getValue() instanceof ArrayValue) {
-						var len = vl.value.length;
-						for (var i = 0; i < len; i++) {
-							var ag1 = this.variable.args instanceof ArrayValue ? this.variable.args.value.slice() : [];
-							ag1.push(new IntValue(i + (setting.array_origin == 2 ? 1 : 0), this.loc));
-							var command = new Assign(new Variable(this.variable.varname, new ArrayValue(ag1, this.loc), this.loc), vl.value[i], this.loc);
-							command.run();
-						}
+						if (ag) vt.vars[vn].setValueToArray(ag, vl.getValue().clone());else vt.vars[vn] = vl.getValue().clone();
 					} else if (vl.getValue() instanceof NullValue) {
 						if (ag) vt.vars[vn].setValueToArray(ag, new NullValue(this.loc));else vt.vars[vn] = new NullValue(vl.value, this.loc);
 					}
@@ -2400,11 +2392,9 @@ var Assign = function (_Statement11) {
 							vt = varTables[0];
 							if (ag) {
 								vt.vars[vn] = new ArrayValue([], this.loc);
-								if (vl instanceof IntValue) vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));else if (vl instanceof FloatValue) vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));else if (vl instanceof StringValue) vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));else if (vl instanceof BooleanValue) vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
+								if (vl instanceof IntValue) vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));else if (vl instanceof FloatValue) vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));else if (vl instanceof StringValue) vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));else if (vl instanceof BooleanValue) vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));else if (vl instanceof ArrayValue) vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
 							} else {
-								if (vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);else if (vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);else if (vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);else if (vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);else if (vl.getValue() instanceof ArrayValue) {
-									vt.vars[vn] = new ArrayValue(vl.value, this.loc);
-								}
+								if (vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);else if (vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);else if (vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);else if (vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);else if (vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
 							}
 						}
 				}
@@ -4152,7 +4142,7 @@ var Parts_Output = function (_Parts4) {
 		key: "appendCode",
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			if (this.text == '改行') code += '改行する';else code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
+			if (this.text == '改行') code += '\n';else code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
 			if (this.next != null) return this.next.appendCode(code, indent);
 			return code;
 		}

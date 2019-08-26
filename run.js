@@ -390,7 +390,7 @@ class ArrayValue extends Value
 	nthValue(idx){return this._value[idx];}
 	setValueToArray(args, va)
 	{
-		let l = args ? args.value.length : 0;
+		let l = args ? args.value.length : 1;
 		let v = this;
 		for(let i = 0; i < l - 1; i++)
 		{
@@ -420,7 +420,7 @@ class ArrayValue extends Value
 	clone()
 	{
 		let rtnv = [];
-		for(let i = 0; i < this.length; i++) rtnv.push(this.value[i].clone());
+		for(let i = 0; i < this.length; i++) rtnv.push(this.value[i].getValue().clone());
 		return new ArrayValue(rtnv, this.loc);
 	}
 	getValue()
@@ -1872,24 +1872,20 @@ class Assign extends Statement
 		if(vt) // 変数が定義されている
 		{
 			let va = vt.vars[vn];
-			if(ag) // 配列の添字がある
+			if(ag && ag.value.length > 0) // 配列の添字がある
 			{
-				if(setting.var_declaration != 0 && !(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc);
+				if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
 				for(let i = 0; i < ag.value.length; i++) 
 				{
-					if(va instanceof ArrayValue)
+					if(va.nthValue(ag.value[i].getValue().value))
+						va = va.nthValue(ag.value[i].getValue().value);
+					else
 					{
-						if(va.nthValue(ag.value[i].getValue().value))
-							va = va.nthValue(ag.value[i].getValue().value);
-						else
-						{
-							if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
-							// 配列を延長する
-							if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
-							else va = new NullValue(this.loc);
-						}
-					} 
-					else throw new RuntimeError(this.first_line, vn + ag.getCode() + 'は配列ではありません');
+						if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
+						// 配列を延長する
+						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
+						else va = new NullValue(this.loc);
+					}
 				}
 			}
 			if(vl.getValue() instanceof IntValue)
@@ -1914,14 +1910,8 @@ class Assign extends Statement
 			}
 			else if(vl.getValue() instanceof ArrayValue)
 			{
-				var len = vl.value.length;
-				for(var i = 0; i < len; i++)
-				{
-					var ag1 = this.variable.args instanceof ArrayValue ? this.variable.args.value.slice() : [];
-					ag1.push(new IntValue(i + (setting.array_origin == 2 ? 1 : 0), this.loc));
-					var command = new Assign(new Variable(this.variable.varname, new ArrayValue(ag1, this.loc), this.loc),vl.value[i], this.loc);
-					command.run();
-				}
+				if(ag)	vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
+				else vt.vars[vn] = vl.getValue().clone();
 			}
 			else if(vl.getValue() instanceof NullValue)
 			{
@@ -1942,6 +1932,7 @@ class Assign extends Statement
 					else if(vl instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
 					else if(vl instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
 					else if(vl instanceof BooleanValue)vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
+					else if(vl instanceof ArrayValue)vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
 				}
 				else
 				{
@@ -1949,10 +1940,7 @@ class Assign extends Statement
 					else if(vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
 					else if(vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
 					else if(vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
-					else if(vl.getValue() instanceof ArrayValue)
-					{
-						vt.vars[vn] = new ArrayValue(vl.value, this.loc);
-					}
+					else if(vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
 				}
 			}
 		}
