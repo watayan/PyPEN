@@ -2893,8 +2893,8 @@ var ForDec = function (_Statement22) {
 			var last_loc = new Location(last_token, last_token);
 			var varTable = findVarTable(this.varname.varname);
 			if (setting.var_declaration != 0 && !varTable) {
-				var _varTable = varTables[0];
-				if (this.begin.getValue() instanceof IntValue) _varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else if (this.begin.getValue() instanceof FloatValue) _varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else _varTable = null;
+				varTable = varTables[0];
+				if (this.begin.getValue() instanceof IntValue) varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else if (this.begin.getValue() instanceof FloatValue) varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else varTable = null;
 			}
 			if (varTable) {
 				// ループ前の初期化
