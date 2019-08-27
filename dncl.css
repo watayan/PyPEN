@@ -122,25 +122,31 @@
 	float: left;
 }
 
-.bcr_numbers{
+.bcr_number{
 	font-size: 16px;
-	line-height: 18px;
+	line-height: 1.2;
+	/* font-family: "Courier New", Consolas, monospace; */
 }
 
 #sourceTextarea {
 	font-size: 16px;
-	line-height: 18px;
+	line-height: 1.2;
+	/* font-family: "Courier New", Consolas, monospace; */
 	background-image: url("bg.png");
-	background-size: 64px 64px;
+	background-size: 2em auto;
 }
 
 #resultTextarea{
 	font-size: 16px;
-	line-height: 18px;
+	line-height: 1.2;
 }
 
 #font_up{
 	clear: left;
+	float: left;
+}
+
+#font_zero{
 	float: left;
 }
 

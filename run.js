@@ -3176,6 +3176,7 @@ class Flowchart
 		code += variable2code("真偽", "variable_bool");
 		code += this.top.appendCode('', 0);
 		document.getElementById("sourceTextarea").value = code;
+		$('#sourceTextarea').focus();
     }
     paint()
     {
@@ -4673,6 +4674,7 @@ onload = function(){
 			flowchart.makeEmpty();
 			flowchart.paint();
 		}
+		$('#sourceTextarea').focus();
 		makeDirty(false);
 	}
 	resetButton.onclick = function(){
@@ -4962,16 +4964,21 @@ function auto_marking(i)
 
 function font_size(updown)
 {
-	if(fontsize + updown < 14 || fontsize + updown > 30) return;
-	fontsize += updown;
+	if(updown != 0)
+	{
+		if(fontsize + updown < 14 || fontsize + updown > 30) return;
+		fontsize += updown;
+	}
+	else fontsize = 16;
 	var elem = document.getElementById('sourceTextarea');
-	elem.style.backgroundSize = (fontsize * 4) + 'px '+ (fontsize * 4) + 'px';
+	elem.style.backgroundSize = '2em 2em'; //(fontsize * 4) + 'px '+ (fontsize * 4) + 'px';
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = (fontsize + 2) + 'px';
+	elem.style.lineHeight = '1.2';
 	elem = document.getElementById('resultTextarea');
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = (fontsize + 2) + 'px';
+	elem.style.lineHeight = '1.2';
 	elem = document.getElementsByClassName('bcr_number')[0];
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = (fontsize + 2) + 'px';
+	elem.style.lineHeight = '1.2';
+	$('#sourceTextarea').focus();
 }
