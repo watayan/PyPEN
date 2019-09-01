@@ -1000,13 +1000,13 @@ var Minus = function (_Value14) {
 	function Minus(x, loc) {
 		_classCallCheck(this, Minus);
 
-		return _possibleConstructorReturn(this, (Minus.__proto__ || Object.getPrototypeOf(Minus)).call(this, x, loc));
+		return _possibleConstructorReturn(this, (Minus.__proto__ || Object.getPrototypeOf(Minus)).call(this, [x], loc));
 	}
 
 	_createClass(Minus, [{
 		key: "run",
 		value: function run() {
-			var v1 = this.value.getValue();
+			var v1 = this.value[0].getValue();
 			if (v1 instanceof NullValue) this.rtnv = v1;else if (v1 instanceof IntValue || v1 instanceof FloatValue) {
 				var _v4 = -v1.value;
 				if (_v4 instanceof IntValue && !isSafeInteger(_v4)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
@@ -1018,7 +1018,7 @@ var Minus = function (_Value14) {
 	}, {
 		key: "getCode",
 		value: function getCode() {
-			var v1 = this.value;
+			var v1 = this.value[0];
 			var c1 = constructor_name(v1);
 			var brace1 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
@@ -1111,23 +1111,23 @@ var Not = function (_Value17) {
 	function Not(x, loc) {
 		_classCallCheck(this, Not);
 
-		return _possibleConstructorReturn(this, (Not.__proto__ || Object.getPrototypeOf(Not)).call(this, x, loc));
+		return _possibleConstructorReturn(this, (Not.__proto__ || Object.getPrototypeOf(Not)).call(this, [x], loc));
 	}
 
 	_createClass(Not, [{
 		key: "run",
 		value: function run() {
-			var v1 = this.value.getValue();
+			var v1 = this.value[0].getValue();
 			if (v1 instanceof BooleanValue) this.rtnv = new BooleanValue(!v1.value, this.loc);else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
 			code[0].stack[0].index++;
 		}
 	}, {
 		key: "getCode",
 		value: function getCode() {
-			var v1 = this.value;
+			var v1 = this.value[0];
 			var c1 = constructor_name(v1);
 			var brace1 = false;
-			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+			//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
 		}
 	}]);
@@ -1200,8 +1200,7 @@ var NE = function (_Value19) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
-			this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -3544,6 +3543,7 @@ var Flowchart = function () {
 			code += variable2code("真偽", "variable_bool");
 			code += this.top.appendCode('', 0);
 			document.getElementById("sourceTextarea").value = code;
+			$('#sourceTextarea').focus();
 		}
 	}, {
 		key: "paint",
@@ -5450,6 +5450,7 @@ onload = function onload() {
 			flowchart.makeEmpty();
 			flowchart.paint();
 		}
+		$('#sourceTextarea').focus();
 		makeDirty(false);
 	};
 	resetButton.onclick = function () {
@@ -5795,16 +5796,19 @@ function auto_marking(i) {
 }
 
 function font_size(updown) {
-	if (fontsize + updown < 14 || fontsize + updown > 30) return;
-	fontsize += updown;
+	if (updown != 0) {
+		if (fontsize + updown < 14 || fontsize + updown > 30) return;
+		fontsize += updown;
+	} else fontsize = 16;
 	var elem = document.getElementById('sourceTextarea');
-	elem.style.backgroundSize = fontsize * 4 + 'px ' + fontsize * 4 + 'px';
+	elem.style.backgroundSize = '2em 2em'; //(fontsize * 4) + 'px '+ (fontsize * 4) + 'px';
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = fontsize + 2 + 'px';
+	elem.style.lineHeight = '1.2';
 	elem = document.getElementById('resultTextarea');
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = fontsize + 2 + 'px';
+	elem.style.lineHeight = '1.2';
 	elem = document.getElementsByClassName('bcr_number')[0];
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = fontsize + 2 + 'px';
+	elem.style.lineHeight = '1.2';
+	$('#sourceTextarea').focus();
 }

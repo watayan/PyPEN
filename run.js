@@ -783,11 +783,11 @@ class Minus extends Value
 {
 	constructor(x, loc)
 	{
-		super(x, loc);
+		super([x], loc);
 	}
 	run()
 	{
-		let v1 = this.value.getValue();
+		let v1 = this.value[0].getValue();
 		if(v1 instanceof NullValue) this.rtnv = v1;
 		else if(v1 instanceof IntValue || v1 instanceof FloatValue)
 		{
@@ -802,7 +802,7 @@ class Minus extends Value
 	}
 	getCode()
 	{
-		let v1 = this.value;
+		let v1 = this.value[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
@@ -872,22 +872,23 @@ class Or extends Value
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 }
+
 class Not extends Value
 {
-	constructor(x, loc){super(x,loc);}
+	constructor(x, loc){super([x],loc);}
 	run()
 	{
-		let v1 = this.value.getValue();
+		let v1 = this.value[0].getValue();
 		if(v1 instanceof BooleanValue) this.rtnv = new BooleanValue(!v1.value, this.loc);
 		else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
 		code[0].stack[0].index++;
 	}
 	getCode()
 	{
-		let v1 = this.value;
+		let v1 = this.value[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
-		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+	//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' でない';
 	}
@@ -938,8 +939,8 @@ class NE extends Value
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-		this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);
+		else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()

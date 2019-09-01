@@ -87,7 +87,9 @@ UNDEFINED		"《"[^》]*"》"
 "<"				{return '<';}
 "＞"			{return '>';}
 "＜"			{return '<';}
+"=="			{return '='}
 "="				{return '=';}
+"＝＝"			{return '=';}
 "＝"			{return '=';}
 "!="			{return '!=';}
 "≠"				{return '!=';}
