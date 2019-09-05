@@ -148,6 +148,7 @@ function codeChange()
 {
 	if(converting || !flowchart_display) return;
 	var code = document.getElementById("sourceTextarea").value + "\n";
+	textarea.value = "";
 	try{
 		myFuncs = {};
 		var dncl_code = python_to_dncl(code);
