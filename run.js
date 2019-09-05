@@ -730,7 +730,7 @@ class DivInt extends Value // //
 		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 		if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 		if(v2.value == 0 || v2 instanceof NullValue) throw new RuntimeError(this.first_line, "0でわり算をしました");
-		let v = (v1.value - v1.value % v2.value) / v2.value
+		let v = Math.floor(v1.value / v2.value);
 		if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 		this.rtnv = new IntValue(v, this.loc);
 		code[0].stack[0].index++;
@@ -761,7 +761,7 @@ class Mod extends Value
 		if((v1 instanceof IntValue || v1 instanceof NullValue) && (v2 instanceof IntValue || v2 instanceof NullValue))
 		{
 			if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			let v = v1.value % v2.value;
+			let v = v1.value - Math.floor(v1.value / v2.value) * v2.value;
 			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
 			this.rtnv = new IntValue(v, this.loc);
 			code[0].stack[0].index++;
