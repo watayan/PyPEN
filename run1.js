@@ -2438,8 +2438,7 @@ var Input = function (_Statement12) {
 						va.run();
 						var assign = null;
 						var re = /^(0+|false|偽|)$/i;
-						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);
-						assign.run();
+						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);assign.run();
 						code[0].stack[0].index = index + 1;
 					} else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
 				}
@@ -5450,12 +5449,16 @@ onload = function onload() {
 	var loadButton = document.getElementById("loadButton");
 	var file_prefix = document.getElementById("file_prefix");
 	var flowchart_canvas = document.getElementById("flowchart");
-	var resultArea = document.getElementById("resultArea");
+	// var resultArea = document.getElementById("resultArea");
 	$("#sourceTextarea").bcralnit();
 	sourceTextArea.onchange = function () {
 		makeDirty(true);
 	};
 	makeDirty(false);
+	if (setting.var_declaration == 1) {
+		document.getElementById("variables").style.display = 'none';
+		document.getElementById("variableButtons").style.display = 'none';
+	}
 	textarea = resultTextArea;
 	runButton.onclick = function () {
 		if (run_flag && !step_flag) {
