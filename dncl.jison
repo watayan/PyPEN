@@ -1,6 +1,14 @@
 /* by watayan <watayan@watayan.net> */
 
 %{
+	const typeOfValue=
+	{
+		typeInt:1,
+		typeFloat:2,
+		typeString:3,
+		typeBoolean:4,
+		typeArray:5
+	};
 	function toHalf(s, token)
 	{
 		if(setting.zenkaku_mode == 1)
@@ -115,6 +123,7 @@ UNDEFINED		"《"[^》]*"》"
 "手続き"				{return '手続き';}
 "関数"					{return '関数';}
 "を返す"				{return 'を返す';}
+"に"					{return 'に';}
 "を"					{return 'を';}
 "から"				{return 'から';}
 "まで"				{return 'まで';}
@@ -318,8 +327,14 @@ PrintStatement
 	;
 
 InputStatement
-	: variable 'を入力する' '改行'	
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, new Location(@1, @2))];}
+	: variable 'に' '整数' 'を入力する' '改行'	
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeInt, new Location(@1, @4))];}
+	| variable 'に' '実数' 'を入力する' '改行'	
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeFloat, new Location(@1, @4))];}
+	| variable 'に' '文字列' 'を入力する' '改行'	
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeString, new Location(@1, @4))];}
+	| variable 'に' '真偽' 'を入力する' '改行'	
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeBoolean, new Location(@1, @4))];}
 	;
 
 GraphicStatement

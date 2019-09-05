@@ -23,6 +23,8 @@ var typeOfValue = {
 	typeArray: 5
 };
 
+var nameOfType = ['', '整数', '実数', '文字列', '真偽', '配列'];
+
 var code = null; // コードを積む（関数・手続き単位で）
 var varTables = []; // 変数テーブルを積む
 var myFuncs = {}; // プログラム中で定義される関数・手続き
@@ -82,7 +84,7 @@ var parsedMainRoutine = function (_parsedCode) {
 
 
 	_createClass(parsedMainRoutine, [{
-		key: "finish",
+		key: 'finish',
 		value: function finish() {
 			if (selected_quiz < 0) textareaAppend("---\n");
 			highlightLine(-1);
@@ -160,7 +162,7 @@ var varTable = function () {
 
 
 	_createClass(varTable, [{
-		key: "findVarTable",
+		key: 'findVarTable',
 		value: function findVarTable(varname) {
 			if (this.vars[varname]) return this;else return null;
 		}
@@ -170,7 +172,7 @@ var varTable = function () {
    */
 
 	}, {
-		key: "varnames",
+		key: 'varnames',
 		value: function varnames(oldvars) {
 			var names = oldvars;
 			for (var name in this.vars) {
@@ -219,7 +221,7 @@ function codeChange() {
 		converting = false;
 	} catch (e) {
 		console.log(e);
-		textarea.value = "\u69CB\u6587\u30A8\u30E9\u30FC\u3067\u3059\n" + e.message + "\n";
+		textarea.value = '\u69CB\u6587\u30A8\u30E9\u30FC\u3067\u3059\n' + e.message + '\n';
 		converting = false;
 	}
 }
@@ -326,12 +328,12 @@ var Location = function () {
 	}
 
 	_createClass(Location, [{
-		key: "first_line",
+		key: 'first_line',
 		get: function get() {
 			return this._first_line;
 		}
 	}, {
-		key: "last_line",
+		key: 'last_line',
 		get: function get() {
 			return this._last_line;
 		}
@@ -360,12 +362,12 @@ var RuntimeError = function () {
 	}
 
 	_createClass(RuntimeError, [{
-		key: "line",
+		key: 'line',
 		get: function get() {
 			return this._line;
 		}
 	}, {
-		key: "message",
+		key: 'message',
 		get: function get() {
 			return this._message;
 		}
@@ -398,7 +400,7 @@ var Value = function () {
 
 
 	_createClass(Value, [{
-		key: "getValue",
+		key: 'getValue',
 
 		/**
    * @returns {Value} 値
@@ -411,28 +413,28 @@ var Value = function () {
    */
 
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return '' + this._value;
 		}
 	}, {
-		key: "run",
+		key: 'run',
 		value: function run() {
 			//		this.rtnv = this;
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "value",
+		key: 'value',
 		get: function get() {
 			return this._value;
 		}
 	}, {
-		key: "loc",
+		key: 'loc',
 		get: function get() {
 			return this._loc;
 		}
 	}, {
-		key: "first_line",
+		key: 'first_line',
 		get: function get() {
 			return this._loc.first_line;
 		}
@@ -461,7 +463,7 @@ var NullValue = function (_Value) {
 	}
 
 	_createClass(NullValue, [{
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return this;
 		}
@@ -490,7 +492,7 @@ var ArrayValue = function (_Value2) {
 	}
 
 	_createClass(ArrayValue, [{
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var ag = [];
 			for (var i = 0; i < this.value.length; i++) {
@@ -498,12 +500,12 @@ var ArrayValue = function (_Value2) {
 			}return '[' + ag.join(',') + ']';
 		}
 	}, {
-		key: "nthValue",
+		key: 'nthValue',
 		value: function nthValue(idx) {
 			return this._value[idx];
 		}
 	}, {
-		key: "setValueToArray",
+		key: 'setValueToArray',
 		value: function setValueToArray(args, va) {
 			var l = args ? args.value.length : 1;
 			var v = this;
@@ -513,7 +515,7 @@ var ArrayValue = function (_Value2) {
 			v._value[args.value[l - 1].getValue().value] = va;
 		}
 	}, {
-		key: "getValueFromArray",
+		key: 'getValueFromArray',
 		value: function getValueFromArray(args, loc) {
 			var l = args ? args.value.length : 0;
 			var v = this;
@@ -528,7 +530,7 @@ var ArrayValue = function (_Value2) {
    */
 
 	}, {
-		key: "clone",
+		key: 'clone',
 		value: function clone() {
 			var rtnv = [];
 			for (var i = 0; i < this.length; i++) {
@@ -536,12 +538,12 @@ var ArrayValue = function (_Value2) {
 			}return new ArrayValue(rtnv, this.loc);
 		}
 	}, {
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return this;
 		}
 	}, {
-		key: "length",
+		key: 'length',
 		get: function get() {
 			return this._value.length;
 		}
@@ -597,12 +599,12 @@ var IntValue = function (_Value3) {
 	}
 
 	_createClass(IntValue, [{
-		key: "clone",
+		key: 'clone',
 		value: function clone() {
 			return new IntValue(this.value, this.loc);
 		}
 	}, {
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return this;
 		}
@@ -624,17 +626,17 @@ var FloatValue = function (_Value4) {
 	}
 
 	_createClass(FloatValue, [{
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			if (isInteger(this.value)) return this.value + '.0';else return this.value;
 		}
 	}, {
-		key: "clone",
+		key: 'clone',
 		value: function clone() {
 			return new FloatValue(this.value, this.loc);
 		}
 	}, {
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return this;
 		}
@@ -653,17 +655,17 @@ var StringValue = function (_Value5) {
 	}
 
 	_createClass(StringValue, [{
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
 		}
 	}, {
-		key: "clone",
+		key: 'clone',
 		value: function clone() {
 			return new StringValue(this.value, this.loc);
 		}
 	}, {
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return this;
 		}
@@ -682,17 +684,17 @@ var BooleanValue = function (_Value6) {
 	}
 
 	_createClass(BooleanValue, [{
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return this.value ? 'true' : 'false';
 		}
 	}, {
-		key: "clone",
+		key: 'clone',
 		value: function clone() {
 			return new BooleanValue(this.value, this.loc);
 		}
 	}, {
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return this;
 		}
@@ -711,17 +713,17 @@ var UNDEFINED = function (_Value7) {
 	}
 
 	_createClass(UNDEFINED, [{
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return this.value;
 		}
 	}, {
-		key: "varname",
+		key: 'varname',
 		get: function get() {
 			return this.value;
 		}
@@ -740,7 +742,7 @@ var Add = function (_Value8) {
 	}
 
 	_createClass(Add, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -763,7 +765,7 @@ var Add = function (_Value8) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -790,7 +792,7 @@ var Sub = function (_Value9) {
 	}
 
 	_createClass(Sub, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -808,7 +810,7 @@ var Sub = function (_Value9) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -835,7 +837,7 @@ var Mul = function (_Value10) {
 	}
 
 	_createClass(Mul, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -853,7 +855,7 @@ var Mul = function (_Value10) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -880,7 +882,7 @@ var Div = function (_Value11) {
 	}
 
 	_createClass(Div, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -894,7 +896,7 @@ var Div = function (_Value11) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -922,7 +924,7 @@ var DivInt = function (_Value12) {
 	}
 
 	_createClass(DivInt, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -936,7 +938,7 @@ var DivInt = function (_Value12) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -964,7 +966,7 @@ var Mod = function (_Value13) {
 	}
 
 	_createClass(Mod, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -977,7 +979,7 @@ var Mod = function (_Value13) {
 			} else throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1004,7 +1006,7 @@ var Minus = function (_Value14) {
 	}
 
 	_createClass(Minus, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof NullValue) this.rtnv = v1;else if (v1 instanceof IntValue || v1 instanceof FloatValue) {
@@ -1016,7 +1018,7 @@ var Minus = function (_Value14) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0];
 			var c1 = constructor_name(v1);
@@ -1039,7 +1041,7 @@ var And = function (_Value15) {
 	}
 
 	_createClass(And, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof BooleanValue) {
@@ -1051,7 +1053,7 @@ var And = function (_Value15) {
 			} else throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1077,7 +1079,7 @@ var Or = function (_Value16) {
 	}
 
 	_createClass(Or, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof BooleanValue) {
@@ -1089,7 +1091,7 @@ var Or = function (_Value16) {
 			} else throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1115,14 +1117,14 @@ var Not = function (_Value17) {
 	}
 
 	_createClass(Not, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof BooleanValue) this.rtnv = new BooleanValue(!v1.value, this.loc);else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0];
 			var c1 = constructor_name(v1);
@@ -1149,7 +1151,7 @@ function ArrayCompare(v1, v2) {
 		for (var i = 0; i < v1.length; i++) {
 			rtnv = rtnv && ArrayCompare(v1.nthValue(i), v2.nthValue(i));
 		}
-	} else rtnv = rtnv && (typeof v1 === "undefined" ? "undefined" : _typeof(v1)) == (typeof v2 === "undefined" ? "undefined" : _typeof(v2)) && v1.value == v2.value;
+	} else rtnv = rtnv && (typeof v1 === 'undefined' ? 'undefined' : _typeof(v1)) == (typeof v2 === 'undefined' ? 'undefined' : _typeof(v2)) && v1.value == v2.value;
 	return rtnv;
 }
 
@@ -1163,7 +1165,7 @@ var EQ = function (_Value18) {
 	}
 
 	_createClass(EQ, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -1171,7 +1173,7 @@ var EQ = function (_Value18) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1196,7 +1198,7 @@ var NE = function (_Value19) {
 	}
 
 	_createClass(NE, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -1204,7 +1206,7 @@ var NE = function (_Value19) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1229,7 +1231,7 @@ var GT = function (_Value20) {
 	}
 
 	_createClass(GT, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -1238,7 +1240,7 @@ var GT = function (_Value20) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1263,7 +1265,7 @@ var GE = function (_Value21) {
 	}
 
 	_createClass(GE, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -1272,7 +1274,7 @@ var GE = function (_Value21) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1297,7 +1299,7 @@ var LT = function (_Value22) {
 	}
 
 	_createClass(LT, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -1306,7 +1308,7 @@ var LT = function (_Value22) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1331,7 +1333,7 @@ var LE = function (_Value23) {
 	}
 
 	_createClass(LE, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
@@ -1340,7 +1342,7 @@ var LE = function (_Value23) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
@@ -1365,7 +1367,7 @@ var ConvertInt = function (_Value24) {
 	}
 
 	_createClass(ConvertInt, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
 			var r = Number.NaN;
@@ -1374,7 +1376,7 @@ var ConvertInt = function (_Value24) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return '整数(' + this.value[0].getCode() + ')';
 		}
@@ -1393,7 +1395,7 @@ var ConvertFloat = function (_Value25) {
 	}
 
 	_createClass(ConvertFloat, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
 			var r = Number.NaN;
@@ -1402,7 +1404,7 @@ var ConvertFloat = function (_Value25) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return '実数(' + this.value[0].getCode() + ')';
 		}
@@ -1421,7 +1423,7 @@ var ConvertString = function (_Value26) {
 	}
 
 	_createClass(ConvertString, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
 			var r = '';
@@ -1430,7 +1432,7 @@ var ConvertString = function (_Value26) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return '文字列(' + this.value[0].getCode() + ')';
 		}
@@ -1449,7 +1451,7 @@ var ConvertBool = function (_Value27) {
 	}
 
 	_createClass(ConvertBool, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
 			var r = '';
@@ -1459,7 +1461,7 @@ var ConvertBool = function (_Value27) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return '真偽(' + this.value[0].getCode() + ')';
 		}
@@ -1484,7 +1486,7 @@ var Variable = function (_Value28) {
 	}
 
 	_createClass(Variable, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var vn = this.value[0];
 			var vt = findVarTable(vn); // 変数は定義されてるか
@@ -1498,7 +1500,7 @@ var Variable = function (_Value28) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var vn = this.value[0];
 			var pm = this.value[1];
@@ -1512,12 +1514,12 @@ var Variable = function (_Value28) {
 			return vn;
 		}
 	}, {
-		key: "varname",
+		key: 'varname',
 		get: function get() {
 			return this.value[0];
 		}
 	}, {
-		key: "args",
+		key: 'args',
 		get: function get() {
 			return this.value[1];
 		}
@@ -1551,7 +1553,7 @@ var DefinedFunction = function () {
 
 
 	_createClass(DefinedFunction, [{
-		key: "exec",
+		key: 'exec',
 		value: function exec(parameters, loc) {
 			if (this.argc instanceof Array && this.argc[0] <= parameters.length && this.argc[1] >= parameters.length || parameters.length == this.argc) return this.func(parameters, loc);
 			throw new RuntimeError(loc.first_line, "引数の個数が違います");
@@ -1729,12 +1731,12 @@ var CallFunction = function (_Value29) {
 	}
 
 	_createClass(CallFunction, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
 			if (definedFunction[func]) {
-				_get(CallFunction.prototype.__proto__ || Object.getPrototypeOf(CallFunction.prototype), "run", this).call(this);
+				_get(CallFunction.prototype.__proto__ || Object.getPrototypeOf(CallFunction.prototype), 'run', this).call(this);
 				returnValues.push(definedFunction[func].exec(param, this.loc));
 			} else if (myFuncs[func]) {
 				var index = code[0].stack[0].index;
@@ -1752,12 +1754,12 @@ var CallFunction = function (_Value29) {
 			} else throw new RuntimeError(this.first_line, '関数 ' + func + ' は定義されていません');
 		}
 	}, {
-		key: "getValue",
+		key: 'getValue',
 		value: function getValue() {
 			return returnValues.pop();
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
@@ -1781,7 +1783,7 @@ var Append = function (_Value30) {
 	}
 
 	_createClass(Append, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var v1 = void 0,
 			    v2 = void 0;
@@ -1792,7 +1794,7 @@ var Append = function (_Value30) {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			return this.value[0].getCode() + " と " + this.value[1].getCode();
 		}
@@ -1818,22 +1820,22 @@ var Statement = function () {
 	}
 
 	_createClass(Statement, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			code[0].stack[0].index++;
 		}
 	}, {
-		key: "first_line",
+		key: 'first_line',
 		get: function get() {
 			return this._loc.first_line;
 		}
 	}, {
-		key: "last_line",
+		key: 'last_line',
 		get: function get() {
 			return this._loc.last_line;
 		}
 	}, {
-		key: "loc",
+		key: 'loc',
 		get: function get() {
 			return this._loc;
 		}
@@ -1884,7 +1886,7 @@ var afterCallStep = function () {
 	}
 
 	_createClass(afterCallStep, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			varTables.shift();
 			code.shift();
@@ -1913,7 +1915,7 @@ var CallStep = function (_Statement2) {
 	}
 
 	_createClass(CallStep, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			code[0].stack[0].index++;
 			var fn = this.funcName;
@@ -1944,7 +1946,7 @@ var ExitStatement = function (_Statement3) {
 	}
 
 	_createClass(ExitStatement, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (code[0] instanceof parsedStep) {
 				//			code[0].stack[0].index = -1;
@@ -1974,9 +1976,9 @@ var DefineFunction = function (_Statement4) {
 	}
 
 	_createClass(DefineFunction, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(DefineFunction.prototype.__proto__ || Object.getPrototypeOf(DefineFunction.prototype), "run", this).call(this);
+			_get(DefineFunction.prototype.__proto__ || Object.getPrototypeOf(DefineFunction.prototype), 'run', this).call(this);
 		}
 	}]);
 
@@ -2001,7 +2003,7 @@ var ReturnStatement = function (_Statement5) {
 	}
 
 	_createClass(ReturnStatement, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (code[0] instanceof parsedFunction) {
 				//			this.value.getValue().run();
@@ -2026,7 +2028,7 @@ var notReturnedFunction = function (_Statement6) {
 	}
 
 	_createClass(notReturnedFunction, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			throw new RuntimeError(this.last_line, "関数が値を返さずに終了しました");
 		}
@@ -2045,7 +2047,7 @@ var DumpStatement = function (_Statement7) {
 	}
 
 	_createClass(DumpStatement, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			textareaAppend("*** 変数確認 ***\n");
 			var vars = varTables[0].varnames([]);
@@ -2055,7 +2057,7 @@ var DumpStatement = function (_Statement7) {
 				var _v11 = vartable.vars[vars[i]];
 				textareaAppend(vars[i] + ":" + array2code(_v11) + "\n");
 			}
-			_get(DumpStatement.prototype.__proto__ || Object.getPrototypeOf(DumpStatement.prototype), "run", this).call(this);
+			_get(DumpStatement.prototype.__proto__ || Object.getPrototypeOf(DumpStatement.prototype), 'run', this).call(this);
 		}
 	}]);
 
@@ -2103,9 +2105,9 @@ var runBeforeGetValue = function (_Statement8) {
 	}
 
 	_createClass(runBeforeGetValue, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(runBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runBeforeGetValue.prototype), "run", this).call(this);
+			_get(runBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runBeforeGetValue.prototype), 'run', this).call(this);
 			var queue = [];
 			valuelist2stack(this.args, queue);
 			code[0].stack.unshift({ statementlist: queue, index: 0 });
@@ -2133,9 +2135,9 @@ var runArgsBeforeGetValue = function (_Statement9) {
 	}
 
 	_createClass(runArgsBeforeGetValue, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(runArgsBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue.prototype), "run", this).call(this);
+			_get(runArgsBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue.prototype), 'run', this).call(this);
 			var queue = [];
 			for (var i = 0; i < this.args.length; i++) {
 				if (this.args[i].parameter) valuelist2stack(this.args[i].parameter, queue);
@@ -2163,7 +2165,7 @@ var DefinitionStatement = function (_Statement10) {
 	}
 
 	_createClass(DefinitionStatement, [{
-		key: "getCode",
+		key: 'getCode',
 		value: function getCode() {
 			var ag = [];
 			for (var i = 0; i < this.vars.length; i++) {
@@ -2197,9 +2199,9 @@ var DefinitionInt = function (_DefinitionStatement) {
 	}
 
 	_createClass(DefinitionInt, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(DefinitionInt.prototype.__proto__ || Object.getPrototypeOf(DefinitionInt.prototype), "run", this).call(this);
+			_get(DefinitionInt.prototype.__proto__ || Object.getPrototypeOf(DefinitionInt.prototype), 'run', this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -2228,9 +2230,9 @@ var DefinitionFloat = function (_DefinitionStatement2) {
 	}
 
 	_createClass(DefinitionFloat, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(DefinitionFloat.prototype.__proto__ || Object.getPrototypeOf(DefinitionFloat.prototype), "run", this).call(this);
+			_get(DefinitionFloat.prototype.__proto__ || Object.getPrototypeOf(DefinitionFloat.prototype), 'run', this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -2259,9 +2261,9 @@ var DefinitionString = function (_DefinitionStatement3) {
 	}
 
 	_createClass(DefinitionString, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(DefinitionString.prototype.__proto__ || Object.getPrototypeOf(DefinitionString.prototype), "run", this).call(this);
+			_get(DefinitionString.prototype.__proto__ || Object.getPrototypeOf(DefinitionString.prototype), 'run', this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -2290,9 +2292,9 @@ var DefinitionBoolean = function (_DefinitionStatement4) {
 	}
 
 	_createClass(DefinitionBoolean, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(DefinitionBoolean.prototype.__proto__ || Object.getPrototypeOf(DefinitionBoolean.prototype), "run", this).call(this);
+			_get(DefinitionBoolean.prototype.__proto__ || Object.getPrototypeOf(DefinitionBoolean.prototype), 'run', this).call(this);
 			for (var i = 0; i < this.vars.length; i++) {
 				for (var i = 0; i < this.vars.length; i++) {
 					if (this.vars[i] instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -2347,7 +2349,7 @@ var Assign = function (_Statement11) {
 	}
 
 	_createClass(Assign, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 
@@ -2407,22 +2409,23 @@ var Assign = function (_Statement11) {
 var Input = function (_Statement12) {
 	_inherits(Input, _Statement12);
 
-	function Input(x, loc) {
+	function Input(x, type, loc) {
 		_classCallCheck(this, Input);
 
 		var _this49 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
 
 		_this49.varname = x;
+		_this49.type = type;
 		return _this49;
 	}
 
 	_createClass(Input, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (selected_quiz < 0) // 通常時
 				{
 					if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-					var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
+					var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.type, this.loc)];
 					code.unshift(new parsedCode(list));
 				} else // 自動採点時
 				{
@@ -2432,10 +2435,9 @@ var Input = function (_Statement12) {
 						var va = new Variable(this.varname.varname, this.varname.args, this.loc);
 						var vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
 						va.run();
-						var v0 = va.getValue();
 						var assign = null;
 						var re = /真|true/i;
-						if (v0 instanceof IntValue) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (v0 instanceof FloatValue) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);else if (v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
 						assign.run();
 						code[0].stack[0].index = index + 1;
 					} else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
@@ -2460,10 +2462,10 @@ var InputBegin = function (_Statement13) {
 	}
 
 	_createClass(InputBegin, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			openInputWindow();
-			_get(InputBegin.prototype.__proto__ || Object.getPrototypeOf(InputBegin.prototype), "run", this).call(this);
+			_get(InputBegin.prototype.__proto__ || Object.getPrototypeOf(InputBegin.prototype), 'run', this).call(this);
 		}
 	}]);
 
@@ -2475,20 +2477,22 @@ var InputEnd = function (_Statement14) {
 
 	/**
   * @constructor
-  * @param {Variable} x 
+  * @param {Variable} x
+  * @param {typeOfValue} type 
   * @param {Location} loc 
   */
-	function InputEnd(x, loc) {
+	function InputEnd(x, type, loc) {
 		_classCallCheck(this, InputEnd);
 
 		var _this51 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
 
 		_this51.varname = x;
+		_this51.type = type;
 		return _this51;
 	}
 
 	_createClass(InputEnd, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			try {
@@ -2500,7 +2504,7 @@ var InputEnd = function (_Statement14) {
 				var re = /真|true/i;
 				code.shift();
 				var index = code[0].stack[0].index;
-				if (v0 instanceof IntValue) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (v0 instanceof FloatValue) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);else if (v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
 				assign.run();
 				code[0].stack[0].index = index + 1;
 			} catch (e) {
@@ -2524,14 +2528,14 @@ var Newline = function (_Statement15) {
 	}
 
 	_createClass(Newline, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (selected_quiz < 0) {
 				textareaAppend("\n");
 			} else {
 				output_str += "\n";
 			}
-			_get(Newline.prototype.__proto__ || Object.getPrototypeOf(Newline.prototype), "run", this).call(this);
+			_get(Newline.prototype.__proto__ || Object.getPrototypeOf(Newline.prototype), 'run', this).call(this);
 		}
 	}]);
 
@@ -2558,7 +2562,7 @@ var Output = function (_Statement16) {
 	}
 
 	_createClass(Output, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var index = code[0].stack[0].index;
 			//this.value.run();
@@ -2583,8 +2587,7 @@ function array2text(v) {
 		for (var i = 0; i < v0.value.length; i++) {
 			v1.push(array2text(v0.nthValue(i)));
 		}return '[' + v1.join(',') + ']';
-	}
-	return v0.value;
+	} else if (v0 instanceof FloatValue && isInteger(v0.value)) return v0.value + '.0';else return v0.value;
 }
 
 function array2code(v) {
@@ -2613,9 +2616,9 @@ var GraphicStatement = function (_Statement17) {
 	}
 
 	_createClass(GraphicStatement, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(GraphicStatement.prototype.__proto__ || Object.getPrototypeOf(GraphicStatement.prototype), "run", this).call(this);
+			_get(GraphicStatement.prototype.__proto__ || Object.getPrototypeOf(GraphicStatement.prototype), 'run', this).call(this);
 			if (this.command == 'gOpenWindow') {
 				var canvas = document.getElementById('canvas');
 				context = canvas.getContext('2d');
@@ -2716,9 +2719,9 @@ var If = function (_Statement18) {
 	}
 
 	_createClass(If, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(If.prototype.__proto__ || Object.getPrototypeOf(If.prototype), "run", this).call(this);
+			_get(If.prototype.__proto__ || Object.getPrototypeOf(If.prototype), 'run', this).call(this);
 			if (this.condition.getValue() instanceof BooleanValue) {
 				if (this.condition.getValue().value) code[0].stack.unshift({ statementlist: this.state1, index: 0 });else if (this.state2 != null) code[0].stack.unshift({ statementlist: this.state2, index: 0 });
 			} else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
@@ -2748,9 +2751,9 @@ var LoopBegin = function (_Statement19) {
 	}
 
 	_createClass(LoopBegin, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			if (this.condition == null || this.condition.getValue().value == this.continuous) _get(LoopBegin.prototype.__proto__ || Object.getPrototypeOf(LoopBegin.prototype), "run", this).call(this);else code[0].stack[0].index = -1;
+			if (this.condition == null || this.condition.getValue().value == this.continuous) _get(LoopBegin.prototype.__proto__ || Object.getPrototypeOf(LoopBegin.prototype), 'run', this).call(this);else code[0].stack[0].index = -1;
 		}
 	}]);
 
@@ -2777,7 +2780,7 @@ var LoopEnd = function (_Statement20) {
 	}
 
 	_createClass(LoopEnd, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (this.condition == null || this.condition.getValue().value == this.continuous) code[0].stack[0].index = 0;else code[0].stack[0].index = -1;
 		}
@@ -2817,7 +2820,7 @@ var ForInc = function (_Statement21) {
 	}
 
 	_createClass(ForInc, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			var index = code[0].stack[0].index;
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -2875,7 +2878,7 @@ var ForDec = function (_Statement22) {
 	}
 
 	_createClass(ForDec, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
@@ -2908,7 +2911,7 @@ var ForDec = function (_Statement22) {
 				loop.push(new LoopEnd(null, true, last_loc));
 				code[0].stack.unshift({ statementlist: loop, index: 0 });
 			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
-			_get(ForDec.prototype.__proto__ || Object.getPrototypeOf(ForDec.prototype), "run", this).call(this);
+			_get(ForDec.prototype.__proto__ || Object.getPrototypeOf(ForDec.prototype), 'run', this).call(this);
 		}
 	}]);
 
@@ -2929,9 +2932,9 @@ var Until = function (_Statement23) {
 	}
 
 	_createClass(Until, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(Until.prototype.__proto__ || Object.getPrototypeOf(Until.prototype), "run", this).call(this);
+			_get(Until.prototype.__proto__ || Object.getPrototypeOf(Until.prototype), 'run', this).call(this);
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new LoopBegin(null, true, this.loc)];
 			for (var i = 0; i < this.statementlist.length; i++) {
@@ -2959,9 +2962,9 @@ var While = function (_Statement24) {
 	}
 
 	_createClass(While, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
-			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), "run", this).call(this);
+			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), 'run', this).call(this);
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new runBeforeGetValue([this.condition], this.loc), new LoopBegin(this.condition, true, this.loc)];
 			for (var i = 0; i < this.statementlist.length; i++) {
@@ -2987,10 +2990,10 @@ var SleepStatement = function (_Statement25) {
 	}
 
 	_createClass(SleepStatement, [{
-		key: "run",
+		key: 'run',
 		value: function run() {
 			wait_time = this.sec.value;
-			_get(SleepStatement.prototype.__proto__ || Object.getPrototypeOf(SleepStatement.prototype), "run", this).call(this);
+			_get(SleepStatement.prototype.__proto__ || Object.getPrototypeOf(SleepStatement.prototype), 'run', this).call(this);
 		}
 	}]);
 
@@ -3326,12 +3329,12 @@ var point = function () {
 	}
 
 	_createClass(point, [{
-		key: "clone",
+		key: 'clone',
 		value: function clone() {
 			var p = new point();p.x = this.x;p.y = this.y;return p;
 		}
 	}, {
-		key: "x",
+		key: 'x',
 		get: function get() {
 			return this._x;
 		},
@@ -3339,7 +3342,7 @@ var point = function () {
 			this._x = v;
 		}
 	}, {
-		key: "y",
+		key: 'y',
 		get: function get() {
 			return this._y;
 		},
@@ -3500,17 +3503,17 @@ var Flowchart = function () {
 	}
 
 	_createClass(Flowchart, [{
-		key: "setOrigin",
+		key: 'setOrigin',
 		value: function setOrigin(x, y) {
 			this._x0 = x;this._y0 = y;
 		}
 	}, {
-		key: "moveOrigin",
+		key: 'moveOrigin',
 		value: function moveOrigin(x, y) {
 			this._x0 += x;this._y0 += y;
 		}
 	}, {
-		key: "makeEmpty",
+		key: 'makeEmpty',
 		value: function makeEmpty() {
 			this.setOrigin(this.canvas.width / 2, FlowchartSetting.size);
 			this.top = new Parts_Terminal();
@@ -3526,14 +3529,14 @@ var Flowchart = function () {
 			document.getElementById("variable_bool").value = '';
 		}
 	}, {
-		key: "code2flowchart",
+		key: 'code2flowchart',
 		value: function code2flowchart(parse) {
 			flowchart.makeEmpty();
 			Flowchart.appendParts(this.top.next, parse);
 			flowchart.paint();
 		}
 	}, {
-		key: "flowchart2code",
+		key: 'flowchart2code',
 		value: function flowchart2code() {
 			if (!flowchart_display) return;
 			var code = '';
@@ -3546,7 +3549,7 @@ var Flowchart = function () {
 			$('#sourceTextarea').focus();
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint() {
 			if (!flowchart_display) return;
 
@@ -3565,32 +3568,32 @@ var Flowchart = function () {
 			this.top.paint({ x: this.x0, y: this.y0 });
 		}
 	}, {
-		key: "findParts",
+		key: 'findParts',
 		value: function findParts(x, y) {
 			return this.top.findParts(x, y);
 		}
 	}, {
-		key: "x0",
+		key: 'x0',
 		get: function get() {
 			return this._x0;
 		}
 	}, {
-		key: "y0",
+		key: 'y0',
 		get: function get() {
 			return this._y0;
 		}
 	}, {
-		key: "canvas",
+		key: 'canvas',
 		get: function get() {
 			return this._canvas;
 		}
 	}, {
-		key: "context",
+		key: 'context',
 		get: function get() {
 			return this._context;
 		}
 	}], [{
-		key: "appendParts",
+		key: 'appendParts',
 		value: function appendParts(parts, statementlist) {
 			for (var i = 0; i < statementlist.length; i++) {
 				var p = statementlist[i];
@@ -3613,7 +3616,7 @@ var Flowchart = function () {
 				} else if (statement == "Input") {
 					var p1 = new Parts_Input();
 					var b1 = new Parts_Bar();
-					p1.setValue(p.varname.getCode());
+					p1.setValue(p.varname.getCode(), p.type);
 					parts.next = p1;
 					parts = p1.next = b1;
 				} else if (statement == "Output") {
@@ -3714,12 +3717,12 @@ var Parts = function () {
 	}
 
 	_createClass(Parts, [{
-		key: "inside",
+		key: 'inside',
 		value: function inside(x, y) {
 			return this.x1 <= x && x <= this.x2 && this.y1 <= y && y <= this.y2;
 		}
 	}, {
-		key: "findParts",
+		key: 'findParts',
 		value: function findParts(x, y) {
 			var p = this;
 			while (p != null && !(p instanceof Parts_Null)) {
@@ -3736,13 +3739,13 @@ var Parts = function () {
 			return null;
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			if (this.next != null) return this.next.paint(position);
 			return this;
 		}
 	}, {
-		key: "calcTextsize",
+		key: 'calcTextsize',
 		value: function calcTextsize() {
 			if (this.text != null && this.text != "") {
 				var size = FlowchartSetting.size;
@@ -3757,22 +3760,22 @@ var Parts = function () {
 			}
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			if (this.next == null || this.isBlockEnd) return this;
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			if (this.next != null) return this.next.appendCode(code, indent);
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {}
 	}, {
-		key: "deleteMe",
+		key: 'deleteMe',
 		value: function deleteMe() {
 			this.prev._next = this.end.next.next;
 			this.end.next.next._prev = this.prev;
@@ -3780,10 +3783,10 @@ var Parts = function () {
 			this._next = null;
 		}
 	}, {
-		key: "cutMe",
+		key: 'cutMe',
 		value: function cutMe() {}
 	}, {
-		key: "paint_highlight",
+		key: 'paint_highlight',
 		value: function paint_highlight() {
 			flowchart.context.strokeStyle = "rgb(255,0,0)";
 			flowchart.context.fillStyle = "rgb(255,0,0)";
@@ -3793,23 +3796,23 @@ var Parts = function () {
 			flowchart.context.fillStyle = "rgb(0,0,0)";
 		}
 	}, {
-		key: "paint_unhighlight",
+		key: 'paint_unhighlight',
 		value: function paint_unhighlight() {
 			flowchart.context.clearRect(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
 			this.paint(null);
 		}
 	}, {
-		key: "highlight",
+		key: 'highlight',
 		value: function highlight() {
 			this.paint_highlight();
 		}
 	}, {
-		key: "unhighlight",
+		key: 'unhighlight',
 		value: function unhighlight() {
 			this.paint_unhighlight();
 		}
 	}, {
-		key: "x1",
+		key: 'x1',
 		get: function get() {
 			return this._x1;
 		},
@@ -3818,7 +3821,7 @@ var Parts = function () {
 		} // paintで計算する
 
 	}, {
-		key: "y1",
+		key: 'y1',
 		get: function get() {
 			return this._y1;
 		},
@@ -3826,7 +3829,7 @@ var Parts = function () {
 			this._y1 = y;
 		}
 	}, {
-		key: "x2",
+		key: 'x2',
 		get: function get() {
 			return this._x2;
 		},
@@ -3834,7 +3837,7 @@ var Parts = function () {
 			this._x2 = x;
 		}
 	}, {
-		key: "y2",
+		key: 'y2',
 		get: function get() {
 			return this._y2;
 		},
@@ -3842,12 +3845,12 @@ var Parts = function () {
 			this._y2 = y;
 		}
 	}, {
-		key: "text",
+		key: 'text',
 		get: function get() {
 			return this._text;
 		}
 	}, {
-		key: "next",
+		key: 'next',
 		get: function get() {
 			return this._next;
 		},
@@ -3858,60 +3861,60 @@ var Parts = function () {
 			this._next = p;
 		}
 	}, {
-		key: "prev",
+		key: 'prev',
 		get: function get() {
 			return this._prev;
 		}
 	}, {
-		key: "end",
+		key: 'end',
 		get: function get() {
 			return this;
 		} // ブロックの終わりのパーツ
 
 	}, {
-		key: "width",
+		key: 'width',
 		get: function get() {
 			return this._width;
 		} // calcSizeで計算する
 
 	}, {
-		key: "height",
+		key: 'height',
 		get: function get() {
 			return this._height;
 		} // calcSizeで計算する
 
 	}, {
-		key: "textWidth",
+		key: 'textWidth',
 		get: function get() {
 			return this._textwidth;
 		} // calcSizeで計算する
 
 	}, {
-		key: "textHeight",
+		key: 'textHeight',
 		get: function get() {
 			return this._textheight;
 		} // calcSizeで計算する
 
 	}, {
-		key: "hspace",
+		key: 'hspace',
 		get: function get() {
 			return this._hspace;
 		}
 	}, {
-		key: "hspace2",
+		key: 'hspace2',
 		get: function get() {
 			return this._hspace2;
 		}
 	}, {
-		key: "isBlockEnd",
+		key: 'isBlockEnd',
 		get: function get() {
 			return false;
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {}
 	}, {
-		key: "makeIndent",
+		key: 'makeIndent',
 		value: function makeIndent(indent_level) {
 			var s = "";
 			for (var i = 0; i < indent_level; i++) {
@@ -3933,7 +3936,7 @@ var Parts_Null = function (_Parts) {
 	}
 
 	_createClass(Parts_Null, [{
-		key: "isBlockEnd",
+		key: 'isBlockEnd',
 		get: function get() {
 			return true;
 		}
@@ -3952,7 +3955,7 @@ var Parts_Bar = function (_Parts2) {
 	}
 
 	_createClass(Parts_Bar, [{
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this._width = 0;
 			this._height = FlowchartSetting.size * 3;
@@ -3961,13 +3964,13 @@ var Parts_Bar = function (_Parts2) {
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "inside",
+		key: 'inside',
 		value: function inside(x, y) {
 			var near = 4;
 			return this.x1 - near <= x && x <= this.x2 + near && this.y1 <= y && y <= this.y2;
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			if (position != null) {
 				this.x1 = this.x2 = position.x;
@@ -3999,7 +4002,7 @@ var Parts_Terminal = function (_Parts3) {
 	}
 
 	_createClass(Parts_Terminal, [{
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			this._height = this._textheight + FlowchartSetting.size * 2;
@@ -4015,12 +4018,12 @@ var Parts_Terminal = function (_Parts3) {
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(v) {
 			this._text = v;
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -4069,13 +4072,13 @@ var Parts_Output = function (_Parts4) {
 	}
 
 	_createClass(Parts_Output, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(v, nl) {
 			this._text = v;
 			this._newline = nl;
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -4091,7 +4094,7 @@ var Parts_Output = function (_Parts4) {
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -4139,7 +4142,7 @@ var Parts_Output = function (_Parts4) {
 			return this;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			if (this.text == '改行') code += '改行する\n';else code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
@@ -4147,14 +4150,14 @@ var Parts_Output = function (_Parts4) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			var subtitle = ["値", "改行"];
 			var values = [this.text, this.newline];
 			openModalWindowforOutput("出力の編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
 				this.setValue(values[0], values[1]);
@@ -4163,12 +4166,12 @@ var Parts_Output = function (_Parts4) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "newline",
+		key: 'newline',
 		get: function get() {
 			return this._newline;
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_Output();
 			bar.next = parts;
@@ -4188,18 +4191,20 @@ var Parts_Input = function (_Parts5) {
 
 		var _this67 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
 
-		_this67.setValue("《変数》");
+		_this67.setValue("《変数》", 0);
 		return _this67;
 	}
 
 	_createClass(Parts_Input, [{
-		key: "setValue",
-		value: function setValue(v) {
+		key: 'setValue',
+		value: function setValue(v, type) {
 			this._var = v;
+			this.type = type;
 			this._text = v + "を入力";
+			if (this.type > 0) this._text += "（" + nameOfType[this.type] + "）";
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -4216,7 +4221,7 @@ var Parts_Input = function (_Parts5) {
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -4241,36 +4246,38 @@ var Parts_Input = function (_Parts5) {
 			return this;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + "を入力する\n";
+			code += this.var;
+			if (this.type > 0) code += "に" + nameOfType[this.type];
+			code += "を入力する\n";
 			if (this.next != null) return this.next.appendCode(code, indent);
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
-			var subtitle = ["変数"];
-			var values = [this.var];
-			openModalWindow("入力の編集", subtitle, values, this);
+			var subtitle = ["変数", "型"];
+			var values = [this.var, this.type];
+			openModalWindowforInput("入力の編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
-				this.setValue(values[0]);
+				this.setValue(values[0], values[1]);
 			}
 			flowchart.paint();
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "var",
+		key: 'var',
 		get: function get() {
 			return this._var;
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_Input();
 			bar.next = parts;
@@ -4295,7 +4302,7 @@ var Parts_Substitute = function (_Parts6) {
 	}
 
 	_createClass(Parts_Substitute, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(variable, value) {
 			this._var = variable;
 			this._val = value;
@@ -4303,7 +4310,7 @@ var Parts_Substitute = function (_Parts6) {
 			this._text = this._var + "←" + this._val;
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -4320,7 +4327,7 @@ var Parts_Substitute = function (_Parts6) {
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -4346,7 +4353,7 @@ var Parts_Substitute = function (_Parts6) {
 			return this;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			code += this.var + "←" + this.val + "\n";
@@ -4354,14 +4361,14 @@ var Parts_Substitute = function (_Parts6) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			var subtitle = ["変数", "値"];
 			var values = [this.var, this.val];
 			openModalWindow("代入の編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
 				this.setValue(values[0], values[1]);
@@ -4370,17 +4377,17 @@ var Parts_Substitute = function (_Parts6) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "var",
+		key: 'var',
 		get: function get() {
 			return this._var;
 		}
 	}, {
-		key: "val",
+		key: 'val',
 		get: function get() {
 			return this._val;
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_Substitute();
 			bar.next = parts;
@@ -4407,13 +4414,13 @@ var Parts_If = function (_Parts7) {
 	}
 
 	_createClass(Parts_If, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(cond) {
 			this._cond = cond;
 			this._text = this._cond;
 		}
 	}, {
-		key: "calcTextsize",
+		key: 'calcTextsize',
 		value: function calcTextsize() {
 			if (this.text != null && this.text != "") {
 				var size = FlowchartSetting.size;
@@ -4428,7 +4435,7 @@ var Parts_If = function (_Parts7) {
 			}
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -4473,7 +4480,7 @@ var Parts_If = function (_Parts7) {
 			return this.end.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -4536,7 +4543,7 @@ var Parts_If = function (_Parts7) {
 			return this.end.next;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			code += "もし" + this.condition + "ならば：\n";
@@ -4550,14 +4557,14 @@ var Parts_If = function (_Parts7) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			var subtitle = ["条件"];
 			var values = [this.condition];
 			openModalWindow("分岐の編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
 				this.setValue(values[0]);
@@ -4566,17 +4573,17 @@ var Parts_If = function (_Parts7) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "condition",
+		key: 'condition',
 		get: function get() {
 			return this._cond;
 		}
 	}, {
-		key: "end",
+		key: 'end',
 		get: function get() {
 			return this.next;
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_If();
 			bar.next = parts;
@@ -4606,7 +4613,7 @@ var Parts_LoopBegin = function (_Parts8) {
 	}
 
 	_createClass(Parts_LoopBegin, [{
-		key: "calcTextsize",
+		key: 'calcTextsize',
 		value: function calcTextsize() {
 			if (this.hasText) {
 				var size = FlowchartSetting.size;
@@ -4626,7 +4633,7 @@ var Parts_LoopBegin = function (_Parts8) {
 			}
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -4647,7 +4654,7 @@ var Parts_LoopBegin = function (_Parts8) {
 			return this.end.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -4678,7 +4685,7 @@ var Parts_LoopBegin = function (_Parts8) {
 			return this;
 		}
 	}, {
-		key: "deleteMe",
+		key: 'deleteMe',
 		value: function deleteMe() {
 			this.prev._next = this.end.next.next;
 			this.end.next.next._prev = this.prev;
@@ -4686,24 +4693,24 @@ var Parts_LoopBegin = function (_Parts8) {
 			this._next = null;
 		}
 	}, {
-		key: "highlight",
+		key: 'highlight',
 		value: function highlight() {
 			this.paint_highlight();
 			this.end.paint_highlight();
 		}
 	}, {
-		key: "unhighlight",
+		key: 'unhighlight',
 		value: function unhighlight() {
 			this.paint_unhighlight();
 			this.end.paint_unhighlight();
 		}
 	}, {
-		key: "hasText",
+		key: 'hasText',
 		get: function get() {
 			return false;
 		}
 	}, {
-		key: "end",
+		key: 'end',
 		get: function get() {
 			return this._end;
 		}
@@ -4716,7 +4723,7 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	_inherits(Parts_LoopBegin1, _Parts_LoopBegin);
 
 	_createClass(Parts_LoopBegin1, [{
-		key: "hasText",
+		key: 'hasText',
 		get: function get() {
 			return true;
 		}
@@ -4732,13 +4739,13 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	}
 
 	_createClass(Parts_LoopBegin1, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(cond) {
 			this._cond = cond;
 			this._text = this._cond;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			code += this.condition + " の間繰り返す：\n";
@@ -4749,14 +4756,14 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			var subtitle = ["条件（〜の間）"];
 			var values = [this.condition];
 			openModalWindow("繰り返しの編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
 				this.setValue(values[0]);
@@ -4765,17 +4772,17 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "condition",
+		key: 'condition',
 		get: function get() {
 			return this._cond;
 		}
 	}, {
-		key: "text2",
+		key: 'text2',
 		get: function get() {
 			return "の間";
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_LoopBegin1();
 			bar.next = parts;
@@ -4796,7 +4803,7 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 	_inherits(Parts_LoopBeginInc, _Parts_LoopBegin2);
 
 	_createClass(Parts_LoopBeginInc, [{
-		key: "hasText",
+		key: 'hasText',
 		get: function get() {
 			return true;
 		}
@@ -4812,7 +4819,7 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(variable, start, goal, step) {
 			this._var = variable;
 			this._start = start;
@@ -4821,7 +4828,7 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 			this._text = this.var + ':' + this.start + "→" + this.goal;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら繰り返す：\n";
@@ -4832,14 +4839,14 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			var subtitle = ["変数", "〜から", "〜まで", "増加分"];
 			var values = [this.var, this.start, this.goal, this.step];
 			openModalWindow("繰り返しの編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
 				this.setValue(values[0], values[1], values[2], values[3]);
@@ -4848,32 +4855,32 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "var",
+		key: 'var',
 		get: function get() {
 			return this._var;
 		}
 	}, {
-		key: "start",
+		key: 'start',
 		get: function get() {
 			return this._start;
 		}
 	}, {
-		key: "goal",
+		key: 'goal',
 		get: function get() {
 			return this._goal;
 		}
 	}, {
-		key: "step",
+		key: 'step',
 		get: function get() {
 			return this._step;
 		}
 	}, {
-		key: "text2",
+		key: 'text2',
 		get: function get() {
 			return this.step + "ずつ増";
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_LoopBeginInc();
 			bar.next = parts;
@@ -4894,7 +4901,7 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 	_inherits(Parts_LoopBeginDec, _Parts_LoopBegin3);
 
 	_createClass(Parts_LoopBeginDec, [{
-		key: "hasText",
+		key: 'hasText',
 		get: function get() {
 			return true;
 		}
@@ -4910,7 +4917,7 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(variable, start, goal, step) {
 			this._var = variable;
 			this._start = start;
@@ -4919,7 +4926,7 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 			this._text = this.var + ':' + this.start + "→" + this.goal;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら繰り返す：\n";
@@ -4930,14 +4937,14 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			var subtitle = ["変数", "〜から", "〜まで", "減少分"];
 			var values = [this.var, this.start, this.goal, this.step];
 			openModalWindow("繰り返しの編集", subtitle, values, this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(values) {
 			if (values != null) {
 				this.setValue(values[0], values[1], values[2], values[3]);
@@ -4946,32 +4953,32 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "var",
+		key: 'var',
 		get: function get() {
 			return this._var;
 		}
 	}, {
-		key: "start",
+		key: 'start',
 		get: function get() {
 			return this._start;
 		}
 	}, {
-		key: "goal",
+		key: 'goal',
 		get: function get() {
 			return this._goal;
 		}
 	}, {
-		key: "step",
+		key: 'step',
 		get: function get() {
 			return this._step;
 		}
 	}, {
-		key: "text2",
+		key: 'text2',
 		get: function get() {
 			return this.step + "ずつ減";
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_LoopBeginDec();
 			bar.next = parts;
@@ -4998,12 +5005,12 @@ var Parts_LoopEnd = function (_Parts9) {
 	}
 
 	_createClass(Parts_LoopEnd, [{
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			this.begin.editMe();
 		}
 	}, {
-		key: "calcTextsize",
+		key: 'calcTextsize',
 		value: function calcTextsize() {
 			if (this.hasText) {
 				var size = FlowchartSetting.size;
@@ -5023,7 +5030,7 @@ var Parts_LoopEnd = function (_Parts9) {
 			}
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -5040,7 +5047,7 @@ var Parts_LoopEnd = function (_Parts9) {
 			return this; // isBlockEnd is true.
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -5069,50 +5076,50 @@ var Parts_LoopEnd = function (_Parts9) {
 			return this;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			//		this.highlight();
 			this.begin.editMe();
 		}
 	}, {
-		key: "deleteMe",
+		key: 'deleteMe',
 		value: function deleteMe() {
 			this.begin.deleteMe();
 		}
 	}, {
-		key: "cutMe",
+		key: 'cutMe',
 		value: function cutMe() {
 			this.begin.cutMe();
 		}
 	}, {
-		key: "highlight",
+		key: 'highlight',
 		value: function highlight() {
 			this.paint_highlight();
 			this.begin.paint_highlight();
 		}
 	}, {
-		key: "unhighlight",
+		key: 'unhighlight',
 		value: function unhighlight() {
 			this.paint_unhighlight();
 			this.begin.paint_unhighlight();
 		}
 	}, {
-		key: "hasText",
+		key: 'hasText',
 		get: function get() {
 			return false;
 		}
 	}, {
-		key: "begin",
+		key: 'begin',
 		get: function get() {
 			return this._begin;
 		}
 	}, {
-		key: "isBlockEnd",
+		key: 'isBlockEnd',
 		get: function get() {
 			return true;
 		}
@@ -5138,7 +5145,7 @@ var Parts_Misc = function (_Parts10) {
 	}
 
 	_createClass(Parts_Misc, [{
-		key: "setValue",
+		key: 'setValue',
 		value: function setValue(identifier, values) {
 			this._identifier = identifier;
 			this._values = [];
@@ -5155,7 +5162,7 @@ var Parts_Misc = function (_Parts10) {
 			}
 		}
 	}, {
-		key: "setValuebyText",
+		key: 'setValuebyText',
 		value: function setValuebyText(identifier, values) {
 			this._identifier = identifier;
 			this._values = [];
@@ -5172,7 +5179,7 @@ var Parts_Misc = function (_Parts10) {
 			}
 		}
 	}, {
-		key: "calcSize",
+		key: 'calcSize',
 		value: function calcSize(p0, p1, p2) {
 			this.calcTextsize(); // textWidth, textHeightの計算
 			var size = FlowchartSetting.size;
@@ -5189,7 +5196,7 @@ var Parts_Misc = function (_Parts10) {
 			return this.next.calcSize(p0, p1, p2);
 		}
 	}, {
-		key: "paint",
+		key: 'paint',
 		value: function paint(position) {
 			var size = FlowchartSetting.size;
 			if (position != null) {
@@ -5215,7 +5222,7 @@ var Parts_Misc = function (_Parts10) {
 			return this;
 		}
 	}, {
-		key: "appendCode",
+		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
 			code += this.text + "\n";
@@ -5223,12 +5230,12 @@ var Parts_Misc = function (_Parts10) {
 			return code;
 		}
 	}, {
-		key: "editMe",
+		key: 'editMe',
 		value: function editMe() {
 			openModalWindowforMisc(this);
 		}
 	}, {
-		key: "edited",
+		key: 'edited',
 		value: function edited(identifier, values) {
 			if (values != null) {
 				this.setValuebyText(identifier, values);
@@ -5237,17 +5244,17 @@ var Parts_Misc = function (_Parts10) {
 			flowchart.flowchart2code();
 		}
 	}, {
-		key: "identifier",
+		key: 'identifier',
 		get: function get() {
 			return this._identifier;
 		}
 	}, {
-		key: "values",
+		key: 'values',
 		get: function get() {
 			return this._values;
 		}
 	}], [{
-		key: "appendMe",
+		key: 'appendMe',
 		value: function appendMe(bar) {
 			var parts = new Parts_Misc();
 			bar.next = parts;
@@ -5277,6 +5284,28 @@ function openModalWindow(title, subtitle, values, parts) {
 	modal_parts.highlight();
 	$("#input").html(html);
 	$("#input").height(100 + subtitle.length * 30);
+	$("#input-overlay").fadeIn();
+	$("#input").fadeIn();
+	$("#inputarea0").focus();
+}
+
+function openModalWindowforInput(title, subtitle, values, parts) {
+	var html = "<p>" + title + "</p>";
+	modal_subtitle = subtitle;
+	modal_values = values;
+	modal_parts = parts;
+	html += "<table>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0] + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[1] + "</td><td><select id=\"inputarea1\">";
+	for (var i = typeOfValue.typeInt; i <= typeOfValue.typeBoolean; i++) {
+		html += "<option value=\"" + i + "\"" + (i == values[1] ? "selected=\"selected\"" : "") + ">" + nameOfType[i] + "</option>";
+	}html += "</td></tr>";
+	html += "</table>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow(true);\">OK</button>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
+	modal_parts.highlight();
+	$("#input").html(html);
+	$("#input").height(100 + subtitle.length * 40);
 	$("#input-overlay").fadeIn();
 	$("#input").fadeIn();
 	$("#inputarea0").focus();

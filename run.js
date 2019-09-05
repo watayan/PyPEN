@@ -11,6 +11,8 @@ const typeOfValue=
 	typeArray:5
 };
 
+const nameOfType=['','整数','実数','文字列','真偽','配列'];
+
 var code = null;		// コードを積む（関数・手続き単位で）
 var varTables = [];		// 変数テーブルを積む
 var myFuncs = {};		// プログラム中で定義される関数・手続き
@@ -1951,17 +1953,18 @@ class Assign extends Statement
 
 class Input extends Statement
 {
-	constructor(x, loc)
+	constructor(x, type,loc)
 	{
 		super(loc);
 		this.varname = x;
+		this.type = type;
 	}
 	run()
 	{
 		if(selected_quiz < 0)	// 通常時
 		{
 			if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.loc)];
+			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.type, this.loc)];
 			code.unshift(new parsedCode(list));
 		}
 		else	// 自動採点時
@@ -1973,14 +1976,12 @@ class Input extends Statement
 				let va = new Variable(this.varname.varname, this.varname.args, this.loc);
 				let vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
 				va.run();
-				let v0 = va.getValue();
 				let assign = null;
 				let re = /真|true/i;
-				if(v0 instanceof IntValue)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-				else if(v0 instanceof FloatValue)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-				else if(v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
-				else if(v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
-				else if(v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
+				else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
+				else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
 				assign.run();
 				code[0].stack[0].index = index + 1;
 			}
@@ -2010,13 +2011,15 @@ class InputEnd extends Statement
 {
 	/**
 	 * @constructor
-	 * @param {Variable} x 
+	 * @param {Variable} x
+	 * @param {typeOfValue} type 
 	 * @param {Location} loc 
 	 */
-	constructor(x, loc)
+	constructor(x, type, loc)
 	{
 		super(loc);
 		this.varname = x;
+		this.type = type;
 	}
 	run()
 	{
@@ -2030,11 +2033,10 @@ class InputEnd extends Statement
 			let re = /真|true/i;
 			code.shift();
 			let index = code[0].stack[0].index;
-			if(v0 instanceof IntValue)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-			else if(v0 instanceof FloatValue)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-			else if(v0 instanceof StringValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
-			else if(v0 instanceof BooleanValue) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
-			else if(v0 instanceof NullValue) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+			if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
+			else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
+			else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
+			else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
 			assign.run();
 			code[0].stack[0].index = index + 1;
 		}
@@ -2105,7 +2107,8 @@ function array2text(v)
 		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
 		return '[' + v1.join(',') + ']';
 	}
-	return v0.value;
+	else if(v0 instanceof FloatValue && isInteger(v0.value)) return v0.value + '.0';
+	else return v0.value;
 }
 
 function array2code(v)
@@ -3073,7 +3076,7 @@ class Flowchart
 			{
 				var p1 = new Parts_Input();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.varname.getCode());
+				p1.setValue(p.varname.getCode(), p.type);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -3555,12 +3558,14 @@ class Parts_Input extends Parts
 	constructor()
 	{
 		super();
-		this.setValue("《変数》");
+		this.setValue("《変数》", 0);
 	}
-	setValue(v)
+	setValue(v, type)
 	{
 		this._var = v;
-		this._text = v + "を入力";
+		this.type = type;
+		this._text = v + "を入力"
+		if(this.type > 0)this._text +="（" + nameOfType[this.type] + "）";
 	}
 	get var(){return this._var;}
 	calcSize(p0,p1,p2)
@@ -3615,21 +3620,23 @@ class Parts_Input extends Parts
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.var + "を入力する\n";
+		code += this.var;
+		if(this.type > 0) code += "に" + nameOfType[this.type]; 
+		code += "を入力する\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
 	}
 	editMe()
 	{
-		var subtitle = ["変数"];
-		var values = [ this.var ];
-		openModalWindow("入力の編集", subtitle, values, this);
+		var subtitle = ["変数","型"];
+		var values = [ this.var, this.type ];
+		openModalWindowforInput("入力の編集", subtitle, values, this);
 	}
 	edited(values)
 	{
 		if(values != null)
 		{
-			this.setValue(values[0]);
+			this.setValue(values[0], values[1]);
 		}
 		flowchart.paint();
 		flowchart.flowchart2code();
@@ -4476,6 +4483,33 @@ function openModalWindow(title, subtitle, values, parts)
 	$("#input").fadeIn();
 	$("#inputarea0").focus();
 }
+
+function openModalWindowforInput(title, subtitle, values, parts)
+{
+	var html = "<p>" + title + "</p>";
+	modal_subtitle = subtitle;
+	modal_values = values;
+	modal_parts = parts;
+	html += "<table>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
+		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
+		"onfocus=\"select();\" "+
+		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[1] + "</td><td><select id=\"inputarea1\">";
+	for(var i = typeOfValue.typeInt; i <= typeOfValue.typeBoolean; i++)
+		html += "<option value=\"" + i + "\"" +(i == values[1] ? "selected=\"selected\"" : "" ) +">" + nameOfType[i] + "</option>";
+	html += "</td></tr>";
+	html += "</table>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow(true);\">OK</button>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
+	modal_parts.highlight();
+	$("#input").html(html);
+	$("#input").height(100 + subtitle.length * 40);
+	$("#input-overlay").fadeIn();
+	$("#input").fadeIn();
+	$("#inputarea0").focus();
+}
+
 
 function openModalWindowforOutput(title, subtitle, values, parts)
 {
