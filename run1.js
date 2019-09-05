@@ -1456,7 +1456,7 @@ var ConvertBool = function (_Value27) {
 		value: function run() {
 			var v = this.value[0].getValue();
 			var r = '';
-			var re = /^(0|false|偽|)$/i;
+			var re = /^(0+|false|偽|)$/i;
 			if (v instanceof IntValue || v instanceof FloatValue) r = v.value != 0;else if (v instanceof StringValue) r = re.exec(v.value) ? false : true;else if (v instanceof BooleanValue) r = v.value;
 			this.rtnv = new BooleanValue(r, this.loc);
 			code[0].stack[0].index++;
@@ -2437,8 +2437,8 @@ var Input = function (_Statement12) {
 						var vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
 						va.run();
 						var assign = null;
-						var re = /真|true/i;
-						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
+						var re = /^(0+|false|偽|)$/i;
+						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);
 						assign.run();
 						code[0].stack[0].index = index + 1;
 					} else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
@@ -2500,12 +2500,11 @@ var InputEnd = function (_Statement14) {
 				var va = new Variable(this.varname.varname, this.varname.args, this.loc);
 				var vl = closeInputWindow();
 				va.run();
-				var v0 = va.getValue();
 				var assign = null;
-				var re = /真|true/i;
+				var re = /^(0+|false|偽|)$/i;
 				code.shift();
 				var index = code[0].stack[0].index;
-				if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
+				if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);
 				assign.run();
 				code[0].stack[0].index = index + 1;
 			} catch (e) {

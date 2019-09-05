@@ -1108,7 +1108,7 @@ class ConvertBool extends Value
 	{
 		let v = this.value[0].getValue();
 		let r = '';
-		let re = /^(0|false|偽|)$/i;
+		let re = /^(0+|false|偽|)$/i;
 		if(v instanceof IntValue || v instanceof FloatValue) r = v.value != 0;
 		else if(v instanceof StringValue) r = re.exec(v.value) ? false : true;
 		else if(v instanceof BooleanValue) r = v.value;
@@ -1978,11 +1978,11 @@ class Input extends Statement
 				let vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
 				va.run();
 				let assign = null;
-				let re = /真|true/i;
+				let re = /^(0+|false|偽|)$/i;
 				if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
 				else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
 				else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
-				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
+				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);
 				assign.run();
 				code[0].stack[0].index = index + 1;
 			}
@@ -2029,15 +2029,14 @@ class InputEnd extends Statement
 			let va = new Variable(this.varname.varname, this.varname.args, this.loc);
 			let vl = closeInputWindow();
 			va.run();
-			let v0 = va.getValue();
 			let assign = null;
-			let re = /真|true/i;
+			let re = /^(0+|false|偽|)$/i;
 			code.shift();
 			let index = code[0].stack[0].index;
 			if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
 			else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
 			else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
-			else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(re.exec(vl) != null, this.loc), this.loc);
+			else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);
 			assign.run();
 			code[0].stack[0].index = index + 1;
 		}
