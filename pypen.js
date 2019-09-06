@@ -23,13 +23,18 @@ function python_to_dncl(code)
                 pre_spaces.unshift(spaces);
                 wait_for_indent = false;
             }
+            var deindent = false;
             while(spaces < pre_spaces[0])
             {
                 var indent = pre_spaces.shift();
                 if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
                 if(spaces <=indent)
                 {
-                    if(!/^そうでなければ[：:]$/.exec(result[2])) dncl_lines.push('■');
+                    if(spaces < indent && (deindent || !/^そうでなければ[：:]$/.exec(result[2])))
+                    {
+                        dncl_lines.push('■');
+                    }
+                    deindent = true;
                 }
                 else throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
             }
