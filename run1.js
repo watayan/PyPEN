@@ -2999,6 +2999,31 @@ var SleepStatement = function (_Statement25) {
 	return SleepStatement;
 }(Statement);
 
+var BreakStatement = function (_Statement26) {
+	_inherits(BreakStatement, _Statement26);
+
+	function BreakStatement(loc) {
+		_classCallCheck(this, BreakStatement);
+
+		return _possibleConstructorReturn(this, (BreakStatement.__proto__ || Object.getPrototypeOf(BreakStatement)).call(this, loc));
+	}
+
+	_createClass(BreakStatement, [{
+		key: 'run',
+		value: function run() {
+			while (true) {
+				var block = code[0].stack.shift();
+				if (!block) throw new RuntimeError(this.first_line, '繰り返しの中ではありません。');
+				for (var i = 0; i < block.statementlist.length; i++) {
+					if (block.statementlist[i] instanceof LoopBegin) return;
+				}
+			}
+		}
+	}]);
+
+	return BreakStatement;
+}(Statement);
+
 function highlightLine(l) {
 	var elem = document.getElementById('bcralnit_sourceTextarea0').firstElementChild;
 	var child = elem.firstElementChild;
@@ -3691,6 +3716,12 @@ var Flowchart = function () {
 					p1.setValue("sleep", [p.sec]);
 					parts.next = p1;
 					parts = p1.next = b1;
+				} else if (statement == "BreakStatement") {
+					var p1 = new Parts_Misc();
+					var b1 = new Parts_Bar();
+					p1.setValue("break", []);
+					parts.next = p1;
+					parts = p1.next = b1;
 				} else if (statement == "DumpStatement") {
 					var p1 = new Parts_Misc();
 					var b1 = new Parts_Bar();
@@ -4064,10 +4095,10 @@ var Parts_Output = function (_Parts4) {
 	function Parts_Output() {
 		_classCallCheck(this, Parts_Output);
 
-		var _this66 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
+		var _this67 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
 
-		_this66.setValue("《値》", true);
-		return _this66;
+		_this67.setValue("《値》", true);
+		return _this67;
 	}
 
 	_createClass(Parts_Output, [{
@@ -4188,10 +4219,10 @@ var Parts_Input = function (_Parts5) {
 	function Parts_Input() {
 		_classCallCheck(this, Parts_Input);
 
-		var _this67 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
+		var _this68 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
 
-		_this67.setValue("《変数》", 0);
-		return _this67;
+		_this68.setValue("《変数》", 0);
+		return _this68;
 	}
 
 	_createClass(Parts_Input, [{
@@ -4294,10 +4325,10 @@ var Parts_Substitute = function (_Parts6) {
 	function Parts_Substitute() {
 		_classCallCheck(this, Parts_Substitute);
 
-		var _this68 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
+		var _this69 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
 
-		_this68.setValue("《変数》", "《値》");
-		return _this68;
+		_this69.setValue("《変数》", "《値》");
+		return _this69;
 	}
 
 	_createClass(Parts_Substitute, [{
@@ -4404,12 +4435,12 @@ var Parts_If = function (_Parts7) {
 	function Parts_If() {
 		_classCallCheck(this, Parts_If);
 
-		var _this69 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
+		var _this70 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
 
-		_this69.setValue("《条件》");
-		_this69.left = _this69.right = null;
-		_this69.left_bar_expand = _this69.right_bar_expand = 0;
-		return _this69;
+		_this70.setValue("《条件》");
+		_this70.left = _this70.right = null;
+		_this70.left_bar_expand = _this70.right_bar_expand = 0;
+		return _this70;
 	}
 
 	_createClass(Parts_If, [{
@@ -4731,10 +4762,10 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	function Parts_LoopBegin1() {
 		_classCallCheck(this, Parts_LoopBegin1);
 
-		var _this71 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
+		var _this72 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
 
-		_this71.setValue("《条件》");
-		return _this71;
+		_this72.setValue("《条件》");
+		return _this72;
 	}
 
 	_createClass(Parts_LoopBegin1, [{
@@ -4811,10 +4842,10 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this72 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this73 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
 
-		_this72.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this72;
+		_this73.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this73;
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
@@ -4909,10 +4940,10 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this73 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this74 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
 
-		_this73.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this73;
+		_this74.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this74;
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
@@ -5129,7 +5160,7 @@ var Parts_LoopEnd = function (_Parts9) {
 
 var misc_menu = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["変数を確認する", "dump", "変数を確認する", []]];
+["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
 
 var Parts_Misc = function (_Parts10) {
 	_inherits(Parts_Misc, _Parts10);
@@ -5137,10 +5168,10 @@ var Parts_Misc = function (_Parts10) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this75 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this76 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
 
-		_this75.setValue("none", []);
-		return _this75;
+		_this76.setValue("none", []);
+		return _this76;
 	}
 
 	_createClass(Parts_Misc, [{
@@ -5704,6 +5735,9 @@ onload = function onload() {
 						} },
 					sleep: { name: "待つ", callback: function callback(k, e) {
 							insertCode("《ミリ秒数》 ミリ秒待つ");
+						} },
+					break: { name: "繰り返しを抜ける", callback: function callback(k, e) {
+							insertCode("繰り返しを抜ける");
 						} },
 					dump: { name: "変数を確認する", callback: function callback(k, e) {
 							insertCode("変数を確認する");

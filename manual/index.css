@@ -50,6 +50,7 @@ table.def_table{
 	margin-right: auto;
 	margin-top: 4px;
 	margin-bottom: 4px;
+	max-width:99%;
 }
 
 table.def_table th, td{
@@ -85,4 +86,8 @@ h3{
 
 .flowchart img{
 	margin: 4px;
+}
+
+img{
+	max-width:99%;
 }

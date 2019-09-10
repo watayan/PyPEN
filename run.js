@@ -2463,6 +2463,22 @@ class SleepStatement extends Statement
 	}
 }
 
+class BreakStatement extends Statement
+{
+	constructor(loc){super(loc);}
+	run()
+	{
+		while(true)
+		{
+			var block = code[0].stack.shift();
+			if(!block) throw new RuntimeError(this.first_line, '繰り返しの中ではありません。');
+			for(var i = 0; i < block.statementlist.length; i++)
+				if(block.statementlist[i] instanceof LoopBegin) return;
+		}
+	}
+}
+
+
 function highlightLine(l)
 {
 	var elem = document.getElementById('bcralnit_sourceTextarea0').firstElementChild;
@@ -3155,6 +3171,14 @@ class Flowchart
 				var p1 = new Parts_Misc();
 				var b1 = new Parts_Bar();
 				p1.setValue("sleep", [p.sec]);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "BreakStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue("break", []);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -4335,6 +4359,7 @@ var misc_menu =[
 	["円描画"      , "gDrawCircle"     , "円描画(	,	,	)"          ,["x","y","半径"]],
 	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
 	["待つ"       , "sleep"           , "	 ミリ秒待つ"                 ,["ミリ秒数"]],
+	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]]
 ];
 
@@ -4869,6 +4894,7 @@ onload = function(){
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
 						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
 						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》 ミリ秒待つ");}},
+						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
 						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}
 					}
 				}

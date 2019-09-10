@@ -246,6 +246,7 @@ statement
 	| DefineFuncStatement
 	| ReturnStatement
 	| DumpStatement
+	| BreakStatement
 	;
 
 EmptyStatement
@@ -369,6 +370,11 @@ GraphicStatement
 SleepStatement
 	: e 'ミリ秒待つ' '改行' 
 		{$$ = [new runBeforeGetValue([$1], @1), new SleepStatement($1, new Location(@1, @1))];}
+	;
+
+BreakStatement
+	: '繰り返しを抜ける' '改行'
+		{$$ = new BreakStatement(new Location(@1,@1));}
 	;
 
 Program
