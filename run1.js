@@ -1935,6 +1935,10 @@ var definedFunction = {
 			if (par3 == null) v = par1.value.substr(par2.value);else v = par1.value.substr(par2.value, par3.value);
 			return new StringValue(v, this.loc);
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}, null, function (argc) {
+		var code = argc[0] + '[' + argc[1] + ':';
+		if (argc[2]) code += argc[1] + '+' + argc[2];
+		return code + ']';
 	}),
 	"append": new DefinedFunction(2, function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1942,6 +1946,8 @@ var definedFunction = {
 		if (par1 instanceof NullValue) return par2;else if (par2 instanceof NullValue) return par1;else if (par2 instanceof StringValue && par2 instanceof StringValue) {
 			return new StringValue(par1.value + par2.value, this.loc);
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}, null, function (argc) {
+		return argc[0] + '+' + argc[1];
 	}),
 	"extract": new DefinedFunction(3, function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1954,6 +1960,8 @@ var definedFunction = {
 			var v = v1.split(v2);
 			if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}, null, function (argc) {
+		return argc[0] + '.split(' + argc[1] + ')';
 	}),
 	"insert": new DefinedFunction(3, function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1968,6 +1976,8 @@ var definedFunction = {
 			var s2 = v1.substr(v2);
 			return new StringValue(s1 + v3 + s2, this.loc);
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}, null, function (argc) {
+		return argc[0] + '[:' + argc[1] + ']+' + argc[2] + argc[0] + '[' + argc[1] + ':]';
 	}),
 	"replace": new DefinedFunction(4, function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1986,6 +1996,8 @@ var definedFunction = {
 			var s2 = v1.substr(v2 + v3);
 			return new StringValue(s1 + v4 + s2, this.loc);
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}, null, function (argc) {
+		return argc[0] + '[:' + argc[1] + ']+' + argc[3] + argc[0] + '[' + argc[1] + '+' + argc[2] + ':]';
 	})
 };
 
