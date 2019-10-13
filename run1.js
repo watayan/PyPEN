@@ -3044,6 +3044,7 @@ var Output = function (_Statement16) {
 			var code = Parts.makeIndent(indent);
 			code += "print(";
 			code += this.value.makePython();
+			if (!this.ln) code += ",end=''";
 			return code + ")\n";
 		}
 	}]);
