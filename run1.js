@@ -1949,6 +1949,21 @@ var definedFunction = {
 	}, null, function (argc) {
 		return argc[0] + '+' + argc[1];
 	}),
+	"split": new DefinedFunction(2, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if ((par1 instanceof NullValue || par1 instanceof StringValue) && (par2 instanceof NullValue || par2 instanceof StringValue)) {
+			var v1 = par1 instanceof NullValue ? '' : par1.value;
+			var v2 = par2 instanceof NullValue ? '' : par2.value;
+			var v = v1.split(v2);
+			var vr = [];
+			for (var i = 0; i < v.length; i++) {
+				vr.push(new StringValue(v[i], this.loc));
+			}return new ArrayValue(vr, this.loc);
+		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+	}, null, function (argc) {
+		return argc[0] + '.split(' + argc[1] + ')';
+	}),
 	"extract": new DefinedFunction(3, function (param, loc) {
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
@@ -1961,7 +1976,7 @@ var definedFunction = {
 			if (v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);else throw new RuntimeError(this.first_line, "番号の値が不正です");
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 	}, null, function (argc) {
-		return argc[0] + '.split(' + argc[1] + ')';
+		return argc[0] + '.split(' + argc[1] + ')[' + argc[2] + ']';
 	}),
 	"insert": new DefinedFunction(3, function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1977,7 +1992,7 @@ var definedFunction = {
 			return new StringValue(s1 + v3 + s2, this.loc);
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 	}, null, function (argc) {
-		return argc[0] + '[:' + argc[1] + ']+' + argc[2] + argc[0] + '[' + argc[1] + ':]';
+		return argc[0] + '[:' + argc[1] + ']+' + argc[2] + '+' + argc[0] + '[' + argc[1] + ':]';
 	}),
 	"replace": new DefinedFunction(4, function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1997,7 +2012,7 @@ var definedFunction = {
 			return new StringValue(s1 + v4 + s2, this.loc);
 		} else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
 	}, null, function (argc) {
-		return argc[0] + '[:' + argc[1] + ']+' + argc[3] + argc[0] + '[' + argc[1] + '+' + argc[2] + ':]';
+		return argc[0] + '[:' + argc[1] + ']+' + argc[3] + '+' + argc[0] + '[' + argc[1] + '+' + argc[2] + ':]';
 	})
 };
 
@@ -6233,7 +6248,10 @@ onload = function onload() {
 					substring2: { name: "substring 部分文字列（長さ指定）", callback: function callback(k, e) {
 							insertCode("substring(《文字列》,《開始位置》,《長さ》)");
 						} },
-					extract: { name: "extract 部分文字列（長さ指定）", callback: function callback(k, e) {
+					split: { name: "split 文字列分割", callback: function callback(k, e) {
+							insertCode("split(《文字列》,《区切文字列》)");
+						} },
+					extract: { name: "extract 文字列分割（番号指定）", callback: function callback(k, e) {
 							insertCode("extract(《文字列》,《区切文字列》,《番号》)");
 						} },
 					insert: { name: "insert 挿入", callback: function callback(k, e) {
