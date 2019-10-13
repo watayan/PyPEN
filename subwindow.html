@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Pythonに書き換えたコード</title>
+        <script>
+            window.addEventListener("message", function(e){
+                document.getElementById("pythonArea").value = e.data;
+            })
+        </script>
+    </head>
+    <body>
+        <textarea id="pythonArea" rows="30" cols="80" readonly="yes" placeholder="変換中"></textarea>
+    </body>
+</html>

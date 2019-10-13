@@ -47,19 +47,44 @@ var selected_quiz = -1,
 var output_str = '';
 var test_limit_time = 0;
 var fontsize = 16;
+var python_lib = {};
 
 /** parsedCodeクラス */
 
-var parsedCode =
-/**
- * @constructor
- * @param {Array<Statement>} statementlist 
- */
-function parsedCode(statementlist) {
-	_classCallCheck(this, parsedCode);
+var parsedCode = function () {
+	/**
+  * @constructor
+  * @param {Array<Statement>} statementlist 
+  */
+	function parsedCode(statementlist) {
+		_classCallCheck(this, parsedCode);
 
-	this.stack = [{ statementlist: statementlist, index: 0 }];
-};
+		this.stack = [{ statementlist: statementlist, index: 0 }];
+	}
+
+	_createClass(parsedCode, [{
+		key: 'makePython',
+		value: function makePython() {
+			python_lib = {};
+			var code = '';
+			var libs = '';
+			for (var i = 0; i < this.stack[0].statementlist.length; i++) // 関数・手続き宣言を先に
+			{
+				var state = this.stack[0].statementlist[i];
+				if (state && (state instanceof DefineFunction || state instanceof DefineStep)) code += state.makePython(0);
+			}
+			for (var i = 0; i < this.stack[0].statementlist.length; i++) {
+				var state = this.stack[0].statementlist[i];
+				if (state && !(state instanceof DefineFunction || state instanceof DefineStep)) code += state.makePython(0);
+			}
+			for (var lib in python_lib) {
+				libs += "import " + lib + "\n";
+			}return libs + code;
+		}
+	}]);
+
+	return parsedCode;
+}();
 
 /** parsedMainRoutineクラス
  * @extends parsedCode
@@ -418,6 +443,15 @@ var Value = function () {
 		value: function getCode() {
 			return '' + this._value;
 		}
+		/**
+   * @returns {string} Pythonの文法で表した文字列
+   */
+
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return this.getCode();
+		}
 	}, {
 		key: 'run',
 		value: function run() {
@@ -498,6 +532,14 @@ var ArrayValue = function (_Value2) {
 			var ag = [];
 			for (var i = 0; i < this.value.length; i++) {
 				ag.push(this.value[i].getCode());
+			}return '[' + ag.join(',') + ']';
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var ag = [];
+			for (var i = 0; i < this.value.length; i++) {
+				ag.push(this.value[i].makePython());
 			}return '[' + ag.join(',') + ']';
 		}
 	}, {
@@ -661,6 +703,11 @@ var StringValue = function (_Value5) {
 			if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
 		}
 	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return '\'' + this.value.replace('\'', '\\\'') + '\'';
+		}
+	}, {
 		key: 'clone',
 		value: function clone() {
 			return new StringValue(this.value, this.loc);
@@ -688,6 +735,11 @@ var BooleanValue = function (_Value6) {
 		key: 'getCode',
 		value: function getCode() {
 			return this.value ? 'true' : 'false';
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return this.value ? "True" : "False";
 		}
 	}, {
 		key: 'clone',
@@ -778,6 +830,19 @@ var Add = function (_Value8) {
 			if (c2 == "Minus") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus") brace1 = true;
+			if (c2 == "Minus") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Add;
@@ -822,6 +887,19 @@ var Sub = function (_Value9) {
 			if (c1 == "Minus") brace1 = true;
 			if (c2 == "Minus") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus") brace1 = true;
+			if (c2 == "Minus") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -868,6 +946,19 @@ var Mul = function (_Value10) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Mul;
@@ -908,6 +999,19 @@ var Div = function (_Value11) {
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -951,6 +1055,19 @@ var DivInt = function (_Value12) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return DivInt;
@@ -992,6 +1109,19 @@ var Mod = function (_Value13) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' % ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + '%' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Mod;
@@ -1026,6 +1156,15 @@ var Minus = function (_Value14) {
 			var brace1 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0];
+			var c1 = constructor_name(v1);
+			var brace1 = false;
+			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+			return '-' + (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '');
 		}
 	}]);
 
@@ -1065,6 +1204,18 @@ var And = function (_Value15) {
 			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' かつ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' and ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return And;
@@ -1103,6 +1254,18 @@ var Or = function (_Value16) {
 			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' または ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' or ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return Or;
@@ -1132,6 +1295,15 @@ var Not = function (_Value17) {
 			var brace1 = false;
 			//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0];
+			var c1 = constructor_name(v1);
+			var brace1 = false;
+			if (c1 == "And" || c1 == "Or" || c1 == "Not") brace2 = true;
+			return 'not ' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
 		}
 	}]);
 
@@ -1184,6 +1356,17 @@ var EQ = function (_Value18) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' == ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return EQ;
@@ -1216,6 +1399,17 @@ var NE = function (_Value19) {
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -1251,6 +1445,17 @@ var GT = function (_Value20) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return GT;
@@ -1284,6 +1489,17 @@ var GE = function (_Value21) {
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
 	}]);
 
@@ -1319,6 +1535,17 @@ var LT = function (_Value22) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return LT;
@@ -1353,6 +1580,17 @@ var LE = function (_Value23) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var c1 = constructor_name(v1),
+			    c2 = constructor_name(v2);
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+		}
 	}]);
 
 	return LE;
@@ -1380,6 +1618,11 @@ var ConvertInt = function (_Value24) {
 		key: 'getCode',
 		value: function getCode() {
 			return '整数(' + this.value[0].getCode() + ')';
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return 'int(' + this.value[0].makePython() + ')';
 		}
 	}]);
 
@@ -1409,6 +1652,11 @@ var ConvertFloat = function (_Value25) {
 		value: function getCode() {
 			return '実数(' + this.value[0].getCode() + ')';
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return 'float(' + this.value[0].makePython() + ')';
+		}
 	}]);
 
 	return ConvertFloat;
@@ -1436,6 +1684,11 @@ var ConvertString = function (_Value26) {
 		key: 'getCode',
 		value: function getCode() {
 			return '文字列(' + this.value[0].getCode() + ')';
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return 'str(' + this.value[0].makePython() + ')';
 		}
 	}]);
 
@@ -1465,6 +1718,11 @@ var ConvertBool = function (_Value27) {
 		key: 'getCode',
 		value: function getCode() {
 			return '真偽(' + this.value[0].getCode() + ')';
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return 'bool(' + this.value[0].makePython() + ')';
 		}
 	}]);
 
@@ -1515,6 +1773,20 @@ var Variable = function (_Value28) {
 			return vn;
 		}
 	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var vn = this.value[0];
+			var pm = this.value[1];
+			if (pm != null) {
+				var ag = new Array(pm.length);
+				for (var i = 0; i < pm.length; i++) {
+					ag[i] = '[' + pm.value[i].makePython() + ']';
+				}
+				vn += ag.join('');
+			}
+			return vn;
+		}
+	}, {
 		key: 'varname',
 		get: function get() {
 			return this.value[0];
@@ -1539,11 +1811,13 @@ var DefinedFunction = function () {
   * @constructor
   * @param {number} argc 引数の個数
   * @param {function} func 実際の関数
+  * @param {string} module Pythonで必要となるモジュール。nullならナニもいらない
+  * @param {function} convert this.argcを受け取って文字列を返す関数。nullならthis.funcName(this.argc)的なことをする。
   */
-	function DefinedFunction(argc, func) {
+	function DefinedFunction(argc, func, module, convert) {
 		_classCallCheck(this, DefinedFunction);
 
-		this.argc = argc;this.func = func;
+		this.argc = argc;this.func = func;this.module = module;this.convert = convert;
 	}
 	/**
   * 関数の値を返す
@@ -1573,45 +1847,47 @@ var definedFunction = {
 	"abs": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
-	}),
+	}, null, null),
 	"random": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
+	}, "random", function (argc) {
+		return "random.randint(0," + argc[0] + ")";
 	}),
 	"ceil": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"floor": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"round": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue) return par1;else if (par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, null, null),
 	"sin": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.sin(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"cos": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", "cos"),
 	"tan": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 			var _v6 = Math.tan(par1.value);
 			if (isFinite(_v6)) return new FloatValue(_v6, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"sqrt": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 			if (par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
 			return new FloatValue(Math.sqrt(par1.value), this.loc);
 		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"log": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
@@ -1620,7 +1896,7 @@ var definedFunction = {
 			if (isFinite(_v7)) return new FloatValue(_v7, this.loc);
 			throw new RuntimeError(this.first_line, "オーバーフローしました");
 		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"exp": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
@@ -1628,7 +1904,7 @@ var definedFunction = {
 			if (isFinite(_v8)) return new FloatValue(_v8, this.loc);
 			throw new RuntimeError(this.first_line, "オーバーフローしました");
 		} else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
-	}),
+	}, "math", null),
 	"pow": new DefinedFunction(2, function (param, loc) {
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
@@ -1643,10 +1919,12 @@ var definedFunction = {
 			var _v10 = Math.pow(par1.value, par2.value);
 			if (isFinite(_v10)) return new FloatValue(_v10, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
 		}
-	}),
+	}, null, null),
 	"length": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue) return new IntValue(0, this.loc);else if (par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);else if (par1 instanceof ArrayValue) return new IntValue(par1.length, this.loc);else throw new RuntimeError(this.first_line, func + "は文字列と配列にしか使えません");
+	}, null, function (argc) {
+		return "len(" + argc[0] + ")";
 	}),
 	"substring": new DefinedFunction([2, 3], function (param, loc) {
 		var par1 = param[0].getValue();
@@ -1769,6 +2047,25 @@ var CallFunction = function (_Value29) {
 				ag.push(param[i].getCode());
 			}return func + '(' + ag.join(',') + ')';
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var func = this.value.funcname,
+			    param = this.value.parameter;
+			var deffunc = null;
+			if (definedFunction[func]) deffunc = definedFunction[func];else if (myFuncs[func]) deffunc = myFuncs[func];
+			var ag = [];
+			for (var i = 0; i < param.length; i++) {
+				ag.push(param[i].makePython());
+			}if (deffunc) {
+				var prefix = '';
+				if (deffunc.module) {
+					prefix = deffunc.module + ".";
+					python_lib[deffunc.module] = 1;
+				}
+				if (deffunc.convert) return deffunc.convert(ag);else return prefix + func + '(' + ag.join(',') + ')';
+			} else return func + '(' + ag.join(',') + ')';
+		}
 	}]);
 
 	return CallFunction;
@@ -1799,6 +2096,16 @@ var Append = function (_Value30) {
 		value: function getCode() {
 			return this.value[0].getCode() + " と " + this.value[1].getCode();
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var re = /^str\(/;
+			var p1 = this.value[0].makePython();
+			var p2 = this.value[1].makePython();
+			if (!re.exec(p1)) p1 = "str(" + p1 + ")";
+			if (!re.exec(p2)) p2 = "str(" + p2 + ")";
+			return p1 + "+" + p2;
+		}
 	}]);
 
 	return Append;
@@ -1824,6 +2131,16 @@ var Statement = function () {
 		key: 'run',
 		value: function run() {
 			code[0].stack[0].index++;
+		}
+		/**
+   * 
+   * @param {number} indent 
+   */
+
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			return Parts.makeIndent(indent);
 		}
 	}, {
 		key: 'first_line',
@@ -1869,9 +2186,30 @@ var DefineStep = function (_Statement) {
 		if (myFuncs[funcName]) throw new RuntimeError(_this34.first_line, '手続き ' + funcName + ' と同名の関数、または手続きが既に定義されています');
 		_this34.params = params;
 		_this34.statementlist = statementlist;
+		_this34.funcName = funcName;
 		myFuncs[funcName] = _this34;
 		return _this34;
 	}
+
+	_createClass(DefineStep, [{
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = "def " + this.funcName + '(';
+			for (var i = 0; i < this.params.length; i++) {
+				if (i > 0) code += ',';
+				code += this.params[i].varname;
+			}
+			code += '):\n';
+			var codes = 0;
+			for (var i = 0; i < this.statementlist.length; i++) {
+				if (this.statementlist[i]) {
+					codes = 1;
+					code += this.statementlist[i].makePython(1);
+				}
+			}if (codes == 0) code += Parts.makeIndent(1) + "None\n";
+			return code;
+		}
+	}]);
 
 	return DefineStep;
 }(Statement);
@@ -1932,6 +2270,17 @@ var CallStep = function (_Statement2) {
 				varTables.unshift(vt);
 			} else throw new RuntimeError(this.first_line, '手続き ' + fn + ' は定義されていません');
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += this.funcName + '(';
+			for (var i = 0; i < this.args.length; i++) {
+				if (i > 0) code += ',';
+				code += this.args[i].varname;
+			}
+			return code + ')\n';
+		}
 	}]);
 
 	return CallStep;
@@ -1955,6 +2304,13 @@ var ExitStatement = function (_Statement3) {
 				varTables.shift();
 			} else throw new RuntimeError(this.first_line, "手続きの中ではありません");
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += "break\n";
+			return code;
+		}
 	}]);
 
 	return ExitStatement;
@@ -1971,6 +2327,7 @@ var DefineFunction = function (_Statement4) {
 		if (definedFunction[funcName]) throw new RuntimeError(_this37.first_line, '関数 ' + funcName + ' と同名の標準関数が存在します');
 		if (myFuncs[funcName]) throw new RuntimeError(_this37.first_line, '関数 ' + funcName + ' と同名の関数、または手続きが既に定義されています');
 		_this37.params = params;
+		_this37.funcName = funcName;
 		myFuncs[funcName] = _this37;
 		_this37.statementlist = statementlist;
 		return _this37;
@@ -1980,6 +2337,25 @@ var DefineFunction = function (_Statement4) {
 		key: 'run',
 		value: function run() {
 			_get(DefineFunction.prototype.__proto__ || Object.getPrototypeOf(DefineFunction.prototype), 'run', this).call(this);
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = "def ";
+			code += this.funcName + '(';
+			for (var i = 0; i < this.params.length; i++) {
+				if (i > 0) code += ',';
+				code += this.params[i].makePython();
+			}
+			code += '):\n';
+			var codes = 0;
+			for (var i = 0; i < this.statementlist.length; i++) {
+				if (this.statementlist[i]) {
+					codes = 1;
+					code += this.statementlist[i].makePython(1);
+				}
+			}if (codes == 0) code += Parts.makeIndent(1) + "None\n";
+			return code;
 		}
 	}]);
 
@@ -2014,6 +2390,14 @@ var ReturnStatement = function (_Statement5) {
 				//			super.run();
 			} else throw new RuntimeError(this.first_line, "関数の中ではありません");
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += "return";
+			if (this.value) code += ' ' + this.value.makePython();
+			return code + "\n";
+		}
 	}]);
 
 	return ReturnStatement;
@@ -2032,6 +2416,11 @@ var notReturnedFunction = function (_Statement6) {
 		key: 'run',
 		value: function run() {
 			throw new RuntimeError(this.last_line, "関数が値を返さずに終了しました");
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return '';
 		}
 	}]);
 
@@ -2059,6 +2448,11 @@ var DumpStatement = function (_Statement7) {
 				textareaAppend(vars[i] + ":" + array2code(_v11) + "\n");
 			}
 			_get(DumpStatement.prototype.__proto__ || Object.getPrototypeOf(DumpStatement.prototype), 'run', this).call(this);
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return '';
 		}
 	}]);
 
@@ -2113,6 +2507,11 @@ var runBeforeGetValue = function (_Statement8) {
 			valuelist2stack(this.args, queue);
 			code[0].stack.unshift({ statementlist: queue, index: 0 });
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return '';
+		}
 	}]);
 
 	return runBeforeGetValue;
@@ -2145,6 +2544,11 @@ var runArgsBeforeGetValue = function (_Statement9) {
 				if (this.args[i].args) valuelist2stack(this.args[i].args, queue);
 			}
 			code[0].stack.unshift({ statementlist: queue, index: 0 });
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			return '';
 		}
 	}]);
 
@@ -2181,6 +2585,11 @@ var DefinitionStatement = function (_Statement10) {
 				ag.push(vn);
 			}
 			return ag.join(',');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			return ''; // TODO どうしよう…
 		}
 	}]);
 
@@ -2402,6 +2811,13 @@ var Assign = function (_Statement11) {
 				}
 			code[0].stack[0].index = index + 1;
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += this.variable.makePython() + " = " + this.value.makePython() + "\n";
+			return code;
+		}
 	}]);
 
 	return Assign;
@@ -2442,6 +2858,23 @@ var Input = function (_Statement12) {
 						code[0].stack[0].index = index + 1;
 					} else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
 				}
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += this.varname.makePython() + " = ";
+			switch (this.type) {
+				case typeOfValue.typeInt:
+					code += "int(input())\n";break;
+				case typeOfValue.typeFloat:
+					code += "float(input())\n";break;
+				case typeOfValue.typeString:
+					code += "input()\n";break;
+				case typeOfValue.typeBoolean:
+					code += "bool(input())\n";break;
+			}
+			return code;
 		}
 	}]);
 
@@ -2536,6 +2969,11 @@ var Newline = function (_Statement15) {
 			}
 			_get(Newline.prototype.__proto__ || Object.getPrototypeOf(Newline.prototype), 'run', this).call(this);
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			return Parts.makeIndent(indent) + "print()\n";
+		}
 	}]);
 
 	return Newline;
@@ -2572,6 +3010,14 @@ var Output = function (_Statement16) {
 				output_str += array2text(v) + (this.ln ? "\n" : "");
 			}
 			code[0].stack[0].index = index + 1;
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += "print(";
+			code += this.value.makePython();
+			return code + ")\n";
 		}
 	}]);
 
@@ -2698,6 +3144,11 @@ var GraphicStatement = function (_Statement17) {
 				throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
 			}
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			throw new RuntimeError(this.first_line, "グラフィック命令はPythonに変換できません");
+		}
 	}]);
 
 	return GraphicStatement;
@@ -2724,6 +3175,33 @@ var If = function (_Statement18) {
 			if (this.condition.getValue() instanceof BooleanValue) {
 				if (this.condition.getValue().value) code[0].stack.unshift({ statementlist: this.state1, index: 0 });else if (this.state2 != null) code[0].stack.unshift({ statementlist: this.state2, index: 0 });
 			} else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += "if " + this.condition.makePython() + ":\n";
+			var codes = 0;
+			if (this.state1) {
+				for (var i = 0; i < this.state1.length; i++) {
+					if (this.state1[i]) {
+						code += this.state1[i].makePython(indent + 1);
+						codes = 1;
+					}
+				}
+			}
+			if (codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+			if (this.state2) {
+				codes = 0;
+				var code2 = '';
+				for (var i = 0; i < this.state2.length; i++) {
+					if (this.state2[i]) {
+						code2 += this.state2[i].makePython(indent + 1);
+						codes = 1;
+					}
+				}if (codes > 0) code += Parts.makeIndent(indent) + "else:\n" + code2;
+			}
+			return code;
 		}
 	}]);
 
@@ -2819,6 +3297,24 @@ var ForInc = function (_Statement21) {
 	}
 
 	_createClass(ForInc, [{
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			var pv = this.varname.makePython(),
+			    pb = this.begin.makePython(),
+			    pe = this.end.makePython(),
+			    ps = this.step.makePython();
+			code += "for " + pv + " in range(" + pb + "," + pe + "+" + ps + "," + ps + "):\n";
+			var codes = 0;
+			for (var i = 0; i < this.statementlist.length; i++) {
+				if (this.statementlist[i]) {
+					codes = 1;
+					code += this.statementlist[i].makePython(indent + 1);
+				}
+			}if (codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+			return code;
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var index = code[0].stack[0].index;
@@ -2877,6 +3373,24 @@ var ForDec = function (_Statement22) {
 	}
 
 	_createClass(ForDec, [{
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			var pv = this.varname.makePython(),
+			    pb = this.begin.makePython(),
+			    pe = this.end.makePython(),
+			    ps = this.step.makePython();
+			code += "for " + pv + " in range(" + pb + "," + pe + "-" + ps + ",-" + ps + "):\n";
+			var codes = 0;
+			for (var i = 0; i < this.statementlist.length; i++) {
+				if (this.statementlist[i]) {
+					codes = 1;
+					code += this.statementlist[i].makePython(indent + 1);
+				}
+			}if (codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+			return code;
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -2961,6 +3475,20 @@ var While = function (_Statement24) {
 	}
 
 	_createClass(While, [{
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			code += "while " + this.condition.makePython() + ":\n";
+			var codes = 0;
+			for (var i = 0; i < this.statementlist.length; i++) {
+				if (this.statementlist[i]) {
+					codes = 1;
+					code += this.statementlist[i].makePython(indent + 1);
+				}
+			}if (codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+			return code;
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), 'run', this).call(this);
@@ -2994,6 +3522,13 @@ var SleepStatement = function (_Statement25) {
 			wait_time = this.sec.value;
 			_get(SleepStatement.prototype.__proto__ || Object.getPrototypeOf(SleepStatement.prototype), 'run', this).call(this);
 		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			var code = Parts.makeIndent(indent);
+			python_lib["time"] = 1;
+			return code + "time.sleep(" + this.sec.makePython() + "/1000)\n";
+		}
 	}]);
 
 	return SleepStatement;
@@ -3018,6 +3553,11 @@ var BreakStatement = function (_Statement26) {
 					if (block.statementlist[i] instanceof LoopBegin) return;
 				}
 			}
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			return Parts.makeIndent(indent) + "break\n";
 		}
 	}]);
 
@@ -5877,4 +6417,26 @@ function font_size(updown) {
 	elem.style.fontSize = fontsize + 'px';
 	elem.style.lineHeight = '1.2';
 	$('#sourceTextarea').focus();
+}
+
+function makePython() {
+	if (run_flag) return;
+	//textareaClear();
+	code = null;
+	myFuncs = {};
+	python_lib = {};
+	try {
+		var code = document.getElementById("sourceTextarea").value + "\n";
+		var dncl_code = python_to_dncl(code);
+		var main_routine = new parsedMainRoutine(dncl.parse(dncl_code));
+		var python_code = main_routine.makePython();
+		var subwindow = window.open("./subwindow.html", "subwindow", "left=600,top=100,width=700,height=500,directories=no,location=no,scrollbars=yes");
+		setTimeout(function () {
+			// loadするのを1秒待ってみる
+			subwindow.postMessage(python_code, '*');
+		}, 1000);
+	} catch (e) {
+		textareaClear();
+		textareaAppend(e.message);
+	}
 }
