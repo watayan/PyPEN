@@ -3332,7 +3332,7 @@ var ForInc = function (_Statement21) {
 			    pb = this.begin.makePython(),
 			    pe = this.end.makePython(),
 			    ps = this.step.makePython();
-			code += "for " + pv + " in range(" + pb + "," + pe + "+" + ps + "," + ps + "):\n";
+			code += "for " + pv + " in range(" + pb + "," + pe + "+1," + ps + "):\n";
 			var codes = 0;
 			for (var i = 0; i < this.statementlist.length; i++) {
 				if (this.statementlist[i]) {
@@ -3408,7 +3408,7 @@ var ForDec = function (_Statement22) {
 			    pb = this.begin.makePython(),
 			    pe = this.end.makePython(),
 			    ps = this.step.makePython();
-			code += "for " + pv + " in range(" + pb + "," + pe + "-" + ps + ",-" + ps + "):\n";
+			code += "for " + pv + " in range(" + pb + "," + pe + "-1,-" + ps + "):\n";
 			var codes = 0;
 			for (var i = 0; i < this.statementlist.length; i++) {
 				if (this.statementlist[i]) {

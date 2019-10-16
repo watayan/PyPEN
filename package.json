@@ -37,6 +37,6 @@
   "dependencies": {
     "eslint": "^5.16.0",
     "jison-lex": "^0.3.4",
-    "npm": "^6.11.2"
+    "npm": "^6.12.0"
   }
 }

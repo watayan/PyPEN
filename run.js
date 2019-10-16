@@ -2770,7 +2770,7 @@ class ForInc extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		var pv = this.varname.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + "," + pe + "+" + ps + "," + ps + "):\n";
+		code += "for " + pv + " in range(" + pb + "," + pe + "+1," + ps + "):\n";
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
@@ -2838,7 +2838,7 @@ class ForDec extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		var pv = this.varname.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + "," + pe + "-" + ps + ",-" + ps + "):\n";
+		code += "for " + pv + " in range(" + pb + "," + pe + "-1,-" + ps + "):\n";
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
