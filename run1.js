@@ -1053,7 +1053,7 @@ var DivInt = function (_Value12) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' // ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1066,7 +1066,7 @@ var DivInt = function (_Value12) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' // ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
 	}]);
 
