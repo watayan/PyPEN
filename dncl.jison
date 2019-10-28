@@ -299,13 +299,13 @@ IfStatement
 
 ForStatement
 	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@14));}
+		{$$ = [new runBeforeGetValue([$3], new Location(@1,@14)), new ForInc($1, $3, $5, $7,$13, new Location(@1,@14))];}
 	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@14));}
+		{$$ = [new runBeforeGetValue([$3], new Location(@1,@14)), new ForDec($1, $3, $5, $7,$13, new Location(@1,@14))];}
 	| variable 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
+		{$$ = [new runBeforeGetValue([$3], new Location(@1,@14)), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
 	| variable 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
+		{$$ = [new runBeforeGetValue([$3], new Location(@1,@14)), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
 	;
 
 WhileStatement

@@ -2792,13 +2792,12 @@ class ForInc extends Statement
 		{
 			varTable = varTables[0];
 			if(this.begin.getValue() instanceof IntValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
-			else if(this.begin.getValue() instanceof FloatValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
+			else if(this.begin.getValue() instanceof FloatValue)varTable.vars[this.varname.varname] = new FloatValue(0, this.loc);
 			else varTable = null;
 		}
 		if(varTable)
 		{
 			// ループ前の初期化
-			this.begin.run();	// ここ手抜き(?)
 			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 			assign.run();
 			// ループ先頭
@@ -2859,13 +2858,12 @@ class ForDec extends Statement
 		{
 			varTable = varTables[0];
 			if(this.begin.getValue() instanceof IntValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
-			else if(this.begin.getValue() instanceof FloatValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
+			else if(this.begin.getValue() instanceof FloatValue)varTable.vars[this.varname.varname] = new FloatValue(0, this.loc);
 			else varTable = null;
 		}
 		if(varTable)
 		{
 			// ループ前の初期化
-			this.begin.run();
 			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
 			assign.run();
 			// ループ先頭

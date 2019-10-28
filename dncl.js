@@ -255,16 +255,16 @@ case 73:
 this.$ = [new runBeforeGetValue([$$[$0-10]], _$[$0-11]), new If($$[$0-10],$$[$0-6],$$[$0-2], new Location(_$[$0-11], _$[$0-1]))];
 break;
 case 74:
-this.$ = new ForInc($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-12]], new Location(_$[$0-14],_$[$0-1])), new ForInc($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]))];
 break;
 case 75:
-this.$ = new ForDec($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-12]], new Location(_$[$0-14],_$[$0-1])), new ForDec($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]))];
 break;
 case 76:
-this.$ = new ForInc($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-10]], new Location(_$[$0-12],_$[$01])), new ForInc($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]))];
 break;
 case 77:
-this.$ = new ForDec($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]));
+this.$ = [new runBeforeGetValue([$$[$0-10]], new Location(_$[$0-12],_$[$01])), new ForDec($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]))];
 break;
 case 78:
 this.$ = new While($$[$0-6], $$[$0-2], new Location(_$[$0-6], _$[$0-1]));
