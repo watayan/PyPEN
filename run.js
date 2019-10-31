@@ -2022,7 +2022,11 @@ function valuelist2stack(args, queue)
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
 			else if(v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);
-			else if(v instanceof CallFunction) valuelist2stack(v.value.parameter, queue);
+			else if(v instanceof CallFunction)
+			{
+				valuelist2stack(v.value.parameter, queue);
+				valuelist2stack(v, queue);
+			} 
 			queue.push(v);
 		}
 	}
@@ -2034,11 +2038,15 @@ function valuelist2stack(args, queue)
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
 			else if(v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);
-			else if(v instanceof CallFunction) valuelist2stack(v.value.parameter, queue);
+			else if(v instanceof CallFunction)
+			{
+				valuelist2stack(v.value.parameter, queue);
+				valuelist2stack(v, queue);
+			} 
 			queue.push(v);
 		}
 	}
-	else queue.push(v);
+	else queue.push(args);
 }
 
 class runBeforeGetValue extends Statement
@@ -3143,13 +3151,12 @@ function next_line()
 		{
 			index = code[0].stack[0].index;
 			statement = code[0].stack[0].statementlist[index];
-			if(statement)
+			if(statement && statement instanceof Statement)
 			{
 				highlightLine(current_line = statement.first_line);
 			}
 		}
 		else highlightLine(++current_line);
-
 	}
 }
 
