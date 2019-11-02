@@ -5313,7 +5313,7 @@ onload = function(){
 		if(!filelist) return;
 		for(var i = 0; i < filelist.length; i++)
 		{
-			if(!/\.pen$/i.exec(filelist[i].name)) continue;
+			if(!/\.PyPEN$/i.exec(filelist[i].name)) continue;
 			if(window.FileReader)
 			{
 				try{
