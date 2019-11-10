@@ -28,12 +28,8 @@
 DecimalDigit	[0-9０-９]
 NonZeroDigit	[1-9１-９]
 
-IdentifierStart [a-zA-Zａ-ｚＡ-Ｚ]
-IdentifierPart	[a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
-Identifier		{IdentifierStart}{IdentifierPart}*
-
 Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
-Float			{Integer}[.．]{DecimalDigit}+
+Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
 String			"「"[^」]*"」"|"｢"[^｣]*"｣"|"\""[^"]*"\""
 Comma			[，,、]
 Colon			[:：]
@@ -41,6 +37,9 @@ Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　]
 Newline			\r\n|\r|\n
 UNDEFINED		"《"[^》]*"》"
+IdentifierStart [a-zA-Zａ-ｚＡ-Ｚ]
+IdentifierPart	[a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
+Identifier		{IdentifierStart}{IdentifierPart}*
 
 %%
 
@@ -175,7 +174,12 @@ UNDEFINED		"《"[^》]*"》"
 %%
 
 e
-	: e '+' e		{$$ = new Add($1, $3, new Location(@1, @3));}
+	: '整数値'		{$$ = new IntValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
+	| '実数値'		{$$ = new FloatValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
+	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
+	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
+	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
+	| e '+' e		{$$ = new Add($1, $3, new Location(@1, @3));}
 	| e '-' e		{$$ = new Sub($1, $3, new Location(@1, @3));}
 	| e '*' e		{$$ = new Mul($1, $3, new Location(@1, @3));}
 	| e '/' e		{$$ = new Div($1, $3, new Location(@1, @3));}
@@ -193,11 +197,6 @@ e
 	| e 'または' e	{$$ = new Or($1, $3, new Location(@1, @3));}
 	| e 'でない'	{$$ = new Not($1, new Location(@1, @1));}
 	| e 'と' e		{$$ = new Append($1, $3, new Location(@1, @3));}
-	| '整数値'		{$$ = new IntValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
-	| '実数値'		{$$ = new FloatValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
-	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
-	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
-	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
 	| '整数' '(' e ')' {$$ = new ConvertInt($3, new Location(@1, @4));}
 	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
 	| '文字列' '(' e ')' {$$ = new ConvertString($3, new Location(@1, @4));}

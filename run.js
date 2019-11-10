@@ -185,8 +185,10 @@ function codeChange()
 	}
 	catch(e)
 	{
-		console.log(e);
-		textarea.value = `構文エラーです\n${e.message}\n`;
+//		console.log(e);
+		textareaClear();
+		if(e.line) textareaAppend(e.line + "行目");
+		textareaAppend(`構文エラーです\n${e.message}\n`);
 		converting = false;
 	}
 }
@@ -522,7 +524,8 @@ class FloatValue extends Value
 	}
 	getCode()
 	{
-		if(isInteger(this.value)) return this.value + '.0';
+		if(Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6)  return this.value.toString();
+		else if(isInteger(this.value)) return this.value + '.0';
 		else return this.value;
 	}
 	clone()
@@ -3060,6 +3063,7 @@ function run()
 		{
 			if(selected_quiz < 0)
 			{
+				if(e.line) textareaAppend(e.line + "行目");
 				textareaAppend("構文エラーです\n" + e.message + "\n");
 				setRunflag(false);
 				code = null;
@@ -5577,6 +5581,7 @@ function makePython()
 	catch(e)
 	{
 		textareaClear();
-		textareaAppend(e.message);
+		if(e.line) textareaAppend(e.line + "行目");
+		textareaAppend("構文エラーです\n" + e.message);
 	}
 }

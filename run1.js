@@ -246,8 +246,10 @@ function codeChange() {
 		flowchart.code2flowchart(parse);
 		converting = false;
 	} catch (e) {
-		console.log(e);
-		textarea.value = '\u69CB\u6587\u30A8\u30E9\u30FC\u3067\u3059\n' + e.message + '\n';
+		//		console.log(e);
+		textareaClear();
+		if (e.line) textareaAppend(e.line + "行目");
+		textareaAppend('\u69CB\u6587\u30A8\u30E9\u30FC\u3067\u3059\n' + e.message + '\n');
 		converting = false;
 	}
 }
@@ -671,7 +673,7 @@ var FloatValue = function (_Value4) {
 	_createClass(FloatValue, [{
 		key: 'getCode',
 		value: function getCode() {
-			if (isInteger(this.value)) return this.value + '.0';else return this.value;
+			if (Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6) return this.value.toString();else if (isInteger(this.value)) return this.value + '.0';else return this.value;
 		}
 	}, {
 		key: 'clone',
@@ -3653,6 +3655,7 @@ function run() {
 			code = [new parsedMainRoutine(dncl.parse(dncl_source))];
 		} catch (e) {
 			if (selected_quiz < 0) {
+				if (e.line) textareaAppend(e.line + "行目");
 				textareaAppend("構文エラーです\n" + e.message + "\n");
 				setRunflag(false);
 				code = null;
@@ -6472,6 +6475,7 @@ function makePython() {
 		}, 1000);
 	} catch (e) {
 		textareaClear();
-		textareaAppend(e.message);
+		if (e.line) textareaAppend(e.line + "行目");
+		textareaAppend("構文エラーです\n" + e.message);
 	}
 }
