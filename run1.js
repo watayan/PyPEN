@@ -49,6 +49,14 @@ var test_limit_time = 0;
 var fontsize = 16;
 var python_lib = {};
 
+function finish() {
+	if (selected_quiz < 0) textareaAppend("---\n");
+	highlightLine(-1);
+	setRunflag(false);
+	wait_time = 0;
+	code = null;
+}
+
 /** parsedCodeクラス */
 
 var parsedCode = function () {
@@ -107,17 +115,6 @@ var parsedMainRoutine = function (_parsedCode) {
   * プログラムの実行が終了したときの処理
   */
 
-
-	_createClass(parsedMainRoutine, [{
-		key: 'finish',
-		value: function finish() {
-			if (selected_quiz < 0) textareaAppend("---\n");
-			highlightLine(-1);
-			setRunflag(false);
-			wait_time = 0;
-			code = null;
-		}
-	}]);
 
 	return parsedMainRoutine;
 }(parsedCode);
@@ -418,23 +415,28 @@ var Value = function () {
 	function Value(v, loc) {
 		_classCallCheck(this, Value);
 
-		this._value = v;
+		this.rtnv = this._value = v;
 		this._loc = loc;
-		this.rtnv = v;
+		//		this.rtnv = null;
 	}
-	/**
-  * @returns 生のJavaScriptにおける値
-  */
-
 
 	_createClass(Value, [{
+		key: 'clone',
+		value: function clone() {
+			throw new RuntimeError(this.first_line, constructor_name(this) + "はcloneが作られていません");
+		}
+		/**
+   * @returns 生のJavaScriptにおける値
+   */
+
+	}, {
 		key: 'getValue',
 
 		/**
    * @returns {Value} 値
    */
 		value: function getValue() {
-			return this.rtnv;
+			return this;
 		}
 		/**
    * @returns {string} DNCLの文法で表した文字列
@@ -500,6 +502,11 @@ var NullValue = function (_Value) {
 	}
 
 	_createClass(NullValue, [{
+		key: 'clone',
+		value: function clone() {
+			return new NullValue(this.loc);
+		}
+	}, {
 		key: 'getValue',
 		value: function getValue() {
 			return this;
@@ -529,6 +536,14 @@ var ArrayValue = function (_Value2) {
 	}
 
 	_createClass(ArrayValue, [{
+		key: 'clone',
+		value: function clone() {
+			var rtnv = [];
+			for (var i = 0; i < this.value.length; i++) {
+				rtnv.push(this.value[i].clone());
+			}return new ArrayValue(rtnv, this.loc);
+		}
+	}, {
 		key: 'getCode',
 		value: function getCode() {
 			var ag = [];
@@ -568,19 +583,6 @@ var ArrayValue = function (_Value2) {
 				if (v instanceof ArrayValue) v = v.nthValue(args.value[i].getValue().value);else v = null;
 			}
 			return v ? v : new NullValue(loc);
-		}
-		/**
-   * 同じ値を持つArrayValueを作る
-   * @returns {ArrayValue}
-   */
-
-	}, {
-		key: 'clone',
-		value: function clone() {
-			var rtnv = [];
-			for (var i = 0; i < this.length; i++) {
-				rtnv.push(this.value[i].getValue().clone());
-			}return new ArrayValue(rtnv, this.loc);
 		}
 	}, {
 		key: 'getValue',
@@ -671,14 +673,14 @@ var FloatValue = function (_Value4) {
 	}
 
 	_createClass(FloatValue, [{
-		key: 'getCode',
-		value: function getCode() {
-			if (Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6) return this.value.toString();else if (isInteger(this.value)) return this.value + '.0';else return this.value;
-		}
-	}, {
 		key: 'clone',
 		value: function clone() {
 			return new FloatValue(this.value, this.loc);
+		}
+	}, {
+		key: 'getCode',
+		value: function getCode() {
+			if (Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6) return this.value.toString();else if (isInteger(this.value)) return this.value + '.0';else return this.value;
 		}
 	}, {
 		key: 'getValue',
@@ -700,6 +702,11 @@ var StringValue = function (_Value5) {
 	}
 
 	_createClass(StringValue, [{
+		key: 'clone',
+		value: function clone() {
+			return new StringValue(this.value, this.loc);
+		}
+	}, {
 		key: 'getCode',
 		value: function getCode() {
 			if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
@@ -708,11 +715,6 @@ var StringValue = function (_Value5) {
 		key: 'makePython',
 		value: function makePython() {
 			return '\'' + this.value.replace('\'', '\\\'') + '\'';
-		}
-	}, {
-		key: 'clone',
-		value: function clone() {
-			return new StringValue(this.value, this.loc);
 		}
 	}, {
 		key: 'getValue',
@@ -734,6 +736,11 @@ var BooleanValue = function (_Value6) {
 	}
 
 	_createClass(BooleanValue, [{
+		key: 'clone',
+		value: function clone() {
+			return new BooleanValue(this.value, this.loc);
+		}
+	}, {
 		key: 'getCode',
 		value: function getCode() {
 			return this.value ? 'true' : 'false';
@@ -742,11 +749,6 @@ var BooleanValue = function (_Value6) {
 		key: 'makePython',
 		value: function makePython() {
 			return this.value ? "True" : "False";
-		}
-	}, {
-		key: 'clone',
-		value: function clone() {
-			return new BooleanValue(this.value, this.loc);
 		}
 	}, {
 		key: 'getValue',
@@ -768,6 +770,11 @@ var UNDEFINED = function (_Value7) {
 	}
 
 	_createClass(UNDEFINED, [{
+		key: 'clone',
+		value: function clone() {
+			return new UNDEFINED(this.value, this.loc);
+		}
+	}, {
 		key: 'getValue',
 		value: function getValue() {
 			throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -797,6 +804,11 @@ var Add = function (_Value8) {
 	}
 
 	_createClass(Add, [{
+		key: 'clone',
+		value: function clone() {
+			return new Add(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -845,6 +857,11 @@ var Add = function (_Value8) {
 			if (c2 == "Minus") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Add;
@@ -860,6 +877,11 @@ var Sub = function (_Value9) {
 	}
 
 	_createClass(Sub, [{
+		key: 'clone',
+		value: function clone() {
+			return new Sub(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -903,6 +925,11 @@ var Sub = function (_Value9) {
 			if (c2 == "Minus") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Sub;
@@ -918,6 +945,11 @@ var Mul = function (_Value10) {
 	}
 
 	_createClass(Mul, [{
+		key: 'clone',
+		value: function clone() {
+			return new Mul(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -961,6 +993,11 @@ var Mul = function (_Value10) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Mul;
@@ -976,6 +1013,11 @@ var Div = function (_Value11) {
 	}
 
 	_createClass(Div, [{
+		key: 'clone',
+		value: function clone() {
+			return new Div(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1015,6 +1057,11 @@ var Div = function (_Value11) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Div;
@@ -1031,6 +1078,11 @@ var DivInt = function (_Value12) {
 	}
 
 	_createClass(DivInt, [{
+		key: 'clone',
+		value: function clone() {
+			return new DivInt(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1070,6 +1122,11 @@ var DivInt = function (_Value12) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' // ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return DivInt;
@@ -1086,6 +1143,11 @@ var Mod = function (_Value13) {
 	}
 
 	_createClass(Mod, [{
+		key: 'clone',
+		value: function clone() {
+			return new Mod(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1124,6 +1186,11 @@ var Mod = function (_Value13) {
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + '%' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Mod;
@@ -1139,6 +1206,11 @@ var Minus = function (_Value14) {
 	}
 
 	_createClass(Minus, [{
+		key: 'clone',
+		value: function clone() {
+			return new Minus(this.value[0], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
@@ -1168,6 +1240,11 @@ var Minus = function (_Value14) {
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			return '-' + (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Minus;
@@ -1183,6 +1260,11 @@ var And = function (_Value15) {
 	}
 
 	_createClass(And, [{
+		key: 'clone',
+		value: function clone() {
+			return new And(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
@@ -1218,6 +1300,11 @@ var And = function (_Value15) {
 			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' and ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return And;
@@ -1233,6 +1320,11 @@ var Or = function (_Value16) {
 	}
 
 	_createClass(Or, [{
+		key: 'clone',
+		value: function clone() {
+			return new Or(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
@@ -1268,6 +1360,11 @@ var Or = function (_Value16) {
 			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' or ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return Or;
@@ -1283,6 +1380,11 @@ var Not = function (_Value17) {
 	}
 
 	_createClass(Not, [{
+		key: 'clone',
+		value: function clone() {
+			return new Not(this.value[0], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue();
@@ -1306,6 +1408,11 @@ var Not = function (_Value17) {
 			var brace1 = false;
 			if (c1 == "And" || c1 == "Or" || c1 == "Not") brace2 = true;
 			return 'not ' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
 		}
 	}]);
 
@@ -1340,6 +1447,11 @@ var EQ = function (_Value18) {
 	}
 
 	_createClass(EQ, [{
+		key: 'clone',
+		value: function clone() {
+			return new EQ(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1369,6 +1481,11 @@ var EQ = function (_Value18) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' == ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return EQ;
@@ -1384,6 +1501,11 @@ var NE = function (_Value19) {
 	}
 
 	_createClass(NE, [{
+		key: 'clone',
+		value: function clone() {
+			return new NE(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1413,6 +1535,11 @@ var NE = function (_Value19) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return NE;
@@ -1428,6 +1555,11 @@ var GT = function (_Value20) {
 	}
 
 	_createClass(GT, [{
+		key: 'clone',
+		value: function clone() {
+			return new GT(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1458,6 +1590,11 @@ var GT = function (_Value20) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return GT;
@@ -1473,6 +1610,11 @@ var GE = function (_Value21) {
 	}
 
 	_createClass(GE, [{
+		key: 'clone',
+		value: function clone() {
+			return new GE(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1503,6 +1645,11 @@ var GE = function (_Value21) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return GE;
@@ -1518,6 +1665,11 @@ var LT = function (_Value22) {
 	}
 
 	_createClass(LT, [{
+		key: 'clone',
+		value: function clone() {
+			return new LT(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1548,6 +1700,11 @@ var LT = function (_Value22) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return LT;
@@ -1563,6 +1720,11 @@ var LE = function (_Value23) {
 	}
 
 	_createClass(LE, [{
+		key: 'clone',
+		value: function clone() {
+			return new LE(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = this.value[0].getValue(),
@@ -1593,6 +1755,11 @@ var LE = function (_Value23) {
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return LE;
@@ -1608,6 +1775,11 @@ var ConvertInt = function (_Value24) {
 	}
 
 	_createClass(ConvertInt, [{
+		key: 'clone',
+		value: function clone() {
+			return new ConvertInt(this.value[0], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
@@ -1626,6 +1798,11 @@ var ConvertInt = function (_Value24) {
 		value: function makePython() {
 			return 'int(' + this.value[0].makePython() + ')';
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return ConvertInt;
@@ -1641,6 +1818,11 @@ var ConvertFloat = function (_Value25) {
 	}
 
 	_createClass(ConvertFloat, [{
+		key: 'clone',
+		value: function clone() {
+			return new ConvertFloat(this.value[0], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
@@ -1659,6 +1841,11 @@ var ConvertFloat = function (_Value25) {
 		value: function makePython() {
 			return 'float(' + this.value[0].makePython() + ')';
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return ConvertFloat;
@@ -1674,6 +1861,11 @@ var ConvertString = function (_Value26) {
 	}
 
 	_createClass(ConvertString, [{
+		key: 'clone',
+		value: function clone() {
+			return new ConvertString(this.value[0], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
@@ -1692,6 +1884,11 @@ var ConvertString = function (_Value26) {
 		value: function makePython() {
 			return 'str(' + this.value[0].makePython() + ')';
 		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
 	}]);
 
 	return ConvertString;
@@ -1707,6 +1904,11 @@ var ConvertBool = function (_Value27) {
 	}
 
 	_createClass(ConvertBool, [{
+		key: 'clone',
+		value: function clone() {
+			return new ConvertBool(this.value[0], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v = this.value[0].getValue();
@@ -1725,6 +1927,11 @@ var ConvertBool = function (_Value27) {
 		key: 'makePython',
 		value: function makePython() {
 			return 'bool(' + this.value[0].makePython() + ')';
+		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
 		}
 	}]);
 
@@ -1747,6 +1954,11 @@ var Variable = function (_Value28) {
 	}
 
 	_createClass(Variable, [{
+		key: 'clone',
+		value: function clone() {
+			return new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var vn = this.value[0];
@@ -1789,6 +2001,11 @@ var Variable = function (_Value28) {
 			return vn;
 		}
 	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
+	}, {
 		key: 'varname',
 		get: function get() {
 			return this.value[0];
@@ -1814,12 +2031,14 @@ var DefinedFunction = function () {
   * @param {number} argc 引数の個数
   * @param {function} func 実際の関数
   * @param {string} module Pythonで必要となるモジュール。nullならナニもいらない
-  * @param {function} convert this.argcを受け取って文字列を返す関数。nullならthis.funcName(this.argc)的なことをする。
+  * @param {function} convert this.argcを受け取ってPythonコードの文字列を返す関数。nullならthis.funcName(this.argc)的なことをする。
   */
 	function DefinedFunction(argc, func, module, convert) {
 		_classCallCheck(this, DefinedFunction);
 
 		this.argc = argc;this.func = func;this.module = module;this.convert = convert;
+		this.caller = null;
+		this.loc = null;
 	}
 	/**
   * 関数の値を返す
@@ -1830,10 +2049,33 @@ var DefinedFunction = function () {
 
 
 	_createClass(DefinedFunction, [{
-		key: 'exec',
-		value: function exec(parameters, loc) {
-			if (this.argc instanceof Array && this.argc[0] <= parameters.length && this.argc[1] >= parameters.length || parameters.length == this.argc) return this.func(parameters, loc);
-			throw new RuntimeError(loc.first_line, "引数の個数が違います");
+		key: 'run',
+		value: function run() {
+			if (this.argc instanceof Array && this.argc[0] <= this.parameters.length && this.argc[1] >= this.parameters.length || this.parameters.length == this.argc) {
+				code[0].stack[0].index++;
+				this.caller.setValue(this.func(this.parameters, this.loc));
+				code.shift();
+			} else throw new RuntimeError(this.loc.first_line, "引数の個数が違います");
+		}
+	}, {
+		key: 'clone',
+		value: function clone() {
+			return new DefinedFunction(this.argc, this.func, this.module, this.convert);
+		}
+	}, {
+		key: 'setCaller',
+		value: function setCaller(caller) {
+			this.caller = caller;
+		}
+	}, {
+		key: 'setParameter',
+		value: function setParameter(params) {
+			this.parameters = params;
+		}
+	}, {
+		key: 'setLocation',
+		value: function setLocation(loc) {
+			this.loc = loc;
 		}
 	}]);
 
@@ -2018,6 +2260,15 @@ var definedFunction = {
 	})
 };
 
+function setCaller(statementlist, caller) {
+	for (var i = 0; i < statementlist.length; i++) {
+		if (statementlist[i].statementlist) setCaller(statementlist[i].state, caller);
+		if (statementlist[i].state1) setCaller(statementlist[i].state1, caller);
+		if (statementlist[i].state2) setCaller(statementlist[i].state2, caller);
+		if (statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
+	}
+}
+
 /**
  * 関数呼び出し
  */
@@ -2034,37 +2285,62 @@ var CallFunction = function (_Value29) {
 	function CallFunction(funcname, parameter, loc) {
 		_classCallCheck(this, CallFunction);
 
-		return _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
+		var _this32 = _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
+
+		_this32.rtnv = null;
 		//		this.rtnv = new StringValue("関数が終了していません", loc);
+		return _this32;
 	}
 
 	_createClass(CallFunction, [{
+		key: 'clone',
+		value: function clone() {
+			return new CallFunction(this.value[0], this.value[1], this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
 			if (definedFunction[func]) {
-				_get(CallFunction.prototype.__proto__ || Object.getPrototypeOf(CallFunction.prototype), 'run', this).call(this);
-				returnValues.push(definedFunction[func].exec(param, this.loc));
-			} else if (myFuncs[func]) {
 				var index = code[0].stack[0].index;
-				var fn = myFuncs[func];
+				//			returnValues.push(definedFunction[func].exec(param, this.loc));
+				var fn = definedFunction[func].clone();
+				fn.setCaller(this);
+				fn.setParameter(param);
+				fn.setLocation(this.loc);
+				var statementlist = [new runBeforeGetValue(param), fn];
+				code.unshift(new parsedFunction(statementlist));
+				code[1].stack[0].index = index + 1;
+			} else if (myFuncs[func]) {
+				var _index = code[0].stack[0].index;
+				var _fn = myFuncs[func];
 				var vt = new varTable();
-				for (var i = 0; i < fn.params.length; i++) {
-					vt.vars[fn.params[i].varname] = param[i].getValue().clone();
+				for (var i = 0; i < _fn.params.length; i++) {
+					vt.vars[_fn.params[i].varname] = param[i].getValue().clone();
 				}
-				var statementlist = fn.statementlist.concat();
-				statementlist.push(new notReturnedFunction(fn.loc));
-				var pf = new parsedFunction(statementlist);
+				var _statementlist = [new runBeforeGetValue(param)];
+				for (var _i = 0; _i < _fn.statementlist.length; _i++) {
+					_statementlist.push(_fn.statementlist[_i].clone());
+				}setCaller(_statementlist, this);
+				//			let statementlist = fn.statementlist.concat();
+				_statementlist.push(new notReturnedFunction(_fn.loc));
+				var pf = new parsedFunction(_statementlist);
 				code.unshift(pf);
 				varTables.unshift(vt);
-				code[1].stack[0].index = index + 1;
+				code[1].stack[0].index = _index + 1;
 			} else throw new RuntimeError(this.first_line, '関数 ' + func + ' は定義されていません');
+		}
+	}, {
+		key: 'setValue',
+		value: function setValue(v) {
+			this.rtnv = v.clone();
 		}
 	}, {
 		key: 'getValue',
 		value: function getValue() {
-			return returnValues.pop();
+			//		return returnValues.pop();
+			return this.rtnv;
 		}
 	}, {
 		key: 'getCode',
@@ -2110,6 +2386,11 @@ var Append = function (_Value30) {
 	}
 
 	_createClass(Append, [{
+		key: 'clone',
+		value: function clone() {
+			return new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var v1 = void 0,
@@ -2134,6 +2415,11 @@ var Append = function (_Value30) {
 			if (!re.exec(p1)) p1 = "str(" + p1 + ")";
 			if (!re.exec(p2)) p2 = "str(" + p2 + ")";
 			return p1 + "+" + p2;
+		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
 		}
 	}]);
 
@@ -2170,6 +2456,11 @@ var Statement = function () {
 		key: 'makePython',
 		value: function makePython(indent) {
 			return Parts.makeIndent(indent);
+		}
+	}, {
+		key: 'clone',
+		value: function clone() {
+			throw new RuntimeError(this.first_line, constructor_name(this) + "はcloneが作られていません");
 		}
 	}, {
 		key: 'first_line',
@@ -2283,6 +2574,11 @@ var CallStep = function (_Statement2) {
 	}
 
 	_createClass(CallStep, [{
+		key: 'clone',
+		value: function clone() {
+			return new CallStep(this.funcName, this.args.clone(), this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			code[0].stack[0].index++;
@@ -2325,6 +2621,11 @@ var ExitStatement = function (_Statement3) {
 	}
 
 	_createClass(ExitStatement, [{
+		key: 'clone',
+		value: function clone() {
+			return new ExitStatement(this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (code[0] instanceof parsedStep) {
@@ -2405,17 +2706,31 @@ var ReturnStatement = function (_Statement5) {
 		var _this38 = _possibleConstructorReturn(this, (ReturnStatement.__proto__ || Object.getPrototypeOf(ReturnStatement)).call(this, loc));
 
 		_this38.value = value;
+		_this38.caller = null;
+		_this38.flag = false;
 		return _this38;
 	}
 
 	_createClass(ReturnStatement, [{
+		key: 'clone',
+		value: function clone() {
+			return new ReturnStatement(this.value, this.loc);
+		}
+	}, {
+		key: 'setCaller',
+		value: function setCaller(caller, flag) {
+			this.caller = caller;
+			this.flag = flag;
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (code[0] instanceof parsedFunction) {
 				//			this.value.getValue().run();
-				returnValues.push(this.value.getValue());
+				//			returnValues.push(this.value.getValue());
+				this.caller.setValue(this.value.getValue());
 				code.shift();
-				varTables.shift();
+				if (this.flag) varTables.shift();
 				//			super.run();
 			} else throw new RuntimeError(this.first_line, "関数の中ではありません");
 		}
@@ -2442,6 +2757,11 @@ var notReturnedFunction = function (_Statement6) {
 	}
 
 	_createClass(notReturnedFunction, [{
+		key: 'clone',
+		value: function clone() {
+			return new notReturnedFunction(this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			throw new RuntimeError(this.last_line, "関数が値を返さずに終了しました");
@@ -2466,6 +2786,11 @@ var DumpStatement = function (_Statement7) {
 	}
 
 	_createClass(DumpStatement, [{
+		key: 'clone',
+		value: function clone() {
+			return new DumpStatement(this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			textareaAppend("*** 変数確認 ***\n");
@@ -2501,16 +2826,16 @@ function valuelist2stack(args, queue) {
 			var v = args[i];
 			if (v instanceof ArrayValue) valuelist2stack(v.value, queue);else if (v instanceof Variable && v.args) valuelist2stack(v.args, queue);else if (v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);else if (v instanceof CallFunction) {
 				valuelist2stack(v.value.parameter, queue);
-				valuelist2stack(v, queue);
+				//				valuelist2stack(v, queue);
 			}
 			queue.push(v);
 		}
 	} else if (args instanceof ArrayValue) {
-		for (var _i = 0; _i < args.length; _i++) {
-			var _v2 = args.nthValue(_i);
+		for (var _i2 = 0; _i2 < args.length; _i2++) {
+			var _v2 = args.nthValue(_i2);
 			if (_v2 instanceof ArrayValue) valuelist2stack(_v2.value, queue);else if (_v2 instanceof Variable && _v2.args) valuelist2stack(_v2.args, queue);else if (_v2 && !(_v2 instanceof Variable) && _v2.value instanceof Array) valuelist2stack(_v2.value, queue);else if (_v2 instanceof CallFunction) {
 				valuelist2stack(_v2.value.parameter, queue);
-				valuelist2stack(_v2, queue);
+				//				valuelist2stack(v, queue);
 			}
 			queue.push(_v2);
 		}
@@ -2535,6 +2860,13 @@ var runBeforeGetValue = function (_Statement8) {
 	}
 
 	_createClass(runBeforeGetValue, [{
+		key: 'clone',
+		value: function clone() {
+			//		var args = [];
+			//		for(var i = 0; i < this.args.length; i++) args.push(this.args[i].clone());
+			return new runBeforeGetValue(this.args, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			_get(runBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runBeforeGetValue.prototype), 'run', this).call(this);
@@ -2570,6 +2902,14 @@ var runArgsBeforeGetValue = function (_Statement9) {
 	}
 
 	_createClass(runArgsBeforeGetValue, [{
+		key: 'clone',
+		value: function clone() {
+			var args = [];
+			for (var i = 0; i < this.args.length; i++) {
+				args.push(this.args[i].clone());
+			}return new runArgsBeforeGetValue(this.args, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			_get(runArgsBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue.prototype), 'run', this).call(this);
@@ -2794,6 +3134,11 @@ var Assign = function (_Statement11) {
 	}
 
 	_createClass(Assign, [{
+		key: 'clone',
+		value: function clone() {
+			return new Assign(this.variable, this.value, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -2872,6 +3217,11 @@ var Input = function (_Statement12) {
 	}
 
 	_createClass(Input, [{
+		key: 'clone',
+		value: function clone() {
+			new Input(this.varname, this.type, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (selected_quiz < 0) // 通常時
@@ -2930,6 +3280,11 @@ var InputBegin = function (_Statement13) {
 	}
 
 	_createClass(InputBegin, [{
+		key: 'clone',
+		value: function clone() {
+			return new InputBegin(this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			openInputWindow();
@@ -2960,6 +3315,11 @@ var InputEnd = function (_Statement14) {
 	}
 
 	_createClass(InputEnd, [{
+		key: 'clone',
+		value: function clone() {
+			return new InputEnd(this.varname, this.type, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -2995,6 +3355,11 @@ var Newline = function (_Statement15) {
 	}
 
 	_createClass(Newline, [{
+		key: 'clone',
+		value: function clone() {
+			return new Newline(this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (selected_quiz < 0) {
@@ -3034,6 +3399,11 @@ var Output = function (_Statement16) {
 	}
 
 	_createClass(Output, [{
+		key: 'clone',
+		value: function clone() {
+			return new Output(this.value.clone(), this.ln, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			var index = code[0].stack[0].index;
@@ -3097,6 +3467,14 @@ var GraphicStatement = function (_Statement17) {
 	}
 
 	_createClass(GraphicStatement, [{
+		key: 'clone',
+		value: function clone() {
+			var args = [];
+			for (var i = 0; i < this.args.length; i++) {
+				args.push(this.args[i]);
+			}return new GraphicStatement(this.command, args, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			_get(GraphicStatement.prototype.__proto__ || Object.getPrototypeOf(GraphicStatement.prototype), 'run', this).call(this);
@@ -3193,6 +3571,13 @@ var GraphicStatement = function (_Statement17) {
 var If = function (_Statement18) {
 	_inherits(If, _Statement18);
 
+	/**
+  * 
+  * @param {Value} condition 
+  * @param {Array<Statement>} state1 
+  * @param {Array<Statement>} state2 
+  * @param {Location} loc 
+  */
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
@@ -3205,6 +3590,17 @@ var If = function (_Statement18) {
 	}
 
 	_createClass(If, [{
+		key: 'clone',
+		value: function clone() {
+			var state1 = [],
+			    state2 = [];
+			for (var i = 0; i < this.state1.length; i++) {
+				state1.push(this.state1[i].clone());
+			}for (var i = 0; i < this.state2.length; i++) {
+				state2.push(this.state2[i].clone());
+			}return new If(this.condition, state1, state2, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			_get(If.prototype.__proto__ || Object.getPrototypeOf(If.prototype), 'run', this).call(this);
@@ -3264,6 +3660,11 @@ var LoopBegin = function (_Statement19) {
 	}
 
 	_createClass(LoopBegin, [{
+		key: 'clone',
+		value: function clone() {
+			return new LoopBegin(this.condifion.clone(), this.condition, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (this.condition == null || this.condition.getValue().value == this.continuous) _get(LoopBegin.prototype.__proto__ || Object.getPrototypeOf(LoopBegin.prototype), 'run', this).call(this);else code[0].stack[0].index = -1;
@@ -3293,6 +3694,11 @@ var LoopEnd = function (_Statement20) {
 	}
 
 	_createClass(LoopEnd, [{
+		key: 'clone',
+		value: function clone() {
+			return new LoopEnd(this.condition.clone(), this.continuous, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			if (this.condition == null || this.condition.getValue().value == this.continuous) code[0].stack[0].index = 0;else code[0].stack[0].index = -1;
@@ -3333,6 +3739,14 @@ var ForInc = function (_Statement21) {
 	}
 
 	_createClass(ForInc, [{
+		key: 'clone',
+		value: function clone() {
+			state = [];
+			for (var i = 0; i < this.statementlist; i++) {
+				state.push(this.statementlist[i].clone());
+			}return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+		}
+	}, {
 		key: 'makePython',
 		value: function makePython(indent) {
 			var code = Parts.makeIndent(indent);
@@ -3408,6 +3822,14 @@ var ForDec = function (_Statement22) {
 	}
 
 	_createClass(ForDec, [{
+		key: 'clone',
+		value: function clone() {
+			state = [];
+			for (var i = 0; i < this.statementlist; i++) {
+				state.push(this.statementlist[i].clone());
+			}return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+		}
+	}, {
 		key: 'makePython',
 		value: function makePython(indent) {
 			var code = Parts.makeIndent(indent);
@@ -3465,50 +3887,28 @@ var ForDec = function (_Statement22) {
 	return ForDec;
 }(Statement);
 
-var Until = function (_Statement23) {
-	_inherits(Until, _Statement23);
+var While = function (_Statement23) {
+	_inherits(While, _Statement23);
 
-	function Until(statementlist, condition, loc) {
-		_classCallCheck(this, Until);
+	function While(condition, statementlist, loc) {
+		_classCallCheck(this, While);
 
-		var _this60 = _possibleConstructorReturn(this, (Until.__proto__ || Object.getPrototypeOf(Until)).call(this, loc));
+		var _this60 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
 
 		_this60.condition = condition;
 		_this60.statementlist = statementlist;
 		return _this60;
 	}
 
-	_createClass(Until, [{
-		key: 'run',
-		value: function run() {
-			_get(Until.prototype.__proto__ || Object.getPrototypeOf(Until.prototype), 'run', this).call(this);
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var loop = [new LoopBegin(null, true, this.loc)];
-			for (var i = 0; i < this.statementlist.length; i++) {
-				loop.push(this.statementlist[i]);
-			}loop.push(new runBeforeGetValue([this.condition], this.loc));
-			loop.push(new LoopEnd(this.condition, false, new Location(last_token, last_token)));
-			code[0].stack.unshift({ statementlist: loop, index: 0 });
-		}
-	}]);
-
-	return Until;
-}(Statement);
-
-var While = function (_Statement24) {
-	_inherits(While, _Statement24);
-
-	function While(condition, statementlist, loc) {
-		_classCallCheck(this, While);
-
-		var _this61 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
-
-		_this61.condition = condition;
-		_this61.statementlist = statementlist;
-		return _this61;
-	}
-
 	_createClass(While, [{
+		key: 'clone',
+		value: function clone() {
+			state = [];
+			for (var i = 0; i < this.statementlist; i++) {
+				state.push(this.statementlist[i].clone());
+			}return new While(this.condition.clone(), state, this.loc);
+		}
+	}, {
 		key: 'makePython',
 		value: function makePython(indent) {
 			var code = Parts.makeIndent(indent);
@@ -3538,19 +3938,24 @@ var While = function (_Statement24) {
 	return While;
 }(Statement);
 
-var SleepStatement = function (_Statement25) {
-	_inherits(SleepStatement, _Statement25);
+var SleepStatement = function (_Statement24) {
+	_inherits(SleepStatement, _Statement24);
 
 	function SleepStatement(sec, loc) {
 		_classCallCheck(this, SleepStatement);
 
-		var _this62 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
+		var _this61 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
 
-		_this62.sec = new IntValue(sec.value, loc); // milli seconds
-		return _this62;
+		_this61.sec = new IntValue(sec.value, loc); // milli seconds
+		return _this61;
 	}
 
 	_createClass(SleepStatement, [{
+		key: 'clone',
+		value: function clone() {
+			return new SleepStatement(this.sec, this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			wait_time = this.sec.value;
@@ -3568,8 +3973,8 @@ var SleepStatement = function (_Statement25) {
 	return SleepStatement;
 }(Statement);
 
-var BreakStatement = function (_Statement26) {
-	_inherits(BreakStatement, _Statement26);
+var BreakStatement = function (_Statement25) {
+	_inherits(BreakStatement, _Statement25);
 
 	function BreakStatement(loc) {
 		_classCallCheck(this, BreakStatement);
@@ -3578,6 +3983,11 @@ var BreakStatement = function (_Statement26) {
 	}
 
 	_createClass(BreakStatement, [{
+		key: 'clone',
+		value: function clone() {
+			return new BreakStatement(this.loc);
+		}
+	}, {
 		key: 'run',
 		value: function run() {
 			while (true) {
@@ -3681,7 +4091,7 @@ function step() {
 			next_line();
 		} while (run_flag && l == current_line);
 		if (!code) return;
-		if (code[0].stack.length > 0) {
+		if (code[0] && code[0].stack.length > 0) {
 			if (run_flag && !step_flag) {
 				if (wait_time > 0) {
 					wait(wait_time);
@@ -3689,7 +4099,7 @@ function step() {
 				}
 				setZeroTimeout(step, 0);
 			}
-		} else if (code[0].finish) code[0].finish();
+		} else finish();
 	} else {
 		do {
 			next_line();
@@ -3717,16 +4127,17 @@ function next_line() {
 	index = code[0].stack[0] ? code[0].stack[0].index : -1;
 	while (index < 0 || index >= code[0].stack[0].statementlist.length) {
 		code[0].stack.shift();
-		if (code[0].stack.length < 1) break;
-		index = code[0].stack[0].index;
+		if (code[0].stack.length < 1) code.shift();
+		if (code.length < 1) break;
+		index = code[0] && code[0].stack[0] ? code[0].stack[0].index : -1;
 	}
 	if (selected_quiz < 0) {
 		// 次の行をハイライト表示する
-		if (code[0].stack[0]) {
+		if (code[0] && code[0].stack[0]) {
 			index = code[0].stack[0].index;
 			statement = code[0].stack[0].statementlist[index];
 			if (statement && statement instanceof Statement) {
-				highlightLine(current_line = statement.first_line);
+				if (statement.loc) highlightLine(current_line = statement.first_line);
 			}
 		} else highlightLine(++current_line);
 	}
@@ -4670,10 +5081,10 @@ var Parts_Output = function (_Parts4) {
 	function Parts_Output() {
 		_classCallCheck(this, Parts_Output);
 
-		var _this67 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
+		var _this66 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
 
-		_this67.setValue("《値》", true);
-		return _this67;
+		_this66.setValue("《値》", true);
+		return _this66;
 	}
 
 	_createClass(Parts_Output, [{
@@ -4794,10 +5205,10 @@ var Parts_Input = function (_Parts5) {
 	function Parts_Input() {
 		_classCallCheck(this, Parts_Input);
 
-		var _this68 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
+		var _this67 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
 
-		_this68.setValue("《変数》", 0);
-		return _this68;
+		_this67.setValue("《変数》", 0);
+		return _this67;
 	}
 
 	_createClass(Parts_Input, [{
@@ -4900,10 +5311,10 @@ var Parts_Substitute = function (_Parts6) {
 	function Parts_Substitute() {
 		_classCallCheck(this, Parts_Substitute);
 
-		var _this69 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
+		var _this68 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
 
-		_this69.setValue("《変数》", "《値》");
-		return _this69;
+		_this68.setValue("《変数》", "《値》");
+		return _this68;
 	}
 
 	_createClass(Parts_Substitute, [{
@@ -5010,12 +5421,12 @@ var Parts_If = function (_Parts7) {
 	function Parts_If() {
 		_classCallCheck(this, Parts_If);
 
-		var _this70 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
+		var _this69 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
 
-		_this70.setValue("《条件》");
-		_this70.left = _this70.right = null;
-		_this70.left_bar_expand = _this70.right_bar_expand = 0;
-		return _this70;
+		_this69.setValue("《条件》");
+		_this69.left = _this69.right = null;
+		_this69.left_bar_expand = _this69.right_bar_expand = 0;
+		return _this69;
 	}
 
 	_createClass(Parts_If, [{
@@ -5337,10 +5748,10 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	function Parts_LoopBegin1() {
 		_classCallCheck(this, Parts_LoopBegin1);
 
-		var _this72 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
+		var _this71 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
 
-		_this72.setValue("《条件》");
-		return _this72;
+		_this71.setValue("《条件》");
+		return _this71;
 	}
 
 	_createClass(Parts_LoopBegin1, [{
@@ -5417,10 +5828,10 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this73 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this72 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
 
-		_this73.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this73;
+		_this72.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this72;
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
@@ -5515,10 +5926,10 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this74 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this73 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
 
-		_this74.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this74;
+		_this73.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this73;
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
@@ -5743,10 +6154,10 @@ var Parts_Misc = function (_Parts10) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this76 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this75 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
 
-		_this76.setValue("none", []);
-		return _this76;
+		_this75.setValue("none", []);
+		return _this75;
 	}
 
 	_createClass(Parts_Misc, [{

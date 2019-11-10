@@ -33,6 +33,16 @@ var test_limit_time = 0;
 var fontsize = 16;
 var python_lib = {};
 
+function finish()
+{
+	if(selected_quiz < 0) textareaAppend("---\n");
+	highlightLine(-1);
+	setRunflag(false);
+	wait_time = 0;
+	code = null;
+}
+
+
 /** parsedCodeクラス */
 class parsedCode
 {
@@ -73,14 +83,6 @@ class parsedMainRoutine extends parsedCode
 	/**
 	 * プログラムの実行が終了したときの処理
 	 */
-	finish()
-	{
-		if(selected_quiz < 0) textareaAppend("---\n");
-		highlightLine(-1);
-		setRunflag(false);
-		wait_time = 0;
-		code = null;
-	}
 }
 
 /** parsedFunctionクラス
@@ -338,9 +340,13 @@ class Value
 	 */
 	constructor(v, loc)
 	{
-		this._value = v;
+		this.rtnv = this._value = v;
 		this._loc = loc;
-		this.rtnv = v;
+//		this.rtnv = null;
+	}
+	clone()
+	{
+		throw new RuntimeError(this.first_line, constructor_name(this) + "はcloneが作られていません");
 	}
 	/**
 	 * @returns 生のJavaScriptにおける値
@@ -353,7 +359,7 @@ class Value
 	 */
 	getValue()
 	{
-		return this.rtnv;
+		return this;
 	}
 	/**
 	 * @returns {string} DNCLの文法で表した文字列
@@ -390,6 +396,10 @@ class NullValue extends Value
 	{
 		super(0, loc);
 	}
+	clone()
+	{
+		return new NullValue(this.loc);
+	}
 	getValue()
 	{
 		return this;
@@ -409,6 +419,12 @@ class ArrayValue extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
+	}
+	clone()
+	{
+		var rtnv = [];
+		for(var i = 0; i < this.value.length; i++) rtnv.push(this.value[i].clone());
+		return new ArrayValue(rtnv, this.loc);
 	}
 	getCode()
 	{
@@ -448,16 +464,6 @@ class ArrayValue extends Value
 			else v = null;
 		}
 		return v ? v : new NullValue(loc);
-	}
-	/**
-	 * 同じ値を持つArrayValueを作る
-	 * @returns {ArrayValue}
-	 */
-	clone()
-	{
-		let rtnv = [];
-		for(let i = 0; i < this.length; i++) rtnv.push(this.value[i].getValue().clone());
-		return new ArrayValue(rtnv, this.loc);
 	}
 	getValue()
 	{
@@ -522,15 +528,15 @@ class FloatValue extends Value
 		super(v, loc);
 		if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 	}
+	clone()
+	{
+		return new FloatValue(this.value, this.loc);
+	}
 	getCode()
 	{
 		if(Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6)  return this.value.toString();
 		else if(isInteger(this.value)) return this.value + '.0';
 		else return this.value;
-	}
-	clone()
-	{
-		return new FloatValue(this.value, this.loc);
 	}
 	getValue()
 	{
@@ -543,6 +549,10 @@ class StringValue extends Value
 	{
 		super(v, loc);
 	}
+	clone()
+	{
+		return new StringValue(this.value, this.loc);
+	}
 	getCode()
 	{
 		if(this.value.match(/[「」]/)) return '"' + this.value + '"';
@@ -551,10 +561,6 @@ class StringValue extends Value
 	makePython()
 	{
 		return '\'' + this.value.replace('\'','\\\'') + '\'';
-	}
-	clone()
-	{
-		return new StringValue(this.value, this.loc);
 	}
 	getValue()
 	{
@@ -567,6 +573,10 @@ class BooleanValue extends Value
 	{
 		super(v, loc);
 	}
+	clone()
+	{
+		return new BooleanValue(this.value, this.loc);
+	}
 	getCode()
 	{
 		return this.value ? 'true' : 'false';
@@ -574,10 +584,6 @@ class BooleanValue extends Value
 	makePython()
 	{
 		return this.value ? "True" : "False";
-	}
-	clone()
-	{
-		return new BooleanValue(this.value, this.loc);
 	}
 	getValue()
 	{
@@ -590,6 +596,10 @@ class UNDEFINED extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
+	}
+	clone()
+	{
+		return new UNDEFINED(this.value, this.loc);
 	}
 	get varname()
 	{
@@ -610,6 +620,10 @@ class Add extends Value
 	constructor(x, y, loc)
 	{
 		super([x,y], loc);
+	}
+	clone()
+	{
+		return new Add(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
@@ -660,6 +674,10 @@ class Add extends Value
 			+ ' + '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Sub extends Value
@@ -667,6 +685,10 @@ class Sub extends Value
 	constructor(x, y, loc)
 	{
 		super([x,y], loc);
+	}
+	clone()
+	{
+		return new Sub(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
@@ -709,6 +731,10 @@ class Sub extends Value
 			+ ' - '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Mul extends Value
@@ -716,6 +742,10 @@ class Mul extends Value
 	constructor(x, y, loc)
 	{
 		super([x,y], loc);
+	}
+	clone()
+	{
+		return new Mul(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
@@ -758,7 +788,10 @@ class Mul extends Value
 			+ ' * '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
-
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Div extends Value	// /
@@ -766,6 +799,10 @@ class Div extends Value	// /
 	constructor(x, y, loc)
 	{
 		super([x,y], loc);
+	}
+	clone()
+	{
+		return new Div(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
@@ -801,6 +838,10 @@ class Div extends Value	// /
 			+ ' / '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class DivInt extends Value // //
@@ -808,6 +849,10 @@ class DivInt extends Value // //
 	constructor(x, y, loc)
 	{
 		super([x,y], loc);
+	}
+	clone()
+	{
+		return new DivInt(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
@@ -843,6 +888,10 @@ class DivInt extends Value // //
 			+ ' // '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 
@@ -851,6 +900,10 @@ class Mod extends Value
 	constructor(x, y, loc)
 	{
 		super([x,y], loc);
+	}
+	clone()
+	{
+		return new Mod(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
@@ -888,6 +941,10 @@ class Mod extends Value
 			+ '%'
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Minus extends Value
@@ -895,6 +952,10 @@ class Minus extends Value
 	constructor(x, loc)
 	{
 		super([x], loc);
+	}
+	clone()
+	{
+		return new Minus(this.value[0], this.loc);
 	}
 	run()
 	{
@@ -927,12 +988,19 @@ class Minus extends Value
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		return '-' + (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '');
 	}
-
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class And extends Value
 {
 	constructor(x, y, loc){super([x,y],loc);}
+	clone()
+	{
+		return new And(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue();
@@ -969,11 +1037,19 @@ class And extends Value
 			+ ' and '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Or extends Value
 {
 	constructor(x, y, loc){super([x,y],loc);}
+	clone()
+	{
+		return new Or(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue();
@@ -1010,11 +1086,19 @@ class Or extends Value
 			+ ' or '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Not extends Value
 {
 	constructor(x, loc){super([x],loc);}
+	clone()
+	{
+		return new Not(this.value[0], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue();
@@ -1039,6 +1123,10 @@ class Not extends Value
 		if(c1 == "And" || c1 == "Or" || c1 == "Not") brace2 = true;
 		return 'not ' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 
@@ -1062,6 +1150,10 @@ function ArrayCompare(v1, v2)
 class EQ extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		return new EQ(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
@@ -1087,11 +1179,19 @@ class EQ extends Value
 			+ ' == '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class NE extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		return new NE(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
@@ -1117,11 +1217,19 @@ class NE extends Value
 			+ ' != '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class GT extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		return new GT(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
@@ -1147,11 +1255,19 @@ class GT extends Value
 			+ ' > '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class GE extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		return new GE(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
@@ -1177,11 +1293,19 @@ class GE extends Value
 			+ ' >= '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class LT extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		return new LT(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
@@ -1207,11 +1331,19 @@ class LT extends Value
 			+ ' < '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class LE extends Value
 {
 	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		return new LE(this.value[0], this.value[1], this.loc);
+	}
 	run()
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
@@ -1237,11 +1369,19 @@ class LE extends Value
 			+ ' <= '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class ConvertInt extends Value
 {
 	constructor(x, loc){ super([x], loc);}
+	clone()
+	{
+		return new ConvertInt(this.value[0], this.loc);
+	}
 	run()
 	{
 		let v = this.value[0].getValue();
@@ -1262,11 +1402,19 @@ class ConvertInt extends Value
 	{
 		return 'int(' + this.value[0].makePython() + ')';
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class ConvertFloat extends Value
 {
 	constructor(x, loc){ super([x], loc);}
+	clone()
+	{
+		return new ConvertFloat(this.value[0], this.loc);
+	}
 	run()
 	{
 		let v = this.value[0].getValue();
@@ -1286,11 +1434,19 @@ class ConvertFloat extends Value
 	{
 		return 'float(' + this.value[0].makePython() + ')';
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class ConvertString extends Value
 {
 	constructor(x, loc){ super([x], loc);}
+	clone()
+	{
+		return new ConvertString(this.value[0], this.loc);
+	}
 	run()
 	{
 		let v = this.value[0].getValue();
@@ -1309,11 +1465,19 @@ class ConvertString extends Value
 	{
 		return 'str(' + this.value[0].makePython() + ')';
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class ConvertBool extends Value
 {
 	constructor(x, loc){ super([x], loc);}
+	clone()
+	{
+		return new ConvertBool(this.value[0], this.loc);
+	}
 	run()
 	{
 		let v = this.value[0].getValue();
@@ -1333,6 +1497,10 @@ class ConvertBool extends Value
 	{
 		return 'bool(' + this.value[0].makePython() + ')';
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class Variable extends Value
@@ -1344,6 +1512,10 @@ class Variable extends Value
 	 * @param {Location} loc 
 	 */
 	constructor(x, y, loc){super([x,y],loc);}
+	clone()
+	{
+		return new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
+	}
 	get varname(){return this.value[0];}
 	get args(){return this.value[1];}
 	run()
@@ -1398,6 +1570,10 @@ class Variable extends Value
 		}
 		return vn;
 	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 /**
@@ -1410,21 +1586,45 @@ class DefinedFunction
 	 * @param {number} argc 引数の個数
 	 * @param {function} func 実際の関数
 	 * @param {string} module Pythonで必要となるモジュール。nullならナニもいらない
-	 * @param {function} convert this.argcを受け取って文字列を返す関数。nullならthis.funcName(this.argc)的なことをする。
+	 * @param {function} convert this.argcを受け取ってPythonコードの文字列を返す関数。nullならthis.funcName(this.argc)的なことをする。
 	 */
-	constructor(argc, func, module, convert) { this.argc = argc; this.func = func; this.module = module; this.convert = convert;}
+	constructor(argc, func, module, convert) { 
+		this.argc = argc; this.func = func; this.module = module; this.convert = convert;
+		this.caller = null;
+		this.loc = null;
+	}
 	/**
 	 * 関数の値を返す
 	 * @param {Array<Value>} parameters 
 	 * @param {Location} loc 
 	 * @returns {any}
 	 */
-	exec(parameters, loc)
+	run()
 	{
-		if((this.argc instanceof Array && this.argc[0] <= parameters.length && this.argc[1] >= parameters.length)
-			|| parameters.length == this.argc)
-			return this.func(parameters, loc);
-		throw new RuntimeError(loc.first_line, "引数の個数が違います");
+		if((this.argc instanceof Array && this.argc[0] <= this.parameters.length && this.argc[1] >= this.parameters.length)
+			|| this.parameters.length == this.argc)
+			{
+				code[0].stack[0].index++;
+				this.caller.setValue(this.func(this.parameters, this.loc));
+				code.shift();
+			}
+		else throw new RuntimeError(this.loc.first_line, "引数の個数が違います");
+	}
+	clone()
+	{
+		return new DefinedFunction(this.argc, this.func, this.module, this.convert);
+	}
+	setCaller(caller)
+	{
+		this.caller = caller;
+	}
+	setParameter(params)
+	{
+		this.parameters = params;
+	}
+	setLocation(loc)
+	{
+		this.loc = loc;
 	}
 }
 
@@ -1440,7 +1640,8 @@ var definedFunction = {
 	}, null, null),
 	"random": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
-		if(par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
+		if(par1 instanceof NullValue || par1 instanceof IntValue) 
+		return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
 		else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
 	}, "random", function(argc){
 		return "random.randint(0," + argc[0] + ")";
@@ -1659,6 +1860,18 @@ var definedFunction = {
 	})
 };
 
+
+function setCaller(statementlist, caller)
+{
+	for(let i = 0; i < statementlist.length; i++)
+	{
+		if(statementlist[i].statementlist) setCaller(statementlist[i].state, caller);
+		if(statementlist[i].state1) setCaller(statementlist[i].state1, caller);
+		if(statementlist[i].state2) setCaller(statementlist[i].state2, caller);
+		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
+	}
+}
+
 /**
  * 関数呼び出し
  */
@@ -1673,15 +1886,27 @@ class CallFunction extends Value
 	constructor(funcname, parameter, loc)
 	{
 		super({funcname: funcname, parameter:parameter}, loc);
+		this.rtnv = null;
 //		this.rtnv = new StringValue("関数が終了していません", loc);
+	}
+	clone()
+	{
+		return new CallFunction(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
 		const func = this.value.funcname, param = this.value.parameter;
 		if(definedFunction[func])
 		{
-			super.run();
-			returnValues.push(definedFunction[func].exec(param, this.loc));
+			let index = code[0].stack[0].index;
+//			returnValues.push(definedFunction[func].exec(param, this.loc));
+			let fn = definedFunction[func].clone();
+			fn.setCaller(this);
+			fn.setParameter(param);
+			fn.setLocation(this.loc);
+			let statementlist = [new runBeforeGetValue(param), fn];
+			code.unshift(new parsedFunction(statementlist));
+			code[1].stack[0].index = index + 1;
 		}
 		else if(myFuncs[func])
 		{
@@ -1692,7 +1917,11 @@ class CallFunction extends Value
 			{
 				vt.vars[fn.params[i].varname] = param[i].getValue().clone();
 			}
-			let statementlist = fn.statementlist.concat();
+			let statementlist = [new runBeforeGetValue(param)];
+			for(let i = 0; i < fn.statementlist.length; i++)
+				statementlist.push(fn.statementlist[i].clone());
+			setCaller(statementlist, this);
+//			let statementlist = fn.statementlist.concat();
 			statementlist.push(new notReturnedFunction(fn.loc));
 			let pf = new parsedFunction(statementlist);
 			code.unshift(pf);
@@ -1702,9 +1931,14 @@ class CallFunction extends Value
 		else
 			throw new RuntimeError(this.first_line, '関数 '+func+' は定義されていません');
 	}
+	setValue(v)
+	{
+		this.rtnv = v.clone();
+	}
 	getValue()
 	{
-		return returnValues.pop();
+//		return returnValues.pop();
+		return this.rtnv;
 	}
 	getCode()
 	{
@@ -1742,6 +1976,10 @@ class CallFunction extends Value
 class Append extends Value
 {
 	constructor(x,y,loc){super([x,y],loc);}
+	clone()
+	{
+		return new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+	}
 	run()
 	{
 		let v1, v2;
@@ -1767,6 +2005,10 @@ class Append extends Value
 		if(!re.exec(p1)) p1 = "str(" + p1 + ")";
 		if(!re.exec(p2)) p2 = "str(" + p2 + ")";
 		return  p1 + "+" + p2;
+	}
+	getValue()
+	{
+		return this.rtnv;
 	}
 }
 
@@ -1794,6 +2036,10 @@ class Statement
 	makePython(indent)
 	{
 		return Parts.makeIndent(indent);
+	}
+	clone()
+	{
+		throw new RuntimeError(this.first_line, constructor_name(this) + "はcloneが作られていません");
 	}
 }
 
@@ -1858,7 +2104,11 @@ class CallStep extends Statement {
     	super(loc);
     	this.funcName = funcName;
     	this.args = args;
-  	}
+	}
+	clone()
+	{
+		return new CallStep(this.funcName, this.args.clone(), this.loc);
+	}  
  	run() {
 		code[0].stack[0].index++;
 		const fn = this.funcName
@@ -1893,7 +2143,11 @@ class CallStep extends Statement {
 class ExitStatement extends Statement {
 	constructor(loc) {
  		super(loc);
-  	}
+	}
+	clone()
+	{
+		return new ExitStatement(this.loc);
+	}
 	run() {
 		if(code[0] instanceof parsedStep)
 		{
@@ -1953,14 +2207,26 @@ class ReturnStatement extends Statement {
 	constructor(value, loc) {
 		super(loc);
 		this.value = value;
+		this.caller = null;
+		this.flag = false;
+	}
+	clone()
+	{
+		return new ReturnStatement(this.value, this.loc);
+	}
+	setCaller(caller, flag)
+	{
+		this.caller = caller;
+		this.flag = flag;
 	}
 	run() {
 		if(code[0] instanceof parsedFunction)
 		{
 //			this.value.getValue().run();
-			returnValues.push(this.value.getValue());
+//			returnValues.push(this.value.getValue());
+			this.caller.setValue(this.value.getValue());
 			code.shift();
-			varTables.shift();
+			if(this.flag) varTables.shift();
 //			super.run();
 		}
 		else throw new RuntimeError(this.first_line, "関数の中ではありません");
@@ -1976,6 +2242,10 @@ class ReturnStatement extends Statement {
 
 class notReturnedFunction extends Statement {
 	constructor(loc){super(loc);}
+	clone()
+	{
+		return new notReturnedFunction(this.loc);
+	}
 	run()
 	{
 		throw new RuntimeError(this.last_line, "関数が値を返さずに終了しました");
@@ -1990,6 +2260,10 @@ class notReturnedFunction extends Statement {
 class DumpStatement extends Statement
 {
 	constructor(loc){super(loc);}
+	clone()
+	{
+		return new DumpStatement(this.loc);
+	}
 	run()
 	{
 		textareaAppend("*** 変数確認 ***\n");
@@ -2009,7 +2283,6 @@ class DumpStatement extends Statement
 	}
 }
 
-
 /**
  * ValueのArrayをcode[0].stackに積む
  * @param {Array<Value>|ArrayValue} args 
@@ -2028,7 +2301,7 @@ function valuelist2stack(args, queue)
 			else if(v instanceof CallFunction)
 			{
 				valuelist2stack(v.value.parameter, queue);
-				valuelist2stack(v, queue);
+//				valuelist2stack(v, queue);
 			} 
 			queue.push(v);
 		}
@@ -2044,7 +2317,7 @@ function valuelist2stack(args, queue)
 			else if(v instanceof CallFunction)
 			{
 				valuelist2stack(v.value.parameter, queue);
-				valuelist2stack(v, queue);
+//				valuelist2stack(v, queue);
 			} 
 			queue.push(v);
 		}
@@ -2063,6 +2336,12 @@ class runBeforeGetValue extends Statement
 	{
 		super(loc);
 		this.args = args;
+	}
+	clone()
+	{
+//		var args = [];
+//		for(var i = 0; i < this.args.length; i++) args.push(this.args[i].clone());
+		return new runBeforeGetValue(this.args, this.loc);
 	}
 	run()
 	{
@@ -2088,6 +2367,12 @@ class runArgsBeforeGetValue extends Statement
 	{
 		super(loc);
 		this.args = args;
+	}
+	clone()
+	{
+		var args = [];
+		for(var i = 0; i < this.args.length; i++) args.push(this.args[i].clone());
+		return new runArgsBeforeGetValue(this.args, this.loc);
 	}
 	run()
 	{
@@ -2260,6 +2545,10 @@ class Assign extends Statement
 		this.variable = variable;
 		this.value = value;
 	}
+	clone()
+	{
+		return new Assign(this.variable, this.value, this.loc);
+	}
 	run()
 	{
 		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
@@ -2363,6 +2652,10 @@ class Input extends Statement
 		this.varname = x;
 		this.type = type;
 	}
+	clone()
+	{
+		new Input(this.varname, this.type, this.loc);
+	}
 	run()
 	{
 		if(selected_quiz < 0)	// 通常時
@@ -2416,6 +2709,10 @@ class InputBegin extends Statement
 	{
 		super(loc);
 	}
+	clone()
+	{
+		return new InputBegin(this.loc);
+	}
 	run()
 	{
 		openInputWindow();
@@ -2436,6 +2733,10 @@ class InputEnd extends Statement
 		super(loc);
 		this.varname = x;
 		this.type = type;
+	}
+	clone()
+	{
+		return new InputEnd(this.varname, this.type, this.loc);
 	}
 	run()
 	{
@@ -2467,6 +2768,10 @@ class InputEnd extends Statement
 class Newline extends Statement
 {
 	constructor(loc){super(loc);}
+	clone()
+	{
+		return new Newline(this.loc);
+	}
 	run()
 	{
 		if(selected_quiz < 0)
@@ -2498,6 +2803,10 @@ class Output extends Statement
 		super(loc);
 		this.value = x;
 		this.ln = ln;
+	}
+	clone()
+	{
+		return new Output(this.value.clone(), this.ln, this.loc);
 	}
 	run()
 	{
@@ -2559,6 +2868,12 @@ class GraphicStatement extends Statement
 		super(loc);
 		this.command = command;
 		this.args = args;
+	}
+	clone()
+	{
+		var args = [];
+		for(var i = 0; i < this.args.length; i++) args.push(this.args[i]);
+		return new GraphicStatement(this.command, args, this.loc);
 	}
 	run()
 	{
@@ -2665,12 +2980,26 @@ class GraphicStatement extends Statement
 
 class If extends Statement
 {
+	/**
+	 * 
+	 * @param {Value} condition 
+	 * @param {Array<Statement>} state1 
+	 * @param {Array<Statement>} state2 
+	 * @param {Location} loc 
+	 */
 	constructor(condition, state1, state2, loc)
 	{
 		super(loc);
 		this.condition = condition;
 		this.state1 = state1;
 		this.state2 = state2;
+	}
+	clone()
+	{
+		var state1 = [], state2 = [];
+		for(var i = 0; i < this.state1.length; i++) state1.push(this.state1[i].clone());
+		for(var i = 0; i < this.state2.length; i++) state2.push(this.state2[i].clone());
+		return new If(this.condition, state1, state2, this.loc);
 	}
 	run()
 	{
@@ -2726,6 +3055,10 @@ class LoopBegin extends Statement
 		this.condition = condition;
 		this.continuous = continuous;
 	}
+	clone()
+	{
+		return new LoopBegin(this.condifion.clone(), this.condition, this.loc);
+	}
 	run()
 	{
 		if(this.condition == null || this.condition.getValue().value == this.continuous) super.run();
@@ -2746,6 +3079,10 @@ class LoopEnd extends Statement
 		super(loc);
 		this.condition = condition;
 		this.continuous = continuous;
+	}
+	clone()
+	{
+		return new LoopEnd(this.condition.clone(), this.continuous, this.loc);
 	}
 	run()
 	{
@@ -2776,6 +3113,12 @@ class ForInc extends Statement
 		this.end = end;
 		this.step = step;
 		this.statementlist = statementlist;
+	}
+	clone()
+	{
+		state = [];
+		for(var i = 0; i < this.statementlist; i++) state.push(this.statementlist[i].clone());
+		return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
 	{
@@ -2844,6 +3187,12 @@ class ForDec extends Statement
 		this.step = step;
 		this.statementlist = statementlist;
 	}
+	clone()
+	{
+		state = [];
+		for(var i = 0; i < this.statementlist; i++) state.push(this.statementlist[i].clone());
+		return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+	}
 	makePython(indent)
 	{
 		var code = Parts.makeIndent(indent);
@@ -2899,26 +3248,6 @@ class ForDec extends Statement
 	}
 }
 
-class Until extends Statement
-{
-	constructor(statementlist, condition, loc)
-	{
-		super(loc);
-		this.condition = condition;
-		this.statementlist = statementlist;
-	}
-	run()
-	{
-		super.run();
-		let last_token = {first_line: this.last_line, last_line: this.last_line};
-		let loop = [new LoopBegin(null, true, this.loc)];
-		for(var i = 0; i < this.statementlist.length; i++) loop.push(this.statementlist[i]);
-		loop.push(new runBeforeGetValue([this.condition], this.loc));
-		loop.push(new LoopEnd(this.condition, false, new Location(last_token, last_token)));
-		code[0].stack.unshift({statementlist: loop, index: 0});
-	}
-}
-
 class While extends Statement
 {
 	constructor(condition, statementlist, loc)
@@ -2926,6 +3255,12 @@ class While extends Statement
 		super(loc);
 		this.condition = condition;
 		this.statementlist = statementlist;
+	}
+	clone()
+	{
+		state = [];
+		for(var i = 0; i < this.statementlist; i++) state.push(this.statementlist[i].clone());
+		return new While(this.condition.clone(), state, this.loc);
 	}
 	makePython(indent)
 	{
@@ -2959,6 +3294,10 @@ class SleepStatement extends Statement
 		super(loc)
 		this.sec = new IntValue(sec.value, loc); // milli seconds
 	}
+	clone()
+	{
+		return new SleepStatement(this.sec, this.loc);
+	}
 	run()
 	{
 		wait_time = this.sec.value;
@@ -2975,6 +3314,10 @@ class SleepStatement extends Statement
 class BreakStatement extends Statement
 {
 	constructor(loc){super(loc);}
+	clone()
+	{
+		return new BreakStatement(this.loc);
+	}
 	run()
 	{
 		while(true)
@@ -3094,7 +3437,7 @@ function step()
 			next_line();
 		}while(run_flag && l == current_line);
 		if(!code) return;
-		if(code[0].stack.length > 0)
+		if(code[0] && code[0].stack.length > 0)
 		{
 			if(run_flag && !step_flag)
 			{
@@ -3106,7 +3449,7 @@ function step()
 				setZeroTimeout(step, 0);
 			}
 		}
-		else if(code[0].finish) code[0].finish();
+		else finish();
 	}
 	else
 	{
@@ -3145,19 +3488,20 @@ function next_line()
 	while(index < 0 || index >= code[0].stack[0].statementlist.length)
 	{
 		code[0].stack.shift();
-		if(code[0].stack.length < 1) break;
-		index = code[0].stack[0].index;
+		if(code[0].stack.length < 1) code.shift();
+		if(code.length < 1) break;
+		index = (code[0] && code[0].stack[0]) ? code[0].stack[0].index : -1;
 	}
 	if(selected_quiz < 0)
 	{
 		// 次の行をハイライト表示する
-		if(code[0].stack[0])
+		if(code[0] && code[0].stack[0])
 		{
 			index = code[0].stack[0].index;
 			statement = code[0].stack[0].statementlist[index];
-			if(statement && statement instanceof Statement)
+			if(statement && (statement instanceof Statement))
 			{
-				highlightLine(current_line = statement.first_line);
+				if(statement.loc) highlightLine(current_line = statement.first_line);
 			}
 		}
 		else highlightLine(++current_line);
