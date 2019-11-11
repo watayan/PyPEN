@@ -2997,8 +2997,10 @@ class If extends Statement
 	clone()
 	{
 		var state1 = [], state2 = [];
-		for(var i = 0; i < this.state1.length; i++) state1.push(this.state1[i].clone());
-		for(var i = 0; i < this.state2.length; i++) state2.push(this.state2[i].clone());
+		if(this.state1)
+			for(var i = 0; i < this.state1.length; i++) state1.push(this.state1[i].clone());
+		if(this.state2)
+			for(var i = 0; i < this.state2.length; i++) state2.push(this.state2[i].clone());
 		return new If(this.condition, state1, state2, this.loc);
 	}
 	run()
