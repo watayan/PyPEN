@@ -151,6 +151,8 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "矩形塗描画"				{return 'gFillBox';}
 "円描画"				{return 'gDrawCircle';}
 "円塗描画"				{return 'gFillCircle';}
+"棒グラフ描画"			{return 'gBarplot';}
+"線グラフ描画"			{return 'gLineplot';}
 "ミリ秒待つ"				{return 'ミリ秒待つ';}
 "変数を確認する"				{return '変数を確認する';}
 "改行する"				{return '改行する';}
@@ -365,6 +367,10 @@ GraphicStatement
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1))];}
 	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1))];}
+	| 'gBarplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gBarplot', [$3,$5,$7], new Location(@1,@1))];}
+	| 'gLineplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gLineplot', [$3,$5,$7], new Location(@1,@1))];}
 	;
 
 SleepStatement

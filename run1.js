@@ -23,6 +23,10 @@ var typeOfValue = {
 	typeArray: 5
 };
 
+var graphColor = ['#c00000', '#00c000', '#0000c0', '#007070', '#700070', '#707000'
+//	[127,0,0],[0,127,0],[0,0,127],[0,64,64],[64,0,64],[64,64,0]
+];
+
 var nameOfType = ['', '整数', '実数', '文字列', '真偽', '配列'];
 
 var code = null; // コードを積む（関数・手続き単位で）
@@ -648,7 +652,9 @@ var IntValue = function (_Value3) {
 	_createClass(IntValue, [{
 		key: 'clone',
 		value: function clone() {
-			return new IntValue(this.value, this.loc);
+			var rtnv = new IntValue(this.value, this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'getValue',
@@ -675,7 +681,9 @@ var FloatValue = function (_Value4) {
 	_createClass(FloatValue, [{
 		key: 'clone',
 		value: function clone() {
-			return new FloatValue(this.value, this.loc);
+			var rtnv = new FloatValue(this.value, this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'getCode',
@@ -704,7 +712,9 @@ var StringValue = function (_Value5) {
 	_createClass(StringValue, [{
 		key: 'clone',
 		value: function clone() {
-			return new StringValue(this.value, this.loc);
+			var rtnv = new StringValue(this.value, this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'getCode',
@@ -738,7 +748,9 @@ var BooleanValue = function (_Value6) {
 	_createClass(BooleanValue, [{
 		key: 'clone',
 		value: function clone() {
-			return new BooleanValue(this.value, this.loc);
+			var rtnv = new BooleanValue(this.value, this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'getCode',
@@ -806,7 +818,9 @@ var Add = function (_Value8) {
 	_createClass(Add, [{
 		key: 'clone',
 		value: function clone() {
-			return new Add(this.value[0], this.value[1], this.loc);
+			var rtnv = new Add(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -879,7 +893,9 @@ var Sub = function (_Value9) {
 	_createClass(Sub, [{
 		key: 'clone',
 		value: function clone() {
-			return new Sub(this.value[0], this.value[1], this.loc);
+			var rtnv = new Sub(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -947,7 +963,9 @@ var Mul = function (_Value10) {
 	_createClass(Mul, [{
 		key: 'clone',
 		value: function clone() {
-			return new Mul(this.value[0], this.value[1], this.loc);
+			var rtnv = new Mul(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1015,7 +1033,9 @@ var Div = function (_Value11) {
 	_createClass(Div, [{
 		key: 'clone',
 		value: function clone() {
-			return new Div(this.value[0], this.value[1], this.loc);
+			var rtnv = new Div(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1080,7 +1100,9 @@ var DivInt = function (_Value12) {
 	_createClass(DivInt, [{
 		key: 'clone',
 		value: function clone() {
-			return new DivInt(this.value[0], this.value[1], this.loc);
+			var rtnv = new DivInt(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1145,7 +1167,9 @@ var Mod = function (_Value13) {
 	_createClass(Mod, [{
 		key: 'clone',
 		value: function clone() {
-			return new Mod(this.value[0], this.value[1], this.loc);
+			var rtnv = new Mod(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1208,7 +1232,9 @@ var Minus = function (_Value14) {
 	_createClass(Minus, [{
 		key: 'clone',
 		value: function clone() {
-			return new Minus(this.value[0], this.loc);
+			var rtnv = new Minus(this.value[0], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1262,7 +1288,9 @@ var And = function (_Value15) {
 	_createClass(And, [{
 		key: 'clone',
 		value: function clone() {
-			return new And(this.value[0], this.value[1], this.loc);
+			var rtnv = new And(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1322,7 +1350,9 @@ var Or = function (_Value16) {
 	_createClass(Or, [{
 		key: 'clone',
 		value: function clone() {
-			return new Or(this.value[0], this.value[1], this.loc);
+			var rtnv = new Or(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1382,7 +1412,9 @@ var Not = function (_Value17) {
 	_createClass(Not, [{
 		key: 'clone',
 		value: function clone() {
-			return new Not(this.value[0], this.loc);
+			var rtnv = new Not(this.value[0], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1449,7 +1481,9 @@ var EQ = function (_Value18) {
 	_createClass(EQ, [{
 		key: 'clone',
 		value: function clone() {
-			return new EQ(this.value[0], this.value[1], this.loc);
+			var rtnv = new EQ(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1503,7 +1537,9 @@ var NE = function (_Value19) {
 	_createClass(NE, [{
 		key: 'clone',
 		value: function clone() {
-			return new NE(this.value[0], this.value[1], this.loc);
+			var rtnv = new NE(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1557,7 +1593,9 @@ var GT = function (_Value20) {
 	_createClass(GT, [{
 		key: 'clone',
 		value: function clone() {
-			return new GT(this.value[0], this.value[1], this.loc);
+			var rtnv = new GT(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1612,7 +1650,9 @@ var GE = function (_Value21) {
 	_createClass(GE, [{
 		key: 'clone',
 		value: function clone() {
-			return new GE(this.value[0], this.value[1], this.loc);
+			var rtnv = new GE(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1667,7 +1707,9 @@ var LT = function (_Value22) {
 	_createClass(LT, [{
 		key: 'clone',
 		value: function clone() {
-			return new LT(this.value[0], this.value[1], this.loc);
+			var rtnv = new LT(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1722,7 +1764,9 @@ var LE = function (_Value23) {
 	_createClass(LE, [{
 		key: 'clone',
 		value: function clone() {
-			return new LE(this.value[0], this.value[1], this.loc);
+			var rtnv = new LE(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1777,7 +1821,9 @@ var ConvertInt = function (_Value24) {
 	_createClass(ConvertInt, [{
 		key: 'clone',
 		value: function clone() {
-			return new ConvertInt(this.value[0], this.loc);
+			var rtnv = new ConvertInt(this.value[0], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1820,7 +1866,9 @@ var ConvertFloat = function (_Value25) {
 	_createClass(ConvertFloat, [{
 		key: 'clone',
 		value: function clone() {
-			return new ConvertFloat(this.value[0], this.loc);
+			var rtnv = new ConvertFloat(this.value[0], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1863,7 +1911,9 @@ var ConvertString = function (_Value26) {
 	_createClass(ConvertString, [{
 		key: 'clone',
 		value: function clone() {
-			return new ConvertString(this.value[0], this.loc);
+			var rtnv = new ConvertString(this.value[0], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1906,7 +1956,9 @@ var ConvertBool = function (_Value27) {
 	_createClass(ConvertBool, [{
 		key: 'clone',
 		value: function clone() {
-			return new ConvertBool(this.value[0], this.loc);
+			var rtnv = new ConvertBool(this.value[0], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -1956,7 +2008,9 @@ var Variable = function (_Value28) {
 	_createClass(Variable, [{
 		key: 'clone',
 		value: function clone() {
-			return new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
+			var rtnv = new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -2295,7 +2349,9 @@ var CallFunction = function (_Value29) {
 	_createClass(CallFunction, [{
 		key: 'clone',
 		value: function clone() {
-			return new CallFunction(this.value[0], this.value[1], this.loc);
+			var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -2388,7 +2444,9 @@ var Append = function (_Value30) {
 	_createClass(Append, [{
 		key: 'clone',
 		value: function clone() {
-			return new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+			var rtnv = new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
 		}
 	}, {
 		key: 'run',
@@ -3554,6 +3612,100 @@ var GraphicStatement = function (_Statement17) {
 				context.beginPath();
 				context.arc(_x4, _y4, _r3, 0, Math.PI * 2, false);
 				context.fill();
+			} else if (this.command == 'gBarplot') {
+				var canvas = document.getElementById('canvas');
+				var w = this.args[0].getValue().value,
+				    h = this.args[1].getValue().value;
+				context = canvas.getContext('2d');
+				canvas.setAttribute("width", w + "px");
+				canvas.setAttribute("height", h + "px");
+				canvas.style.display = "block";
+				// 値の取得
+				var values = this.args[2].getValue(); // ArrayValue
+				var array = [];
+				var n = values.length,
+				    v,
+				    max = 0,
+				    min = 0;
+				for (var i = 0; i < n; i++) {
+					v = values.nthValue(i).rtnv;
+					if (v instanceof Value) v = v.value;
+					array.push(v);
+					if (v > max) max = v;
+					if (v < min) min = v;
+				}
+				if (max == 0) max = 1;
+				// 軸の描画
+				var x0 = w * 0.05,
+				    y0 = h * 0.95;
+				y0 *= max / (max - min);
+				w *= 0.9;h *= 0.9;
+				context.beginPath();
+				context.moveTo(x0, y0 - h * max / (max - min));
+				context.lineTo(x0, y0 - h * min / (max - min));
+				context.moveTo(x0, y0);
+				context.lineTo(x0 + w, y0);
+				context.stroke();
+				if (n > 0) {
+					var w0 = w / n;
+					context.fillStyle = '#00c000';
+					for (var i = 0; i < n; i++) {
+						if (array[i] >= 0) context.fillRect(x0 + w0 * i + w0 * 0.1, y0 - h * (array[i] / (max - min)), w0 * 0.8, h * (array[i] / (max - min)));else context.fillRect(x0 + w0 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i] / (max - min)));
+					}
+				}
+			} else if (this.command == 'gLineplot') {
+				var canvas = document.getElementById('canvas');
+				var w = this.args[0].getValue().value,
+				    h = this.args[1].getValue().value;
+				context = canvas.getContext('2d');
+				canvas.setAttribute("width", w + "px");
+				canvas.setAttribute("height", h + "px");
+				canvas.style.display = "block";
+				// 値の取得
+				var values = this.args[2].getValue().rtnv; // ArrayValue
+				var array = [];
+				var n = values.length,
+				    v,
+				    max = 0,
+				    min = 0,
+				    maxn = 0;
+				for (var i = 0; i < n; i++) {
+					v = values instanceof ArrayValue ? values.nthValue(i).rtnv : values[i].rtnv;
+					array.push([]);
+					if (v.length > maxn) maxn = v.length;
+					for (var j = 0; j < v.length; j++) {
+						var v1 = v instanceof ArrayValue ? v.nthValue(j).rtnv : v[j].rtnv;
+						if (v1 instanceof Value) v1 = v1.value;
+						array[i].push(v1);
+						if (v1 > max) max = v1;
+						if (v1 < min) min = v1;
+					}
+				}
+				if (max == 0) max = 1;
+				// 軸の描画
+				var x0 = w * 0.05,
+				    y0 = h * 0.95;
+				y0 *= max / (max - min);
+				w *= 0.9;h *= 0.9;
+				context.beginPath();
+				context.moveTo(x0, y0 - h * max / (max - min));
+				context.lineTo(x0, y0 - h * min / (max - min));
+				context.moveTo(x0, y0);
+				context.lineTo(x0 + w, y0);
+				context.stroke();
+				if (n > 0) {
+					var w0 = w / maxn;
+					for (var i = 0; i < n; i++) {
+						context.strokeStyle = graphColor[i % 6];
+						context.beginPath();
+						for (var j = 0; j < array[i].length; j++) {
+							var x = x0 + w0 * j + w0 / 2,
+							    y = y0 - array[i][j] / (max - min) * h;
+							if (j == 0) context.moveTo(x, y);else context.lineTo(x, y);
+						}
+						context.stroke();
+					}
+				}
 			} else {
 				throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
 			}
@@ -6146,7 +6298,7 @@ var Parts_LoopEnd = function (_Parts9) {
 
 var misc_menu = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
+["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列の配列"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
 
 var Parts_Misc = function (_Parts10) {
 	_inherits(Parts_Misc, _Parts10);
@@ -6721,6 +6873,12 @@ onload = function onload() {
 						} },
 					gFillCircle: { name: "円塗描画", callback: function callback(k, e) {
 							insertCode("円塗描画(《x》,《y》,《半径》)");
+						} },
+					gBarplot: { name: "棒グラフ描画", callback: function callback(k, e) {
+							insertCode("棒グラフ描画(《幅》,《高さ》,《配列》)");
+						} },
+					gLineplot: { name: "線グラフ描画", callback: function callback(k, e) {
+							insertCode("線グラフ描画(《幅》,《高さ》,《配列の配列》)");
 						} },
 					sleep: { name: "待つ", callback: function callback(k, e) {
 							insertCode("《ミリ秒数》 ミリ秒待つ");

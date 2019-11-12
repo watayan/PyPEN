@@ -11,6 +11,11 @@ const typeOfValue=
 	typeArray:5
 };
 
+var graphColor = [
+	'#c00000','#00c000','#0000c0','#007070','#700070','#707000'
+//	[127,0,0],[0,127,0],[0,0,127],[0,64,64],[64,0,64],[64,64,0]
+];
+
 const nameOfType=['','整数','実数','文字列','真偽','配列'];
 
 var code = null;		// コードを積む（関数・手続き単位で）
@@ -514,7 +519,9 @@ class IntValue extends Value
 	}
 	clone()
 	{
-		return new IntValue(this.value, this.loc);
+		var rtnv = new IntValue(this.value, this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	getValue()
 	{
@@ -530,7 +537,9 @@ class FloatValue extends Value
 	}
 	clone()
 	{
-		return new FloatValue(this.value, this.loc);
+		var rtnv = new FloatValue(this.value, this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	getCode()
 	{
@@ -551,7 +560,9 @@ class StringValue extends Value
 	}
 	clone()
 	{
-		return new StringValue(this.value, this.loc);
+		var rtnv = new StringValue(this.value, this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	getCode()
 	{
@@ -575,7 +586,9 @@ class BooleanValue extends Value
 	}
 	clone()
 	{
-		return new BooleanValue(this.value, this.loc);
+		var rtnv = new BooleanValue(this.value, this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	getCode()
 	{
@@ -623,7 +636,9 @@ class Add extends Value
 	}
 	clone()
 	{
-		return new Add(this.value[0], this.value[1], this.loc);
+		var rtnv = new Add(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -688,7 +703,9 @@ class Sub extends Value
 	}
 	clone()
 	{
-		return new Sub(this.value[0], this.value[1], this.loc);
+		var rtnv = new Sub(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -745,7 +762,9 @@ class Mul extends Value
 	}
 	clone()
 	{
-		return new Mul(this.value[0], this.value[1], this.loc);
+		var rtnv = new Mul(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -802,7 +821,9 @@ class Div extends Value	// /
 	}
 	clone()
 	{
-		return new Div(this.value[0], this.value[1], this.loc);
+		var rtnv = new Div(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -852,7 +873,9 @@ class DivInt extends Value // //
 	}
 	clone()
 	{
-		return new DivInt(this.value[0], this.value[1], this.loc);
+		var rtnv = new DivInt(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -903,7 +926,9 @@ class Mod extends Value
 	}
 	clone()
 	{
-		return new Mod(this.value[0], this.value[1], this.loc);
+		var rtnv = new Mod(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -955,7 +980,9 @@ class Minus extends Value
 	}
 	clone()
 	{
-		return new Minus(this.value[0], this.loc);
+		var rtnv = new Minus(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -999,7 +1026,9 @@ class And extends Value
 	constructor(x, y, loc){super([x,y],loc);}
 	clone()
 	{
-		return new And(this.value[0], this.value[1], this.loc);
+		var rtnv = new And(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1048,7 +1077,9 @@ class Or extends Value
 	constructor(x, y, loc){super([x,y],loc);}
 	clone()
 	{
-		return new Or(this.value[0], this.value[1], this.loc);
+		var rtnv = new Or(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1097,7 +1128,9 @@ class Not extends Value
 	constructor(x, loc){super([x],loc);}
 	clone()
 	{
-		return new Not(this.value[0], this.loc);
+		var rtnv = new Not(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1152,7 +1185,9 @@ class EQ extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		return new EQ(this.value[0], this.value[1], this.loc);
+		var rtnv = new EQ(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1190,7 +1225,9 @@ class NE extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		return new NE(this.value[0], this.value[1], this.loc);
+		var rtnv = new NE(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1228,7 +1265,9 @@ class GT extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		return new GT(this.value[0], this.value[1], this.loc);
+		var rtnv = new GT(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1266,7 +1305,9 @@ class GE extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		return new GE(this.value[0], this.value[1], this.loc);
+		var rtnv = new GE(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1304,7 +1345,9 @@ class LT extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		return new LT(this.value[0], this.value[1], this.loc);
+		var rtnv = new LT(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1342,7 +1385,9 @@ class LE extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		return new LE(this.value[0], this.value[1], this.loc);
+		var rtnv = new LE(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1380,7 +1425,9 @@ class ConvertInt extends Value
 	constructor(x, loc){ super([x], loc);}
 	clone()
 	{
-		return new ConvertInt(this.value[0], this.loc);
+		var rtnv = new ConvertInt(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1413,7 +1460,9 @@ class ConvertFloat extends Value
 	constructor(x, loc){ super([x], loc);}
 	clone()
 	{
-		return new ConvertFloat(this.value[0], this.loc);
+		var rtnv = new ConvertFloat(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1445,7 +1494,9 @@ class ConvertString extends Value
 	constructor(x, loc){ super([x], loc);}
 	clone()
 	{
-		return new ConvertString(this.value[0], this.loc);
+		var rtnv = new ConvertString(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1476,7 +1527,9 @@ class ConvertBool extends Value
 	constructor(x, loc){ super([x], loc);}
 	clone()
 	{
-		return new ConvertBool(this.value[0], this.loc);
+		var rtnv = new ConvertBool(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1514,7 +1567,9 @@ class Variable extends Value
 	constructor(x, y, loc){super([x,y],loc);}
 	clone()
 	{
-		return new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
+		var rtnv = new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	get varname(){return this.value[0];}
 	get args(){return this.value[1];}
@@ -1891,7 +1946,9 @@ class CallFunction extends Value
 	}
 	clone()
 	{
-		return new CallFunction(this.value[0], this.value[1], this.loc);
+		var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -1978,7 +2035,9 @@ class Append extends Value
 	constructor(x,y,loc){super([x,y],loc);}
 	clone()
 	{
-		return new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+		var rtnv = new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
 	}
 	run()
 	{
@@ -2965,6 +3024,104 @@ class GraphicStatement extends Statement
 			context.beginPath();
 			context.arc(x1, y1, r, 0, Math.PI * 2, false);
 			context.fill();
+		}
+		else if(this.command == 'gBarplot')
+		{
+			var canvas = document.getElementById('canvas');
+			var w = this.args[0].getValue().value, h = this.args[1].getValue().value;
+			context = canvas.getContext('2d');
+			canvas.setAttribute("width", w + "px");
+			canvas.setAttribute("height", h + "px");
+			canvas.style.display="block";
+			// 値の取得
+			var values = this.args[2].getValue(); // ArrayValue
+			var array = [];
+			var n = values.length, v, max = 0, min = 0;
+			for(var i = 0; i < n; i++)
+			{
+				v = values.nthValue(i).rtnv;
+				if(v instanceof Value) v = v.value;
+				array.push(v);
+				if(v > max) max = v;
+				if(v < min) min = v;
+			}
+			if(max == 0) max = 1;
+			// 軸の描画
+			var x0 = w * 0.05, y0 = h * 0.95;
+			y0 *= max / (max - min);
+			w *= 0.9; h *= 0.9;
+			context.beginPath();
+			context.moveTo(x0, y0 - h * max / (max - min));
+			context.lineTo(x0, y0 - h * min / (max - min));
+			context.moveTo(x0, y0);
+			context.lineTo(x0 + w, y0);
+			context.stroke();
+			if(n > 0)
+			{
+				var w0 = w / n;
+				context.fillStyle = '#00c000';
+				for(var i = 0; i < n; i++)
+				{
+					if(array[i] >= 0)
+						context.fillRect(x0 + w0 * i + w0 * 0.1, y0 - h * (array[i] / (max - min)),w0 * 0.8, h * (array[i] / (max - min)));
+					else
+						context.fillRect(x0 + w0 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i] / (max - min)));
+				}
+			}
+		}
+		else if(this.command == 'gLineplot')
+		{
+			var canvas = document.getElementById('canvas');
+			var w = this.args[0].getValue().value, h = this.args[1].getValue().value;
+			context = canvas.getContext('2d');
+			canvas.setAttribute("width", w + "px");
+			canvas.setAttribute("height", h + "px");
+			canvas.style.display="block";
+			// 値の取得
+			var values = this.args[2].getValue().rtnv; // ArrayValue
+			var array = [];
+			var n = values.length, v, max = 0, min = 0, maxn = 0;
+			for(var i = 0; i < n; i++)
+			{
+				v = (values instanceof ArrayValue ? values.nthValue(i).rtnv : values[i].rtnv);
+				array.push([]);
+				if(v.length > maxn) maxn = v.length;
+				for(var j = 0; j < v.length; j++)
+				{
+					var v1 = (v instanceof ArrayValue ? v.nthValue(j).rtnv : v[j].rtnv);
+					if(v1 instanceof Value) v1 = v1.value;
+					array[i].push(v1);
+					if(v1 > max) max = v1;
+					if(v1 < min) min = v1;
+				}
+			}
+			if(max == 0) max = 1;
+			// 軸の描画
+			var x0 = w * 0.05, y0 = h * 0.95;
+			y0 *= max / (max - min);
+			w *= 0.9; h *= 0.9;
+			context.beginPath();
+			context.moveTo(x0, y0 - h * max / (max - min));
+			context.lineTo(x0, y0 - h * min / (max - min));
+			context.moveTo(x0, y0);
+			context.lineTo(x0 + w, y0);
+			context.stroke();
+			if(n > 0)
+			{
+				var w0 = w / maxn;
+				for(var i = 0; i < n; i++)
+				{
+					context.strokeStyle = graphColor[i % 6];
+					context.beginPath();
+					for(var j = 0; j < array[i].length; j++)
+					{
+						var x = x0 + w0 * j + w0 / 2, y = y0 - (array[i][j] / (max - min)) * h;
+						if(j == 0) context.moveTo(x, y);
+						else context.lineTo(x, y);
+					}
+					context.stroke();
+				}
+			}
 		}
 		else
 		{
@@ -5217,6 +5374,8 @@ var misc_menu =[
 	["矩形塗描画"   , "gFillBox"       , "矩形塗描画(	,	,	,	)"    ,["x","y","幅","高さ"]],
 	["円描画"      , "gDrawCircle"     , "円描画(	,	,	)"          ,["x","y","半径"]],
 	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
+	["棒グラフ描画" , "gBarplot"		,"棒グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
+	["線グラフ描画" , "gLineplot"		,"線グラフ描画(	,	,	)"		,["幅","高さ","配列の配列"]],
 	["待つ"       , "sleep"           , "	 ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]]
@@ -5753,6 +5912,8 @@ onload = function(){
 						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
 						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
+						gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《配列》)");}},
+						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《配列の配列》)");}},
 						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》 ミリ秒待つ");}},
 						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
 						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}
