@@ -50,11 +50,6 @@
 			<textarea id="resultTextarea" rows="20" cols="25" readonly></textarea>
 		</div>
 		<div id="EditButtons">
-			<div id="variableButtons">
-				<button type="button" class="editButton" onclick='editButton("整数 《変数》");'>整数</button>
-				<button type="button" class="editButton" onclick='editButton("実数 《変数》");'>実数</button>
-				<button type="button" class="editButton" onclick='editButton("文字列 《変数》");'>文字列</button> <br>
-			</div>
 			<button type="button" class="editButton" onclick='editButton("《変数》に整数を入力する");'>入力（整数）</button>
 			<button type="button" class="editButton" onclick='editButton("《変数》に実数を入力する");'>入力（実数）</button>
 			<button type="button" class="editButton" onclick='editButton("《変数》に文字列を入力する");'>入力（文字列）</button>
@@ -76,12 +71,6 @@
 		<p><a href="manual/index.html" target="_blank">マニュアル</a></p>
 	</div>
 	<div id="Flowchart_area">
-		<table id="variables">
-			<tr><td>整数</td><td><input type="text" size="25" id="variable_int" onchange="variableChange();"></td></tr>
-			<tr><td>実数</td><td><input type="text" size="25" id="variable_float" onchange="variableChange();"></td></tr>
-			<tr><td>文字列</td><td><input type="text" size="25" id="variable_string" onchange="variableChange();"></td></tr>
-			<tr><td>真偽</td><td><input type="text" size="25" id="variable_bool" onchange="variableChange();"></td></tr>
-		</table>
 		<canvas id="flowchart" width="400px" height="600px"></canvas><br>
 		<button type="button" onclick="changeSize(1);" style="width:2em;height:2em;float:left;">＋</button>
 		<button type="button" onclick="changeSize(0);" style="width:2em;height:2em;float:left;">０</button>

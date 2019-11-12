@@ -500,7 +500,7 @@ function makeArray(size, args, loc, type)
 	{
 		let v = [];
 		if(!args) args=[];
-		for(let i = 0; i < size.value[args.length].value + (setting.array_origin == 0 ? 1 : 0); i++)
+		for(let i = 0; i < size.value[args.length].value; i++)
 		{
 			args.push(i);
 			v.push(makeArray(size, args, loc, type));
@@ -1590,8 +1590,7 @@ class Variable extends Value
 		}
 		else
 		{
-			if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");
-			else this.rtnv = new NullValue(this.loc);
+			this.rtnv = new NullValue(this.loc);
 		}
 		code[0].stack[0].index++;
 	}
@@ -2630,7 +2629,6 @@ class Assign extends Statement
 						va = va.nthValue(ag.value[i].getValue().value);
 					else
 					{
-						if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
 						// 配列を延長する
 						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
 						else va = new NullValue(this.loc);
@@ -2670,27 +2668,23 @@ class Assign extends Statement
 		}
 		else // 変数が定義されていない
 		{
-			if(setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");
-			else // 新しい変数を宣言する
+			vt = varTables[0];
+			if(ag)
 			{
-				vt = varTables[0];
-				if(ag)
-				{
-					vt.vars[vn] = new ArrayValue([],this.loc);
-					if(vl instanceof IntValue)vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
-					else if(vl instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
-					else if(vl instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
-					else if(vl instanceof BooleanValue)vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
-					else if(vl instanceof ArrayValue)vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
-				}
-				else
-				{
-					if(vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);
-					else if(vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
-					else if(vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
-					else if(vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
-					else if(vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
-				}
+				vt.vars[vn] = new ArrayValue([],this.loc);
+				if(vl instanceof IntValue)vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
+				else if(vl instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
+				else if(vl instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
+				else if(vl instanceof BooleanValue)vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
+				else if(vl instanceof ArrayValue)vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
+			}
+			else
+			{
+				if(vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);
+				else if(vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
+				else if(vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
+				else if(vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
+				else if(vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
 			}
 		}
 		code[0].stack[0].index = index + 1;
@@ -3301,7 +3295,7 @@ class ForInc extends Statement
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
 		let varTable = findVarTable(this.varname.varname);
-		if(setting.var_declaration != 0 && !varTable)
+		if(!varTable)
 		{
 			varTable = varTables[0];
 			if(this.begin.getValue() instanceof IntValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
@@ -3373,7 +3367,7 @@ class ForDec extends Statement
 		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let last_loc = new Location(last_token, last_token);
 		let varTable = findVarTable(this.varname.varname);
-		if(setting.var_declaration != 0 && !varTable)
+		if(!varTable)
 		{
 			varTable = varTables[0];
 			if(this.begin.getValue() instanceof IntValue)varTable.vars[this.varname.varname] = new IntValue(0, this.loc);
@@ -5723,10 +5717,6 @@ onload = function(){
 		makeDirty(true);
 	}
 	makeDirty(false);
-	if(setting.var_declaration == 1) {
-		document.getElementById("variables").style.display = 'none';
-		document.getElementById("variableButtons").style.display = 'none';
-	}
 	textarea = resultTextArea;
 	runButton.onclick = function(){
 		if(run_flag && !step_flag)
