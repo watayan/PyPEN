@@ -628,7 +628,7 @@ function makeArray(size, args, loc, type) {
 	} else {
 		var v = [];
 		if (!args) args = [];
-		for (var i = 0; i < size.value[args.length].value + (setting.array_origin == 0 ? 1 : 0); i++) {
+		for (var i = 0; i < size.value[args.length].value; i++) {
 			args.push(i);
 			v.push(makeArray(size, args, loc, type));
 			args.pop();
@@ -2022,7 +2022,7 @@ var Variable = function (_Value28) {
 				var v = vt.vars[vn];
 				if (v instanceof IntValue) this.rtnv = new IntValue(v.value, this.loc);else if (v instanceof FloatValue) this.rtnv = new FloatValue(v.value, this.loc);else if (v instanceof StringValue) this.rtnv = new StringValue(v.value, this.loc);else if (v instanceof BooleanValue) this.rtnv = new BooleanValue(v.value, this.loc);else if (v instanceof ArrayValue) this.rtnv = v.getValueFromArray(this.args, this.loc);else throw new RuntimeError(this.first_line, "Unknown Error");
 			} else {
-				if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, "変数" + vn + "は宣言されていません");else this.rtnv = new NullValue(this.loc);
+				this.rtnv = new NullValue(this.loc);
 			}
 			code[0].stack[0].index++;
 		}
@@ -3215,7 +3215,6 @@ var Assign = function (_Statement11) {
 							if (!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
 							for (var i = 0; i < ag.value.length; i++) {
 								if (va.nthValue(ag.value[i].getValue().value)) va = va.nthValue(ag.value[i].getValue().value);else {
-									if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + argsString(ag) + "には代入できません");
 									// 配列を延長する
 									if (i < ag.value.length - 1) va = new ArrayValue([], this.loc);else va = new NullValue(this.loc);
 								}
@@ -3236,16 +3235,13 @@ var Assign = function (_Statement11) {
 					}
 				} else // 変数が定義されていない
 				{
-					if (setting.var_declaration == 0) throw new RuntimeError(this.first_line, vn + "は宣言されていません");else // 新しい変数を宣言する
-						{
-							vt = varTables[0];
-							if (ag) {
-								vt.vars[vn] = new ArrayValue([], this.loc);
-								if (vl instanceof IntValue) vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));else if (vl instanceof FloatValue) vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));else if (vl instanceof StringValue) vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));else if (vl instanceof BooleanValue) vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));else if (vl instanceof ArrayValue) vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
-							} else {
-								if (vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);else if (vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);else if (vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);else if (vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);else if (vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
-							}
-						}
+					vt = varTables[0];
+					if (ag) {
+						vt.vars[vn] = new ArrayValue([], this.loc);
+						if (vl instanceof IntValue) vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));else if (vl instanceof FloatValue) vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));else if (vl instanceof StringValue) vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));else if (vl instanceof BooleanValue) vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));else if (vl instanceof ArrayValue) vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
+					} else {
+						if (vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);else if (vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);else if (vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);else if (vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);else if (vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
+					}
 				}
 			code[0].stack[0].index = index + 1;
 		}
@@ -3924,7 +3920,7 @@ var ForInc = function (_Statement21) {
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
 			var varTable = findVarTable(this.varname.varname);
-			if (setting.var_declaration != 0 && !varTable) {
+			if (!varTable) {
 				varTable = varTables[0];
 				if (this.begin.getValue() instanceof IntValue) varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else if (this.begin.getValue() instanceof FloatValue) varTable.vars[this.varname.varname] = new FloatValue(0, this.loc);else varTable = null;
 			}
@@ -4006,7 +4002,7 @@ var ForDec = function (_Statement22) {
 			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var last_loc = new Location(last_token, last_token);
 			var varTable = findVarTable(this.varname.varname);
-			if (setting.var_declaration != 0 && !varTable) {
+			if (!varTable) {
 				varTable = varTables[0];
 				if (this.begin.getValue() instanceof IntValue) varTable.vars[this.varname.varname] = new IntValue(0, this.loc);else if (this.begin.getValue() instanceof FloatValue) varTable.vars[this.varname.varname] = new FloatValue(0, this.loc);else varTable = null;
 			}
@@ -4685,10 +4681,6 @@ var Flowchart = function () {
 			bar.next = end;
 			this.top.setValue("はじめ");
 			end.setValue("おわり");
-			document.getElementById("variable_int").value = '';
-			document.getElementById("variable_float").value = '';
-			document.getElementById("variable_string").value = '';
-			document.getElementById("variable_bool").value = '';
 		}
 	}, {
 		key: 'code2flowchart',
@@ -4702,10 +4694,6 @@ var Flowchart = function () {
 		value: function flowchart2code() {
 			if (!flowchart_display) return;
 			var code = '';
-			code += variable2code("整数", "variable_int");
-			code += variable2code("実数", "variable_float");
-			code += variable2code("文字列", "variable_string");
-			code += variable2code("真偽", "variable_bool");
 			code += this.top.appendCode('', 0);
 			document.getElementById("sourceTextarea").value = code;
 			$('#sourceTextarea').focus();
@@ -4761,15 +4749,7 @@ var Flowchart = function () {
 				var p = statementlist[i];
 				if (!p) continue;
 				var statement = constructor_name(p);
-				if (statement == "DefinitionInt") {
-					document.getElementById("variable_int").value = p.getCode();
-				} else if (statement == "DefinitionFloat") {
-					document.getElementById("variable_float").value = p.getCode();
-				} else if (statement == "DefinitionString") {
-					document.getElementById("variable_string").value = p.getCode();
-				} else if (statement == "DefinitionBoolean") {
-					document.getElementById("variable_bool").value = p.getCode();
-				} else if (statement == "Assign") {
+				if (statement == "Assign") {
 					var p1 = new Parts_Substitute();
 					var b1 = new Parts_Bar();
 					p1.setValue(p.variable.getCode(), p.value.getCode());
@@ -6624,10 +6604,6 @@ onload = function onload() {
 		makeDirty(true);
 	};
 	makeDirty(false);
-	if (setting.var_declaration == 1) {
-		document.getElementById("variables").style.display = 'none';
-		document.getElementById("variableButtons").style.display = 'none';
-	}
 	textarea = resultTextArea;
 	runButton.onclick = function () {
 		if (run_flag && !step_flag) {

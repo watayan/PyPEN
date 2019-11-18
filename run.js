@@ -4055,10 +4055,6 @@ class Flowchart
         bar.next = end;
         this.top.setValue("はじめ");
         end.setValue("おわり");
-		document.getElementById("variable_int").value = '';
-		document.getElementById("variable_float").value = '';
-		document.getElementById("variable_string").value = '';
-		document.getElementById("variable_bool").value = '';
     }
     code2flowchart(parse)
     {
@@ -4073,23 +4069,7 @@ class Flowchart
 			var p = statementlist[i];
 			if(!p) continue;
 			var statement = constructor_name(p);
-			if(statement == "DefinitionInt")
-			{
-				document.getElementById("variable_int").value = p.getCode();
-			}
-			else if(statement == "DefinitionFloat")
-			{
-				document.getElementById("variable_float").value = p.getCode();
-			}
-			else if(statement == "DefinitionString")
-			{
-				document.getElementById("variable_string").value = p.getCode();
-			}
-			else if(statement == "DefinitionBoolean")
-			{
-				document.getElementById("variable_bool").value = p.getCode();
-			}
-			else if(statement == "Assign")
+			if(statement == "Assign")
 			{
 				var p1 = new Parts_Substitute();
 				var b1 = new Parts_Bar();
@@ -4207,10 +4187,6 @@ class Flowchart
     {
 		if(!flowchart_display) return;
         var code = '';
-		code += variable2code("整数", "variable_int");
-		code += variable2code("実数", "variable_float");
-		code += variable2code("文字列", "variable_string");
-		code += variable2code("真偽", "variable_bool");
 		code += this.top.appendCode('', 0);
 		document.getElementById("sourceTextarea").value = code;
 		$('#sourceTextarea').focus();
