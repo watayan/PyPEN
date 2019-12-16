@@ -2349,8 +2349,8 @@ var CallFunction = function (_Value29) {
 	_createClass(CallFunction, [{
 		key: 'clone',
 		value: function clone() {
-			var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
-			rtnv.rtnv = this.rtnv;
+			//		var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
+			var rtnv = this.rtnv.clone();
 			return rtnv;
 		}
 	}, {

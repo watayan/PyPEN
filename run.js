@@ -1945,8 +1945,8 @@ class CallFunction extends Value
 	}
 	clone()
 	{
-		var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
-		rtnv.rtnv = this.rtnv;
+//		var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
+		var rtnv = this.rtnv.clone();
 		return rtnv;
 	}
 	run()
