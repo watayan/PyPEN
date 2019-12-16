@@ -4252,7 +4252,7 @@ function step() {
 		do {
 			next_line();
 			if (Date.now() > test_limit_time) throw new RuntimeError(-1, '時間がかかりすぎです。');
-		} while (run_flag && code[0].stack.length > 0);
+		} while (run_flag && code[0] && code[0].stack.length > 0);
 	}
 }
 
