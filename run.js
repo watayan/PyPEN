@@ -543,7 +543,7 @@ class FloatValue extends Value
 	}
 	getCode()
 	{
-		if(Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6)  return this.value.toString();
+		if(this.value.toString.match(/[Ee]/))  return this.value.toString();
 		else if(isInteger(this.value)) return this.value + '.0';
 		else return this.value;
 	}
@@ -2042,11 +2042,9 @@ class Append extends Value
 	{
 		let v1, v2;
 		if(this.value[0].getValue() instanceof NullValue) v1 = '';
-		else if(this.value[0].getValue() instanceof ArrayValue) v1 = array2text(this.value[0].getValue());
-		else v1 = String(this.value[0].getValue().value);
+		else v1 = array2text(this.value[0].getValue());
 		if(this.value[1].getValue() instanceof NullValue) v2 = '';
-		else if(this.value[1].getValue() instanceof ArrayValue) v2 = array2text(this.value[1].getValue());
-		else v2 = String(this.value[1].getValue().value);
+		else v2 = array2text(this.value[1].getValue());
 		let v = v1 + v2;
 		this.rtnv = new StringValue(v, this.loc);
 		code[0].stack[0].index++;
@@ -2896,8 +2894,8 @@ function array2text(v)
 		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
 		return '[' + v1.join(',') + ']';
 	}
-	else if(v0 instanceof FloatValue && isInteger(v0.value)) return v0.value + '.0';
-	else return v0.value;
+	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
+	else return new String(v0.value);
 }
 
 function array2code(v)

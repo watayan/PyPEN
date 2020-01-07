@@ -688,7 +688,7 @@ var FloatValue = function (_Value4) {
 	}, {
 		key: 'getCode',
 		value: function getCode() {
-			if (Math.abs(this.value) >= 1.0e+21 || Math.abs(this.value) <= 1.0e-6) return this.value.toString();else if (isInteger(this.value)) return this.value + '.0';else return this.value;
+			if (this.value.toString.match(/[Ee]/)) return this.value.toString();else if (isInteger(this.value)) return this.value + '.0';else return this.value;
 		}
 	}, {
 		key: 'getValue',
@@ -2453,8 +2453,8 @@ var Append = function (_Value30) {
 		value: function run() {
 			var v1 = void 0,
 			    v2 = void 0;
-			if (this.value[0].getValue() instanceof NullValue) v1 = '';else if (this.value[0].getValue() instanceof ArrayValue) v1 = array2text(this.value[0].getValue());else v1 = String(this.value[0].getValue().value);
-			if (this.value[1].getValue() instanceof NullValue) v2 = '';else if (this.value[1].getValue() instanceof ArrayValue) v2 = array2text(this.value[1].getValue());else v2 = String(this.value[1].getValue().value);
+			if (this.value[0].getValue() instanceof NullValue) v1 = '';else v1 = array2text(this.value[0].getValue());
+			if (this.value[1].getValue() instanceof NullValue) v2 = '';else v2 = array2text(this.value[1].getValue());
 			var v = v1 + v2;
 			this.rtnv = new StringValue(v, this.loc);
 			code[0].stack[0].index++;
@@ -3492,7 +3492,7 @@ function array2text(v) {
 		for (var i = 0; i < v0.value.length; i++) {
 			v1.push(array2text(v0.nthValue(i)));
 		}return '[' + v1.join(',') + ']';
-	} else if (v0 instanceof FloatValue && isInteger(v0.value)) return v0.value + '.0';else return v0.value;
+	} else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';else return new String(v0.value);
 }
 
 function array2code(v) {
