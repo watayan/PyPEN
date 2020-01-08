@@ -424,9 +424,11 @@ class ArrayValue extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
+		this.aarray = {};
 	}
 	clone()
 	{
+		// TODO
 		var rtnv = [];
 		for(var i = 0; i < this.value.length; i++) rtnv.push(this.value[i].clone());
 		return new ArrayValue(rtnv, this.loc);
@@ -451,12 +453,25 @@ class ArrayValue extends Value
 		let v = this;
 		for(let i = 0; i < l - 1; i++)
 		{
-			if(v.nthValue(args.value[i].getValue().value))
-				v = v.nthValue(args.value[i].getValue().value);
+			if(args.value[i].getValue() instanceof StringValue)
+			{
+				if(v.aarray[args.value[i].getValue().value])
+					v = v.aarray[args.value[i].getValue().value];
+				else
+					v = v.aarray[args.value[i].getValue().value] = new ArrayValue([], this.loc);
+			}
 			else
-				v = v._value[args.value[i].getValue().value] = new ArrayValue([],this.loc);
+			{
+				if(v.nthValue(args.value[i].getValue().value))
+					v = v.nthValue(args.value[i].getValue().value);
+				else
+					v = v._value[args.value[i].getValue().value] = new ArrayValue([],this.loc);
+			}
 		}
-		v._value[args.value[l - 1].getValue().value] = va;
+		if(args.value[l - 1].getValue() instanceof StringValue)
+			v.aarray[args.value[l - 1].getValue().value] = va;
+		else
+			v._value[args.value[l - 1].getValue().value] = va;
 	}
 	getValueFromArray(args, loc)
 	{
@@ -465,7 +480,13 @@ class ArrayValue extends Value
 		for(let i = 0; i < l; i++)
 		{
 			if(v instanceof ArrayValue)
-				v = v.nthValue(args.value[i].getValue().value);
+			{
+				if(args.value[i].getValue() instanceof StringValue)
+					v = v.aarray[args.value[i].getValue().value];
+				else if(args.value[i].getValue() instanceof IntValue)
+					v = v.nthValue(args.value[i].getValue().value);
+				else throw new RuntimeError(loc.first_line, "配列の添字は整数か文字列です")
+			}
 			else v = null;
 		}
 		return v ? v : new NullValue(loc);
@@ -1686,6 +1707,11 @@ class DefinedFunction
  * 定義済み関数一覧
  */
 var definedFunction = {
+	"web": new DefinedFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		
+
+	}, null, null),
 	"abs": new DefinedFunction(1, function (param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);
@@ -2891,7 +2917,10 @@ function array2text(v)
 	if(v0 instanceof ArrayValue)
 	{
 		let v1 = [];
+		let keys = Object.keys(v0.aarray);
+		keys.sort();
 		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
+		for(let i = 0; i < keys.length; i++) v1.push(keys[i] + ':' + array2text(v0.aarray[keys[i]]));
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
@@ -2909,6 +2938,7 @@ function array2code(v)
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof StringValue) return "「" + v0.value + "」";
+	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
 }
 
