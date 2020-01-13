@@ -841,7 +841,7 @@ var Pow = function (_Value8) {
 			if ((v1 instanceof NullValue || v1 instanceof IntValue) && (v2 instanceof NullValue || v2 instanceof IntValue) && v2.value >= 0) {
 				if (v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
 				var v = Math.pow(v1.value, v2.value);
-				if (isSafeInteger(v)) this.rtnv = new IntValue(v, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				if (isSafeInteger(v)) this.rtnv = new IntValue(v, this.loc);else throw new RuntimeError(this.first_line, "整数で表せる範囲を越えました");
 			} else if ((v1 instanceof NullValue || v1 instanceof IntValue || v1 instanceof FloatValue) && (v2 instanceof NullValue || v2 instanceof IntValue || v2 instanceof FloatValue)) {
 				if (v1.value < 0 && !Number.isInteger(v2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
 				if (v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
@@ -2292,7 +2292,7 @@ var definedFunction = {
 		if ((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0) {
 			if (par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
 			var v = Math.pow(par1.value, par2.value);
-			if (isSafeInteger(v)) return new IntValue(v, this.loc);else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if (isSafeInteger(v)) return new IntValue(v, this.loc);else throw new RuntimeError(this.first_line, "整数で表せる範囲を越えました");
 		}
 		if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) {
 			if (par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
