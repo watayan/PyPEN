@@ -536,12 +536,16 @@ var ArrayValue = function (_Value2) {
 	function ArrayValue(v, loc) {
 		_classCallCheck(this, ArrayValue);
 
-		return _possibleConstructorReturn(this, (ArrayValue.__proto__ || Object.getPrototypeOf(ArrayValue)).call(this, v, loc));
+		var _this5 = _possibleConstructorReturn(this, (ArrayValue.__proto__ || Object.getPrototypeOf(ArrayValue)).call(this, v, loc));
+
+		_this5.aarray = {};
+		return _this5;
 	}
 
 	_createClass(ArrayValue, [{
 		key: 'clone',
 		value: function clone() {
+			// TODO
 			var rtnv = [];
 			for (var i = 0; i < this.value.length; i++) {
 				rtnv.push(this.value[i].clone());
@@ -574,9 +578,13 @@ var ArrayValue = function (_Value2) {
 			var l = args ? args.value.length : 1;
 			var v = this;
 			for (var i = 0; i < l - 1; i++) {
-				if (v.nthValue(args.value[i].getValue().value)) v = v.nthValue(args.value[i].getValue().value);else v = v._value[args.value[i].getValue().value] = new ArrayValue([], this.loc);
+				if (args.value[i].getValue() instanceof StringValue) {
+					if (v.aarray[args.value[i].getValue().value]) v = v.aarray[args.value[i].getValue().value];else v = v.aarray[args.value[i].getValue().value] = new ArrayValue([], this.loc);
+				} else {
+					if (v.nthValue(args.value[i].getValue().value)) v = v.nthValue(args.value[i].getValue().value);else v = v._value[args.value[i].getValue().value] = new ArrayValue([], this.loc);
+				}
 			}
-			v._value[args.value[l - 1].getValue().value] = va;
+			if (args.value[l - 1].getValue() instanceof StringValue) v.aarray[args.value[l - 1].getValue().value] = va;else v._value[args.value[l - 1].getValue().value] = va;
 		}
 	}, {
 		key: 'getValueFromArray',
@@ -584,7 +592,9 @@ var ArrayValue = function (_Value2) {
 			var l = args ? args.value.length : 0;
 			var v = this;
 			for (var i = 0; i < l; i++) {
-				if (v instanceof ArrayValue) v = v.nthValue(args.value[i].getValue().value);else v = null;
+				if (v instanceof ArrayValue) {
+					if (args.value[i].getValue() instanceof StringValue) v = v.aarray[args.value[i].getValue().value];else if (args.value[i].getValue() instanceof IntValue) v = v.nthValue(args.value[i].getValue().value);else throw new RuntimeError(loc.first_line, "配列の添字は整数か文字列です");
+				} else v = null;
 			}
 			return v ? v : new NullValue(loc);
 		}
@@ -2212,6 +2222,9 @@ var DefinedFunction = function () {
 
 
 var definedFunction = {
+	"web": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+	}, null, null),
 	"abs": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);else if (par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
@@ -3559,8 +3572,12 @@ function array2text(v) {
 	var v0 = v.getValue();
 	if (v0 instanceof ArrayValue) {
 		var v1 = [];
+		var keys = Object.keys(v0.aarray);
+		keys.sort();
 		for (var i = 0; i < v0.value.length; i++) {
 			v1.push(array2text(v0.nthValue(i)));
+		}for (var _i3 = 0; _i3 < keys.length; _i3++) {
+			v1.push(keys[_i3] + ':' + array2text(v0.aarray[keys[_i3]]));
 		}return '[' + v1.join(',') + ']';
 	} else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';else return new String(v0.value);
 }
@@ -3573,7 +3590,7 @@ function array2code(v) {
 		for (var i = 0; i < v0.value.length; i++) {
 			v1.push(array2text(v0.nthValue(i)));
 		}return '[' + v1.join(',') + ']';
-	} else if (v0 instanceof StringValue) return "「" + v0.value + "」";
+	} else if (v0 instanceof StringValue) return "「" + v0.value + "」";else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
 }
 
