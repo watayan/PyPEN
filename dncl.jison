@@ -61,6 +61,8 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "-"				{return '-';}
 "ー"			{return '-';}
 "−"				{return '-';}
+"**"			{return '**';}
+"＊＊"			{return '**';}
 "*"				{return '*';}
 "＊"			{return '*';}
 "✕"				{return '*';}
@@ -169,6 +171,7 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 %nonassoc '=' '!=' '>' '<' '>=' '<='
 %left '+' '-'
 %left '*' '/' '//' '%'
+%right '**'
 %left UMINUS
 %
 %start Program
@@ -181,6 +184,7 @@ e
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
 	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
+	| e '**' e		{$$ = new Pow($1, $3, new Location(@1, @3));}
 	| e '+' e		{$$ = new Add($1, $3, new Location(@1, @3));}
 	| e '-' e		{$$ = new Sub($1, $3, new Location(@1, @3));}
 	| e '*' e		{$$ = new Mul($1, $3, new Location(@1, @3));}

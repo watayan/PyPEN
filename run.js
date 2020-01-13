@@ -543,7 +543,8 @@ class FloatValue extends Value
 	}
 	getCode()
 	{
-		if(this.value.toString.match(/[Ee]/))  return this.value.toString();
+		let str = this.value.toString();
+		if(str.match(/[Ee]/) != undefined)  return str;
 		else if(isInteger(this.value)) return this.value + '.0';
 		else return this.value;
 	}
@@ -625,6 +626,67 @@ class UNDEFINED extends Value
 	getCode()
 	{
 		return this.value;
+	}
+}
+
+class Pow extends Value
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	clone()
+	{
+		var rtnv = new Pow(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if((v1 instanceof NullValue || v1 instanceof IntValue) && (v2 instanceof NullValue || v2 instanceof IntValue) && v2.value >= 0)
+		{
+			if(v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+			let v = Math.pow(v1.value, v2.value);
+			if(isSafeInteger(v)) this.rtnv = new IntValue(v, this.loc);
+			else throw new RuntimeError(this.first_line, "オーバーフローしました");
+		}
+		else if((v1 instanceof NullValue || v1 instanceof IntValue || v1 instanceof FloatValue) &&
+			(v2 instanceof NullValue || v2 instanceof IntValue || v2 instanceof FloatValue))
+		{
+			if(v1.value < 0 && !Number.isInteger(v2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
+			if(v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+			let v = Math.pow(v1.value, v2.value);
+			if(isFinite(v)) this.rtnv = new FloatValue(v, this.loc);
+			else throw new RuntimeError(this.first_line, "オーバーフローしました");
+		} else throw new RuntimeError('数値でないもののべき乗はできません');
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub" || c2 == "Mul" || c2 == "Div" || c2 == "DivInt" || c2 == "Mod") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' ** '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub" || c2 == "Mul" || c2 == "Div" || c2 == "DivInt" || c2 == "Mod") brace2 = true;
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+ ' ** '
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
 	}
 }
 
