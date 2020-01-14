@@ -428,10 +428,12 @@ class ArrayValue extends Value
 	}
 	clone()
 	{
-		// TODO
 		var rtnv = [];
-		for(var i = 0; i < this.value.length; i++) rtnv.push(this.value[i].clone());
-		return new ArrayValue(rtnv, this.loc);
+		var keys = Object.keys(this.aarray);
+		for(var i = 0; i < this.value.length; i++) rtnv.push(this.value[i].getValue().clone());
+		var newvalue = new ArrayValue(rtnv, this.loc);
+		for(var i = 0; i < keys.length; i++) newvalue.aarray[keys[i]] = this.aarray[keys[i]].getValue().clone();
+		return newvalue;
 	}
 	getCode()
 	{
@@ -1774,6 +1776,17 @@ var definedFunction = {
 		
 
 	}, null, null),
+	"keys": new DefinedFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof ArrayValue)
+		{
+			var args = [];
+			var keys = Object.keys(par1.aarray);
+			for(let i = 0; i < keys.length; i++) args.push(new StringValue(keys[i], loc));
+			return new ArrayValue(args, this.loc);
+		}
+		else throw new RuntimeError(loc.first_line, 'keysは配列にしか使えません');
+	}, null, null),
 	"abs": new DefinedFunction(1, function (param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);
@@ -1784,7 +1797,7 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue) 
 		return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
-		else throw new RuntimeError(this.first_line, func + "は整数にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は整数にしか使えません");
 	}, "random", function(argc){
 		return "random.randint(0," + argc[0] + ")";
 	}),
@@ -1792,31 +1805,31 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue) return par1;
 		else if(par1 instanceof FloatValue) return new IntValue(Math.ceil(par1.value), this.loc);
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"floor": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue) return par1;
 		else if(par1 instanceof FloatValue) return new IntValue(Math.floor(par1.value), this.loc);
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"round": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue) return par1;
 		else if(par1 instanceof FloatValue) return new IntValue(Math.round(par1.value), this.loc);
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, null, null),
 	"sin": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue)
 			return new FloatValue(Math.sin(par1.value), this.loc);
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"cos": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue)
 			return new FloatValue(Math.cos(par1.value), this.loc);
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", "cos"),
 	"tan": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
@@ -1824,15 +1837,15 @@ var definedFunction = {
 		{
 			let v = Math.tan(par1.value);
 			if(isFinite(v)) return new FloatValue(v, this.loc);
-			else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			else throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		}
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"sqrt": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			if(par1.value < 0) throw new RuntimeError(this.first_line, "負の数のルートを求めようとしました");
+			if(par1.value < 0) throw new RuntimeError(loc.first_line, "負の数のルートを求めようとしました");
 			 return new FloatValue(Math.sqrt(par1.value), this.loc);
 		}
 		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
@@ -1841,12 +1854,12 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			if(par1.value <= 0) throw new RuntimeError(this.first_line, "正でない数の対数を求めようとしました");
+			if(par1.value <= 0) throw new RuntimeError(loc.first_line, "正でない数の対数を求めようとしました");
 			let v = Math.log(par1.value);
 			if(isFinite(v)) return new FloatValue(v, this.loc);
 			throw new RuntimeError(this.first_line, "オーバーフローしました");
 		}
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"exp": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
@@ -1854,28 +1867,28 @@ var definedFunction = {
 		{
 			let v = Math.exp(par1.value);
 			if(isFinite(v)) return new FloatValue(v, this.loc);
-			throw new RuntimeError(this.first_line, "オーバーフローしました");
+			throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		}
-		else throw new RuntimeError(this.first_line, func + "は数値にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"pow": new DefinedFunction(2, function(param, loc){
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
 		if((par1 instanceof NullValue || par1 instanceof IntValue) && (par2 instanceof NullValue || par2 instanceof IntValue) && par2.value >= 0)
 		{
-			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
 			let v = Math.pow(par1.value, par2.value);
 			if(isSafeInteger(v)) return new IntValue(v, this.loc);
-			else throw new RuntimeError(this.first_line, "整数で表せる範囲を越えました");
+			else throw new RuntimeError(loc.first_line, "整数で表せる範囲を越えました");
 		}
 		if((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) &&
 			(par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue))
 		{
-			if(par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
-			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+			if(par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(loc.first_line, "負の数の非整数乗はできません");
+			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
 			let v = Math.pow(par1.value, par2.value);
 			if(isFinite(v)) return new FloatValue(v, this.loc);
-			else throw new RuntimeError(this.first_line, "オーバーフローしました");
+			else throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		}
 	}, null, null),
 	"length": new DefinedFunction(1, function(param, loc){
@@ -1883,7 +1896,7 @@ var definedFunction = {
 		if(par1 instanceof NullValue) return new IntValue(0, this.loc);
 		else if(par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);
 		else if(par1 instanceof ArrayValue) return new IntValue(par1.length, this.loc);
-		else throw new RuntimeError(this.first_line, func + "は文字列と配列にしか使えません");
+		else throw new RuntimeError(loc.first_line, func + "は文字列と配列にしか使えません");
 	}, null, function(argc){
 		return "len(" + argc[0] + ")";
 	}),
@@ -1900,7 +1913,7 @@ var definedFunction = {
 			else v = par1.value.substr(par2.value, par3.value);
 			return new StringValue(v, this.loc);
 		}
-		else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		else throw new RuntimeError(loc.first_line, func + "の引数の型が違います");
 	}, null, function(argc){
 		var code = argc[0] + '[' + argc[1] + ':';
 		if(argc[2]) code += argc[1] + '+' + argc[2];
@@ -1915,7 +1928,7 @@ var definedFunction = {
 		{
 			return new StringValue(par1.value + par2.value, this.loc);
 		}
-		else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		else throw new RuntimeError(loc.first_line, func + "の引数の型が違います");
 	}, null, function(argc){
 		return argc[0] + '+' + argc[1];
 	}),
@@ -1932,7 +1945,7 @@ var definedFunction = {
 			for(var i = 0; i < v.length; i++) vr.push(new StringValue(v[i], this.loc));
 			return new ArrayValue(vr, this.loc);
 		}
-		else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		else throw new RuntimeError(loc.first_line, func + "の引数の型が違います");
 	}, null, function(argc){
 		return argc[0] + '.split(' + argc[1] + ')';
 	}),
@@ -1949,9 +1962,9 @@ var definedFunction = {
 			var v3 = par3.value;
 			var v = v1.split(v2);
 			if(v3 >= 0 && v3 < v.length) return new StringValue(v[v3], this.loc);
-			else throw new RuntimeError(this.first_line, "番号の値が不正です");
+			else throw new RuntimeError(loc.first_line, "番号の値が不正です");
 		}
-		else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		else throw new RuntimeError(loc.first_line, func + "の引数の型が違います");
 	}, null, function(argc){
 		return argc[0] + '.split(' + argc[1] + ')[' + argc[2] + ']';
 	}),
@@ -1966,12 +1979,12 @@ var definedFunction = {
 			var v1 = par1 instanceof NullValue ? '' : par1.value;
 			var v2 = par2.value;
 			var v3 = par3 instanceof NullValue ? '' : par3.value;
-			if(v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
+			if(v2 < 0 || v2 > v1.length) throw new RuntimeError(loc.first_line, "位置の値が不正です");
 			var s1 = v1.substr(0, v2);
 			var s2 = v1.substr(v2);
 			return new StringValue(s1 + v3 + s2, this.loc);
 		}
-		else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		else throw new RuntimeError(loc.first_line, func + "の引数の型が違います");
 	}, null, function(argc){
 		return argc[0] + '[:' + argc[1] + ']+' + argc[2] + '+' + argc[0] + '[' + argc[1] + ':]';  
 	}),
@@ -1990,13 +2003,13 @@ var definedFunction = {
 			var v3 = par3.value;
 			var v4 = par4 instanceof NullValue ? '' : par4.value;
 
-			if(v2 < 0 || v2 > v1.length) throw new RuntimeError(this.first_line, "位置の値が不正です");
-			if(v3 < 0 || v2 + v3 > v1.length)throw new RuntimeError(this.first_line, "長さの値が不正です");
+			if(v2 < 0 || v2 > v1.length) throw new RuntimeError(loc.first_line, "位置の値が不正です");
+			if(v3 < 0 || v2 + v3 > v1.length)throw new RuntimeError(loc.first_line, "長さの値が不正です");
 			var s1 = v1.substr(0, v2);
 			var s2 = v1.substr(v2 + v3);
 			return new StringValue(s1 + v4 + s2, this.loc);
 		}
-		else throw new RuntimeError(this.first_line, func + "の引数の型が違います");
+		else throw new RuntimeError(loc.first_line, func + "の引数の型が違います");
 	}, null, function (argc){
 		return argc[0] + '[:' + argc[1] + ']+' + argc[3] + '+' + argc[0] + '[' + argc[1] + '+' + argc[2] + ':]';  
 	})
@@ -2702,7 +2715,6 @@ class Assign extends Statement
 		let ag = this.variable.args;
 		let vl = this.value.getValue();
 		let vt = findVarTable(vn);
-
 		if(vt) // 変数が定義されている
 		{
 			let va = vt.vars[vn];
@@ -2743,7 +2755,7 @@ class Assign extends Statement
 			}
 			else if(vl.getValue() instanceof ArrayValue)
 			{
-				if(ag)	vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
+				if(ag)	vt.vars[vn].setValueToArray(ag, vl.getValue());
 				else vt.vars[vn] = vl.getValue().clone();
 			}
 			else if(vl.getValue() instanceof NullValue)
@@ -2758,19 +2770,19 @@ class Assign extends Statement
 			if(ag)
 			{
 				vt.vars[vn] = new ArrayValue([],this.loc);
-				if(vl instanceof IntValue)vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
-				else if(vl instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
-				else if(vl instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
-				else if(vl instanceof BooleanValue)vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
-				else if(vl instanceof ArrayValue)vt.vars[vn].setValueToArray(ag, vl.getValue().clone());
+				if(vl.getValue() instanceof IntValue)vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
+				else if(vl.getValue() instanceof FloatValue)vt.vars[vn].setValueToArray(ag, new FloatValue(vl.value, this.loc));
+				else if(vl.getValue() instanceof StringValue)vt.vars[vn].setValueToArray(ag, new StringValue(vl.value, this.loc));
+				else if(vl.getValue() instanceof BooleanValue)vt.vars[vn].setValueToArray(ag, new BooleanValue(vl.value, this.loc));
+				else if(vl.getValue() instanceof ArrayValue)vt.vars[vn].setValueToArray(ag, vl.getValue());
 			}
 			else
 			{
-				if(vl instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);
-				else if(vl instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
-				else if(vl instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
-				else if(vl instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
-				else if(vl instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
+				if(vl.getValue() instanceof IntValue) vt.vars[vn] = new IntValue(vl.value, this.loc);
+				else if(vl.getValue() instanceof FloatValue) vt.vars[vn] = new FloatValue(vl.value, this.loc);
+				else if(vl.getValue() instanceof StringValue) vt.vars[vn] = new StringValue(vl.value, this.loc);
+				else if(vl.getValue() instanceof BooleanValue) vt.vars[vn] = new BooleanValue(vl.value, this.loc);
+				else if(vl.getValue() instanceof ArrayValue) vt.vars[vn] = vl.getValue().clone();
 			}
 		}
 		code[0].stack[0].index = index + 1;
@@ -2975,18 +2987,22 @@ class Output extends Statement
 function array2text(v)
 {
 	if(v instanceof NullValue || !v) return '';
-	let v0 = v.getValue();
-	if(v0 instanceof ArrayValue)
+	if(v instanceof Value)
 	{
-		let v1 = [];
-		let keys = Object.keys(v0.aarray);
-		keys.sort();
-		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
-		for(let i = 0; i < keys.length; i++) v1.push(keys[i] + ':' + array2text(v0.aarray[keys[i]]));
-		return '[' + v1.join(',') + ']';
+		let v0 = v.getValue();
+		if(v0 instanceof ArrayValue)
+		{
+			let v1 = [];
+			let keys = Object.keys(v0.aarray);
+			keys.sort();
+			for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
+			for(let i = 0; i < keys.length; i++) v1.push(keys[i] + ':' + array2text(v0.aarray[keys[i]]));
+			return '[' + v1.join(',') + ']';
+		}
+		else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
+		else return v0.value;
 	}
-	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
-	else return new String(v0.value);
+	else return new String(v);
 }
 
 function array2code(v)
@@ -2996,7 +3012,9 @@ function array2code(v)
 	if(v0 instanceof ArrayValue)
 	{
 		let v1 = [];
+		let keys = Object.keys(v0.aarray);
 		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
+		for(let i = 0; i < keys.length; i++) v1.push(keys[i] + ':' + array2text(v0.aarray[keys[i]]));
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof StringValue) return "「" + v0.value + "」";
