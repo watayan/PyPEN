@@ -17,7 +17,7 @@ function python_to_dncl(code)
     var wait_for_indent = false;
     for(var i = 0; i < python_lines.length; i++)
     {
-        var line = python_lines[i];
+        var line = python_lines[i].trimRight();
         var result = /^([ 　]*)(.*)$/.exec(line);
         if(result)
         {
