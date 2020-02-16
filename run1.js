@@ -2267,13 +2267,34 @@ var definedFunction = {
 	"cos": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.cos(par1.value), this.loc);else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
-	}, "math", "cos"),
+	}, "math", null),
 	"tan": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
 			var v = Math.tan(par1.value);
 			if (isFinite(v)) return new FloatValue(v, this.loc);else throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		} else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
+	}, "math", null),
+	"asin": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+			if (par1.value > 1.0 || par1.value < -1.0) throw new RuntimeError(loc.first_line, func + "の定義域外の値が使われました");else return new FloatValue(Math.asin(par1.value), this.loc);
+		} else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
+	}, "math", null),
+	"acos": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) {
+			if (par1.value > 1.0 || par1.value < -1.0) throw new RuntimeError(loc.first_line, func + "の定義域外の値が使われました");else return new FloatValue(Math.acos(par1.value), this.loc);
+		} else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
+	}, "math", null),
+	"atan": new DefinedFunction(1, function (param, loc) {
+		var par1 = param[0].getValue();
+		if (par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) return new FloatValue(Math.atan(par1.value), this.loc);else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
+	}, "math", null),
+	"atan2": new DefinedFunction(2, function (param, loc) {
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if ((par1 instanceof NullValue || par1 instanceof IntValue || par1 instanceof FloatValue) && (par2 instanceof NullValue || par2 instanceof IntValue || par2 instanceof FloatValue)) return new FloatValue(Math.atan2(par1.value, par2.value), this.loc);else throw new RuntimeError(loc.first_line, func + "は数値にしか使えません");
 	}, "math", null),
 	"sqrt": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
