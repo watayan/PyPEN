@@ -51,7 +51,7 @@ $.fn.bcralnit = function(e) {
         $(this).css('position', 'absolute');
         $(this).css('overflow-x', 'hidden');
         $(this).css('overflow-y', 'auto');
-        $(this).css('resize', 'none');
+//        $(this).css('resize', 'none');
         $(this).css('top', '0px');
         $(this).css('margin', '0px');
         $(this).css('box-shadow', 'none');
@@ -75,6 +75,15 @@ $.fn.bcralnit = function(e) {
         $(this).scroll(function() {
             $('#' + c + ' .bcr_number').scrollTop($(this).scrollTop())
         })
+        $(this).exResize(function(){
+            let w0 = parseInt($(this).css('width'));
+            let w1 = w0 + parseInt(e.width);
+            let h = $(this).css('height');
+            let p = $('#' + c);
+            let n = $('#' + c + ' .bcr_number');
+            p.css({height:h, width: w1 + 'px'});
+            n.css({height:h, width: w0 - parseInt(br) - parseInt(bl) + 'px'});
+        });
     });
 
     function addln(b, vv) {
