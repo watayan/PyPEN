@@ -2056,7 +2056,8 @@ function setCaller(statementlist, caller)
 {
 	for(let i = 0; i < statementlist.length; i++)
 	{
-		if(statementlist[i].statementlist) setCaller(statementlist[i].state, caller);
+		if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
+		if(statementlist[i].state) setCaller(statementlist[i].state, caller);
 		if(statementlist[i].state1) setCaller(statementlist[i].state1, caller);
 		if(statementlist[i].state2) setCaller(statementlist[i].state2, caller);
 		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
@@ -3413,9 +3414,9 @@ class ForInc extends Statement
 	}
 	clone()
 	{
-		state = [];
-		for(var i = 0; i < this.statementlist; i++) state.push(this.statementlist[i].clone());
-		return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
+		return new ForInc(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
 	{
@@ -3486,9 +3487,9 @@ class ForDec extends Statement
 	}
 	clone()
 	{
-		state = [];
-		for(var i = 0; i < this.statementlist; i++) state.push(this.statementlist[i].clone());
-		return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
+		return new ForInc(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
 	{
@@ -3555,8 +3556,8 @@ class While extends Statement
 	}
 	clone()
 	{
-		state = [];
-		for(var i = 0; i < this.statementlist; i++) state.push(this.statementlist[i].clone());
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
 		return new While(this.condition.clone(), state, this.loc);
 	}
 	makePython(indent)

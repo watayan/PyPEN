@@ -2433,7 +2433,8 @@ var definedFunction = {
 
 function setCaller(statementlist, caller) {
 	for (var i = 0; i < statementlist.length; i++) {
-		if (statementlist[i].statementlist) setCaller(statementlist[i].state, caller);
+		if (statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
+		if (statementlist[i].state) setCaller(statementlist[i].state, caller);
 		if (statementlist[i].state1) setCaller(statementlist[i].state1, caller);
 		if (statementlist[i].state2) setCaller(statementlist[i].state2, caller);
 		if (statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
@@ -4014,10 +4015,10 @@ var ForInc = function (_Statement21) {
 	_createClass(ForInc, [{
 		key: 'clone',
 		value: function clone() {
-			state = [];
-			for (var i = 0; i < this.statementlist; i++) {
+			var state = [];
+			for (var i = 0; i < this.statementlist.length; i++) {
 				state.push(this.statementlist[i].clone());
-			}return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+			}return new ForInc(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 		}
 	}, {
 		key: 'makePython',
@@ -4097,10 +4098,10 @@ var ForDec = function (_Statement22) {
 	_createClass(ForDec, [{
 		key: 'clone',
 		value: function clone() {
-			state = [];
-			for (var i = 0; i < this.statementlist; i++) {
+			var state = [];
+			for (var i = 0; i < this.statementlist.length; i++) {
 				state.push(this.statementlist[i].clone());
-			}return new ForInc(this.varname.clone(), this.begin().clone(), this.end.clone(), this.step.clone(), state, this.loc);
+			}return new ForInc(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 		}
 	}, {
 		key: 'makePython',
@@ -4176,8 +4177,8 @@ var While = function (_Statement23) {
 	_createClass(While, [{
 		key: 'clone',
 		value: function clone() {
-			state = [];
-			for (var i = 0; i < this.statementlist; i++) {
+			var state = [];
+			for (var i = 0; i < this.statementlist.length; i++) {
 				state.push(this.statementlist[i].clone());
 			}return new While(this.condition.clone(), state, this.loc);
 		}
