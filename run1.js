@@ -2225,9 +2225,6 @@ var DefinedFunction = function () {
 
 
 var definedFunction = {
-	"web": new DefinedFunction(1, function (param, loc) {
-		var par1 = param[0].getValue();
-	}, null, null),
 	"keys": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
 		if (par1 instanceof ArrayValue) {
@@ -3742,18 +3739,24 @@ var GraphicStatement = function (_Statement17) {
 				canvas.setAttribute("height", h + "px");
 				canvas.style.display = "block";
 				// 値の取得
-				var values = this.args[2].getValue(); // ArrayValue
+				var values = Array2ArrayOfArray(this.args[2].getValue());
 				var array = [];
 				var n = values.length,
 				    v,
 				    max = 0,
-				    min = 0;
+				    min = 0,
+				    maxn = 0;
 				for (var i = 0; i < n; i++) {
-					v = values.nthValue(i).rtnv;
-					if (v instanceof Value) v = v.value;
-					array.push(v);
-					if (v > max) max = v;
-					if (v < min) min = v;
+					v = values instanceof ArrayValue ? values.nthValue(i).rtnv : values[i].rtnv;
+					array.push([]);
+					if (v.length > maxn) maxn = v.length;
+					for (var j = 0; j < v.length; j++) {
+						var v1 = v instanceof ArrayValue ? v.nthValue(j).rtnv : v[j].rtnv;
+						if (v1 instanceof Value) v1 = v1.value;
+						array[i].push(v1);
+						if (v1 > max) max = v1;
+						if (v1 < min) min = v1;
+					}
 				}
 				if (max == 0) max = 1;
 				// 軸の描画
@@ -3768,10 +3771,16 @@ var GraphicStatement = function (_Statement17) {
 				context.lineTo(x0 + w, y0);
 				context.stroke();
 				if (n > 0) {
-					var w0 = w / n;
-					context.fillStyle = '#00c000';
+					var w0 = w / maxn / array.length;
 					for (var i = 0; i < n; i++) {
-						if (array[i] >= 0) context.fillRect(x0 + w0 * i + w0 * 0.1, y0 - h * (array[i] / (max - min)), w0 * 0.8, h * (array[i] / (max - min)));else context.fillRect(x0 + w0 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i] / (max - min)));
+						context.fillStyle = graphColor[i % 6];
+						context.beginPath();
+						for (var j = 0; j < array[i].length; j++) {
+							var x = x0 + w0 * j + w0 / 2,
+							    y = y0 - array[i][j] / (max - min) * h;
+							if (array[i][j] >= 0) context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0 - h * (array[i][j] / (max - min)), w0 * 0.8, h * (array[i][j] / (max - min)));else context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i][j] / (max - min)));
+						}
+						context.stroke();
 					}
 				}
 			} else if (this.command == 'gLineplot') {
@@ -3783,7 +3792,7 @@ var GraphicStatement = function (_Statement17) {
 				canvas.setAttribute("height", h + "px");
 				canvas.style.display = "block";
 				// 値の取得
-				var values = this.args[2].getValue().rtnv; // ArrayValue
+				var values = Array2ArrayOfArray(this.args[2].getValue());
 				var array = [];
 				var n = values.length,
 				    v,
@@ -3840,6 +3849,19 @@ var GraphicStatement = function (_Statement17) {
 
 	return GraphicStatement;
 }(Statement);
+
+/**
+ * 
+ * @param {Value} a 
+ * @param {Location} loc
+ */
+
+
+function Array2ArrayOfArray(a, loc) {
+	if (a instanceof ArrayValue) {
+		if (a.nthValue(0) instanceof ArrayValue) return a;else return new ArrayValue([a], loc);
+	} else throw new RuntimeError(loc.first_line, "配列でないものが使われました");
+}
 
 var If = function (_Statement18) {
 	_inherits(If, _Statement18);
@@ -6403,7 +6425,7 @@ var Parts_LoopEnd = function (_Parts9) {
 
 var misc_menu = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列の配列"]], ["待つ", "sleep", "	 ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
+["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列の配列"]], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
 
 var Parts_Misc = function (_Parts10) {
 	_inherits(Parts_Misc, _Parts10);

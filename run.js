@@ -1771,11 +1771,6 @@ class DefinedFunction
  * 定義済み関数一覧
  */
 var definedFunction = {
-	"web": new DefinedFunction(1, function(param, loc){
-		var par1 = param[0].getValue();
-		
-
-	}, null, null),
 	"keys": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof ArrayValue)
@@ -3174,16 +3169,22 @@ class GraphicStatement extends Statement
 			canvas.setAttribute("height", h + "px");
 			canvas.style.display="block";
 			// 値の取得
-			var values = this.args[2].getValue(); // ArrayValue
+			var values = Array2ArrayOfArray(this.args[2].getValue());
 			var array = [];
-			var n = values.length, v, max = 0, min = 0;
+			var n = values.length, v, max = 0, min = 0, maxn = 0;
 			for(var i = 0; i < n; i++)
 			{
-				v = values.nthValue(i).rtnv;
-				if(v instanceof Value) v = v.value;
-				array.push(v);
-				if(v > max) max = v;
-				if(v < min) min = v;
+				v = (values instanceof ArrayValue ? values.nthValue(i).rtnv : values[i].rtnv);
+				array.push([]);
+				if(v.length > maxn) maxn = v.length;
+				for(var j = 0; j < v.length; j++)
+				{
+					var v1 = (v instanceof ArrayValue ? v.nthValue(j).rtnv : v[j].rtnv);
+					if(v1 instanceof Value) v1 = v1.value;
+					array[i].push(v1);
+					if(v1 > max) max = v1;
+					if(v1 < min) min = v1;
+				}
 			}
 			if(max == 0) max = 1;
 			// 軸の描画
@@ -3198,14 +3199,20 @@ class GraphicStatement extends Statement
 			context.stroke();
 			if(n > 0)
 			{
-				var w0 = w / n;
-				context.fillStyle = '#00c000';
+				var w0 = w / maxn / array.length;
 				for(var i = 0; i < n; i++)
 				{
-					if(array[i] >= 0)
-						context.fillRect(x0 + w0 * i + w0 * 0.1, y0 - h * (array[i] / (max - min)),w0 * 0.8, h * (array[i] / (max - min)));
-					else
-						context.fillRect(x0 + w0 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i] / (max - min)));
+					context.fillStyle = graphColor[i % 6];
+					context.beginPath();
+					for(var j = 0; j < array[i].length; j++)
+					{
+						var x = x0 + w0 * j + w0 / 2, y = y0 - (array[i][j] / (max - min)) * h;
+						if(array[i][j] >= 0)
+							context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0 - h * (array[i][j] / (max - min)),w0 * 0.8, h * (array[i][j] / (max - min)));
+						else
+							context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i][j] / (max - min)));
+		}
+					context.stroke();
 				}
 			}
 		}
@@ -3218,7 +3225,7 @@ class GraphicStatement extends Statement
 			canvas.setAttribute("height", h + "px");
 			canvas.style.display="block";
 			// 値の取得
-			var values = this.args[2].getValue().rtnv; // ArrayValue
+			var values = Array2ArrayOfArray(this.args[2].getValue());
 			var array = [];
 			var n = values.length, v, max = 0, min = 0, maxn = 0;
 			for(var i = 0; i < n; i++)
@@ -3274,6 +3281,22 @@ class GraphicStatement extends Statement
 	}
 }
 
+/**
+ * 
+ * @param {Value} a 
+ * @param {Location} loc
+ */
+function Array2ArrayOfArray(a, loc)
+{
+	if(a instanceof ArrayValue)
+	{
+		if(a.nthValue(0) instanceof ArrayValue)
+			return a;
+		else
+			return new ArrayValue([a], loc);
+	}
+	else throw new RuntimeError(loc.first_line, "配列でないものが使われました")
+}
 
 class If extends Statement
 {
@@ -5492,7 +5515,7 @@ var misc_menu =[
 	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
 	["棒グラフ描画" , "gBarplot"		,"棒グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
 	["線グラフ描画" , "gLineplot"		,"線グラフ描画(	,	,	)"		,["幅","高さ","配列の配列"]],
-	["待つ"       , "sleep"           , "	 ミリ秒待つ"                 ,["ミリ秒数"]],
+	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]]
 ];
