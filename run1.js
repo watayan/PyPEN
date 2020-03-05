@@ -7004,7 +7004,7 @@ onload = function onload() {
 							insertCode("線グラフ描画(《幅》,《高さ》,《配列の配列》)");
 						} },
 					sleep: { name: "待つ", callback: function callback(k, e) {
-							insertCode("《ミリ秒数》 ミリ秒待つ");
+							insertCode("《ミリ秒数》ミリ秒待つ");
 						} },
 					break: { name: "繰り返しを抜ける", callback: function callback(k, e) {
 							insertCode("繰り返しを抜ける");

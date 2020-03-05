@@ -78,15 +78,6 @@
 }
 
 
-#sourceTextarea:read-only{
-	background-color: lightgrey;
-}
-
-#sourceTextarea:-moz-read-only{ /* for firefox */
-	background-color: lightgrey;
-}
-
-
 #Flowchart_area{
 /*  float: none; */
 	display: none;
@@ -135,6 +126,17 @@
 	background-image: url("bg.png");
 	background-size: 2em auto;
 }
+
+#sourceTextarea:read-only{
+	background-color: lightgray;
+	background-image: none;
+}
+
+#sourceTextarea:-moz-read-only{ /* for firefox */
+	background-color: lightgray;
+	background-image: none;
+}
+
 
 #resultTextarea{
 	font-size: 16px;
