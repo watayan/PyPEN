@@ -19,6 +19,7 @@ function python_to_dncl(code)
     {
         var line = python_lines[i].trimRight();
         var result = /^([ 　]*)(.*)$/.exec(line);
+        if(i < python_lines.length - 1 && result && !result[2]) continue;
         if(result)
         {
             var spaces = count_spaces(result[1]);
@@ -31,7 +32,7 @@ function python_to_dncl(code)
             while(spaces < pre_spaces[0])
             {
                 var indent = pre_spaces.shift();
-                if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
+                if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです2"};
                 if(spaces <=indent)
                 {
                     if(spaces < indent && (deindent || !/^そうでなければ[：:]$/.exec(result[2])))
