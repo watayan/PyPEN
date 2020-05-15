@@ -3103,6 +3103,12 @@ class GraphicStatement extends Statement
 			let r = this.args[0].getValue().value, g = this.args[1].getValue().value, b = this.args[2].getValue().value;
 			context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
 		}
+		else if(this.command == 'gSetTextColor')
+		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			let r = this.args[0].getValue().value, g = this.args[1].getValue().value, b = this.args[2].getValue().value;
+			context.textStyle = "rgb(" + r + "," + g + "," + b + ")";
+		}
 		else if(this.command == 'gSetLineWidth')
 		{
 			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
@@ -3116,7 +3122,10 @@ class GraphicStatement extends Statement
 		else if(this.command == 'gDrawText')
 		{
 			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			var temp = context.fillStyle;
+			context.fillStyle = context.textStyle;
 			context.fillText(this.args[0].getValue().value, this.args[1].getValue().value, this.args[2].getValue().value);
+			context.fillStyle = temp;
 		}
 		else if(this.command == 'gDrawLine')
 		{
@@ -3126,6 +3135,14 @@ class GraphicStatement extends Statement
 			context.beginPath();
 			context.moveTo(x1, y1);
 			context.lineTo(x2, y2);
+			context.stroke();
+		}
+		else if(this.command == 'gDrawPoint')
+		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value;
+			context.beginPath();
+			context.arc(x1, y1, 1, 0, Math.PI * 2, false);
 			context.stroke();
 		}
 		else if(this.command == 'gDrawBox')
@@ -3143,6 +3160,9 @@ class GraphicStatement extends Statement
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value,
 				width = this.args[2].getValue().value, height = this.args[3].getValue().value;
 			context.fillRect(x1, y1, width, height);
+			context.beginPath();
+			context.strokeRect(x1, y1, width, height);
+			context.stroke();
 		}
 		else if(this.command == 'gDrawCircle')
 		{
@@ -3156,18 +3176,83 @@ class GraphicStatement extends Statement
 		{
 			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, r = this.args[2].getValue().value;
+			for(var i = 0; i < 2; i++)
+			{
+				context.beginPath();
+				context.arc(x1, y1, r, 0, Math.PI * 2, false);
+				if(i == 0) context.fill();
+				else context.stroke();
+			}
+		}
+		else if(this.command == 'gDrawOval')
+		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, w = this.args[2].getValue().value, h = this.args[3].getValue().value;
 			context.beginPath();
-			context.arc(x1, y1, r, 0, Math.PI * 2, false);
-			context.fill();
+			context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+			context.stroke();
+		}
+		else if(this.command == 'gFillOval')
+		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, w = this.args[2].getValue().value, h = this.args[3].getValue().value;
+			for(var i = 0; i < 2; i++)
+			{
+				context.beginPath();
+				context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+				if(i == 0) context.fill();
+				else context.stroke();
+			}
+		}
+		else if(this.command == 'gDrawArc')
+		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, w = this.args[2].getValue().value, h = this.args[3].getValue().value,
+				theta1 = this.args[4].getValue().value, theta2 = this.args[5].getValue().value, style = this.args[6].getValue().value;
+			context.beginPath();
+			context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, -theta1 * Math.PI / 180, -theta2 * Math.PI / 180, true);
+			switch(style)
+			{
+				case 2: // 半径
+					context.lineTo(x1 + w / 2, y1 + h / 2);
+					// fall through
+				case 1: // 弦
+					context.closePath();
+			}
+			context.stroke();
+		}
+		else if(this.command == 'gFillArc')
+		{
+			if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
+			let x1 = this.args[0].getValue().value, y1 = this.args[1].getValue().value, w = this.args[2].getValue().value, h = this.args[3].getValue().value,
+				theta1 = this.args[4].getValue().value, theta2 = this.args[5].getValue().value, style = this.args[6].getValue().value;
+			for(var i = 0; i < 2; i++)
+			{
+				context.beginPath();
+				context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, -theta1 * Math.PI / 180, -theta2 * Math.PI / 180, true);
+				switch(style)
+				{
+					case 2: // 半径
+						context.lineTo(x1 + w / 2, y1 + h / 2);
+						// fall through
+					case 1: // 弦
+						context.closePath();
+				}
+				if(i == 0) context.fill();
+				else context.stroke();
+			}
 		}
 		else if(this.command == 'gBarplot')
 		{
-			var canvas = document.getElementById('canvas');
-			var w = this.args[0].getValue().value, h = this.args[1].getValue().value;
-			context = canvas.getContext('2d');
-			canvas.setAttribute("width", w + "px");
-			canvas.setAttribute("height", h + "px");
-			canvas.style.display="block";
+			if(context == null)
+			{
+				var canvas = document.getElementById('canvas');
+				var w = this.args[0].getValue().value, h = this.args[1].getValue().value;
+				context = canvas.getContext('2d');
+				canvas.setAttribute("width", w + "px");
+				canvas.setAttribute("height", h + "px");
+				canvas.style.display="block";
+			}
 			// 値の取得
 			var values = Array2ArrayOfArray(this.args[2].getValue());
 			var array = [];
@@ -3218,12 +3303,15 @@ class GraphicStatement extends Statement
 		}
 		else if(this.command == 'gLineplot')
 		{
-			var canvas = document.getElementById('canvas');
-			var w = this.args[0].getValue().value, h = this.args[1].getValue().value;
-			context = canvas.getContext('2d');
-			canvas.setAttribute("width", w + "px");
-			canvas.setAttribute("height", h + "px");
-			canvas.style.display="block";
+			if(context == null)
+			{
+				var canvas = document.getElementById('canvas');
+				var w = this.args[0].getValue().value, h = this.args[1].getValue().value;
+				context = canvas.getContext('2d');
+				canvas.setAttribute("width", w + "px");
+				canvas.setAttribute("height", h + "px");
+				canvas.style.display="block";	
+			}
 			// 値の取得
 			var values = Array2ArrayOfArray(this.args[2].getValue());
 			var array = [];
@@ -5497,7 +5585,7 @@ class Parts_LoopEnd extends Parts
 }
 
 
-var misc_menu =[
+var misc_menu_ja =[
 	//表示            識別子            プログラム上の表現            [引数の意味]
 	["《各種処理》"  , "none"           , "《各種処理》"              ,[]],
 	["描画領域開く"  , "gOpenWindow"    , "描画領域開く(	,	)"       ,["幅","高さ"]],
@@ -5505,21 +5593,56 @@ var misc_menu =[
 	["描画領域全消去", "gClearWindow"   , "描画領域全消去()"           ,[]],
 	["線色設定"     , "gSetLineColor"  , "線色設定(	,	,	)"         ,["赤","青","緑"]],
 	["塗色設定"     , "gSetFillColor"  , "塗色設定(	,	,	)"         ,["赤","青","緑"]],
+	["文字色設定"     , "gSetTextColor"  , "文字色設定(	,	,	)"         ,["赤","青","緑"]],
 	["線太さ設定"   , "gSetLineWidth"   , "線太さ設定(	)"            ,["太さ"]],
 	["文字サイズ設定", "gSetFontSize"   , "文字サイズ設定(	)"         ,["サイズ"]],
 	["文字描画"     , "gDrawText"      , "文字描画(	,	,	)"        ,["文字列","x","y"]],
+	["点描画"       , "gDrawPoint"      , "点描画(	,	,	,	)"        ,["x","y"]],
 	["線描画"       , "gDrawLine"      , "線描画(	,	,	,	)"        ,["x1","y1","x2","y2"]],
 	["矩形描画"     , "gDrawBox"       , "矩形描画(	,	,	,	)"      ,["x","y","幅","高さ"]],
 	["矩形塗描画"   , "gFillBox"       , "矩形塗描画(	,	,	,	)"    ,["x","y","幅","高さ"]],
 	["円描画"      , "gDrawCircle"     , "円描画(	,	,	)"          ,["x","y","半径"]],
 	["円塗描画"     , "gFillCircle"    , "円塗描画(	,	,	)"        ,["x","y","半径"]],
+	["楕円描画"      , "gDrawCircle"     , "楕円描画(	,	,	,	)"          ,["x","y","幅","高さ"]],
+	["楕円塗描画"      , "gFillCircle"     , "楕円塗描画(	,	,	,	)"          ,["x","y","幅","高さ"]],
+	["弧描画"      , "gDrawArc"     , "弧描画(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
+	["弧塗描画"      , "gFillArc"     , "弧塗描画(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
 	["棒グラフ描画" , "gBarplot"		,"棒グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
 	["線グラフ描画" , "gLineplot"		,"線グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]]
+],
+misc_menu_en = [
+	//表示            識別子            プログラム上の表現            [引数の意味]
+	["《各種処理》"  , "none"           , "《各種処理》"              ,[]],
+	["gOpenWindow"  , "gOpenWindow"    , "gOpenWindow(	,	)"       ,["幅","高さ"]],
+	["gCloseWindow", "gCloseWindow"   , "gCloseWindow()"           ,[]],
+	["gClearWindow", "gClearWindow"   , "gClearWindow()"           ,[]],
+	["gSetLineColor"     , "gSetLineColor"  , "gSetLineColor(	,	,	)"         ,["赤","青","緑"]],
+	["gSetFillColor"     , "gSetFillColor"  , "gSetFillColor(	,	,	)"         ,["赤","青","緑"]],
+	["gSetTextColor"     , "gSetTextColor"  , "gSetTextColor(	,	,	)"         ,["赤","青","緑"]],
+	["gSetLineWidth"   , "gSetLineWidth"   , "gSetLineWidth(	)"            ,["太さ"]],
+	["gSetFontSize", "gSetFontSize"   , "gSetFontSize(	)"         ,["サイズ"]],
+	["gDrawText"     , "gDrawText"      , "gDrawText(	,	,	)"        ,["文字列","x","y"]],
+	["gDrawPoint"       , "gDrawPoint"      , "gDrawPoint(	,	,	,	)"        ,["x","y"]],
+	["gDrawLine"       , "gDrawLine"      , "gDrawLine(	,	,	,	)"        ,["x1","y1","x2","y2"]],
+	["gDrawBox"     , "gDrawBox"       , "gDrawBox(	,	,	,	)"      ,["x","y","幅","高さ"]],
+	["gFillBox"   , "gFillBox"       , "gFillBox(	,	,	,	)"    ,["x","y","幅","高さ"]],
+	["gDrawCircle"      , "gDrawCircle"   , "gDrawCicle(	,	,	)"          ,["x","y","半径"]],
+	["gFillCircle"     , "gFillCircle"    , "gFillCircle(	,	,	)"        ,["x","y","半径"]],
+	["gDrawOval"      , "gDrawCircle"     , "gDrawOval(	,	,	,	)"          ,["x","y","幅","高さ"]],
+	["gFillOval"      , "gFillCircle"     , "gFillOval(	,	,	,	)"          ,["x","y","幅","高さ"]],
+	["gDrawArc"      , "gDrawArc"     , "gDrawArc(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
+	["gFillArc"      , "gFillArc"     , "gFillArc(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
+	["gBarplot" , "gBarplot"		,"gBarplot(	,	,	)"		,["幅","高さ","値"]],
+	["gLineplot" , "gLineplot"		,"gLineplot(	,	,	)"		,["幅","高さ","値"]],
+	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
+	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
+	["変数を確認する", "dump"			,"変数を確認する",[]]
 ];
 
+var misc_menu = setting.graphic_command == 0 ? misc_menu_ja : misc_menu_en;
 
 class Parts_Misc extends Parts
 {
@@ -6032,23 +6155,58 @@ onload = function(){
 						replace:	{name: "replace 置換", callback: function(k,e){insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");}},
 					}
 				},
-				misc:{ name:"各種命令",
+				graphic1:{ name:"グラフィック命令（日本語）",
 					items:{
 						gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCode("描画領域開く(《幅》,《高さ》)");}},
 						gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCode("描画領域閉じる()");}},
 						gClearWindow:{name:"描画領域全消去", callback: function(k,e){insertCode("描画領域全消去()");}},
 						gSetLineColor:{name:"線色設定", callback: function(k,e){insertCode("線色設定(《赤》,《緑》,《青》)");}},
 						gSetFillColor:{name:"塗色設定", callback: function(k,e){insertCode("塗色設定(《赤》,《緑》,《青》)");}},
+						gSetTextColor:{name:"文字色設定", callback: function(k,e){insertCode("文字色設定(《赤》,《緑》,《青》)");}},
 						gSetLineWidth:{name:"線太さ設定", callback: function(k,e){insertCode("線太さ設定(《太さ》)");}},
 						gSetFontSize:{name:"文字サイズ設定", callback: function(k,e){insertCode("文字サイズ設定(《サイズ》)");}},
 						gDrawText:{name:"文字描画", callback: function(k,e){insertCode("文字描画(《文字列》,《x》,《y》)");}},
+						gDrawPoint:{name:"点描画", callback: function(k,e){insertCode("点描画(《x》,《y》)");}},
 						gDrawLine:{name:"線描画", callback: function(k,e){insertCode("線描画(《x1》,《y1》,《x2》,《y2》)");}},
 						gDrawBox:{name:"矩形描画", callback: function(k,e){insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");}},
 						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
 						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
 						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
-						gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《配列》)");}},
-						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《配列の配列》)");}},
+						gDrawOval:{name:"楕円描画", callback: function(k,e){insertCode("楕円描画(《x》,《y》,《幅》,《高さ》)");}},
+						gFillOval:{name:"楕円塗描画", callback: function(k,e){insertCode("楕円塗描画(《x》,《y》,《幅》,《高さ》)");}},
+						gDrawArc:{name:"弧描画", callback: function(k,e){insertCode("弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+						gFillArc:{name:"弧塗描画", callback: function(k,e){insertCode("弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+						gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《値》)");}},
+						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《値》)");}}
+					}
+				},
+				graphic2:{ name:"グラフィック命令（英語）",
+					items:{
+						gOpenWindow:{name:"gOpenWindow", callback: function(k,e){insertCode("gOpenWindow(《幅》,《高さ》)");}},
+						gCloseWindow:{name:"gCloseWindow", callback: function(k,e){insertCode("gCloseWindow()");}},
+						gClearWindow:{name:"gClearWindow", callback: function(k,e){insertCode("gClearWindow()");}},
+						gSetLineColor:{name:"gSetLineColor", callback: function(k,e){insertCode("gSetLineColor(《赤》,《緑》,《青》)");}},
+						gSetFillColor:{name:"gSetFillColor", callback: function(k,e){insertCode("gSetFillColor(《赤》,《緑》,《青》)");}},
+						gSetTextColor:{name:"gSetTextColor", callback: function(k,e){insertCode("gSetTextColor(《赤》,《緑》,《青》)");}},
+						gSetLineWidth:{name:"gSetLineWidth", callback: function(k,e){insertCode("gSetLineWidth(《太さ》)");}},
+						gSetFontSize:{name:"gSetFontSize", callback: function(k,e){insertCode("gSetFontSize(《サイズ》)");}},
+						gDrawText:{name:"gDrawText", callback: function(k,e){insertCode("gDraeText(《文字列》,《x》,《y》)");}},
+						gDrawPoint:{name:"gDrawPoint", callback: function(k,e){insertCode("gDrawPoint(《x》,《y》)");}},
+						gDrawLine:{name:"gDrawLine", callback: function(k,e){insertCode("gDrawLine(《x1》,《y1》,《x2》,《y2》)");}},
+						gDrawBox:{name:"gDrawBox", callback: function(k,e){insertCode("gDrawBox(《x》,《y》,《幅》,《高さ》)");}},
+						gFillBox:{name:"gFillBox", callback: function(k,e){insertCode("gFillBox(《x》,《y》,《幅》,《高さ》)");}},
+						gDrawCircle:{name:"gDrawCircle", callback: function(k,e){insertCode("gDrawCircle(《x》,《y》,《半径》)");}},
+						gFillCircle:{name:"gFillCircle", callback: function(k,e){insertCode("gFillCircle(《x》,《y》,《半径》)");}},
+						gDrawOval:{name:"gDrawOval", callback: function(k,e){insertCode("gDrawOval(《x》,《y》,《幅》,《高さ》)");}},
+						gFillOval:{name:"gFillOval", callback: function(k,e){insertCode("gFillOval(《x》,《y》,《幅》,《高さ》)");}},
+						gDrawArc:{name:"gDrawArc", callback: function(k,e){insertCode("gDrawArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+						gFillArc:{name:"gFillArc", callback: function(k,e){insertCode("gFillArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+						gBarplot:{name:"gBarplot", callback: function(k,e){insertCode("gBarplot(《幅》,《高さ》,《値》)");}},
+						gLineplot:{name:"gLineplot", callback: function(k,e){insertCode("gLineplot(《幅》,《高さ》,《値》)");}}
+					}
+				},
+				misc:{ name: "各種命令",
+					items:{
 						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》ミリ秒待つ");}},
 						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
 						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}

@@ -140,26 +140,53 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "文字列"				{return '文字列';}
 "と"{Comma}				{return 'と';}
 "と"					{return 'と';}
-"描画領域開く"		{return 'gOpenWindow';}
+"描画領域開く"			{return 'gOpenWindow';}
+"gOpenWindow"			{return 'gOpenWindow';}
 "描画領域閉じる"		{return 'gCloseWindow';}
+"gCloseWindow"			{return 'gCloseWindow';}
 "描画領域全消去"		{return 'gClearWindow';}
+"gClearWindow"			{return 'gClearWindow';}
 "線色設定"				{return 'gSetLineColor';}
+"gSetLineColor"			{return 'gSetLineColor';}
 "塗色設定"				{return 'gSetFillColor';}
-"線太さ設定"				{return 'gSetLineWidth';}
-"文字サイズ設定"			{return 'gSetFontSize';}
+"gSetFillColor"			{return 'gSetFillColor';}
+"文字色設定"			{return 'gSetTextColor';}
+"gSetTextColor"			{return 'gSetTextColor';}
+"線太さ設定"			{return 'gSetLineWidth';}
+"gSetLineWidth"			{return 'gSetLineWidth';}
+"文字サイズ設定"		{return 'gSetFontSize';}
+"gSetFontSize"			{return 'gSetFontSize';}
 "文字描画"				{return 'gDrawText';}
+"gDrawText"				{return 'gDrawText';}
 "線描画"				{return 'gDrawLine';}
+"gDrawLine"				{return 'gDrawLine';}
+"点描画"				{return 'gDrawPoint';}
+"gDrawPoint"			{return 'gDrawPoint';}
 "矩形描画"				{return 'gDrawBox';}
-"矩形塗描画"				{return 'gFillBox';}
+"gDrawBox"				{return 'gDrawBox';}
+"矩形塗描画"			{return 'gFillBox';}
+"gFillBox"				{return 'gFillBox';}
 "円描画"				{return 'gDrawCircle';}
+"gDrawCircle"			{return 'gDrawCircle';}
 "円塗描画"				{return 'gFillCircle';}
+"gFillCircle"			{return 'gFillCircle';}
+"楕円描画"				{return 'gDrawOval';}
+"gDrawOval"				{return 'gDrawOval';}
+"楕円塗描画"			{return 'gFillOval';}
+"gFillOval"				{return 'gFillOval';}
+"弧描画"				{return 'gDrawArc';}
+"gDrawArc"				{return 'gDrawArc';}
+"弧塗描画"				{return 'gFillArc';}
+"gFillArc"				{return 'gFillArc';}
 "棒グラフ描画"			{return 'gBarplot';}
+"gBarplot"				{return 'gBarplot';}
 "線グラフ描画"			{return 'gLineplot';}
-"ミリ秒待つ"				{return 'ミリ秒待つ';}
-"変数を確認する"				{return '変数を確認する';}
+"gLinePlot"				{return 'gLineplot';}
+"ミリ秒待つ"			{return 'ミリ秒待つ';}
+"変数を確認する"		{return '変数を確認する';}
 "改行する"				{return '改行する';}
-{Identifier}	{return '識別子';}
-<<EOF>>				{return 'EOF';}
+{Identifier}			{return '識別子';}
+<<EOF>>					{return 'EOF';}
 {Newline}				{return '改行';}
 {Whitespace}		/* skip whitespace */
 
@@ -191,7 +218,7 @@ e
 	| e '/' e		{$$ = new Div($1, $3, new Location(@1, @3));}
 	| e '//' e		{$$ = new DivInt($1, $3, new Location(@1, @3));}
 	| e '%' e		{$$ = new Mod($1, $3, new Location(@1, @3));}
-	| '-' e		%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
+	| '-' e			%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
 	| '(' e ')'		{$$ = $2;}
 	| e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
 	| e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
@@ -355,6 +382,8 @@ GraphicStatement
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetLineColor', [$3,$5,$7], new Location(@1, @1))];}
 	| 'gSetFillColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetFillColor', [$3,$5,$7], new Location(@1, @1))];}
+	| 'gSetTextColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetTextColor', [$3,$5,$7], new Location(@1, @1))];}
 	| 'gSetLineWidth' '(' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new GraphicStatement('gSetLineWidth', [$3], new Location(@1, @1))];}
 	| 'gSetFontSize' '(' e ')' '改行'
@@ -363,6 +392,8 @@ GraphicStatement
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawText', [$3,$5,$7], new Location(@1,@1))];}
 	| 'gDrawLine' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawLine', [$3,$5,$7,$9], new Location(@1,@1))];}
+	| 'gDrawPoint' '(' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5], @1), new GraphicStatement('gDrawPoint', [$3,$5], new Location(@1,@1))];}
 	| 'gDrawBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawBox', [$3,$5,$7,$9], new Location(@1,@1))];}
 	| 'gFillBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
@@ -371,6 +402,14 @@ GraphicStatement
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1))];}
 	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1))];}
+	| 'gDrawOval' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawOval', [$3,$5,$7,$9], new Location(@1,@1))];}
+	| 'gFillOval' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gFillOval', [$3,$5,$7,$9], new Location(@1,@1))];}
+	| 'gDrawArc' '(' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7,$9,$11,$13,$15], @1), new GraphicStatement('gDrawArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1))];}
+	| 'gFillArc' '(' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5,$7,$9,$11,$13,$15], @1), new GraphicStatement('gFillArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1))];}
 	| 'gBarplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gBarplot', [$3,$5,$7], new Location(@1,@1))];}
 	| 'gLineplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
