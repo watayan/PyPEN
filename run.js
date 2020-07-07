@@ -2163,12 +2163,12 @@ class CallFunction extends Value
 	}
 }
 
-class Append extends Value
+class Connect extends Value
 {
 	constructor(x,y,loc){super([x,y],loc);}
 	clone()
 	{
-		var rtnv = new Append(this.value[0].clone(), this.value[1].clone(), this.loc);
+		var rtnv = new Connect(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2824,6 +2824,134 @@ class Assign extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		code += this.variable.makePython() + " = " + this.value.makePython() + "\n";
+		return code;
+	}
+}
+
+class Append extends Statement
+{
+	/**
+	 * @constructor
+	 * @param {Variable} variable 
+	 * @param {Value} value 
+	 * @param {Location} loc 
+	 */
+	constructor(variable,value,loc)
+	{
+		super(loc);
+		this.variable = variable;
+		this.value = value;
+	}
+	clone()
+	{
+		return new Append(this.variable, this.value, this.loc);
+	}
+	run()
+	{
+		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+
+		let index = code[0].stack[0].index;	// 内部でrun()を呼び出すところがあるので，super.run()を呼んではいけない
+		let vn = this.variable.varname;
+		let ag = this.variable.args;
+		let vl = this.value.getValue();
+		let vt = findVarTable(vn);
+		if(vt) // 変数が定義されている
+		{
+			let va = vt.vars[vn];
+			if(ag && ag.value.length > 0) // 配列の添字がある
+			{
+				if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
+				for(let i = 0; i < ag.value.length; i++) 
+				{
+					if(va.nthValue(ag.value[i].getValue().value))
+						va = va.nthValue(ag.value[i].getValue().value);
+					else
+					{
+						// 配列を延長する
+						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
+						else va = new NullValue(this.loc);
+					}
+				}
+			}
+			if(va instanceof ArrayValue) va.value.push(vl.clone());
+			else throw new RuntimeError(this.first_line, '配列でない変数に追加はできません');
+		}
+		else // 変数が定義されていない
+			throw new RuntimeError(this.first_line, '存在しない配列に追加はできません');
+		code[0].stack[0].index = index + 1;
+	}
+	makePython(indent)
+	{
+		var code = Parts.makeIndent(indent);
+		code += this.variable.makePython() + ".append(" + this.value.makePython() + ")\n";
+		return code;
+	}
+}
+
+class Extend extends Statement
+{
+	/**
+	 * @constructor
+	 * @param {Variable} variable 
+	 * @param {Value} value 
+	 * @param {Location} loc 
+	 */
+	constructor(variable,value,loc)
+	{
+		super(loc);
+		this.variable = variable;
+		this.value = value;
+	}
+	clone()
+	{
+		return new Extend(this.variable, this.value, this.loc);
+	}
+	run()
+	{
+		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+
+		let index = code[0].stack[0].index;	// 内部でrun()を呼び出すところがあるので，super.run()を呼んではいけない
+		let vn = this.variable.varname;
+		let ag = this.variable.args;
+		let vl = this.value.getValue();
+		let vt = findVarTable(vn);
+		if(vt) // 変数が定義されている
+		{
+			let va = vt.vars[vn];
+			if(ag && ag.value.length > 0) // 配列の添字がある
+			{
+				if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
+				for(let i = 0; i < ag.value.length; i++) 
+				{
+					if(va.nthValue(ag.value[i].getValue().value))
+						va = va.nthValue(ag.value[i].getValue().value);
+					else
+					{
+						// 配列を延長する
+						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
+						else va = new NullValue(this.loc);
+					}
+				}
+			}
+			if(va instanceof ArrayValue)
+			{
+				if(vl instanceof ArrayValue)
+				{
+					var l = vl.value.length;
+					for(var i = 0; i < l; i++) va.value.push(vl.value[i].clone());
+				}
+				else throw new RuntimeError(this.first_line, '配列でない値を連結することはできません');
+			} 
+			else throw new RuntimeError(this.first_line, '配列でない変数に連結はできません');
+		}
+		else // 変数が定義されていない
+			throw new RuntimeError(this.first_line, '存在しない配列に連結はできません');
+		code[0].stack[0].index = index + 1;
+	}
+	makePython(indent)
+	{
+		var code = Parts.makeIndent(indent);
+		code += this.variable.makePython() + ".extend(" + this.value.makePython() + ")\n";
 		return code;
 	}
 }
@@ -4211,6 +4339,12 @@ function contextMenu_Flowchart(trigger, event)
 						loopdec:{name:"減らしながら"}
 					}
 				},
+				array:{name:"配列操作",
+					items:{
+						append: {name:"追加"},
+						extend: {name:"連結"}
+					}
+				},
 				misc:{name:"各種命令"}
 //				separator2:"-----",
 //				paste:{name:"ペースト"}
@@ -4241,6 +4375,8 @@ function callbackPartsBar(bar, key)
 	if(key == "input") Parts_Input.appendMe(bar);
 	else if(key == "output") Parts_Output.appendMe(bar);
 	else if(key == "substitute") Parts_Substitute.appendMe(bar);
+	else if(key == "append") Parts_Append.appendMe(bar);
+	else if(key == "extend") Parts_Extend.appendMe(bar);
 	else if(key == "if") Parts_If.appendMe(bar);
 	else if(key == "loop1") Parts_LoopBegin1.appendMe(bar);
 	else if(key == "loopinc") Parts_LoopBeginInc.appendMe(bar);
@@ -4329,6 +4465,22 @@ class Flowchart
 			if(statement == "Assign")
 			{
 				var p1 = new Parts_Substitute();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.variable.getCode(), p.value.getCode());
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "Append")
+			{
+				var p1 = new Parts_Append();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.variable.getCode(), p.value.getCode());
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "Extend")
+			{
+				var p1 = new Parts_Extend();
 				var b1 = new Parts_Bar();
 				p1.setValue(p.variable.getCode(), p.value.getCode());
 				parts.next = p1;
@@ -4987,6 +5139,186 @@ class Parts_Substitute extends Parts
 		var subtitle = ["変数", "値"];
 		var values = [ this.var , this.val];
 		openModalWindow("代入の編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0], values[1]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+class Parts_Append extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("《変数》","《値》");
+	}
+	setValue(variable,value)
+	{
+		this._var = variable;
+		this._val = value;
+
+		this._text = this._var + "に" + this._val + "を追加";
+	}
+	get var(){return this._var;}
+	get val(){return this._val;}
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+        this._height = this._textheight + size * 2;
+        this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd) return this;
+		return this.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+
+		if(position != null)
+		{
+			position.y = this.y2;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_Append();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.var + "に" + this.val + "を追加する\n";
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["変数", "値"];
+		var values = [ this.var , this.val];
+		openModalWindow("追加の編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0], values[1]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+class Parts_Extend extends Parts
+{
+	constructor()
+	{
+		super();
+		this.setValue("《変数》","《値》");
+	}
+	setValue(variable,value)
+	{
+		this._var = variable;
+		this._val = value;
+
+		this._text = this._var + "に" + this._val + "を連結";
+	}
+	get var(){return this._var;}
+	get val(){return this._val;}
+	calcSize(p0,p1,p2)
+    {
+        this.calcTextsize();    // textWidth, textHeightの計算
+		var size = FlowchartSetting.size;
+        this._height = this._textheight + size * 2;
+        this._width = this._textwidth + size * 4;
+		var x1 = p0.x - this.width / 2;
+		var x2 = p0.x + this.width / 2;
+		var y2 = p0.y + this.height;
+		if(x1 < p1.x) p1.x = x1;
+		if(x2 > p2.x) p2.x = x2;
+		if(y2 > p2.y) p2.y = y2;
+		p0.y = y2;
+		if(this.next == null || this.isBlockEnd) return this;
+		return this.next.calcSize(p0,p1,p2);
+    }
+    paint(position)
+	{
+		var size = FlowchartSetting.size;
+		if(position != null)
+		{
+			this.x1 = position.x - this.width / 2;
+			this.x2 = position.x + this.width / 2;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
+		}
+		flowchart.context.beginPath();
+		flowchart.context.moveTo(this.x1, this.y1);
+		flowchart.context.lineTo(this.x2, this.y1);
+		flowchart.context.lineTo(this.x2, this.y2);
+		flowchart.context.lineTo(this.x1, this.y2);
+		flowchart.context.lineTo(this.x1, this.y1);
+		flowchart.context.stroke();
+		flowchart.context.fillText(this.text, this.x1 + size * 2, this.y2 - size);
+
+		if(position != null)
+		{
+			position.y = this.y2;
+			if(this.end.next != null) return this.end.next.paint(position);
+			return this.end;
+		}
+		return this;
+	}
+	static appendMe(bar)
+	{
+		var parts = new Parts_Append();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		return parts.next;
+	}
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.var + "に" + this.val + "を連結する\n";
+		if(this.next != null) return this.next.appendCode(code, indent);
+		return code;
+	}
+	editMe()
+	{
+		var subtitle = ["変数", "値"];
+		var values = [ this.var , this.val];
+		openModalWindow("追加の編集", subtitle, values, this);
 	}
 	edited(values)
 	{
@@ -6208,7 +6540,7 @@ onload = function(){
 				misc:{ name: "各種命令",
 					items:{
 						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》ミリ秒待つ");}},
-						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
+//						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
 						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}
 					}
 				}

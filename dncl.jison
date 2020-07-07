@@ -140,6 +140,8 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "文字列"				{return '文字列';}
 "と"{Comma}				{return 'と';}
 "と"					{return 'と';}
+"追加する"			{return '追加する';}
+"連結する"			{return '連結する';}
 "描画領域開く"			{return 'gOpenWindow';}
 "gOpenWindow"			{return 'gOpenWindow';}
 "描画領域閉じる"		{return 'gCloseWindow';}
@@ -229,7 +231,7 @@ e
 	| e 'かつ' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'または' e	{$$ = new Or($1, $3, new Location(@1, @3));}
 	| e 'でない'	{$$ = new Not($1, new Location(@1, @1));}
-	| e 'と' e		{$$ = new Append($1, $3, new Location(@1, @3));}
+	| e 'と' e		{$$ = new Connect($1, $3, new Location(@1, @3));}
 	| '整数' '(' e ')' {$$ = new ConvertInt($3, new Location(@1, @4));}
 	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
 	| '文字列' '(' e ')' {$$ = new ConvertString($3, new Location(@1, @4));}
@@ -349,6 +351,10 @@ WhileStatement
 AssignStatement
 	: variable '←' e '改行'		
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, new Location(@1,@3))];}
+	| variable 'に' e 'を' '追加する' '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Append($1, $3, new Location(@1,@5))];}
+	| variable 'に' e 'を' '連結する' '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Extend($1, $3, new Location(@1,@5))];}
 	;
 
 PrintStatement
