@@ -489,6 +489,12 @@ class ArrayValue extends Value
 					v = v.nthValue(args.value[i].getValue().value);
 				else throw new RuntimeError(loc.first_line, "配列の添字は整数か文字列です")
 			}
+			else if(v instanceof StringValue)
+			{
+				if(args.value[i].getValue() instanceof IntValue)
+					v = v.nthValue(args.value[i].getValue().value);
+				else throw new RuntimeError(loc.first_line, "文字列の添字は整数です")
+			}
 			else v = null;
 		}
 		return v ? v : new NullValue(loc);
@@ -592,6 +598,11 @@ class StringValue extends Value
 	{
 		if(this.value.match(/[「」]/)) return '"' + this.value + '"';
 		else return '「' + this.value + '」';
+	}
+	nthValue(idx)
+	{
+		if(idx >=0 && idx < this.value.length)	return new StringValue(this.value[idx], this.loc);
+		else throw new RuntimeError(this.first_line, '文字列の範囲を超えて文字を読もうとしました');
 	}
 	makePython()
 	{
@@ -1668,7 +1679,10 @@ class Variable extends Value
 			let v = vt.vars[vn];
 			if(v instanceof IntValue) this.rtnv = new IntValue(v.value, this.loc);
 			else if(v instanceof FloatValue) this.rtnv = new FloatValue(v.value, this.loc);
-			else if(v instanceof StringValue) this.rtnv = new StringValue(v.value, this.loc);
+			else if(v instanceof StringValue){
+				if(this.args && this.args.length > 0) this.rtnv = v.getValueFromArray(this.args, this.loc);
+				else this.rtnv = new StringValue(v.value, this.loc);
+			}
 			else if(v instanceof BooleanValue) this.rtnv = new BooleanValue(v.value, this.loc);
 			else if(v instanceof ArrayValue) this.rtnv = v.getValueFromArray(this.args, this.loc);
 			else throw new RuntimeError(this.first_line, "Unknown Error");
@@ -1926,7 +1940,7 @@ var definedFunction = {
 	"length": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof NullValue) return new IntValue(0, this.loc);
-		else if(par1 instanceof StringValue) return new IntValue(par1.value.length(), this.loc);
+		else if(par1 instanceof StringValue) return new IntValue(par1.value.length, this.loc);
 		else if(par1 instanceof ArrayValue) return new IntValue(par1.length, this.loc);
 		else throw new RuntimeError(loc.first_line, "lengthは文字列と配列にしか使えません");
 	}, null, function(argc){
