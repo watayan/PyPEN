@@ -2877,13 +2877,14 @@ class Append extends Statement
 				if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
 				for(let i = 0; i < ag.value.length; i++) 
 				{
-					if(va.nthValue(ag.value[i].getValue().value))
-						va = va.nthValue(ag.value[i].getValue().value);
+					if(ag.value[i] instanceof StringValue)
+					{
+						va = va.aarray[ag.value[i].getValue().value];
+					}
 					else
 					{
-						// 配列を延長する
-						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
-						else va = new NullValue(this.loc);
+						if(va.nthValue(ag.value[i].getValue().value))
+							va = va.nthValue(ag.value[i].getValue().value);
 					}
 				}
 			}
@@ -2937,13 +2938,14 @@ class Extend extends Statement
 				if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
 				for(let i = 0; i < ag.value.length; i++) 
 				{
-					if(va.nthValue(ag.value[i].getValue().value))
-						va = va.nthValue(ag.value[i].getValue().value);
+					if(ag.value[i] instanceof StringValue)
+					{
+						va = va.aarray[ag.value[i].getValue().value];
+					}
 					else
 					{
-						// 配列を延長する
-						if(i < ag.value.length - 1) va = new ArrayValue([], this.loc);
-						else va = new NullValue(this.loc);
+						if(va.nthValue(ag.value[i].getValue().value))
+							va = va.nthValue(ag.value[i].getValue().value);
 					}
 				}
 			}
