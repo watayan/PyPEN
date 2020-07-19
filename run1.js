@@ -587,7 +587,7 @@ var ArrayValue = function (_Value2) {
 					if (v.nthValue(args.value[i].getValue().value)) v = v.nthValue(args.value[i].getValue().value);else v = v._value[args.value[i].getValue().value] = new ArrayValue([], this.loc);
 				}
 			}
-			if (args.value[l - 1].getValue() instanceof StringValue) v.aarray[args.value[l - 1].getValue().value] = va;else v._value[args.value[l - 1].getValue().value] = va;
+			if (args.value[l - 1].getValue() instanceof StringValue) v.aarray[args.value[l - 1].getValue().value] = va.clone();else v._value[args.value[l - 1].getValue().value] = va.clone();
 		}
 	}, {
 		key: 'getValueFromArray',
@@ -1332,8 +1332,8 @@ var Minus = function (_Value15) {
 			var v1 = this.value[0].getValue();
 			if (v1 instanceof NullValue) this.rtnv = v1;else if (v1 instanceof IntValue || v1 instanceof FloatValue) {
 				var v = -v1.value;
-				if (v instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				if (v instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				if (v1 instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+				if (v1 instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 				this.rtnv = v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
 			} else throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
 			code[0].stack[0].index++;

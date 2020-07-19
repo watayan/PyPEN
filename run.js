@@ -471,9 +471,9 @@ class ArrayValue extends Value
 			}
 		}
 		if(args.value[l - 1].getValue() instanceof StringValue)
-			v.aarray[args.value[l - 1].getValue().value] = va;
+			v.aarray[args.value[l - 1].getValue().value] = va.clone();
 		else
-			v._value[args.value[l - 1].getValue().value] = va;
+			v._value[args.value[l - 1].getValue().value] = va.clone();
 	}
 	getValueFromArray(args, loc)
 	{
@@ -1087,8 +1087,8 @@ class Minus extends Value
 		else if(v1 instanceof IntValue || v1 instanceof FloatValue)
 		{
 			let v = -v1.value;
-			if(v instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			if(v instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+			if(v1 instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+			if(v1 instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			this.rtnv = v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
 		}
 		else
@@ -2886,7 +2886,7 @@ class Append extends Statement
 						if(va.nthValue(ag.value[i].getValue().value))
 							va = va.nthValue(ag.value[i].getValue().value);
 							else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました')
-						}
+					}
 				}
 			}
 			if(va instanceof ArrayValue) va.value.push(vl.clone());
