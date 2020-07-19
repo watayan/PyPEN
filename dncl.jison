@@ -30,15 +30,15 @@ NonZeroDigit	[1-9１-９]
 
 Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
-String			"「"[^」]*"」"|"｢"[^｣]*"｣"|"\""[^"]*"\""
+String			"「"[^」]*"」"|"'"[^']*"'"|"\""[^"]*"\""
 Comma			[，,、]
 Colon			[:：]
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　]
 Newline			\r\n|\r|\n
 UNDEFINED		"《"[^》]*"》"
-IdentifierStart [a-zA-Zａ-ｚＡ-Ｚ]
-IdentifierPart	[a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
+IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ]
+IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
 Identifier		{IdentifierStart}{IdentifierPart}*
 
 %%
@@ -184,6 +184,10 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "gBarplot"				{return 'gBarplot';}
 "線グラフ描画"			{return 'gLineplot';}
 "gLinePlot"				{return 'gLineplot';}
+"グラフ描画"			{return 'gDrawGraph';}
+"gDrawGraph"			{return 'gDrawGraph';}
+"グラフ消去"			{return 'gClearGraph';}
+"gClearGraph"			{return 'gClearGraph';}
 "ミリ秒待つ"			{return 'ミリ秒待つ';}
 "変数を確認する"		{return '変数を確認する';}
 "改行する"				{return '改行する';}
@@ -420,6 +424,10 @@ GraphicStatement
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gBarplot', [$3,$5,$7], new Location(@1,@1))];}
 	| 'gLineplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
 		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gLineplot', [$3,$5,$7], new Location(@1,@1))];}
+	| 'gDrawGraph' '(' e 'COMMA' e ')' '改行'
+		{$$ = [new runBeforeGetValue([$3,$5], @1), new GraphicStatement('gDrawGraph', [$3,$5], new Location(@1,@1))];}
+	| 'gClearGraph' '(' ')' '改行'
+		{$$ = [new GraphicStatement('gClearGraph',[], new Location(@1,@1))];}
 	;
 
 SleepStatement

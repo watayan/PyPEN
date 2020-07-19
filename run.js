@@ -3500,6 +3500,14 @@ class GraphicStatement extends Statement
 				}
 			}
 		}
+		else if(this.command == 'gDrawGraph')
+		{
+			drawGraph(this.args[0].getValue(), this.args[1].getValue(), this.loc);
+		}
+		else if(this.command == 'gClearGraph')
+		{
+			clearGraph();
+		}
 		else
 		{
 			throw new RuntimeError(this.first_line, "未実装のコマンド" + this.command + "が使われました");
@@ -3510,6 +3518,87 @@ class GraphicStatement extends Statement
 		throw new RuntimeError(this.first_line, "グラフィック命令はPythonに変換できません");
 	}
 }
+
+function clearGraph()
+{
+	Plotly.purge(document.getElementById("graph"));
+}
+
+// グラフ描画を行う
+// graph{
+//  title: 文字列
+//  x:{
+// 	  title: 文字列
+//    min: 実数
+//    max: 実数
+//  }
+//  y:{
+// 	  title:
+//    min:
+//    max:
+//  }
+// }
+// dataは{
+//   x: 値の配列（省略時は0〜len(y)-1）
+//   y: 値の配列（省略不可）
+//   type: 'bar' or 'line' or 'scatter'
+//   color: 
+//   size: 整数（省略時は1）
+// }の配列
+function drawGraph(layout, data, loc)
+{
+	var div = document.getElementById('graph');
+	var graph_data = [], graph_layout = {};
+	if(layout instanceof ArrayValue)
+	{
+		for(var key in layout.aarray)
+		{
+			var val = layout.aarray[key].getValue();
+			if(val instanceof ArrayValue)
+			{
+				graph_layout[key] = {};
+				for(var key1 in val.aarray)
+					graph_layout[key][key1] = val2obj(val.aarray[key1].getValue());
+			}
+			else graph_layout[key] = val2obj(val);
+		}
+	}
+	else if(layout) throw new RuntimeError(loc.first_line, "グラフ情報が配列になっていません");
+	if(data instanceof ArrayValue)
+	{
+		var dl = data.value.length;
+		for(var i = 0; i < dl; i++)
+		{
+			var d = data.value[i].getValue();
+			if(d instanceof ArrayValue)
+			{
+				var va = {};
+				for(var key in d.aarray)
+				{
+					var val = d.aarray[key].getValue();
+					va[key] = val2obj(val);
+				}
+				graph_data.push(va);
+	
+			}
+			else throw new RuntimeError(loc.first_line, "データの" + i + "番目の要素が配列になっていません");
+		}
+	}else throw new RuntimeError(loc.first_line, 'データが配列になっていません');
+	Plotly.newPlot(div, graph_data, graph_layout);
+}
+
+function val2obj(val)
+{
+	if(val instanceof ArrayValue)
+	{
+		var rtnv = [];
+		var l = val.value.length;
+		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.value[i]));
+		return rtnv;
+	}
+	else return val.value;
+}
+
 
 /**
  * 
@@ -5955,6 +6044,8 @@ var misc_menu_ja =[
 	["弧塗描画"      , "gFillArc"     , "弧塗描画(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
 	["棒グラフ描画" , "gBarplot"		,"棒グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
 	["線グラフ描画" , "gLineplot"		,"線グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
+	["グラフ描画"	, "gDrawGraph"		,"グラフ描画(	,	)"			,["グラフ情報","値の配列"]],
+	["グラフ消去"	, "gClearGraph"		,"グラフ消去()"					,[]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]]
@@ -5983,6 +6074,8 @@ misc_menu_en = [
 	["gFillArc"      , "gFillArc"     , "gFillArc(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
 	["gBarplot" , "gBarplot"		,"gBarplot(	,	,	)"		,["幅","高さ","値"]],
 	["gLineplot" , "gLineplot"		,"gLineplot(	,	,	)"		,["幅","高さ","値"]],
+	["gDrawGraph"	, "gDrawGraph"		,"gDrawGraph(	,	)"			,["グラフ情報","値の配列"]],
+	["gClearGraph"	, "gClearGraph"		,"gClearGraph()",				,[]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]]
@@ -6523,7 +6616,9 @@ onload = function(){
 						gDrawArc:{name:"弧描画", callback: function(k,e){insertCode("弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
 						gFillArc:{name:"弧塗描画", callback: function(k,e){insertCode("弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
 						gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《値》)");}},
-						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《値》)");}}
+						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《値》)");}},
+						gDrawGraph:{name:"グラフ描画",  callback: function(k,e){insertCode("グラフ描画(《グラフ情報》,《値の配列》)");}},
+						gClearGraph:{name:"グラフ消去", callback: function(k,e){insertCode("グラフ消去()");}}
 					}
 				},
 				graphic2:{ name:"グラフィック命令（英語）",
@@ -6548,7 +6643,9 @@ onload = function(){
 						gDrawArc:{name:"gDrawArc", callback: function(k,e){insertCode("gDrawArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
 						gFillArc:{name:"gFillArc", callback: function(k,e){insertCode("gFillArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
 						gBarplot:{name:"gBarplot", callback: function(k,e){insertCode("gBarplot(《幅》,《高さ》,《値》)");}},
-						gLineplot:{name:"gLineplot", callback: function(k,e){insertCode("gLineplot(《幅》,《高さ》,《値》)");}}
+						gLineplot:{name:"gLineplot", callback: function(k,e){insertCode("gLineplot(《幅》,《高さ》,《値》)");}},
+						gDrawGraph:{name:"gDrawGraph",  callback: function(k,e){insertCode("gDrawGraph(《グラフ情報》,《値の配列》)");}},
+						gClearGraph:{name:"gClearGraph", callback: function(k,e){insertCode("gClearGraph()");}}
 					}
 				},
 				misc:{ name: "各種命令",
