@@ -2885,7 +2885,8 @@ class Append extends Statement
 					{
 						if(va.nthValue(ag.value[i].getValue().value))
 							va = va.nthValue(ag.value[i].getValue().value);
-					}
+							else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました')
+						}
 				}
 			}
 			if(va instanceof ArrayValue) va.value.push(vl.clone());
@@ -2946,6 +2947,7 @@ class Extend extends Statement
 					{
 						if(va.nthValue(ag.value[i].getValue().value))
 							va = va.nthValue(ag.value[i].getValue().value);
+						else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました')
 					}
 				}
 			}

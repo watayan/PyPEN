@@ -3423,7 +3423,7 @@ var Append = function (_Statement12) {
 								if (ag.value[i] instanceof StringValue) {
 									va = va.aarray[ag.value[i].getValue().value];
 								} else {
-									if (va.nthValue(ag.value[i].getValue().value)) va = va.nthValue(ag.value[i].getValue().value);
+									if (va.nthValue(ag.value[i].getValue().value)) va = va.nthValue(ag.value[i].getValue().value);else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました');
 								}
 							}
 						}
@@ -3488,7 +3488,7 @@ var Extend = function (_Statement13) {
 								if (ag.value[_i3] instanceof StringValue) {
 									va = va.aarray[ag.value[_i3].getValue().value];
 								} else {
-									if (va.nthValue(ag.value[_i3].getValue().value)) va = va.nthValue(ag.value[_i3].getValue().value);
+									if (va.nthValue(ag.value[_i3].getValue().value)) va = va.nthValue(ag.value[_i3].getValue().value);else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました');
 								}
 							}
 						}
