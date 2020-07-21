@@ -4026,6 +4026,7 @@ function reset()
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';
+	Plotly.purge(document.getElementById('graph'));
 }
 
 function setRunflag(b)
