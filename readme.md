@@ -17,6 +17,7 @@ gitから入手すると，バージョンアップの際にgit pullするだけ
 
 ## 使用しているプラグイン
 * jQuery
-* bcralnit.js
-* jQuery contextMenu
+* [bcralnit.js](https://github.com/bachors/bcralnit.js)
+* [jQuery contextMenu](https://swisnl.github.io/jQuery-contextMenu/)
 * jQuery ui.position
+* [zlib.js](https://github.com/imaya/zlib.js)
