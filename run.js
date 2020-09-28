@@ -4034,6 +4034,7 @@ function setRunflag(b)
 	run_flag = b;
 	document.getElementById("sourceTextarea").readOnly = b;
 	document.getElementById("runButton").innerHTML = b & !step_flag ? "中断" : "実行";
+	document.getElementById("urlButton").disabled = b;
 }
 
 function run()
@@ -6745,8 +6746,96 @@ onload = function(){
 	{
 		document.getElementById('Quiz_area').style.display = 'none';
 	}
+	document.getElementById('urlButton').onclick = function()
+	{
+		var code = sourceTextArea.value.trim();
+		if(code == '') return;
+		resultTextArea.value = window.location.origin + window.location.pathname + 
+			'?code=' + B64encode(code);
+	}
+	sourceTextArea.value = getParam('code');
+}
+
+var base64str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_="
+
+function B64encode(string)
+{
+	var textencoder = new TextEncoder();
+	var deflate = new Zlib.Deflate(textencoder.encode(string));
+	var origin = deflate.compress();
+	var convert = new Array(Math.floor((origin.length + 2) / 3) * 4);
+	for(var i = 0; i < origin.length; i+= 3)
+	{
+		var v1, v2, v3 = 64, v4 = 64;
+		v1 = origin[i] >>> 2;
+		v2 = 0x30 & (origin[i] << 4);
+		if(i + 1 < origin.length)
+		{
+			v2 |= (0x0f & (origin[i + 1] >>> 4));
+			v3 = 0x3C & origin[i + 1] <<2;
+			if(i + 2 < origin.length)
+			{
+				v3 |= (0x03 & (origin[i + 2] >>> 6));
+				v4 = 0x3f & origin[i + 2];
+			}
+		}
+		var j = i / 3 * 4;
+		convert[j++] = base64str[v1];
+		convert[j++] = base64str[v2];
+		convert[j++] = base64str[v3];
+		convert[j]   = base64str[v4];
+	}
+	return convert.join('').replace(/=+$/,'');
+}
+
+function B64decode(string)
+{
+	var convert = new Array();
+	try
+	{
+		for(var i = 0; i < string.length; i += 4)
+		{
+			var c1 = base64str.indexOf(string[i]), c2 = base64str.indexOf(string[i + 1]), c3, c4;
+			convert.push((c1 << 2) | (c2 >> 4));
+			if(i + 2 < string.length)
+			{
+				c3 = base64str.indexOf(string[i + 2]);
+				convert.push(((c2 & 0x0f) << 4) | (c3 >>> 2));
+				if(i + 3 < string.length)
+				{
+					c4 = base64str.indexOf(string[i + 3]);
+					convert.push(((c3 & 0x03) << 6) | c4);
+				}
+			}		
+		}
+		var inflate = new Zlib.Inflate(convert);
+		var textdecoder = new TextDecoder();
+		return textdecoder.decode((inflate.decompress()));
+	}
+	catch(e)
+	{
+		return '';
+	}
 
 }
+
+function getParam(name)
+{
+	var getparam = window.location.search;
+	if(getparam)
+	{
+		var params = getparam.slice(1).split('&');
+		for(var param of params)
+		{
+			var p = param.split('=');
+			if(p[0] == name){
+				return B64decode(p[1]);
+			} 
+		}
+	}
+	return '';
+}
+
 
 function auto_marking(i)
 {
@@ -6754,6 +6843,7 @@ function auto_marking(i)
 	document.getElementById('runButton').disabled = true;
 	document.getElementById('stepButton').disabled = true;
 	document.getElementById('resetButton').disabled = true;
+	document.getElementById('urlButton').disabled = true;
 	textareaClear();
 	textareaAppend('*** 採点開始 ***\n');
 	selected_quiz = i;
@@ -6785,6 +6875,7 @@ function auto_marking(i)
 	document.getElementById('runButton').disabled = false;
 	document.getElementById('stepButton').disabled = false;
 	document.getElementById('resetButton').disabled = false;
+	document.getElementById('urlButton').disabled = false;
 	setRunflag(false);
 }
 
