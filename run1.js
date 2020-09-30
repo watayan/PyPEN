@@ -7746,7 +7746,8 @@ onload = function onload() {
 	document.getElementById('urlButton').onclick = function () {
 		var code = sourceTextArea.value.trim();
 		if (code == '') return;
-		resultTextArea.value = window.location.origin + window.location.pathname + '?code=' + B64encode(code);
+		code = B64encode(code);
+		if (code) resultTextArea.value = window.location.origin + window.location.pathname + '?code=' + code;
 	};
 	sourceTextArea.value = getParam('code');
 };
@@ -7757,6 +7758,11 @@ function B64encode(string) {
 	var textencoder = new TextEncoder();
 	var deflate = new Zlib.Deflate(textencoder.encode(string));
 	var origin = deflate.compress();
+	if (origin.length > 1500) {
+		textareaClear();
+		textareaAppend('*** プログラムが大きすぎて変換できません ***');
+		return null;
+	}
 	var convert = new Array(Math.floor((origin.length + 2) / 3) * 4);
 	for (var i = 0; i < origin.length; i += 3) {
 		var v1,
