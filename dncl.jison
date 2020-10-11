@@ -409,6 +409,12 @@ AssignStatement
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '/', new Location(@1,@3))];}
 	| e '//←' e '改行'
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '//', new Location(@1,@3))];}
+	| e '&←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '&', new Location(@1,@3))];}
+	| e '|←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '|', new Location(@1,@3))];}
+	| e '^←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '^', new Location(@1,@3))];}
 	| e '<<←' e '改行'
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '<<', new Location(@1,@3))];}
 	| e '>>←' e '改行'

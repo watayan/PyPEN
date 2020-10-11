@@ -4593,7 +4593,7 @@ function drawGraph(layout, data, loc) {
 				}
 			} else graph_layout[key] = val2obj(val);
 		}
-	} else if (layout) throw new RuntimeError(loc.first_line, "グラフ情報が配列になっていません");
+	} else if (layout) throw new RuntimeError(loc.first_line, "レイアウト情報が配列になっていません");
 	if (data instanceof ArrayValue) {
 		var dl = data.value.length;
 		for (var i = 0; i < dl; i++) {
@@ -4613,11 +4613,18 @@ function drawGraph(layout, data, loc) {
 
 function val2obj(val) {
 	if (val instanceof ArrayValue) {
-		var rtnv = [];
-		var l = val.value.length;
-		for (var i = 0; i < l; i++) {
-			rtnv.push(val2obj(val.value[i]));
-		}return rtnv;
+		if (val.length > 0) {
+			var rtnv = [];
+			var l = val.value.length;
+			for (var i = 0; i < l; i++) {
+				rtnv.push(val2obj(val.value[i]));
+			}return rtnv;
+		} else {
+			var rtnv = {};
+			for (var key in val.aarray) {
+				rtnv[key] = val2obj(val.aarray[key].getValue());
+			}return rtnv;
+		}
 	} else return val.value;
 }
 
@@ -7443,10 +7450,10 @@ var Parts_LoopEnd = function (_Parts11) {
 
 var misc_menu_ja = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["文字色設定", "gSetTextColor", "文字色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["点描画", "gDrawPoint", "点描画(	,	,	,	)", ["x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["楕円描画", "gDrawCircle", "楕円描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["楕円塗描画", "gFillCircle", "楕円塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["弧描画", "gDrawArc", "弧描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["弧塗描画", "gFillArc", "弧塗描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["グラフ描画", "gDrawGraph", "グラフ描画(	,	)", ["グラフ情報", "値の配列"]], ["グラフ消去", "gClearGraph", "グラフ消去()", []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]],
+["《各種処理》", "none", "《各種処理》", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["文字色設定", "gSetTextColor", "文字色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["点描画", "gDrawPoint", "点描画(	,	,	,	)", ["x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["楕円描画", "gDrawCircle", "楕円描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["楕円塗描画", "gFillCircle", "楕円塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["弧描画", "gDrawArc", "弧描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["弧塗描画", "gFillArc", "弧塗描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["グラフ描画", "gDrawGraph", "グラフ描画(	,	)", ["レイアウト情報", "値の配列"]], ["グラフ消去", "gClearGraph", "グラフ消去()", []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]],
     misc_menu_en = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["gOpenWindow", "gOpenWindow", "gOpenWindow(	,	)", ["幅", "高さ"]], ["gCloseWindow", "gCloseWindow", "gCloseWindow()", []], ["gClearWindow", "gClearWindow", "gClearWindow()", []], ["gSetLineColor", "gSetLineColor", "gSetLineColor(	,	,	)", ["赤", "青", "緑"]], ["gSetFillColor", "gSetFillColor", "gSetFillColor(	,	,	)", ["赤", "青", "緑"]], ["gSetTextColor", "gSetTextColor", "gSetTextColor(	,	,	)", ["赤", "青", "緑"]], ["gSetLineWidth", "gSetLineWidth", "gSetLineWidth(	)", ["太さ"]], ["gSetFontSize", "gSetFontSize", "gSetFontSize(	)", ["サイズ"]], ["gDrawText", "gDrawText", "gDrawText(	,	,	)", ["文字列", "x", "y"]], ["gDrawPoint", "gDrawPoint", "gDrawPoint(	,	,	,	)", ["x", "y"]], ["gDrawLine", "gDrawLine", "gDrawLine(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["gDrawBox", "gDrawBox", "gDrawBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillBox", "gFillBox", "gFillBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawCircle", "gDrawCircle", "gDrawCicle(	,	,	)", ["x", "y", "半径"]], ["gFillCircle", "gFillCircle", "gFillCircle(	,	,	)", ["x", "y", "半径"]], ["gDrawOval", "gDrawCircle", "gDrawOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillOval", "gFillCircle", "gFillOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawArc", "gDrawArc", "gDrawArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gFillArc", "gFillArc", "gFillArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gBarplot", "gBarplot", "gBarplot(	,	,	)", ["幅", "高さ", "値"]], ["gLineplot", "gLineplot", "gLineplot(	,	,	)", ["幅", "高さ", "値"]], ["gDrawGraph", "gDrawGraph", "gDrawGraph(	,	)", ["グラフ情報", "値の配列"]], ["gClearGraph", "gClearGraph", "gClearGraph()",, []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
+["《各種処理》", "none", "《各種処理》", []], ["gOpenWindow", "gOpenWindow", "gOpenWindow(	,	)", ["幅", "高さ"]], ["gCloseWindow", "gCloseWindow", "gCloseWindow()", []], ["gClearWindow", "gClearWindow", "gClearWindow()", []], ["gSetLineColor", "gSetLineColor", "gSetLineColor(	,	,	)", ["赤", "青", "緑"]], ["gSetFillColor", "gSetFillColor", "gSetFillColor(	,	,	)", ["赤", "青", "緑"]], ["gSetTextColor", "gSetTextColor", "gSetTextColor(	,	,	)", ["赤", "青", "緑"]], ["gSetLineWidth", "gSetLineWidth", "gSetLineWidth(	)", ["太さ"]], ["gSetFontSize", "gSetFontSize", "gSetFontSize(	)", ["サイズ"]], ["gDrawText", "gDrawText", "gDrawText(	,	,	)", ["文字列", "x", "y"]], ["gDrawPoint", "gDrawPoint", "gDrawPoint(	,	,	,	)", ["x", "y"]], ["gDrawLine", "gDrawLine", "gDrawLine(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["gDrawBox", "gDrawBox", "gDrawBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillBox", "gFillBox", "gFillBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawCircle", "gDrawCircle", "gDrawCicle(	,	,	)", ["x", "y", "半径"]], ["gFillCircle", "gFillCircle", "gFillCircle(	,	,	)", ["x", "y", "半径"]], ["gDrawOval", "gDrawCircle", "gDrawOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillOval", "gFillCircle", "gFillOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawArc", "gDrawArc", "gDrawArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gFillArc", "gFillArc", "gFillArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gBarplot", "gBarplot", "gBarplot(	,	,	)", ["幅", "高さ", "値"]], ["gLineplot", "gLineplot", "gLineplot(	,	,	)", ["幅", "高さ", "値"]], ["gDrawGraph", "gDrawGraph", "gDrawGraph(	,	)", ["レイアウト情報", "値の配列"]], ["gClearGraph", "gClearGraph", "gClearGraph()",, []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
 
 var misc_menu = setting.graphic_command == 0 ? misc_menu_ja : misc_menu_en;
 
@@ -8071,7 +8078,7 @@ onload = function onload() {
 							insertCode("線グラフ描画(《幅》,《高さ》,《値》)");
 						} },
 					gDrawGraph: { name: "グラフ描画", callback: function callback(k, e) {
-							insertCode("グラフ描画(《グラフ情報》,《値の配列》)");
+							insertCode("グラフ描画(《レイアウト情報》,《値の配列》)");
 						} },
 					gClearGraph: { name: "グラフ消去", callback: function callback(k, e) {
 							insertCode("グラフ消去()");
@@ -8144,7 +8151,7 @@ onload = function onload() {
 							insertCode("gLineplot(《幅》,《高さ》,《値》)");
 						} },
 					gDrawGraph: { name: "gDrawGraph", callback: function callback(k, e) {
-							insertCode("gDrawGraph(《グラフ情報》,《値の配列》)");
+							insertCode("gDrawGraph(《レイアウト情報》,《値の配列》)");
 						} },
 					gClearGraph: { name: "gClearGraph", callback: function callback(k, e) {
 							insertCode("gClearGraph()");

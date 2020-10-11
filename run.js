@@ -4031,7 +4031,7 @@ function drawGraph(layout, data, loc)
 			else graph_layout[key] = val2obj(val);
 		}
 	}
-	else if(layout) throw new RuntimeError(loc.first_line, "グラフ情報が配列になっていません");
+	else if(layout) throw new RuntimeError(loc.first_line, "レイアウト情報が配列になっていません");
 	if(data instanceof ArrayValue)
 	{
 		var dl = data.value.length;
@@ -4059,10 +4059,20 @@ function val2obj(val)
 {
 	if(val instanceof ArrayValue)
 	{
-		var rtnv = [];
-		var l = val.value.length;
-		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.value[i]));
-		return rtnv;
+		if(val.length > 0)
+		{
+			var rtnv = [];
+			var l = val.value.length;
+			for(var i = 0; i < l; i++) rtnv.push(val2obj(val.value[i]));
+			return rtnv;
+		}
+		else
+		{
+			var rtnv = {};
+			for(var key in val.aarray)
+				rtnv[key] = val2obj(val.aarray[key].getValue());
+			return rtnv;
+		}
 	}
 	else return val.value;
 }
@@ -6519,7 +6529,7 @@ var misc_menu_ja =[
 	["弧塗描画"      , "gFillArc"     , "弧塗描画(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
 	["棒グラフ描画" , "gBarplot"		,"棒グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
 	["線グラフ描画" , "gLineplot"		,"線グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
-	["グラフ描画"	, "gDrawGraph"		,"グラフ描画(	,	)"			,["グラフ情報","値の配列"]],
+	["グラフ描画"	, "gDrawGraph"		,"グラフ描画(	,	)"			,["レイアウト情報","値の配列"]],
 	["グラフ消去"	, "gClearGraph"		,"グラフ消去()"					,[]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
@@ -6549,7 +6559,7 @@ misc_menu_en = [
 	["gFillArc"      , "gFillArc"     , "gFillArc(	,	,	,	,	,	,	)"          ,["x","y","幅","高さ","開始角","終了角","閉じ方"]],
 	["gBarplot" , "gBarplot"		,"gBarplot(	,	,	)"		,["幅","高さ","値"]],
 	["gLineplot" , "gLineplot"		,"gLineplot(	,	,	)"		,["幅","高さ","値"]],
-	["gDrawGraph"	, "gDrawGraph"		,"gDrawGraph(	,	)"			,["グラフ情報","値の配列"]],
+	["gDrawGraph"	, "gDrawGraph"		,"gDrawGraph(	,	)"			,["レイアウト情報","値の配列"]],
 	["gClearGraph"	, "gClearGraph"		,"gClearGraph()",				,[]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
@@ -7125,7 +7135,7 @@ onload = function(){
 						gFillArc:{name:"弧塗描画", callback: function(k,e){insertCode("弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
 						gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《値》)");}},
 						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《値》)");}},
-						gDrawGraph:{name:"グラフ描画",  callback: function(k,e){insertCode("グラフ描画(《グラフ情報》,《値の配列》)");}},
+						gDrawGraph:{name:"グラフ描画",  callback: function(k,e){insertCode("グラフ描画(《レイアウト情報》,《値の配列》)");}},
 						gClearGraph:{name:"グラフ消去", callback: function(k,e){insertCode("グラフ消去()");}}
 					}
 				},
@@ -7152,7 +7162,7 @@ onload = function(){
 						gFillArc:{name:"gFillArc", callback: function(k,e){insertCode("gFillArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
 						gBarplot:{name:"gBarplot", callback: function(k,e){insertCode("gBarplot(《幅》,《高さ》,《値》)");}},
 						gLineplot:{name:"gLineplot", callback: function(k,e){insertCode("gLineplot(《幅》,《高さ》,《値》)");}},
-						gDrawGraph:{name:"gDrawGraph",  callback: function(k,e){insertCode("gDrawGraph(《グラフ情報》,《値の配列》)");}},
+						gDrawGraph:{name:"gDrawGraph",  callback: function(k,e){insertCode("gDrawGraph(《レイアウト情報》,《値の配列》)");}},
 						gClearGraph:{name:"gClearGraph", callback: function(k,e){insertCode("gClearGraph()");}}
 					}
 				},
