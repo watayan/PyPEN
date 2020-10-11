@@ -4,6 +4,8 @@
 Pythonっぽい文法のプログラムが作れるものをWebアプリケーションとして作成したものです。
 フローチャートについては中西のPenFlowchartを移植したものです。
 
+なお，Internet Explorerでは動作しません。
+
 ## 使用方法
 answer.js-distとsample.js-distをそれぞれanswer.jsとsample.jsにコピーしてください。
 その後，適当なプログラムに書き換えてください

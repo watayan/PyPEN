@@ -40,22 +40,43 @@ UNDEFINED		"《"[^》]*"》"
 IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ]
 IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
 Identifier		{IdentifierStart}{IdentifierPart}*
+StringTrue		"真"|[Tt][Rr][Uu][Ee]
+StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 
 %%
 
 "真偽"			{return '真偽';}
-"true"			{return 'TRUE';}
-"TRUE"			{return 'TRUE';}
-"真"			{return 'TRUE';}
-"false"			{return 'FALSE';}
-"FALSE"			{return 'FALSE';}
-"偽"			{return 'FALSE';}
+{StringTrue}	{return 'True';}
+{StringFalse}	{return 'False';}
 {String}		{return '文字列値';}
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
 {Comma}			{return 'COMMA';}
 {Colon}			{return ':'}
 {UNDEFINED}		{return 'UNDEFINED';}
+"←"				{return '←';}
+"+←"			{return '+←';}
+"-←"			{return '-←';}
+"*←"			{return '*←';}
+"/←"			{return '/←';}
+"//←"			{return '//←';}
+"%←"			{return '%←';}
+"&←"			{return '&←';}
+"|←"			{return '|←';}
+"^←"			{return '^←';}
+"<<←"			{return '<<←';}
+">>←"			{return '>>←';}
+"+="			{return '+←';}
+"-="			{return '-←';}
+"*="			{return '*←';}
+"/="			{return '/←';}
+"//="			{return '//←';}
+"%="			{return '%←';}
+"&="			{return '&←';}
+"|="			{return '|←';}
+"^="			{return '^←';}
+"<<="			{return '<<←';}
+">>="			{return '>>←';}
 "+"				{return '+';}
 "＋"			{return '+';}
 "-"				{return '-';}
@@ -92,6 +113,10 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "≦"				{return '<=';}
 "＞＝"			{return '>=';}
 "＜＝"			{return '<=';}
+">>"			{return '>>';}
+"＞＞"			{return '>>';}
+"<<"			{return '<<';}
+"＜＜"			{return '<<';}
 ">"				{return '>';}
 "<"				{return '<';}
 "＞"			{return '>';}
@@ -103,7 +128,14 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 "!="			{return '!=';}
 "≠"				{return '!=';}
 "！＝"			{return '!=';}
-"←"				{return '←';}
+"&"				{return '&';}
+"＆"			{return '&';}
+"|"				{return '|';}
+"｜"			{return '|';}
+"^"				{return '^';}
+"＾"			{return '^';}
+"~"				{return '~';}
+"〜"			{return '~';}
 "かつ"			{return 'かつ';}
 "または"		{return 'または';}
 "でない"		{return 'でない';}
@@ -205,6 +237,9 @@ Identifier		{IdentifierStart}{IdentifierPart}*
 %left '+' '-'
 %left '*' '/' '//' '%'
 %right '**'
+%left '&' '|' '^'
+%left '<<' '>>'
+%left '~'
 %left UMINUS
 %
 %start Program
@@ -215,8 +250,8 @@ e
 	: '整数値'		{$$ = new IntValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
 	| '実数値'		{$$ = new FloatValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
 	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
-	| 'TRUE'		{$$ = new BooleanValue(true, new Location(@1,@1));}
-	| 'FALSE'		{$$ = new BooleanValue(false, new Location(@1,@1));}
+	| 'True'		{$$ = new BooleanValue(true, new Location(@1,@1));}
+	| 'False'		{$$ = new BooleanValue(false, new Location(@1,@1));}
 	| e '**' e		{$$ = new Pow($1, $3, new Location(@1, @3));}
 	| e '+' e		{$$ = new Add($1, $3, new Location(@1, @3));}
 	| e '-' e		{$$ = new Sub($1, $3, new Location(@1, @3));}
@@ -225,6 +260,12 @@ e
 	| e '//' e		{$$ = new DivInt($1, $3, new Location(@1, @3));}
 	| e '%' e		{$$ = new Mod($1, $3, new Location(@1, @3));}
 	| '-' e			%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
+	| e '&' e		{$$ = new BitAnd($1, $3, new Location(@1, @3));}
+	| e '|' e		{$$ = new BitOr($1, $3, new Location(@1, @3));}
+	| e '^' e		{$$ = new BitXor($1, $3, new Location(@1, @3));}
+	| '~' e			{$$ = new BitNot($2, new Location(@1, @2));}
+	| e '<<' e		{$$ = new BitLShift($1, $3, new Location(@1, @3));}
+	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
 	| e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
 	| e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
@@ -270,6 +311,7 @@ statementlist
 	: statementlist statement	{ if($2 != null) $$ = $1.concat($2);}
 	| 	{$$ = [];}
 	;
+
 statement
 	: EmptyStatement
 	| DefineStatement
@@ -289,7 +331,7 @@ statement
 	;
 
 EmptyStatement
-	: '改行'	{$$ = null;}
+	: '改行' {$$ = null;}
 	;
 
 DumpStatement
@@ -328,6 +370,7 @@ CallStatement
 		{$$ = [new runBeforeGetValue($3, @1), new CallStep($1, $3, new Location(@1,@4))];}
 	;
 
+
 IfStatement
 	: 'もし' e 'ならば' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,null, new Location(@1, @7))];}
@@ -336,13 +379,13 @@ IfStatement
 	;
 
 ForStatement
-	: variable 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForInc($1, $3, $5, $7,$13, new Location(@1,@14))];}
-	| variable 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForDec($1, $3, $5, $7,$13, new Location(@1,@14))];}
-	| variable 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
-	| variable 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
 	;
 
@@ -351,13 +394,28 @@ WhileStatement
 		{$$ = new While($1, $5, new Location(@1, @6));}
 	;
 
-
 AssignStatement
-	: variable '←' e '改行'		
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, new Location(@1,@3))];}
-	| variable 'に' e 'を' '追加する' '改行'
+	: e '←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, null, new Location(@1,@3))];}
+	| e '=' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, null, new Location(@1,@3))];}
+	| e '+←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '+', new Location(@1,@3))];}
+	| e '-←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '-', new Location(@1,@3))];}
+	| e '*←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '*', new Location(@1,@3))];}
+	| e '/←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '/', new Location(@1,@3))];}
+	| e '//←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '//', new Location(@1,@3))];}
+	| e '<<←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '<<', new Location(@1,@3))];}
+	| e '>>←' e '改行'
+		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '>>', new Location(@1,@3))];}
+	| e 'に' e 'を' '追加する' '改行'
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Append($1, $3, new Location(@1,@5))];}
-	| variable 'に' e 'を' '連結する' '改行'
+	| e 'に' e 'を' '連結する' '改行'
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Extend($1, $3, new Location(@1,@5))];}
 	;
 
@@ -371,13 +429,13 @@ PrintStatement
 	;
 
 InputStatement
-	: variable 'に' '整数' 'を入力する' '改行'	
+	: e 'に' '整数' 'を入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeInt, new Location(@1, @4))];}
-	| variable 'に' '実数' 'を入力する' '改行'	
+	| e 'に' '実数' 'を入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeFloat, new Location(@1, @4))];}
-	| variable 'に' '文字列' 'を入力する' '改行'	
+	| e 'に' '文字列' 'を入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeString, new Location(@1, @4))];}
-	| variable 'に' '真偽' 'を入力する' '改行'	
+	| e 'に' '真偽' 'を入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeBoolean, new Location(@1, @4))];}
 	;
 

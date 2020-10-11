@@ -627,7 +627,7 @@ class BooleanValue extends Value
 	}
 	getCode()
 	{
-		return this.value ? 'true' : 'false';
+		return this.value ? 'True' : 'False';
 	}
 	makePython()
 	{
@@ -1258,6 +1258,326 @@ class Not extends Value
 	}
 }
 
+class BitAnd extends Value
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	clone()
+	{
+		var rtnv = new BitAnd(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット積はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット積はできません");
+		else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) this.rtnv = new BooleanValue(v1.value & v2.value, this.loc);
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット積はできません");
+		else
+		{
+			if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+			if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+			this.rtnv = new IntValue(v1.value & v2.value, this.loc);
+		}
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' & '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+ ' & '
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
+class BitOr extends Value
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	clone()
+	{
+		var rtnv = new BitOr(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット和はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット和はできません");
+		else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) this.rtnv = new BooleanValue(v1.value & v2.value, this.loc);
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット和はできません");
+		else
+		{
+			if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+			if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+			this.rtnv = new IntValue(v1.value | v2.value, this.loc);
+		}
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' | '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+ ' | '
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
+class BitXor extends Value
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	clone()
+	{
+		var rtnv = new BitXor(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の排他的ビット和はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の排他的ビット和はできません");
+		else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) this.rtnv = new BooleanValue(v1.value & v2.value, this.loc);
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数の排他的ビット和はできません");
+		else
+		{
+			if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+			if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+			this.rtnv = new IntValue(v1.value ^ v2.value, this.loc);
+		}
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' ^ '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+ ' ^ '
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
+class BitNot extends Value
+{
+	constructor(x, loc)
+	{
+		super([x], loc);
+	}
+	clone()
+	{
+		var rtnv = new BitNot(this.value[0], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue()
+		if(v1 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット反転はできません");
+		else if(v1 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット反転はできません");
+		else if(v1 instanceof BooleanValue) this.rtnv = new BooleanValue(!v1.value, this.loc);
+		else if(v1 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット反転はできません");
+		else
+		{
+			this.rtnv = new IntValue(~v1.value, this.loc);
+		}
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0];
+		let c1 = constructor_name(v1);
+		let brace1 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
+		return '~' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+	}
+	makePython()
+	{
+		let v1 = this.value[0];
+		let c1 = constructor_name(v1);
+		let brace1 = false;
+		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
+		return '~' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
+class BitLShift extends Value
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	clone()
+	{
+		var rtnv = new BitLShift(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
+		else
+		{
+			if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+			if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+			this.rtnv = new IntValue(v1.value << v2.value, this.loc);
+		}
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' << '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+ ' << '
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
+class BitRShift extends Value
+{
+	constructor(x, y, loc)
+	{
+		super([x,y], loc);
+	}
+	clone()
+	{
+		var rtnv = new BitRShift(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
+		else
+		{
+			if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+			if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+			this.rtnv = new IntValue(v1.value >> v2.value, this.loc);
+		}
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ ' >> '
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
+		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+ ' >> '
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
 
 /**
  * @returns boolean
@@ -1600,7 +1920,7 @@ class ConvertString extends Value
 		let r = '';
 		if(v instanceof IntValue || v instanceof FloatValue) r = String(v.value);
 		else if(v instanceof StringValue) r = v.value
-		else if(v instanceof BooleanValue) r = v.value ? 'TRUE' : 'FALSE';
+		else if(v instanceof BooleanValue) r = v.value ? 'True' : 'False';
 		this.rtnv = new StringValue(r, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -2741,17 +3061,20 @@ class Assign extends Statement
 	 * @constructor
 	 * @param {Variable} variable 
 	 * @param {Value} value 
-	 * @param {Location} loc 
+	 * @param {String} operator
+	 * @param {Location} loc
 	 */
-	constructor(variable,value,loc)
+	constructor(variable,value, operator, loc)
 	{
 		super(loc);
+		if(!(variable instanceof Variable)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
 		this.variable = variable;
 		this.value = value;
+		this.operator = operator;
 	}
 	clone()
 	{
-		return new Assign(this.variable, this.value, this.loc);
+		return new Assign(this.variable, this.value,this.operator, this.loc);
 	}
 	run()
 	{
@@ -2780,7 +3103,139 @@ class Assign extends Statement
 					}
 				}
 			}
-			if(vl.getValue() instanceof IntValue)
+			if(this.operator)
+			{
+				let v1 = va.getValue(), v2 = vl, v3 = null;
+				switch(this.operator)
+				{
+				case '+':
+					if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+					if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はまだサポートしていません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) v3 = new StringValue(String(v1.value) + String(v2.value), this.loc);
+					else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value + v2.value, this.loc);
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(v1.value + v2.value, this.loc);
+					break;
+				case '-':
+					if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+					if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
+					else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value - v2.value, this.loc);
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(v1.value - v2.value, this.loc);
+					break;
+				case '*':
+					if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+					if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の掛け算は出来ません");
+					else if(v1 instanceof StringValue)
+					{
+						if(v2 instanceof IntValue) v3 = new StringValue(v1.value.repeat(v2.value >= 0 ? v2.value : 0), this.loc);
+						else throw new RuntimeError(this.first_line, "文字列に掛けられるのは整数だけです")
+					}
+					else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value * v2.value, this.loc);
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(v1.value * v2.value, this.loc);
+					break;
+				case '/':
+					if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+					if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+					else
+					{
+						if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
+						else v3 = new FloatValue(v1.value / v2.value, this.loc);
+					}
+					break;
+				case '//':
+					if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+					if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+					else
+					{
+						if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
+						let v4 = v1.value - Math.floor(v1.value / v2.value) * v2.value;
+						if(v1 instanceof IntValue && v2 instanceof IntValue ) v3 = new IntValue(v4, this.loc);
+						else v3 = new FloatValue(v4, this.loc);
+					}
+					break;
+				case '%':
+					if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+					if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+					else
+					{
+						if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
+						let v4 = v1.value - Math.floor(v1.value / v2.value) * v2.value;
+						if(v1 instanceof IntValue && v2 instanceof IntValue ) v3 = new IntValue(v4, this.loc);
+						else v3 = new FloatValue(v4, this.loc);
+					}
+					break;
+				case '&':
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット積はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット積はできません");
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット積はできません");
+					else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.value && v2.value, this.loc);
+					else
+					{
+						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+						v3 = new IntValue(v1.value & v2.value, this.loc);
+					} 
+					break;
+				case '|':
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット和はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット和はできません");
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット和はできません");
+					else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.value && v2.value, this.loc);
+					else
+					{
+					} 
+					break;
+				case '^':
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の排他的論理和はできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の排他的論理和はできません");
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数の排他的論理和はできません");
+					else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.value && v2.value, this.loc);
+					else
+					{
+						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+						v3 = new IntValue(v1.value ^ v2.value, this.loc);
+					} 
+					break;
+				case '<<':
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
+					else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.value && v2.value, this.loc);
+					else
+					{
+						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+						v3 = new IntValue(v1.value << v2.value, this.loc);
+					} 
+					break;
+				case '>>':
+					if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
+					else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
+					else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
+					else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.value && v2.value, this.loc);
+					else
+					{
+						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
+						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
+						v3 = new IntValue(v1.value >> v2.value, this.loc);
+					} 
+					break;
+				}
+				if(!v3) throw new RuntimeError(this.first_line, '代入演算子の使い方が間違っています');
+				if(ag) vt.vars[vn].setValueToArray(ag, v3);
+				else vt.vars[vn] = v3;
+			}
+			else if(vl.getValue() instanceof IntValue)
 			{
 				if(ag)	vt.vars[vn].setValueToArray(ag, new IntValue(vl.value, this.loc));
 				else vt.vars[vn] = new IntValue(vl.value, this.loc);
@@ -2813,6 +3268,10 @@ class Assign extends Statement
 		}
 		else // 変数が定義されていない
 		{
+			if(this.operator)
+			{
+				throw new RuntimeError(this.first_line, '宣言されていない変数に代入演算子が使われました');
+			}
 			vt = varTables[0];
 			if(ag)
 			{
@@ -2837,7 +3296,9 @@ class Assign extends Statement
 	makePython(indent)
 	{
 		var code = Parts.makeIndent(indent);
-		code += this.variable.makePython() + " = " + this.value.makePython() + "\n";
+		code += this.variable.makePython() + " ";
+		if(this.operator) code += this.operator;
+		code += "= " + this.value.makePython() + "\n";
 		return code;
 	}
 }
@@ -2853,6 +3314,7 @@ class Append extends Statement
 	constructor(variable,value,loc)
 	{
 		super(loc);
+		if(!(variable instanceof Variable))throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
 	}
@@ -2915,6 +3377,7 @@ class Extend extends Statement
 	constructor(variable,value,loc)
 	{
 		super(loc);
+		if(!(variable instanceof Variable))throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
 	}
@@ -2979,6 +3442,7 @@ class Input extends Statement
 	constructor(x, type,loc)
 	{
 		super(loc);
+		if(!(x instanceof Variable))throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
 		this.varname = x;
 		this.type = type;
 	}
@@ -3005,10 +3469,10 @@ class Input extends Statement
 				va.run();
 				let assign = null;
 				let re = /^(0+|false|偽|)$/i;
-				if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-				else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-				else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
-				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);				assign.run();
+				if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);
+				else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), null, this.loc), this.loc);
+				else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), null, this.loc);
+				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);				assign.run();
 				code[0].stack[0].index = index + 1;
 			}
 			else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
@@ -3079,10 +3543,10 @@ class InputEnd extends Statement
 			let re = /^(0+|false|偽|)$/i;
 			code.shift();
 			let index = code[0].stack[0].index;
-			if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-			else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), this.loc);
-			else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), this.loc);
-			else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), this.loc);
+			if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);
+			else if(this.type == typeOfValue.typeFloat)assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);
+			else if(this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), null, this.loc);
+			else if(this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);
 			assign.run();
 			code[0].stack[0].index = index + 1;
 		}
@@ -3753,6 +4217,7 @@ class ForInc extends Statement
 	constructor(varname, begin, end, step, statementlist,loc)
 	{
 		super(loc);
+		if(!(varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		this.varname = varname;
 		this.begin = begin;
 		this.end = end;
@@ -3797,7 +4262,7 @@ class ForInc extends Statement
 		if(varTable)
 		{
 			// ループ前の初期化
-			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
+			let assign = new Assign(this.varname, this.begin.getValue(), null, this.loc);
 			assign.run();
 			// ループ先頭
 			let loop = [];
@@ -3812,7 +4277,7 @@ class ForInc extends Statement
 			loop.push(new runBeforeGetValue([this.step, this.varname.args], this.loc));
 			let new_counter = new Add(variable, this.step, this.loc);	// IncとDecの違うところ
 			loop.push(new runBeforeGetValue([variable, new_counter], this.loc));
-			loop.push(new Assign(this.varname, new_counter, this.loc));
+			loop.push(new Assign(this.varname, new_counter, null, this.loc));
 			loop.push(new LoopEnd(null, true, last_loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 			code[0].stack[1].index = index + 1;
@@ -3826,6 +4291,7 @@ class ForDec extends Statement
 	constructor(varname, begin, end, step, statementlist,loc)
 	{
 		super(loc);
+		if(!(varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		this.varname = varname;
 		this.begin = begin;
 		this.end = end;
@@ -3869,7 +4335,7 @@ class ForDec extends Statement
 		if(varTable)
 		{
 			// ループ前の初期化
-			let assign = new Assign(this.varname, this.begin.getValue(), this.loc);
+			let assign = new Assign(this.varname, this.begin.getValue(), null, this.loc);
 			assign.run();
 			// ループ先頭
 			let loop = [];
@@ -3884,7 +4350,7 @@ class ForDec extends Statement
 			loop.push(new runBeforeGetValue([this.step, this.varname.args], last_loc));
 			let new_counter = new Sub(variable, this.step, last_loc);
 			loop.push(new runBeforeGetValue([variable, new_counter], last_loc));
-			loop.push(new Assign(this.varname, new_counter, last_loc));
+			loop.push(new Assign(this.varname, new_counter, null, last_loc));
 			loop.push(new LoopEnd(null, true, last_loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 		}
@@ -4575,7 +5041,7 @@ class Flowchart
 			{
 				var p1 = new Parts_Substitute();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.variable.getCode(), p.value.getCode());
+				p1.setValue(p.variable.getCode(), p.value.getCode(), p.operator);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -5175,17 +5641,19 @@ class Parts_Substitute extends Parts
 	constructor()
 	{
 		super();
-		this.setValue("《変数》","《値》");
+		this.setValue("《変数》","《値》",null);
 	}
-	setValue(variable,value)
+	setValue(variable,value,operator)
 	{
 		this._var = variable;
 		this._val = value;
+		this._operator = operator
 
-		this._text = this._var + "←" + this._val;
+		this._text = this._var + (this._operator ? this._operator : '') + "←" + this._val;
 	}
 	get var(){return this._var;}
 	get val(){return this._val;}
+	get operator(){return this._operator;}
 	calcSize(p0,p1,p2)
     {
         this.calcTextsize();    // textWidth, textHeightの計算
@@ -5239,21 +5707,22 @@ class Parts_Substitute extends Parts
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.var + "←" + this.val + "\n";
+		code += this.var + (this.operator ? this.operator : "") + "←" + this.val + "\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
 	}
 	editMe()
 	{
-		var subtitle = ["変数", "値"];
-		var values = [ this.var , this.val];
-		openModalWindow("代入の編集", subtitle, values, this);
+		var subtitle = ["変数", "値", "演算"];
+		var values = [ this.var , this.val, this.operator];
+		openModalWindowforSubstitute("代入の編集", subtitle, values, this);
 	}
 	edited(values)
 	{
 		if(values != null)
 		{
-			this.setValue(values[0], values[1]);
+			if(values[2] == "（なし）") values[2] = null;
+			this.setValue(values[0], values[1], values[2]);
 		}
 		flowchart.paint();
 		flowchart.flowchart2code();
@@ -6228,6 +6697,39 @@ function openModalWindow(title, subtitle, values, parts)
 	modal_parts.highlight();
 	$("#input").html(html);
 	$("#input").height(100 + subtitle.length * 30);
+	$("#input-overlay").fadeIn();
+	$("#input").fadeIn();
+	$("#inputarea0").focus();
+}
+
+function openModalWindowforSubstitute(title, subtitle, values, parts)
+{
+	var operator= values[2] ? values[2] : "（なし）";
+	var operators = ["（なし）", '+','-','*','/','//','%','&','|','<<','>>'];
+	var html = "<p>" + title + "</p>";
+	modal_subtitle = subtitle;
+	modal_values = values;
+	modal_parts = parts;
+	html += "<table>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
+		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
+		"onfocus=\"select();\" "+
+		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[1] + "</td><td><input type=\"text\" " +
+		"id=\"inputarea1\" value=\"" + values[1] + "\" " +
+		"onfocus=\"select();\" "+
+		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+
+	html += "<tr><td>" + subtitle[2] + "</td><td><select id=\"inputarea2\">";
+	for(var i = 0; i <= operators.length; i++)
+		html += "<option value=\"" + operators[i] + "\"" +(operator == operators[i] ? "selected=\"selected\"" : "" ) +">" + operators[i] + "</option>";
+	html += "</td></tr>";
+	html += "</table>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow(true);\">OK</button>";
+	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
+	modal_parts.highlight();
+	$("#input").html(html);
+	$("#input").height(100 + subtitle.length * 40);
 	$("#input-overlay").fadeIn();
 	$("#input").fadeIn();
 	$("#inputarea0").focus();
