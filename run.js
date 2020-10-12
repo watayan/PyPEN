@@ -193,6 +193,7 @@ function codeChange()
 	catch(e)
 	{
 //		console.log(e);
+		highlightLine(-1);
 		textareaClear();
 		if(e.line) textareaAppend(e.line + "行目");
 		textareaAppend(`構文エラーです\n${e.message}\n`);
@@ -4432,6 +4433,16 @@ class SleepStatement extends Statement
 	}
 }
 
+class NopStatement extends Statement
+{
+	constructor(loc) {super(loc);}
+	clone()	{return new NopStatement(this.loc);}
+	run(){ super.run();}
+	makePython(indent){
+		return Parts.makeIndent(indent) + "None\n";
+	}
+}
+
 class BreakStatement extends Statement
 {
 	constructor(loc){super(loc);}
@@ -5171,6 +5182,14 @@ class Flowchart
 				var p1 = new Parts_Misc();
 				var b1 = new Parts_Bar();
 				p1.setValue("dump",[]);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "NopStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue("NopStatement",[]);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -6508,6 +6527,7 @@ class Parts_LoopEnd extends Parts
 var misc_menu_ja =[
 	//表示            識別子            プログラム上の表現            [引数の意味]
 	["《各種処理》"  , "none"           , "《各種処理》"              ,[]],
+	["何もしない"	,	"NopStatement"	,"何もしない"					,[]],
 	["描画領域開く"  , "gOpenWindow"    , "描画領域開く(	,	)"       ,["幅","高さ"]],
 	["描画領域閉じる", "gCloseWindow"   , "描画領域閉じる()"           ,[]],
 	["描画領域全消去", "gClearWindow"   , "描画領域全消去()"           ,[]],
@@ -6538,6 +6558,7 @@ var misc_menu_ja =[
 misc_menu_en = [
 	//表示            識別子            プログラム上の表現            [引数の意味]
 	["《各種処理》"  , "none"           , "《各種処理》"              ,[]],
+	["何もしない"	,	"NopStatement"	,"何もしない"					,[]],
 	["gOpenWindow"  , "gOpenWindow"    , "gOpenWindow(	,	)"       ,["幅","高さ"]],
 	["gCloseWindow", "gCloseWindow"   , "gCloseWindow()"           ,[]],
 	["gClearWindow", "gClearWindow"   , "gClearWindow()"           ,[]],
@@ -7168,6 +7189,7 @@ onload = function(){
 				},
 				misc:{ name: "各種命令",
 					items:{
+						nop:{name:"何もしない", callback: function(k,e){insertCode("何もしない");}},
 						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》ミリ秒待つ");}},
 //						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
 						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}
@@ -7262,8 +7284,10 @@ onload = function(){
 	{
 		var code = sourceTextArea.value.trim();
 		if(code == '') return;
+		textareaClear();
+		highlightLine(-1);
 		code = B64encode(code);
-		if(code) resultTextArea.value = window.location.origin + window.location.pathname + '?code=' + code;
+		if(code) textareaAppend(resultTextArea.value = window.location.origin + window.location.pathname + '?code=' + code);
 	}
 	sourceTextArea.value = getParam('code');
 }
@@ -7277,7 +7301,6 @@ function B64encode(string)
 	var origin = deflate.compress();
 	if(origin.length > 1500)
 	{
-		textareaClear();
 		textareaAppend('*** プログラムが大きすぎて変換できません ***');
 		return null;
 	}
@@ -7362,6 +7385,7 @@ function auto_marking(i)
 	document.getElementById('stepButton').disabled = true;
 	document.getElementById('resetButton').disabled = true;
 	document.getElementById('urlButton').disabled = true;
+	highlightLine(-1);
 	textareaClear();
 	textareaAppend('*** 採点開始 ***\n');
 	selected_quiz = i;
@@ -7437,6 +7461,7 @@ function makePython()
 	}
 	catch(e)
 	{
+		highlightLine(-1);
 		textareaClear();
 		if(e.line) textareaAppend(e.line + "行目");
 		textareaAppend("構文エラーです\n" + e.message);

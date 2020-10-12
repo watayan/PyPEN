@@ -223,6 +223,7 @@ StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 "ミリ秒待つ"			{return 'ミリ秒待つ';}
 "変数を確認する"		{return '変数を確認する';}
 "改行する"				{return '改行する';}
+"何もしない"			{return '何もしない';}
 {Identifier}			{return '識別子';}
 <<EOF>>					{return 'EOF';}
 {Newline}				{return '改行';}
@@ -328,6 +329,12 @@ statement
 	| ReturnStatement
 	| DumpStatement
 	| BreakStatement
+	| NopStatement
+	;
+
+NopStatement
+	: '何もしない' '改行'
+		{$$ = new NopStatement(new Location(@1,@1));}
 	;
 
 EmptyStatement
