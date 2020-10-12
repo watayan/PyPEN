@@ -7304,7 +7304,12 @@ onload = function(){
 			textareaAppend(window.location.origin + window.location.pathname + '?code=' + code);
 		} 
 	}
-	sourceTextArea.value = getParam('code');
+	var code = getParam('code');
+	if(code)
+	{
+		sourceTextArea.value = code;
+		codeChange();
+	}
 }
 
 var base64str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_="
@@ -7389,7 +7394,7 @@ function getParam(name)
 			} 
 		}
 	}
-	return '';
+	return null;
 }
 
 
