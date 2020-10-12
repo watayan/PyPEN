@@ -3067,7 +3067,7 @@ class Assign extends Statement
 	constructor(variable,value, operator, loc)
 	{
 		super(loc);
-		if(!(variable instanceof Variable)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
 		this.variable = variable;
 		this.value = value;
 		this.operator = operator;
@@ -3314,7 +3314,7 @@ class Append extends Statement
 	constructor(variable,value,loc)
 	{
 		super(loc);
-		if(!(variable instanceof Variable))throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
 	}
@@ -3377,7 +3377,7 @@ class Extend extends Statement
 	constructor(variable,value,loc)
 	{
 		super(loc);
-		if(!(variable instanceof Variable))throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
 	}
@@ -3442,7 +3442,7 @@ class Input extends Statement
 	constructor(x, type,loc)
 	{
 		super(loc);
-		if(!(x instanceof Variable))throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
+		if(!(x instanceof Variable || x instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
 		this.varname = x;
 		this.type = type;
 	}
@@ -4227,7 +4227,7 @@ class ForInc extends Statement
 	constructor(varname, begin, end, step, statementlist,loc)
 	{
 		super(loc);
-		if(!(varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		if(!(varname instanceof Variable || varname instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		this.varname = varname;
 		this.begin = begin;
 		this.end = end;
@@ -4301,7 +4301,7 @@ class ForDec extends Statement
 	constructor(varname, begin, end, step, statementlist,loc)
 	{
 		super(loc);
-		if(!(varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		if(!(varname instanceof Variable || varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		this.varname = varname;
 		this.begin = begin;
 		this.end = end;

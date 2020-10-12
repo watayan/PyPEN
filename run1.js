@@ -3683,7 +3683,7 @@ var Assign = function (_Statement11) {
 
 		var _this55 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
 
-		if (!(variable instanceof Variable)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
+		if (!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
 		_this55.variable = variable;
 		_this55.value = value;
 		_this55.operator = operator;
@@ -3855,7 +3855,7 @@ var Append = function (_Statement12) {
 
 		var _this56 = _possibleConstructorReturn(this, (Append.__proto__ || Object.getPrototypeOf(Append)).call(this, loc));
 
-		if (!(variable instanceof Variable)) throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
+		if (!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
 		_this56.variable = variable;
 		_this56.value = value;
 		return _this56;
@@ -3921,7 +3921,7 @@ var Extend = function (_Statement13) {
 
 		var _this57 = _possibleConstructorReturn(this, (Extend.__proto__ || Object.getPrototypeOf(Extend)).call(this, loc));
 
-		if (!(variable instanceof Variable)) throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
+		if (!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
 		_this57.variable = variable;
 		_this57.value = value;
 		return _this57;
@@ -3988,7 +3988,7 @@ var Input = function (_Statement14) {
 
 		var _this58 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
 
-		if (!(x instanceof Variable)) throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
+		if (!(x instanceof Variable || x instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
 		_this58.varname = x;
 		_this58.type = type;
 		return _this58;
@@ -4801,7 +4801,7 @@ var ForInc = function (_Statement23) {
 
 		var _this67 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
 
-		if (!(varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		if (!(varname instanceof Variable || varname instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		_this67.varname = varname;
 		_this67.begin = begin;
 		_this67.end = end;
@@ -4885,7 +4885,7 @@ var ForDec = function (_Statement24) {
 
 		var _this68 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
 
-		if (!(varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		if (!(varname instanceof Variable || varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		_this68.varname = varname;
 		_this68.begin = begin;
 		_this68.end = end;
