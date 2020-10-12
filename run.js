@@ -22,7 +22,7 @@ var code = null;		// コードを積む（関数・手続き単位で）
 var varTables = [];		// 変数テーブルを積む
 var myFuncs = {};		// プログラム中で定義される関数・手続き
 var returnValues = [];	// 関数からの返り値を積む
-var run_flag = false, step_flag = false;
+var run_flag = false, step_flag = false, editable_flag = true;
 var flowchart = null;
 var textarea = null;
 var context = null;
@@ -4521,7 +4521,15 @@ function setRunflag(b)
 	run_flag = b;
 	document.getElementById("sourceTextarea").readOnly = b;
 	document.getElementById("runButton").innerHTML = b & !step_flag ? "中断" : "実行";
-	document.getElementById("urlButton").disabled = b;
+	setEditableflag(!b);
+}
+
+function setEditableflag(b)
+{
+	editable_flag = b;
+	document.getElementById("drawButton").disabled = !b;
+	document.getElementById("pythonButton").disabled = !b;
+	document.getElementById("urlButton").disabled = !b;
 }
 
 function run()
@@ -4646,6 +4654,7 @@ function next_line()
 function openInputWindow()
 {
 	setRunflag(false);
+	setEditableflag(false);
 	var input_area = document.getElementById("input_area");
 	input_area.value = '';
 	input_area.readOnly = false;
@@ -4893,6 +4902,10 @@ function mouseMove(e)
 
 function doubleclick_Flowchart(evt)
 {
+	if(!editable_flag) {
+		alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	dragging = false;
 	var rect = evt.target.getBoundingClientRect();
 	var x = evt.clientX - rect.left;
