@@ -8292,10 +8292,12 @@ onload = function onload() {
 	document.getElementById('urlButton').onclick = function () {
 		var code = sourceTextArea.value.trim();
 		if (code == '') return;
-		textareaClear();
-		highlightLine(-1);
 		code = B64encode(code);
-		if (code) textareaAppend(resultTextArea.value = window.location.origin + window.location.pathname + '?code=' + code);
+		if (code) {
+			textareaClear();
+			highlightLine(-1);
+			textareaAppend(window.location.origin + window.location.pathname + '?code=' + code);
+		}
 	};
 	sourceTextArea.value = getParam('code');
 };
