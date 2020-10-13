@@ -2508,7 +2508,8 @@ var Variable = function (_Value35) {
 				if (v instanceof IntValue) this.rtnv = new IntValue(v.value, this.loc);else if (v instanceof FloatValue) this.rtnv = new FloatValue(v.value, this.loc);else if (v instanceof StringValue) {
 					if (this.args && this.args.length > 0) this.rtnv = v.nthValue(this.args.nthValue(0).getValue());else this.rtnv = new StringValue(v.value, this.loc);
 				} else if (v instanceof BooleanValue) this.rtnv = new BooleanValue(v.value, this.loc);else if (v instanceof ArrayValue) this.rtnv = v.getValueFromArray(this.args, this.loc);else throw new RuntimeError(this.first_line, "Unknown Error");
-			} else throw new RuntimeError(this.first_line, vn + "は定義されていないのに参照されようとしました");
+			}
+			//		else throw new RuntimeError(this.first_line, vn + "は定義されていないのに参照されようとしました");
 			code[0].stack[0].index++;
 		}
 	}, {

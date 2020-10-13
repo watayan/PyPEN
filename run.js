@@ -2039,7 +2039,7 @@ class Variable extends Value
 			else if(v instanceof ArrayValue) this.rtnv = v.getValueFromArray(this.args, this.loc);
 			else throw new RuntimeError(this.first_line, "Unknown Error");
 		}
-		else throw new RuntimeError(this.first_line, vn + "は定義されていないのに参照されようとしました");
+//		else throw new RuntimeError(this.first_line, vn + "は定義されていないのに参照されようとしました");
 		code[0].stack[0].index++;
 	}
 	getCode()
