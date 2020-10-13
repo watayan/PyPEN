@@ -449,7 +449,12 @@ class ArrayValue extends Value
 		return '[' + ag.join(',') + ']';
 	}
 	get length() {return this._value.length;}
-	nthValue(idx){return this._value[idx];}
+	nthValue(idx){
+		if(idx < 0) idx += this._value.length;
+		if(idx >= 0 && idx < this._value.length)
+			return this._value[idx];
+		else throw new RuntimeError(this.first_line, "配列の範囲外にアクセスしようとしました");
+	}
 	setValueToArray(args, va)
 	{
 		let l = args ? args.value.length : 1;
@@ -602,6 +607,7 @@ class StringValue extends Value
 	}
 	nthValue(idx)
 	{
+		if(idx < 0) idx += this.value.length;
 		if(idx >=0 && idx < this.value.length)	return new StringValue(this.value[idx], this.loc);
 		else throw new RuntimeError(this.first_line, '文字列の範囲を超えて文字を読もうとしました');
 	}
@@ -2001,7 +2007,7 @@ class Variable extends Value
 			if(v instanceof IntValue) this.rtnv = new IntValue(v.value, this.loc);
 			else if(v instanceof FloatValue) this.rtnv = new FloatValue(v.value, this.loc);
 			else if(v instanceof StringValue){
-				if(this.args && this.args.length > 0) this.rtnv = v.getValueFromArray(this.args, this.loc);
+				if(this.args && this.args.length > 0) this.rtnv = v.nthValue(this.args.nthValue(0).getValue().value);
 				else this.rtnv = new StringValue(v.value, this.loc);
 			}
 			else if(v instanceof BooleanValue) this.rtnv = new BooleanValue(v.value, this.loc);

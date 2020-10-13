@@ -575,7 +575,8 @@ var ArrayValue = function (_Value2) {
 	}, {
 		key: 'nthValue',
 		value: function nthValue(idx) {
-			return this._value[idx];
+			if (idx < 0) idx += this._value.length;
+			if (idx >= 0 && idx < this._value.length) return this._value[idx];else throw new RuntimeError(this.first_line, "配列の範囲外にアクセスしようとしました");
 		}
 	}, {
 		key: 'setValueToArray',
@@ -742,6 +743,7 @@ var StringValue = function (_Value5) {
 	}, {
 		key: 'nthValue',
 		value: function nthValue(idx) {
+			if (idx < 0) idx += this.value.length;
 			if (idx >= 0 && idx < this.value.length) return new StringValue(this.value[idx], this.loc);else throw new RuntimeError(this.first_line, '文字列の範囲を超えて文字を読もうとしました');
 		}
 	}, {
@@ -2486,7 +2488,7 @@ var Variable = function (_Value35) {
 				//			this.rtnv = vt.vars[vn];
 				var v = vt.vars[vn];
 				if (v instanceof IntValue) this.rtnv = new IntValue(v.value, this.loc);else if (v instanceof FloatValue) this.rtnv = new FloatValue(v.value, this.loc);else if (v instanceof StringValue) {
-					if (this.args && this.args.length > 0) this.rtnv = v.getValueFromArray(this.args, this.loc);else this.rtnv = new StringValue(v.value, this.loc);
+					if (this.args && this.args.length > 0) this.rtnv = v.nthValue(this.args.nthValue(0).getValue().value);else this.rtnv = new StringValue(v.value, this.loc);
 				} else if (v instanceof BooleanValue) this.rtnv = new BooleanValue(v.value, this.loc);else if (v instanceof ArrayValue) this.rtnv = v.getValueFromArray(this.args, this.loc);else throw new RuntimeError(this.first_line, "Unknown Error");
 			} else {
 				this.rtnv = new NullValue(this.loc);
