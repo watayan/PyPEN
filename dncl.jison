@@ -302,9 +302,18 @@ variablelist
 	| 'UNDEFINED'  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
 	;
 
+slice
+	: ':' {$$ = new Slice(new NullValue(@1), new NullValue(@1), new Location(@1,@1));}
+	| ':' e {$$ = new Slice(new NullValue(@1), $2, new Location(@1,@1));}
+	| e ':' {$$ = new Slice($1, new NullValue(@2), new Location(@1,@1));}
+	| e ':' e {$$ = new Slice($1, $3, new Location(@1,@3));}
+	;
+
 args
 	: args 'COMMA' e {$$ = $1.concat($3);}
+	| args 'COMMA' slice {$$ = $1.concat($3);}
 	| e { $$ = [$1];}
+	| slice { $$ = [$1];}
 	|   { $$ = [];}
 	;
 
