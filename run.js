@@ -3150,19 +3150,27 @@ class Assign extends Statement
 		if(vt) // 変数が定義されている
 		{
 			let va = vt.vars[vn];
-			if(ag && ag.value.length > 0) // 配列の添字がある
-			{
-				if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
-				for(let i = 0; i < ag.value.length; i++) 
-				{
-					if(va.nthValue(ag.value[i].getValue().value))
-						va = va.nthValue(ag.value[i].getValue().value);
-					else
-						throw new RuntimeError(this.first_line, "配列の範囲を超えて代入しようとしました");
-				}
-			}
 			if(this.operator)
 			{
+				if(ag && ag.value.length > 0) // 配列の添字がある
+				{
+					if(!(va instanceof ArrayValue)) vt.vars[vn] = va = new ArrayValue([], this.loc); // vaが配列でないときは新たに配列にする
+					for(let i = 0; i < ag.value.length; i++) 
+					{
+						if(ag.value[i].getValue() instanceof IntValue)
+						{
+							if(va.nthValue(ag.value[i].getValue().value))
+								va = va.nthValue(ag.value[i].getValue().value);
+							else throw new RuntimeError(this.first_line, "配列の範囲を超えて参照しようとしました");
+						}
+						else if(ag.value[i].getValue() instanceof StringValue)
+						{
+							if(va.aarray[ag.value[i].getValue().value])
+								va = va.aarray[ag.value[i].getValue().value];
+							else throw new RuntimeError(this.first_line, "配列に代入されてない値を参照しました");
+						}
+					}
+				}
 				let v1 = va.getValue(), v2 = vl, v3 = null;
 				switch(this.operator)
 				{
