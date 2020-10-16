@@ -4068,7 +4068,7 @@ var Input = function (_Statement13) {
 						va.run();
 						var assign = null;
 						var re = /^(0+|false|偽|)$/i;
-						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), null, this.loc), this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), null, this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);assign.run();
+						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), null, this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);assign.run();
 						code[0].stack[0].index = index + 1;
 					} else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
 				}
