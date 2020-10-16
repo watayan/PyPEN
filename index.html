@@ -23,7 +23,7 @@
 		Upload <input id="loadButton" type="file" accept=".PyPEN"/>
 		<a href="#" id="downloadLink">Download</a>
 		ファイル名：<input id="file_prefix" type="text"/>
-		<button    id="urlButton" type="button">URL取得</button>
+		<button    id="urlButton" type="button">URL生成</button>
 		</div>
 		<div id="Quiz_area">
 			<select id="quiz_select"></select>
@@ -38,7 +38,7 @@
 			</div>
 		<div id="Result_area">
 			<input id="input_area" type="text" size="20" onkeydown="keydownInput(event);"><span id="input_status">Now Loading...</span><br>
-			<textarea id="resultTextarea" rows="20" cols="25" readonly></textarea>
+			<textarea id="resultTextarea" rows="20" cols="35" readonly></textarea>
 		</div>
 		<div id="EditButtons">
 			<button type="button" class="editButton" onclick='editButton("《変数》に整数を入力する");'>入力（整数）</button>

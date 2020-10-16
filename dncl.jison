@@ -42,6 +42,38 @@ IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
 Identifier		{IdentifierStart}{IdentifierPart}*
 StringTrue		"真"|[Tt][Rr][Uu][Ee]
 StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
+Assign			([:：][\=＝])|"←"
+AssignAdd		[\+＋][\=＝←]
+AssignDel		[\-ー−‐][\=＝←]
+AssignMul		[\*＊×][\=＝←]
+AssignDiv		[/／÷][\=＝←]
+AssignDivInt	[/／÷][/／÷][\=＝←]
+AssignMod		[%％][\=＝←]
+AssignAnd		[&＆][\=＝←]
+AssignOr		[\|｜][\=＝←]
+AssignXor		[\^＾][\=＝←]
+AssignLshift	[<＜][<＜][\=＝←]
+AssignRshift	[>＞][>＞][\=＝←]
+Add				[+＋]
+Del				[-ー−‐]
+Pow				[\*＊×][\*＊×]
+Mul				[\*＊×]
+Div				[/／÷]
+DivInt			[/／÷][/／÷]
+Mod				[%％]
+And				[&＆]
+Or				[\|｜]
+Xor				[\^＾]
+Not				[~〜]
+Lshift			[<＜][<＜]
+Rshift			[>＞][>＞]
+EQ				[=＝]
+EQEQ			[=＝][=＝]
+NE				([!！][=＝])|([<＜][>＞])|"≠"
+GE				([>＞][=＝])|"≧"
+LE				([<＜][=＝])|"≦"
+GT				[>＞]
+LT				[<＜]
 
 %%
 
@@ -54,47 +86,25 @@ StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 {Comma}			{return 'COMMA';}
 {Colon}			{return ':'}
 {UNDEFINED}		{return 'UNDEFINED';}
-"←"				{return '←';}
-"+←"			{return '+←';}
-"-←"			{return '-←';}
-"*←"			{return '*←';}
-"/←"			{return '/←';}
-"//←"			{return '//←';}
-"%←"			{return '%←';}
-"&←"			{return '&←';}
-"|←"			{return '|←';}
-"^←"			{return '^←';}
-"<<←"			{return '<<←';}
-">>←"			{return '>>←';}
-"+="			{return '+←';}
-"-="			{return '-←';}
-"*="			{return '*←';}
-"/="			{return '/←';}
-"//="			{return '//←';}
-"%="			{return '%←';}
-"&="			{return '&←';}
-"|="			{return '|←';}
-"^="			{return '^←';}
-"<<="			{return '<<←';}
-">>="			{return '>>←';}
-"+"				{return '+';}
-"＋"			{return '+';}
-"-"				{return '-';}
-"ー"			{return '-';}
-"−"				{return '-';}
-"**"			{return '**';}
-"＊＊"			{return '**';}
-"*"				{return '*';}
-"＊"			{return '*';}
-"✕"				{return '*';}
-"//"			{return '//'}
-"／／"			{return '//'}
-"/"				{return '/';}
-"／"			{return '/';}
-"÷÷"			{return '//';}
-"÷"				{return '/';}
-"%"				{return '%';}
-"％"			{return '%';}
+{Assign}		{return '←';}
+{AssignAdd}		{return '+←';}
+{AssignDel}		{return '-←';}
+{AssignMul}		{return '*←';}
+{AssignDiv}		{return '/←';}
+{AssignDivInt}	{return '//←';}
+{AssignMod}		{return '%←';}
+{AssignAnd}		{return '&←';}
+{AssignOr}		{return '|←';}
+{AssignXor}		{return '^←';}
+{AssignLshift}	{return '<<←';}
+{AssignRshift}	{return '>>←';}
+{Add}			{return '+';}
+{Del}			{return '-';}
+{Pow}			{return '**';}
+{Mul}			{return '*';}
+{DivInt}		{return '//'}
+{Div}			{return '/'}
+{Mod}			{return '%';}
 "("				{return '(';}
 ")"				{return ')';}
 "（"			{return '(';}
@@ -107,35 +117,19 @@ StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 "}"				{return '}';}
 "｛"			{return '{';}
 "｝"			{return '}';}
-">="			{return '>=';}
-"<="			{return '<=';}
-"≧"				{return '>=';}
-"≦"				{return '<=';}
-"＞＝"			{return '>=';}
-"＜＝"			{return '<=';}
-">>"			{return '>>';}
-"＞＞"			{return '>>';}
-"<<"			{return '<<';}
-"＜＜"			{return '<<';}
-">"				{return '>';}
-"<"				{return '<';}
-"＞"			{return '>';}
-"＜"			{return '<';}
-"=="			{return '='}
-"="				{return '=';}
-"＝＝"			{return '=';}
-"＝"			{return '=';}
-"!="			{return '!=';}
-"≠"				{return '!=';}
-"！＝"			{return '!=';}
-"&"				{return '&';}
-"＆"			{return '&';}
-"|"				{return '|';}
-"｜"			{return '|';}
-"^"				{return '^';}
-"＾"			{return '^';}
-"~"				{return '~';}
-"〜"			{return '~';}
+{GE}			{return '>=';}
+{LE}			{return '<=';}
+{Rshift}		{return '>>';}
+{Lshift}		{return '<<';}
+{GT}			{return '>';}
+{LT}			{return '<';}
+{EQEQ}			{return '=='}
+{EQ}			{return '=';}
+{NE}			{return '!=';}
+{And}			{return '&';}
+{Or}			{return '|';}
+{Xor}			{return '^';}
+{Not}			{return '~';}
 "かつ"			{return 'かつ';}
 "または"		{return 'または';}
 "でない"		{return 'でない';}
@@ -165,6 +159,7 @@ StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 "減らしながら"		{return '減らしながら';}
 "増やしつつ"		{return '増やしながら';}
 "減らしつつ"		{return '減らしながら';}
+"くりかえす"		{return '繰り返す';}
 "繰り返す"			{return '繰り返す';}
 "繰返す"			{return '繰り返す';}
 "整数"				{return '整数';}
@@ -174,6 +169,8 @@ StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 "と"					{return 'と';}
 "追加する"			{return '追加する';}
 "連結する"			{return '連結する';}
+"追加"				{return '追加する';}
+"連結"				{return '連結する';}
 "描画領域開く"			{return 'gOpenWindow';}
 "gOpenWindow"			{return 'gOpenWindow';}
 "描画領域閉じる"		{return 'gCloseWindow';}
@@ -234,7 +231,7 @@ StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 %left 'と'
 %left 'かつ' 'または'
 %left 'でない'
-%nonassoc '=' '!=' '>' '<' '>=' '<='
+%nonassoc '=' '==' '!=' '>' '<' '>=' '<='
 %left '+' '-'
 %left '*' '/' '//' '%'
 %right '**'
@@ -268,6 +265,7 @@ e
 	| e '<<' e		{$$ = new BitLShift($1, $3, new Location(@1, @3));}
 	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
+	| e '==' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
 	| e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
 	| e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
 	| e '>' e		{$$ = new GT($1, $3, new Location(@1, @3));}
@@ -285,7 +283,7 @@ e
 	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
-	| '{' args '}'	{$$ = new ArrayValue($2, new Location(@1, @3));}
+	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
 	;
 
 variable
@@ -303,10 +301,10 @@ variablelist
 	;
 
 slice
-	: ':' {$$ = new Slice(new NullValue(@1), new NullValue(@1), new Location(@1,@1));}
-	| ':' e {$$ = new Slice(new NullValue(@1), $2, new Location(@1,@1));}
-	| e ':' {$$ = new Slice($1, new NullValue(@2), new Location(@1,@1));}
-	| e ':' e {$$ = new Slice($1, $3, new Location(@1,@3));}
+	: ':' {$$ = new SliceValue(new NullValue(@1), new NullValue(@1), new Location(@1,@1));}
+	| ':' e {$$ = new SliceValue(new NullValue(@1), $2, new Location(@1,@1));}
+	| e ':' {$$ = new SliceValue($1, new NullValue(@2), new Location(@1,@1));}
+	| e ':' e {$$ = new SliceValue($1, $3, new Location(@1,@3));}
 	;
 
 args
