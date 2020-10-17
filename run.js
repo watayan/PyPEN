@@ -3735,7 +3735,7 @@ function array2code(v)
 	if(v0 instanceof ArrayValue)
 	{
 		let v1 = [];
-		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.nthValue(i)));
+		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.value[i]));
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof DictionaryValue)
@@ -3955,12 +3955,12 @@ class GraphicStatement extends Statement
 			var n = values.length, v, max = 0, min = 0, maxn = 0;
 			for(var i = 0; i < n; i++)
 			{
-				v = (values instanceof ArrayValue ? values.nthValue(i).rtnv : values[i].rtnv);
+				v = values[i].rtnv;
 				array.push([]);
 				if(v.length > maxn) maxn = v.length;
 				for(var j = 0; j < v.length; j++)
 				{
-					var v1 = (v instanceof ArrayValue ? v.nthValue(j).rtnv : v[j].rtnv);
+					var v1 = v[j].rtnv;
 					if(v1 instanceof Value) v1 = v1.value;
 					array[i].push(v1);
 					if(v1 > max) max = v1;
@@ -4014,12 +4014,12 @@ class GraphicStatement extends Statement
 			var n = values.length, v, max = 0, min = 0, maxn = 0;
 			for(var i = 0; i < n; i++)
 			{
-				v = (values instanceof ArrayValue ? values.nthValue(i).rtnv : values[i].rtnv);
+				v = values[i].rtnv;
 				array.push([]);
 				if(v.length > maxn) maxn = v.length;
 				for(var j = 0; j < v.length; j++)
 				{
-					var v1 = (v instanceof ArrayValue ? v.nthValue(j).rtnv : v[j].rtnv);
+					var v1 = v[j].rtnv;
 					if(v1 instanceof Value) v1 = v1.value;
 					array[i].push(v1);
 					if(v1 > max) max = v1;
@@ -4170,7 +4170,7 @@ function Array2ArrayOfArray(a, loc)
 {
 	if(a instanceof ArrayValue)
 	{
-		if(a.nthValue(0) instanceof ArrayValue)
+		if(a.getValue().value[0] instanceof ArrayValue)
 			return a;
 		else
 			return new ArrayValue([a], loc);
@@ -7383,11 +7383,14 @@ onload = function(){
 			textareaAppend(window.location.origin + window.location.pathname + '?code=' + code);
 		} 
 	}
+
+
 	var code = getParam('code');
 	if(code)
 	{
 		sourceTextArea.value = code;
 		codeChange();
+		highlightLine(-1);
 	}
 }
 
