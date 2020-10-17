@@ -58,13 +58,21 @@
 	margin:2px 2px;
 }
 
-#Source_area{
+td{
+	vertical-align: top;
+}
+
+/* #Source_area{
 	float: left;
+}
+
+#Input_area{
+	float: none;
 }
 
 #Result_area{
 	float: left;
-}
+} */
 
 #resultTextarea{
 	float: left;
@@ -79,12 +87,10 @@
 
 #Flowchart_area{
 /*  float: none; */
+	float: left;
 	display: none;
 }
 
-#Flowchart_area{
-	float: left;
-}
 #flowchart{
 	border: solid 1px rgb(128,128,128);
 }
@@ -157,4 +163,8 @@
 
 #graph{
 	float: left;
+}
+
+button{
+	font-family: monospace;
 }
