@@ -7378,9 +7378,10 @@ onload = function(){
 		if(code == '') return;
 		code = B64encode(code);
 		if(code){
+			var url = window.location;
 			textareaClear();
 			highlightLine(-1);
-			textareaAppend(window.location.origin + window.location.pathname + '?code=' + code);
+			textareaAppend(url.protocol + '//' + url.hostname + url.pathname + '?code=' + code);
 		} 
 	}
 
