@@ -2686,8 +2686,8 @@ class Connect extends Value
 		var re=/^str\(/;
 		var p1 = this.value[0].makePython();
 		var p2 = this.value[1].makePython();
-		if(!re.exec(p1)) p1 = "str(" + p1 + ")";
-		if(!re.exec(p2)) p2 = "str(" + p2 + ")";
+		if(!re.exec(p1) && !(this.value[0] instanceof StringValue)) p1 = "str(" + p1 + ")";
+		if(!re.exec(p2) && !(this.value[1] instanceof StringValue)) p2 = "str(" + p2 + ")";
 		return  p1 + "+" + p2;
 	}
 	getValue()
