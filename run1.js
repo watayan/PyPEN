@@ -2139,8 +2139,7 @@ var EQ = function (_Value26) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
+			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' == ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2195,8 +2194,7 @@ var NE = function (_Value27) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
+			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2252,8 +2250,7 @@ var GT = function (_Value28) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
+			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2309,8 +2306,7 @@ var GE = function (_Value29) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
+			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -4213,7 +4209,7 @@ var Output = function (_Statement17) {
 
 	/**
   * 
-  * @param {Value} x 
+  * @param {Array<Value>} x 
   * @param {boolean} ln 
   * @param {Location} loc 
   */
@@ -4230,18 +4226,28 @@ var Output = function (_Statement17) {
 	_createClass(Output, [{
 		key: 'clone',
 		value: function clone() {
-			return new Output(this.value.clone(), this.ln, this.loc);
+			var val = [];
+			for (var i = 0; i < this.value.length; i++) {
+				val.push(this.value[i].clone());
+			}return new Output(val, this.ln, this.loc);
 		}
 	}, {
 		key: 'run',
 		value: function run() {
 			var index = code[0].stack[0].index;
 			//this.value.run();
-			var v = this.value.getValue();
 			if (selected_quiz < 0) {
-				textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
+				for (var i = 0; i < this.value.length; i++) {
+					var v = this.value[i].getValue();
+					textareaAppend((i > 0 ? ' ' : '') + array2text(v));
+				}
+				if (this.ln) textareaAppend("\n");
 			} else {
-				output_str += array2text(v) + (this.ln ? "\n" : "");
+				for (var i = 0; i < this.value.length; i++) {
+					var _v7 = this.value[i].getValue();
+					output_str += (i > 0 ? ' ' : '') + array2text(_v7);
+				}
+				if (this.ln) output_str += '\n';
 			}
 			code[0].stack[0].index = index + 1;
 		}
@@ -4250,8 +4256,9 @@ var Output = function (_Statement17) {
 		value: function makePython(indent) {
 			var code = Parts.makeIndent(indent);
 			code += "print(";
-			code += this.value.makePython();
-			if (!this.ln) code += ",end=''";
+			for (var i = 0; i < this.value.length; i++) {
+				code += (i > 0 ? ',' : '') + this.value[i].makePython();
+			}if (!this.ln) code += ",end=''";
 			return code + ")\n";
 		}
 	}]);
@@ -4269,13 +4276,13 @@ function array2text(v) {
 				v1.push(array2text(v0.value[i]));
 			}return '[' + v1.join(',') + ']';
 		} else if (v0 instanceof DictionaryValue) {
-			var _v7 = [];
+			var _v8 = [];
 			var keys = Object.keys(v0.value);
 			keys.sort();
 			for (var _i4 = 0; _i4 < keys.length; _i4++) {
-				_v7.push(keys[_i4] + ':' + array2text(v0.value[keys[_i4]]));
-			}return '{' + _v7.join(',') + '}';
-		} else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';else return v0.value;
+				_v8.push(keys[_i4] + ':' + array2text(v0.value[keys[_i4]]));
+			}return '{' + _v8.join(',') + '}';
+		} else if (v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';else return new String(v0.value);
 	} else return new String(v);
 }
 
@@ -4288,12 +4295,12 @@ function array2code(v) {
 			v1.push(array2text(v0.value[i]));
 		}return '[' + v1.join(',') + ']';
 	} else if (v0 instanceof DictionaryValue) {
-		var _v8 = [];
+		var _v9 = [];
 		var keys = Object.keys(v0.value);
 		keys.sort();
 		for (var _i5 = 0; _i5 < keys.length; _i5++) {
-			_v8.push(keys[_i5] + ':' + array2text(v0.value[keys[_i5]]));
-		}return '{' + _v8.join(',') + '}';
+			_v9.push(keys[_i5] + ':' + array2text(v0.value[keys[_i5]]));
+		}return '{' + _v9.join(',') + '}';
 	} else if (v0 instanceof StringValue) return "「" + v0.value + "」";else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
 }
@@ -5803,7 +5810,10 @@ var Flowchart = function () {
 				} else if (statement == "Output") {
 					var p1 = new Parts_Output();
 					var b1 = new Parts_Bar();
-					p1.setValue(p.value.getCode(), p.ln);
+					var v0 = [];
+					for (var j = 0; j < p.value.length; j++) {
+						v0.push(p.value[j].getCode());
+					}p1.setValue(v0.join(','), p.ln);
 					parts.next = p1;
 					parts = p1.next = b1;
 				} else if (statement == "Newline") {

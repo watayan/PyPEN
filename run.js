@@ -1809,7 +1809,7 @@ class EQ extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' == '
@@ -1849,7 +1849,7 @@ class NE extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' != '
@@ -1889,7 +1889,7 @@ class GT extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' > '
@@ -1929,7 +1929,7 @@ class GE extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' >= '
@@ -3663,7 +3663,7 @@ class Output extends Statement
 {
 	/**
 	 * 
-	 * @param {Value} x 
+	 * @param {Array<Value>} x 
 	 * @param {boolean} ln 
 	 * @param {Location} loc 
 	 */
@@ -3675,20 +3675,31 @@ class Output extends Statement
 	}
 	clone()
 	{
-		return new Output(this.value.clone(), this.ln, this.loc);
+		var val = [];
+		for(var i = 0; i < this.value.length; i++) val.push(this.value[i].clone());
+		return new Output(val, this.ln, this.loc);
 	}
 	run()
 	{
 		let index = code[0].stack[0].index;
 		//this.value.run();
-		let v = this.value.getValue();
 		if(selected_quiz < 0)
 		{
-			textareaAppend(array2text(v) + (this.ln ? "\n" : ""));
+			for(var i = 0; i < this.value.length; i++)
+			{
+				let v = this.value[i].getValue();
+				textareaAppend((i > 0 ? ' ' : '') + array2text(v));
+			}
+			if(this.ln)	textareaAppend("\n");
 		}
 		else
 		{
-			output_str += array2text(v) + (this.ln ? "\n" : "");
+			for(var i = 0; i < this.value.length; i++)
+			{
+				let v = this.value[i].getValue();
+				output_str +=(i > 0 ? ' ' : '') + array2text(v);
+			}
+			if(this.ln)	output_str += '\n';
 		}
 		code[0].stack[0].index = index + 1;
 	}
@@ -3696,7 +3707,8 @@ class Output extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		code += "print(";
-		code += this.value.makePython();
+		for(var i = 0; i < this.value.length; i++)
+			code += (i > 0 ? ',' : '') + this.value[i].makePython();
 		if(!this.ln) code += ",end=''";
 		return code + ")\n";
 	}
@@ -3722,8 +3734,9 @@ function array2text(v)
 			for(let i = 0; i < keys.length; i++) v1.push(keys[i] + ':' + array2text(v0.value[keys[i]]));
 			return '{' + v1.join(',') + '}';
 		}
+		else if(v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';
 		else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
-		else return v0.value;
+		else return new String(v0.value);
 	}
 	else return new String(v);
 }
@@ -5186,7 +5199,9 @@ class Flowchart
 			{
 				var p1 = new Parts_Output();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.value.getCode(), p.ln);
+				var v0 = []
+				for(var j = 0; j < p.value.length; j++) v0.push(p.value[j].getCode());
+				p1.setValue(v0.join(','), p.ln);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}

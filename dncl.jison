@@ -440,10 +440,10 @@ AssignStatement
 	;
 
 PrintStatement
-	: e 'を改行無しで表示する' '改行' 
-		{$$ = [new runBeforeGetValue([$1], @1), new Output($1, false, new Location(@1,@2))];}
-	| e 'を表示する' '改行' 
-		{$$ = [new runBeforeGetValue([$1], @1), new Output($1, true, new Location(@1,@2))];}
+	: args 'を改行無しで表示する' '改行' 
+		{$$ = [new runBeforeGetValue($1, @1), new Output($1, false, new Location(@1,@2))];}
+	| args 'を表示する' '改行' 
+		{$$ = [new runBeforeGetValue($1, @1), new Output($1, true, new Location(@1,@2))];}
 	| '改行する' '改行'
 		{$$ = new Newline(new Location(@1, @1));}
 	;
