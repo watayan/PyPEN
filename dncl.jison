@@ -292,14 +292,6 @@ variable
 	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
 	;
 
-variablelist
-	: variablelist 'COMMA' '識別子' '[' args ']' {$$ = $1.concat({varname:toHalf($3, @1), parameter:new ArrayValue($5, new Location(@5,@5))});}
-	| variablelist 'COMMA' '識別子' {$$ = $1.concat({varname:toHalf($3, @1)});}
-	| '識別子' '[' args ']' {$$ = [{varname:toHalf($1, @1), parameter:new ArrayValue($3, new Location(@3,@3))}];}
-	| '識別子' {$$ = [{varname:toHalf($1, @1)}];}
-	| 'UNDEFINED'  {$$ = [new UNDEFINED(yytext, new Location(@1,@1))];}
-	;
-
 slice
 	: ':' {$$ = new SliceValue(new NullValue(@1), new NullValue(@1), new Location(@1,@1));}
 	| ':' e {$$ = new SliceValue(new NullValue(@1), $2, new Location(@1,@1));}
@@ -368,17 +360,6 @@ ReturnStatement
 		{$$ = [new runBeforeGetValue([$1], @1), new ReturnStatement($1, new Location(@1, @2))];}
 	;
 
-DefineStatement
-	: '整数' variablelist '改行'		
-		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionInt($2, new Location(@1,@2))];}
-	| '実数' variablelist '改行'	
-		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionFloat($2, new Location(@1,@2))];}
-	| '文字列' variablelist '改行'		
-		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionString($2, new Location(@1,@2))];}
-	| '真偽' variablelist '改行'	
-		{$$ = [new runArgsBeforeGetValue([$2], @1), new DefinitionBoolean($2, new Location(@1,@2))];}
-	;
-
 CallStatement
 	: '識別子' '(' args ')' '改行' 
 		{$$ = [new runBeforeGetValue($3, @1), new CallStep($1, $3, new Location(@1,@4))];}
@@ -394,13 +375,13 @@ IfStatement
 
 ForStatement
 	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForInc($1, $3, $5, $7,$13, new Location(@1,@14))];}
+		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, $7,$13, new Location(@1,@14))];}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForDec($1, $3, $5, $7,$13, new Location(@1,@14))];}
+		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, $7,$13, new Location(@1,@14))];}
 	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
+		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
 	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
-		{$$ = [new runBeforeGetValue([$1, $3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
+		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
 	;
 
 WhileStatement

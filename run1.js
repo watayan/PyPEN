@@ -744,8 +744,9 @@ var DictionaryValue = function (_Value3) {
 			var rtnv = new DictionaryValue({}, this.loc);
 			var keys = Object.keys(this.value);
 			for (var i = 0; i < keys.length; i++) {
-				rtnv.getValue().value[keys[i]] = this.value[keys[i]].getValue().clone();
-			}return rtnv;
+				if (this.value[keys[i]]) rtnv.getValue().value[keys[i]] = this.value[keys[i]].getValue().clone();else throw new RuntimeError(this.first_line, keys[i] + "が定義されていません");
+			}
+			return rtnv;
 		}
 	}, {
 		key: 'getCode',
@@ -2646,7 +2647,7 @@ var Variable = function (_Value36) {
 			if (vt) {
 				var v = vt.vars[vn];
 				this.rtnv = getValueByArgs(v, this.args, this.loc);
-			}
+			} else throw new RuntimeError(this.first_line, "変数" + this.value[0] + "が定義されていません");
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -3030,7 +3031,7 @@ var CallFunction = function (_Value37) {
 				for (var i = 0; i < _fn.params.length; i++) {
 					vt.vars[_fn.params[i].varname] = param[i].getValue().clone();
 				}
-				var _statementlist = [new runBeforeGetValue(param)];
+				var _statementlist = [new runBeforeGetValue(_fn.param)];
 				for (var _i = 0; _i < _fn.statementlist.length; _i++) {
 					_statementlist.push(_fn.statementlist[_i].clone());
 				}setCaller(_statementlist, this);
@@ -3158,7 +3159,10 @@ var SliceValue = function (_Value39) {
 	}, {
 		key: 'run',
 		value: function run() {
-			code[0].stack[0].index++;
+			var idx = code[0].stack[0].index;
+			this.value[0].run();
+			this.value[1].run();
+			code[0].stack[0].index = idx + 1;
 		}
 	}, {
 		key: 'getCode',
@@ -3180,12 +3184,12 @@ var SliceValue = function (_Value39) {
 	}, {
 		key: 'getValue1',
 		value: function getValue1() {
-			return this.value[0].getValue();
+			return this.value[0];
 		}
 	}, {
 		key: 'getValue2',
 		value: function getValue2() {
-			return this.value[1].getValue();
+			return this.value[1];
 		}
 	}]);
 

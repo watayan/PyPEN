@@ -664,7 +664,12 @@ class DictionaryValue extends Value
 	{
 		var rtnv = new DictionaryValue({}, this.loc);
 		var keys = Object.keys(this.value);
-		for(var i = 0; i < keys.length; i++) rtnv.getValue().value[keys[i]] = this.value[keys[i]].getValue().clone();
+		for(var i = 0; i < keys.length; i++)
+		{
+			if(this.value[keys[i]])
+				rtnv.getValue().value[keys[i]] = this.value[keys[i]].getValue().clone();
+			else throw new RuntimeError(this.first_line, keys[i]+"が定義されていません");
+		}
 		return rtnv;
 	}
 	getCode()
@@ -2183,6 +2188,7 @@ class Variable extends Value
 			let v = vt.vars[vn];
 			this.rtnv = getValueByArgs(v, this.args, this.loc);
 		}
+		else throw new RuntimeError(this.first_line, "変数" + this.value[0] + "が定義されていません");
 		code[0].stack[0].index++;
 	}
 	getCode()
@@ -2603,7 +2609,7 @@ class CallFunction extends Value
 			{
 				vt.vars[fn.params[i].varname] = param[i].getValue().clone();
 			}
-			let statementlist = [new runBeforeGetValue(param)];
+			let statementlist = [new runBeforeGetValue(fn.param)];
 			for(let i = 0; i < fn.statementlist.length; i++)
 				statementlist.push(fn.statementlist[i].clone());
 			setCaller(statementlist, this);
@@ -2707,7 +2713,10 @@ class SliceValue extends Value
 	}
 	run()
 	{
-		code[0].stack[0].index++;
+		var idx = code[0].stack[0].index;
+		this.value[0].run();
+		this.value[1].run();
+		code[0].stack[0].index = idx + 1;
 	}
 	getCode()
 	{
@@ -2725,11 +2734,11 @@ class SliceValue extends Value
 	}
 	getValue1()
 	{
-		return this.value[0].getValue();
+		return this.value[0];
 	}
 	getValue2()
 	{
-		return this.value[1].getValue();
+		return this.value[1];
 	}
 }
 
