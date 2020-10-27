@@ -37,8 +37,6 @@ NonZeroDigit	[1-9１-９]
 Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
 String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
-Comma			[，,、]
-Colon			[:：]
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　]
 Newline			\r\n|\r|\n
@@ -48,7 +46,7 @@ IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
 Identifier		{IdentifierStart}{IdentifierPart}*
 StringTrue		"真"|[Tt][Rr][Uu][Ee]
 StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
-Assign			([:：][\=＝])|"←"
+Assign			[:：][\=＝]|"←"
 AssignAdd		[\+＋][\=＝←]
 AssignDel		[\-ー−‐][\=＝←]
 AssignMul		[\*＊×][\=＝←]
@@ -80,6 +78,8 @@ GE				([>＞][=＝])|"≧"
 LE				([<＜][=＝])|"≦"
 GT				[>＞]
 LT				[<＜]
+Comma			[，,、]
+Colon			[:：]
 
 %%
 
@@ -89,8 +89,6 @@ LT				[<＜]
 {String}		{return '文字列値';}
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
-{Comma}			{return 'COMMA';}
-{Colon}			{return ':'}
 {UNDEFINED}		{return 'UNDEFINED';}
 {Assign}		{return '←';}
 {AssignAdd}		{return '+←';}
@@ -136,6 +134,8 @@ LT				[<＜]
 {Or}			{return '|';}
 {Xor}			{return '^';}
 {Not}			{return '~';}
+{Comma}			{return 'COMMA';}
+{Colon}			{return ':'}
 "かつ"			{return 'かつ';}
 "または"		{return 'または';}
 "でない"		{return 'でない';}
