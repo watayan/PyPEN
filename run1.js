@@ -2134,7 +2134,7 @@ var EQ = function (_Value26) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else if (v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -2186,7 +2186,7 @@ var NE = function (_Value27) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else if (v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -2238,7 +2238,7 @@ var GT = function (_Value28) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else if (v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value > v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -2291,7 +2291,7 @@ var GE = function (_Value29) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else if (v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value >= v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -2344,7 +2344,7 @@ var LT = function (_Value30) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else if (v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value < v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -2397,7 +2397,7 @@ var LE = function (_Value31) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else if (v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value <= v2.value, this.loc);
 			code[0].stack[0].index++;
 		}

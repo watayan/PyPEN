@@ -1809,6 +1809,7 @@ class EQ extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);
 		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 		else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -1848,6 +1849,7 @@ class NE extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);
 		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 		else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -1887,6 +1889,7 @@ class GT extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value > v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -1926,6 +1929,7 @@ class GE extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value >= v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -1965,6 +1969,7 @@ class LT extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value < v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -2004,6 +2009,7 @@ class LE extends Value
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
 		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value <= v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
