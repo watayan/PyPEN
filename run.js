@@ -3557,7 +3557,7 @@ class Input extends Statement
 				if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 				let va = new Variable(this.varname.varname, this.varname.args, this.loc);
 				let vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
-				va.run();
+				// va.run();
 				let assign = null;
 				let re = /^(0+|false|偽|)$/i;
 				if(this.type == typeOfValue.typeInt)assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc),null, this.loc);

@@ -4074,7 +4074,7 @@ var Input = function (_Statement13) {
 						if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 						var va = new Variable(this.varname.varname, this.varname.args, this.loc);
 						var vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
-						va.run();
+						// va.run();
 						var assign = null;
 						var re = /^(0+|false|偽|)$/i;
 						if (this.type == typeOfValue.typeInt) assign = new Assign(va, new IntValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);else if (this.type == typeOfValue.typeFloat) assign = new Assign(va, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);else if (this.type == typeOfValue.typeString) assign = new Assign(va, new StringValue(vl + '', this.loc), null, this.loc);else if (this.type == typeOfValue.typeBoolean) assign = new Assign(va, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);assign.run();
