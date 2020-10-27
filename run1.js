@@ -3,9 +3,9 @@
 // programmed by watayan <watayan@watayan.net>
 // edit run.js, and transpile with Babel to make run1.js
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -666,22 +666,35 @@ var ArrayValue = function (_Value2) {
 
 	/**
   * @constructor
-  * @param {Array} v 
+  * @param {Array<Value>} v 
   * @param {Location} loc 
   */
 	function ArrayValue(v, loc) {
 		_classCallCheck(this, ArrayValue);
 
-		return _possibleConstructorReturn(this, (ArrayValue.__proto__ || Object.getPrototypeOf(ArrayValue)).call(this, v, loc));
+		var _this5 = _possibleConstructorReturn(this, (ArrayValue.__proto__ || Object.getPrototypeOf(ArrayValue)).call(this, v, loc));
+
+		_this5.rtnv = v;
+		return _this5;
 	}
 
 	_createClass(ArrayValue, [{
 		key: 'clone',
 		value: function clone() {
-			var rtnv = [];
+			var a = [];
 			for (var i = 0; i < this.value.length; i++) {
-				rtnv.push(this.value[i].getValue().clone());
-			}return new ArrayValue(rtnv, this.loc);
+				a.push(this.value[i].getValue().clone());
+			}var rtnv = new ArrayValue(a, this.loc);
+			return rtnv;
+		}
+	}, {
+		key: 'run',
+		value: function run() {
+			var a = [];
+			for (var i = 0; i < this.value.length; i++) {
+				a.push(this.value[i].getValue().clone());
+			}this.rtnv = a;
+			_get(ArrayValue.prototype.__proto__ || Object.getPrototypeOf(ArrayValue.prototype), 'run', this).call(this);
 		}
 	}, {
 		key: 'getCode',
@@ -900,7 +913,7 @@ var StringValue = function (_Value6) {
 	}, {
 		key: 'getCode',
 		value: function getCode() {
-			if (this.value.match(/[「」]/)) return '"' + this.value + '"';else return '「' + this.value + '」';
+			return '"' + this.value.replace(/"/g, '\\"') + '"';
 		}
 	}, {
 		key: 'makePython',
@@ -2409,8 +2422,6 @@ var LE = function (_Value31) {
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2420,8 +2431,6 @@ var LE = function (_Value31) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -3602,7 +3611,7 @@ function valuelist2stack(args, queue) {
 		}
 	} else if (args instanceof ArrayValue) {
 		for (var _i2 = 0; _i2 < args.length; _i2++) {
-			var _v3 = args.getValue().value[_i2];
+			var _v3 = args.value[_i2];
 			if (_v3 instanceof ArrayValue) valuelist2stack(_v3.value, queue);else if (_v3 instanceof DictionaryValue) valuelist2stack(_v3.value, queue);else if (_v3 instanceof Variable && _v3.args) valuelist2stack(_v3.args, queue);else if (_v3 && !(_v3 instanceof Variable) && _v3.value instanceof Array) valuelist2stack(_v3.value, queue);else if (_v3 instanceof CallFunction) {
 				valuelist2stack(_v3.value.parameter, queue);
 				//				valuelist2stack(v, queue);
@@ -4155,7 +4164,7 @@ var InputEnd = function (_Statement15) {
 			try {
 				var va = new Variable(this.varname.varname, this.varname.args, this.loc);
 				var vl = closeInputWindow();
-				va.run();
+				// va.run();
 				var assign = null;
 				var re = /^(0+|false|偽|)$/i;
 				code.shift();
@@ -4305,7 +4314,7 @@ function array2code(v) {
 		for (var _i5 = 0; _i5 < keys.length; _i5++) {
 			_v9.push(keys[_i5] + ':' + array2text(v0.value[keys[_i5]]));
 		}return '{' + _v9.join(',') + '}';
-	} else if (v0 instanceof StringValue) return "「" + v0.value + "」";else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
+	} else if (v0 instanceof StringValue) return '"' + v0.value + '"';else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
 }
 
@@ -4506,21 +4515,15 @@ var GraphicStatement = function (_Statement18) {
 					canvas.style.display = "block";
 				}
 				// 値の取得
-				var values = Array2ArrayOfArray(this.args[2].getValue());
-				var array = [];
-				var n = values.length,
-				    v,
-				    max = 0,
+				var values = array2values(this.args[2], this.loc);
+				var max = 0,
 				    min = 0,
 				    maxn = 0;
-				for (var i = 0; i < n; i++) {
-					v = values[i].rtnv;
-					array.push([]);
-					if (v.length > maxn) maxn = v.length;
-					for (var j = 0; j < v.length; j++) {
-						var v1 = v[j].rtnv;
-						if (v1 instanceof Value) v1 = v1.value;
-						array[i].push(v1);
+				for (var i = 0; i < values.length; i++) {
+					var l = values[i].length;
+					if (l > maxn) maxn = l;
+					for (var j = 0; j < l; j++) {
+						var v1 = values[i][j];
 						if (v1 > max) max = v1;
 						if (v1 < min) min = v1;
 					}
@@ -4537,15 +4540,15 @@ var GraphicStatement = function (_Statement18) {
 				context.moveTo(x0, y0);
 				context.lineTo(x0 + w, y0);
 				context.stroke();
-				if (n > 0) {
-					var w0 = w / maxn / array.length;
-					for (var i = 0; i < n; i++) {
+				if (values.length > 0) {
+					var w0 = w / maxn / values.length;
+					for (var i = 0; i < values.length; i++) {
 						context.fillStyle = graphColor[i % 6];
 						context.beginPath();
-						for (var j = 0; j < array[i].length; j++) {
+						for (var j = 0; j < values[i].length; j++) {
 							var x = x0 + w0 * j + w0 / 2,
-							    y = y0 - array[i][j] / (max - min) * h;
-							if (array[i][j] >= 0) context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0 - h * (array[i][j] / (max - min)), w0 * 0.8, h * (array[i][j] / (max - min)));else context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i][j] / (max - min)));
+							    y = y0 - values[i][j] / (max - min) * h;
+							if (values[i][j] >= 0) context.fillRect(x0 + w0 * j * values.length + w0 * 0.8 * i + w0 * 0.1, y0 - h * (values[i][j] / (max - min)), w0 * 0.8, h * (values[i][j] / (max - min)));else context.fillRect(x0 + w0 * j * values.length + w0 * 0.8 * i + w0 * 0.1, y0, w0 * 0.8, h * (-values[i][j] / (max - min)));
 						}
 						context.stroke();
 					}
@@ -4561,21 +4564,15 @@ var GraphicStatement = function (_Statement18) {
 					canvas.style.display = "block";
 				}
 				// 値の取得
-				var values = Array2ArrayOfArray(this.args[2].getValue());
-				var array = [];
-				var n = values.length,
-				    v,
-				    max = 0,
+				var values = array2values(this.args[2], this.loc);
+				var max = 0,
 				    min = 0,
 				    maxn = 0;
-				for (var i = 0; i < n; i++) {
-					v = values[i].rtnv;
-					array.push([]);
-					if (v.length > maxn) maxn = v.length;
-					for (var j = 0; j < v.length; j++) {
-						var v1 = v[j].rtnv;
-						if (v1 instanceof Value) v1 = v1.value;
-						array[i].push(v1);
+				for (var i = 0; i < values.length; i++) {
+					var l = values[i].length;
+					if (l > maxn) maxn = l;
+					for (var j = 0; j < l; j++) {
+						var v1 = values[i][j];
 						if (v1 > max) max = v1;
 						if (v1 < min) min = v1;
 					}
@@ -4592,14 +4589,14 @@ var GraphicStatement = function (_Statement18) {
 				context.moveTo(x0, y0);
 				context.lineTo(x0 + w, y0);
 				context.stroke();
-				if (n > 0) {
+				if (values.length > 0) {
 					var w0 = w / maxn;
-					for (var i = 0; i < n; i++) {
+					for (var i = 0; i < values.length; i++) {
 						context.strokeStyle = graphColor[i % 6];
 						context.beginPath();
-						for (var j = 0; j < array[i].length; j++) {
+						for (var j = 0; j < values[i].length; j++) {
 							var x = x0 + w0 * j + w0 / 2,
-							    y = y0 - array[i][j] / (max - min) * h;
+							    y = y0 - values[i][j] / (max - min) * h;
 							if (j == 0) context.moveTo(x, y);else context.lineTo(x, y);
 						}
 						context.stroke();
@@ -4697,13 +4694,23 @@ function val2obj(val) {
 
 /**
  * 
- * @param {Value} a 
- * @param {Location} loc
+ * @param {ArrayValue} a 
+ * @param {Location} loc 
  */
-function Array2ArrayOfArray(a, loc) {
-	if (a instanceof ArrayValue) {
-		if (a.getValue().value[0] instanceof ArrayValue) return a;else return new ArrayValue([a], loc);
-	} else throw new RuntimeError(loc.first_line, "配列でないものが使われました");
+function array2values(a, loc) {
+	var rtnv = [];
+	var array = null;
+	if (a.rtnv instanceof ArrayValue) {
+		if (a.rtnv.value[0] instanceof ArrayValue) array = a.rtnv;else if (a.rtnv.value instanceof Array) array = new ArrayValue([a.rtnv.value], loc);else throw new RuntimeError(loc.first_line, "グラフに誤った型が使われています");
+	} else if (a.rtnv instanceof Array) array = new ArrayValue(a.rtnv, loc);else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
+
+	for (var i = 0; i < array.length; i++) {
+		var rtnv1 = [];
+		for (var j = 0; j < array.value[i].length; j++) {
+			rtnv1.push(array.value[i] instanceof ArrayValue ? array.value[i].value[j].value : array.value[i][j].value);
+		}rtnv.push(rtnv1);
+	}
+	return rtnv;
 }
 
 var If = function (_Statement19) {
@@ -7782,7 +7789,7 @@ function openModalWindowforOutput(title, subtitle, values, parts) {
 	modal_values = values;
 	modal_parts = parts;
 	html += "<table>";
-	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0] + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0].replace(/\"/g, "&quot;") + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "<tr><td></td><td><input type=\"checkbox\" " + "id=\"inputarea1\"" + (values[1] ? " checked=\"checked\"" : "") + ">改行する</td></tr>";
 	html += "</table>";
 	html += "<button type=\"button\" onclick=\"closeModalWindow(true);\">OK</button>";

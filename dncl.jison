@@ -20,6 +20,12 @@
 			return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);}
 		);
 	}
+	function escape_bracket(s)
+	{
+		if(/^".*"$/.exec(s)) return s.substr(1, s.length - 2).replace(/\\\"/g, "\"");
+		else if(/^'.*'$/.exec(s)) return s.substr(1, s.length - 2).replace(/\\'/g,"'");
+		else return s.substr(1, s.length - 2);
+	}
 %}
 
 
@@ -30,7 +36,7 @@ NonZeroDigit	[1-9１-９]
 
 Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
-String			"「"[^」]*"」"|"'"[^']*"'"|"\""[^"]*"\""
+String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
 Comma			[，,、]
 Colon			[:：]
 Print			"表示"|"印刷"|"出力"
@@ -247,7 +253,7 @@ LT				[<＜]
 e
 	: '整数値'		{$$ = new IntValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
 	| '実数値'		{$$ = new FloatValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
-	| '文字列値'	{$$ = new StringValue(yytext.substring(1, yytext.length - 1), new Location(@1, @1));}
+	| '文字列値'	{$$ = new StringValue(escape_bracket(yytext), new Location(@1, @1));}
 	| 'True'		{$$ = new BooleanValue(true, new Location(@1,@1));}
 	| 'False'		{$$ = new BooleanValue(false, new Location(@1,@1));}
 	| e '**' e		{$$ = new Pow($1, $3, new Location(@1, @3));}

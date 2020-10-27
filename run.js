@@ -608,18 +608,27 @@ class ArrayValue extends Value
 {
 	/**
 	 * @constructor
-	 * @param {Array} v 
+	 * @param {Array<Value>} v 
 	 * @param {Location} loc 
 	 */
 	constructor(v, loc)
 	{
 		super(v, loc);
+		this.rtnv = v;
 	}
 	clone()
 	{
-		var rtnv = [];
-		for(var i = 0; i < this.value.length; i++) rtnv.push(this.value[i].getValue().clone());
-		return new ArrayValue(rtnv, this.loc);
+		var a = [];
+		for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue().clone());
+		var rtnv = new ArrayValue(a, this.loc);
+		return rtnv;
+	}
+	run()
+	{
+		var a = [];
+		for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue().clone());
+		this.rtnv = a;
+		super.run();
 	}
 	getCode()
 	{
@@ -777,6 +786,7 @@ class FloatValue extends Value
 		return this;
 	}
 }
+
 class StringValue extends Value 
 {
 	constructor(v, loc)
@@ -792,8 +802,7 @@ class StringValue extends Value
 	}
 	getCode()
 	{
-		if(this.value.match(/[「」]/)) return '"' + this.value + '"';
-		else return '「' + this.value + '」';
+		return '"' + this.value.replace(/"/g,'\\"') + '"';
 	}
 	get length(){return this.value.length;}
 	makePython()
@@ -2005,7 +2014,6 @@ class LE extends Value
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' <= '
@@ -2014,7 +2022,6 @@ class LE extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' <= '
@@ -3042,7 +3049,7 @@ function valuelist2stack(args, queue)
 	{
 		for(let i = 0; i < args.length; i++)
 		{
-			let v = args.getValue().value[i];
+			let v = args.value[i];
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
 			else if(v instanceof DictionaryValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
@@ -3622,7 +3629,7 @@ class InputEnd extends Statement
 		try{
 			let va = new Variable(this.varname.varname, this.varname.args, this.loc);
 			let vl = closeInputWindow();
-			va.run();
+			// va.run();
 			let assign = null;
 			let re = /^(0+|false|偽|)$/i;
 			code.shift();
@@ -3768,7 +3775,7 @@ function array2code(v)
 		for(let i = 0; i < keys.length; i++) v1.push(keys[i] + ':' + array2text(v0.value[keys[i]]));
 		return '{' + v1.join(',') + '}';
 	}
-	else if(v0 instanceof StringValue) return "「" + v0.value + "」";
+	else if(v0 instanceof StringValue) return '"' + v0.value + '"';
 	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
 }
@@ -3972,19 +3979,15 @@ class GraphicStatement extends Statement
 				canvas.style.display="block";
 			}
 			// 値の取得
-			var values = Array2ArrayOfArray(this.args[2].getValue());
-			var array = [];
-			var n = values.length, v, max = 0, min = 0, maxn = 0;
-			for(var i = 0; i < n; i++)
+			var values = array2values(this.args[2], this.loc);
+			var max = 0, min = 0, maxn = 0;
+			for(var i = 0; i < values.length; i++)
 			{
-				v = values[i].rtnv;
-				array.push([]);
-				if(v.length > maxn) maxn = v.length;
-				for(var j = 0; j < v.length; j++)
+				var l = values[i].length;
+				if(l > maxn) maxn = l;
+				for(var j = 0; j < l; j++)
 				{
-					var v1 = v[j].rtnv;
-					if(v1 instanceof Value) v1 = v1.value;
-					array[i].push(v1);
+					var v1 = values[i][j];
 					if(v1 > max) max = v1;
 					if(v1 < min) min = v1;
 				}
@@ -4000,21 +4003,21 @@ class GraphicStatement extends Statement
 			context.moveTo(x0, y0);
 			context.lineTo(x0 + w, y0);
 			context.stroke();
-			if(n > 0)
+			if(values.length > 0)
 			{
-				var w0 = w / maxn / array.length;
-				for(var i = 0; i < n; i++)
+				var w0 = w / maxn / values.length;
+				for(var i = 0; i < values.length; i++)
 				{
 					context.fillStyle = graphColor[i % 6];
 					context.beginPath();
-					for(var j = 0; j < array[i].length; j++)
+					for(var j = 0; j < values[i].length; j++)
 					{
-						var x = x0 + w0 * j + w0 / 2, y = y0 - (array[i][j] / (max - min)) * h;
-						if(array[i][j] >= 0)
-							context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0 - h * (array[i][j] / (max - min)),w0 * 0.8, h * (array[i][j] / (max - min)));
+						var x = x0 + w0 * j + w0 / 2, y = y0 - (values[i][j] / (max - min)) * h;
+						if(values[i][j] >= 0)
+							context.fillRect(x0 + w0 * j * values.length + w0 * 0.8 * i + w0 * 0.1, y0 - h * (values[i][j] / (max - min)),w0 * 0.8, h * (values[i][j] / (max - min)));
 						else
-							context.fillRect(x0 + w0 * j * array.length + w0 * 0.8 * i + w0 * 0.1, y0, w0 * 0.8, h * (-array[i][j] / (max - min)));
-		}
+							context.fillRect(x0 + w0 * j * values.length + w0 * 0.8 * i + w0 * 0.1, y0, w0 * 0.8, h * (-values[i][j] / (max - min)));
+					}
 					context.stroke();
 				}
 			}
@@ -4031,19 +4034,15 @@ class GraphicStatement extends Statement
 				canvas.style.display="block";	
 			}
 			// 値の取得
-			var values = Array2ArrayOfArray(this.args[2].getValue());
-			var array = [];
-			var n = values.length, v, max = 0, min = 0, maxn = 0;
-			for(var i = 0; i < n; i++)
+			var values = array2values(this.args[2], this.loc);
+			var max = 0, min = 0, maxn = 0;
+			for(var i = 0; i < values.length; i++)
 			{
-				v = values[i].rtnv;
-				array.push([]);
-				if(v.length > maxn) maxn = v.length;
-				for(var j = 0; j < v.length; j++)
+				var l = values[i].length;
+				if(l > maxn) maxn = l;
+				for(var j = 0; j < l; j++)
 				{
-					var v1 = v[j].rtnv;
-					if(v1 instanceof Value) v1 = v1.value;
-					array[i].push(v1);
+					var v1 = values[i][j];
 					if(v1 > max) max = v1;
 					if(v1 < min) min = v1;
 				}
@@ -4059,16 +4058,16 @@ class GraphicStatement extends Statement
 			context.moveTo(x0, y0);
 			context.lineTo(x0 + w, y0);
 			context.stroke();
-			if(n > 0)
+			if(values.length > 0)
 			{
 				var w0 = w / maxn;
-				for(var i = 0; i < n; i++)
+				for(var i = 0; i < values.length; i++)
 				{
 					context.strokeStyle = graphColor[i % 6];
 					context.beginPath();
-					for(var j = 0; j < array[i].length; j++)
+					for(var j = 0; j < values[i].length; j++)
 					{
-						var x = x0 + w0 * j + w0 / 2, y = y0 - (array[i][j] / (max - min)) * h;
+						var x = x0 + w0 * j + w0 / 2, y = y0 - (values[i][j] / (max - min)) * h;
 						if(j == 0) context.moveTo(x, y);
 						else context.lineTo(x, y);
 					}
@@ -4182,23 +4181,35 @@ function val2obj(val)
 	else return val.value;
 }
 
-
 /**
  * 
- * @param {Value} a 
- * @param {Location} loc
+ * @param {ArrayValue} a 
+ * @param {Location} loc 
  */
-function Array2ArrayOfArray(a, loc)
+function array2values(a, loc)
 {
-	if(a instanceof ArrayValue)
+	var rtnv = [];
+	var array = null;
+	if(a.rtnv instanceof ArrayValue)
 	{
-		if(a.getValue().value[0] instanceof ArrayValue)
-			return a;
-		else
-			return new ArrayValue([a], loc);
+		if(a.rtnv.value[0] instanceof ArrayValue) array = a.rtnv;
+		else if(a.rtnv.value instanceof Array) array = new ArrayValue([a.rtnv.value], loc);
+		else throw new RuntimeError(loc.first_line, "グラフに誤った型が使われています");
 	}
-	else throw new RuntimeError(loc.first_line, "配列でないものが使われました")
+	else if(a.rtnv instanceof Array) array = new ArrayValue(a.rtnv, loc);
+	else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
+
+	for(var i = 0; i < array.length; i++)
+	{
+		var rtnv1 = [];
+		for(var j = 0; j < array.value[i].length; j++)
+			rtnv1.push(array.value[i] instanceof ArrayValue ? array.value[i].value[j].value : array.value[i][j].value);
+		rtnv.push(rtnv1);
+	}
+	return rtnv;
 }
+
+
 
 class If extends Statement
 {
@@ -6917,7 +6928,7 @@ function openModalWindowforOutput(title, subtitle, values, parts)
 	modal_parts = parts;
 	html += "<table>";
 	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
-		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
+		"id=\"inputarea0\" value=\"" + values[0].replace(/\"/g,"&quot;") + "\" " +
 		"onfocus=\"select();\" "+
 		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "<tr><td></td><td><input type=\"checkbox\" " +
