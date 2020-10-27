@@ -1808,13 +1808,13 @@ class EQ extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 		else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' = '
@@ -1823,7 +1823,6 @@ class EQ extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' == '
@@ -1848,13 +1847,13 @@ class NE extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 		else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' != '
@@ -1863,7 +1862,6 @@ class NE extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' != '
@@ -1888,13 +1886,13 @@ class GT extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value > v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' > '
@@ -1903,7 +1901,6 @@ class GT extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' > '
@@ -1928,13 +1925,13 @@ class GE extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value >= v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' >= '
@@ -1943,7 +1940,6 @@ class GE extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' >= '
@@ -1968,13 +1964,13 @@ class LT extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value < v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
 	getCode()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
 			+ ' < '
@@ -1983,7 +1979,6 @@ class LT extends Value
 	makePython()
 	{
 		let v1 = this.value[0], v2 = this.value[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+ ' < '
@@ -2008,6 +2003,7 @@ class LE extends Value
 	{
 		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 		this.rtnv = new BooleanValue(v1.value <= v2.value, this.loc);
 		code[0].stack[0].index++;
 	}
@@ -6846,7 +6842,7 @@ function openModalWindow(title, subtitle, values, parts)
 	html += "<table>";
 	for(var i = 0; i < modal_subtitle.length; i++)
 		html += "<tr><td>" + subtitle[i] + "</td><td><input type=\"text\" " +
-			"id=\"inputarea" + i + "\" value=\"" + values[i] + "\" " +
+			"id=\"inputarea" + i + "\" value=\"" + values[i].replace(/\"/g,"&quot;") + "\" " +
 			"onfocus=\"select();\" "+
 			"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "</table>";
@@ -6870,11 +6866,11 @@ function openModalWindowforSubstitute(title, subtitle, values, parts)
 	modal_parts = parts;
 	html += "<table>";
 	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
-		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
+		"id=\"inputarea0\" value=\"" + values[0].replace(/\"/g,"&quot;") + "\" " +
 		"onfocus=\"select();\" "+
 		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "<tr><td>" + subtitle[1] + "</td><td><input type=\"text\" " +
-		"id=\"inputarea1\" value=\"" + values[1] + "\" " +
+		"id=\"inputarea1\" value=\"" + values[1].replace(/\"/g,"&quot;") + "\" " +
 		"onfocus=\"select();\" "+
 		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 
@@ -6901,7 +6897,7 @@ function openModalWindowforInput(title, subtitle, values, parts)
 	modal_parts = parts;
 	html += "<table>";
 	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " +
-		"id=\"inputarea0\" value=\"" + values[0] + "\" " +
+		"id=\"inputarea0\" value=\"" + values[0].replace(/\"/g,"&quot;") + "\" " +
 		"onfocus=\"select();\" "+
 		"onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "<tr><td>" + subtitle[1] + "</td><td><select id=\"inputarea1\">";
@@ -7002,7 +6998,6 @@ function onmiscchanged()
 {
 	var index = document.getElementById("misccommands").selectedIndex;
 	setIdentifierforMisc(misc_menu[index][1]);
-
 }
 
 function setIdentifierforMisc(identifier)

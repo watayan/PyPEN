@@ -2134,7 +2134,7 @@ var EQ = function (_Value26) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -2142,8 +2142,6 @@ var EQ = function (_Value26) {
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2153,7 +2151,6 @@ var EQ = function (_Value26) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' == ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2189,7 +2186,7 @@ var NE = function (_Value27) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
 	}, {
@@ -2197,8 +2194,6 @@ var NE = function (_Value27) {
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2208,7 +2203,6 @@ var NE = function (_Value27) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2244,7 +2238,7 @@ var GT = function (_Value28) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value > v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -2253,8 +2247,6 @@ var GT = function (_Value28) {
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2264,7 +2256,6 @@ var GT = function (_Value28) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2300,7 +2291,7 @@ var GE = function (_Value29) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value >= v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -2309,8 +2300,6 @@ var GE = function (_Value29) {
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2320,7 +2309,6 @@ var GE = function (_Value29) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			// let c1 = constructor_name(v1), c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2356,7 +2344,7 @@ var LT = function (_Value30) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value < v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -2365,8 +2353,6 @@ var LT = function (_Value30) {
 		value: function getCode() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
@@ -2376,8 +2362,6 @@ var LT = function (_Value30) {
 		value: function makePython() {
 			var v1 = this.value[0],
 			    v2 = this.value[1];
-			var c1 = constructor_name(v1),
-			    c2 = constructor_name(v2);
 			var brace1 = false,
 			    brace2 = false;
 			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '');
@@ -2413,7 +2397,7 @@ var LE = function (_Value31) {
 		value: function run() {
 			var v1 = this.value[0].getValue(),
 			    v2 = this.value[1].getValue();
-			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");
+			if (v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません");else if (v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 			this.rtnv = new BooleanValue(v1.value <= v2.value, this.loc);
 			code[0].stack[0].index++;
 		}
@@ -7723,7 +7707,7 @@ function openModalWindow(title, subtitle, values, parts) {
 	modal_parts = parts;
 	html += "<table>";
 	for (var i = 0; i < modal_subtitle.length; i++) {
-		html += "<tr><td>" + subtitle[i] + "</td><td><input type=\"text\" " + "id=\"inputarea" + i + "\" value=\"" + values[i] + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+		html += "<tr><td>" + subtitle[i] + "</td><td><input type=\"text\" " + "id=\"inputarea" + i + "\" value=\"" + values[i].replace(/\"/g, "&quot;") + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	}html += "</table>";
 	html += "<button type=\"button\" onclick=\"closeModalWindow(true);\">OK</button>";
 	html += "<button type=\"button\" onclick=\"closeModalWindow(false);\">キャンセル</button>";
@@ -7743,8 +7727,8 @@ function openModalWindowforSubstitute(title, subtitle, values, parts) {
 	modal_values = values;
 	modal_parts = parts;
 	html += "<table>";
-	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0] + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
-	html += "<tr><td>" + subtitle[1] + "</td><td><input type=\"text\" " + "id=\"inputarea1\" value=\"" + values[1] + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0].replace(/\"/g, "&quot;") + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[1] + "</td><td><input type=\"text\" " + "id=\"inputarea1\" value=\"" + values[1].replace(/\"/g, "&quot;") + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 
 	html += "<tr><td>" + subtitle[2] + "</td><td><select id=\"inputarea2\">";
 	for (var i = 0; i <= operators.length; i++) {
@@ -7767,7 +7751,7 @@ function openModalWindowforInput(title, subtitle, values, parts) {
 	modal_values = values;
 	modal_parts = parts;
 	html += "<table>";
-	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0] + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
+	html += "<tr><td>" + subtitle[0] + "</td><td><input type=\"text\" " + "id=\"inputarea0\" value=\"" + values[0].replace(/\"/g, "&quot;") + "\" " + "onfocus=\"select();\" " + "onkeydown=\"keydownModal(event);\" spellcheck=\"false\"></td></tr>";
 	html += "<tr><td>" + subtitle[1] + "</td><td><select id=\"inputarea1\">";
 	for (var i = typeOfValue.typeInt; i <= typeOfValue.typeBoolean; i++) {
 		html += "<option value=\"" + i + "\"" + (i == values[1] ? "selected=\"selected\"" : "") + ">" + nameOfType[i] + "</option>";
