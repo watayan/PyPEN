@@ -235,16 +235,18 @@ Colon			[:：]
 /lex
 
 %left 'と'
-%left 'かつ' 'または'
+%left 'または'
+%left 'かつ' 
 %left 'でない'
 %nonassoc '=' '==' '!=' '>' '<' '>=' '<='
+%left '|'
+%left '^'
+%left '&'
+%left '<<' '>>'
 %left '+' '-'
 %left '*' '/' '//' '%'
+%left UMINUS '~'
 %right '**'
-%left '&' '|' '^'
-%left '<<' '>>'
-%left '~'
-%left UMINUS
 %
 %start Program
 
