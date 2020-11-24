@@ -2035,6 +2035,49 @@ class LE extends Value
 	}
 }
 
+class IN extends Value
+{
+	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		var rtnv = new IN(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		var flag = false;
+		if(v1 instanceof ArrayValue)
+			for(i = 0; i < v1.value.length; i++)
+				flag |= ArrayCompare(v1.value[i], v2);
+		else throw new RuntimeError(this.first_line, "\"の中に\"の前には配列が必要です");
+		this.rtnv = new BooleanValue(flag, this.loc);
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ 'の中に'
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()	// 逆順になることに注意
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v2.makePython() + (brace1 ? ')' : '')
+			+ ' in '
+			+ (brace2 ? '(' : '') + v1.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
+
 class ConvertInt extends Value
 {
 	constructor(x, loc){ super([x], loc);}

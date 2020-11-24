@@ -156,6 +156,7 @@ Colon			[:：]
 "手続き"				{return '手続き';}
 "関数"					{return '関数';}
 "を返す"				{return 'を返す';}
+"の中に"				{return 'の中に';}
 "に"					{return 'に';}
 "を"					{return 'を';}
 "から"				{return 'から';}
@@ -238,7 +239,7 @@ Colon			[:：]
 %left 'または'
 %left 'かつ' 
 %left 'でない'
-%nonassoc '=' '==' '!=' '>' '<' '>=' '<='
+%nonassoc '=' '==' '!=' '>' '<' '>=' '<=' 'の中に'
 %left '|'
 %left '^'
 %left '&'
@@ -280,6 +281,7 @@ e
 	| e '<' e		{$$ = new LT($1, $3, new Location(@1, @3));}
 	| e '>=' e		{$$ = new GE($1, $3, new Location(@1, @3));}
 	| e '<=' e		{$$ = new LE($1, $3, new Location(@1, @3));}
+	| e 'の中に' e	{$$ = new IN($1, $3, new Location(@1, @3));}
 	| e 'かつ' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'または' e	{$$ = new Or($1, $3, new Location(@1, @3));}
 	| e 'でない'	{$$ = new Not($1, new Location(@1, @1));}
