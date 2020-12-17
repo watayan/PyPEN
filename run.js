@@ -470,6 +470,9 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 		if(arg.getValue() instanceof IntValue)
 		{
 			var idx = arg.getValue().value;
+			var l = v.getValue().value.length;
+			if(idx < 0) idx += l;
+			if(idx < 0 || idx >= l) throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
 			if(v.getValue() instanceof ArrayValue) v.getValue().value[idx] = newval.clone();
 			else if(v.getValue() instanceof StringValue)
 			{
