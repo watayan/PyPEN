@@ -14,6 +14,7 @@ var scripts = [
     "./sample.js",
     "./quiz.js",
     "./answer.js",
+    "./run1.js"
 ];
 
 function load_js(js)
@@ -33,7 +34,6 @@ function load_js(js)
     {
         await load_js(scripts[i]);
     }
-    load_js("./run1.js");
     var input_status = document.getElementById('input_status');
     input_status.style.visibility = 'hidden';
     input_status.innerText = '入力待ち';
