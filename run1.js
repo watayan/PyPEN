@@ -221,8 +221,8 @@ var varTable = function () {
 function findVarTable(varname) {
 	var t = varTables[0].findVarTable(varname);
 	if (t) return t;
-	var n = varTables.length - 1;
-	if (n > 0) return varTables[n].findVarTable(varname);
+	// var n = varTables.length - 1;
+	// if(n > 0) return varTables[n].findVarTable(varname);
 	return null;
 }
 
@@ -2682,7 +2682,9 @@ var Variable = function (_Value37) {
 	function Variable(x, y, loc) {
 		_classCallCheck(this, Variable);
 
-		return _possibleConstructorReturn(this, (Variable.__proto__ || Object.getPrototypeOf(Variable)).call(this, [x, y], loc));
+		var _this40 = _possibleConstructorReturn(this, (Variable.__proto__ || Object.getPrototypeOf(Variable)).call(this, [x, y], loc));
+
+		_this40.rtnv = null;return _this40;
 	}
 
 	_createClass(Variable, [{
@@ -3032,6 +3034,15 @@ function setCaller(statementlist, caller) {
 	}
 }
 
+function cloneStatementlist(statementlist) {
+	var rtnv = [];
+	for (var _i7 = 0; _i7 < statementlist.length; _i7++) {
+		var statement = statementlist[_i7];
+		rtnv.push(statement.clone());
+	}
+	return rtnv;
+}
+
 /**
  * 関数呼び出し
  */
@@ -3078,22 +3089,47 @@ var CallFunction = function (_Value38) {
 				code.unshift(new parsedFunction(statementlist));
 				code[1].stack[0].index = index + 1;
 			} else if (myFuncs[func]) {
-				var _index = code[0].stack[0].index;
+				code[0].stack[0].index++;
 				var _fn = myFuncs[func];
 				var vt = new varTable();
-				for (var _i7 = 0; _i7 < _fn.params.length; _i7++) {
-					vt.vars[_fn.params[_i7].varname] = param[_i7].getValue().clone();
+				var globalVarTable = varTables[varTables.length - 1];
+				var _iteratorNormalCompletion = true;
+				var _didIteratorError = false;
+				var _iteratorError = undefined;
+
+				try {
+					for (var _iterator = Object.keys(globalVarTable.vars)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+						var _i8 = _step.value;
+
+						vt.vars[_i8] = globalVarTable.vars[_i8].getValue().clone();
+					}
+				} catch (err) {
+					_didIteratorError = true;
+					_iteratorError = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion && _iterator.return) {
+							_iterator.return();
+						}
+					} finally {
+						if (_didIteratorError) {
+							throw _iteratorError;
+						}
+					}
 				}
-				var _statementlist = [new runBeforeGetValue(_fn.param)];
-				for (var _i8 = 0; _i8 < _fn.statementlist.length; _i8++) {
-					_statementlist.push(_fn.statementlist[_i8].clone());
-				}setCaller(_statementlist, this);
+
+				for (var _i9 = 0; _i9 < _fn.params.length; _i9++) {
+					vt.vars[_fn.params[_i9].varname] = param[_i9].getValue().clone();
+				}var _statementlist = cloneStatementlist(_fn.statementlist);
+				// let statementlist = cloneStatementlist(fn.statementlist);
+				_statementlist.unshift(new runBeforeGetValue(_fn.param));
+				setCaller(_statementlist, this);
 				//			let statementlist = fn.statementlist.concat();
 				_statementlist.push(new notReturnedFunction(_fn.loc));
 				var pf = new parsedFunction(_statementlist);
 				code.unshift(pf);
 				varTables.unshift(vt);
-				code[1].stack[0].index = _index + 1;
+				// code[1].stack[0].index = index + 1;
 			} else throw new RuntimeError(this.first_line, '関数 ' + func + ' は定義されていません');
 		}
 	}, {
@@ -3113,8 +3149,8 @@ var CallFunction = function (_Value38) {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
 			var ag = [];
-			for (var _i9 = 0; _i9 < param.length; _i9++) {
-				ag.push(param[_i9].getCode());
+			for (var _i10 = 0; _i10 < param.length; _i10++) {
+				ag.push(param[_i10].getCode());
 			}return func + '(' + ag.join(',') + ')';
 		}
 	}, {
@@ -3125,8 +3161,8 @@ var CallFunction = function (_Value38) {
 			var deffunc = null;
 			if (definedFunction[func]) deffunc = definedFunction[func];else if (myFuncs[func]) deffunc = myFuncs[func];
 			var ag = [];
-			for (var _i10 = 0; _i10 < param.length; _i10++) {
-				ag.push(param[_i10].makePython());
+			for (var _i11 = 0; _i11 < param.length; _i11++) {
+				ag.push(param[_i11].makePython());
 			}if (deffunc) {
 				var prefix = '';
 				if (deffunc.module) {
@@ -3409,8 +3445,34 @@ var CallStep = function (_Statement2) {
 			var args = this.args;
 			if (myFuncs[fn]) {
 				var vt = new varTable();
-				for (var _i11 = 0; _i11 < myFuncs[fn].params.length; _i11++) {
-					vt.vars[myFuncs[fn].params[_i11].varname] = args[_i11].getValue().clone();
+				var globalVarTable = varTables[varTables.length - 1];
+				var _iteratorNormalCompletion2 = true;
+				var _didIteratorError2 = false;
+				var _iteratorError2 = undefined;
+
+				try {
+					for (var _iterator2 = Object.keys(globalVarTable.vars)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+						var _i12 = _step2.value;
+
+						vt.vars[_i12] = globalVarTable.vars[_i12].getValue().clone();
+					}
+				} catch (err) {
+					_didIteratorError2 = true;
+					_iteratorError2 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion2 && _iterator2.return) {
+							_iterator2.return();
+						}
+					} finally {
+						if (_didIteratorError2) {
+							throw _iteratorError2;
+						}
+					}
+				}
+
+				for (var _i13 = 0; _i13 < myFuncs[fn].params.length; _i13++) {
+					vt.vars[myFuncs[fn].params[_i13].varname] = args[_i13].getValue().clone();
 				}var statementlist = myFuncs[fn].statementlist.concat();
 				// TODO 呼ばれる保証がない
 				statementlist.push(new afterCallStep());
@@ -3645,8 +3707,8 @@ var DumpStatement = function (_Statement7) {
 
 function valuelist2stack(args, queue) {
 	if (args instanceof Array) {
-		for (var _i12 = 0; _i12 < args.length; _i12++) {
-			var v = args[_i12];
+		for (var _i14 = 0; _i14 < args.length; _i14++) {
+			var v = args[_i14];
 			if (v instanceof ArrayValue) valuelist2stack(v.value, queue);else if (v instanceof DictionaryValue) valuelist2stack(v.value, queue);else if (v instanceof Variable && v.args) valuelist2stack(v.args, queue);else if (v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);else if (v instanceof CallFunction) {
 				valuelist2stack(v.value.parameter, queue);
 				//				valuelist2stack(v, queue);
@@ -3654,8 +3716,8 @@ function valuelist2stack(args, queue) {
 			queue.push(v);
 		}
 	} else if (args instanceof ArrayValue) {
-		for (var _i13 = 0; _i13 < args.length; _i13++) {
-			var _v3 = args.value[_i13];
+		for (var _i15 = 0; _i15 < args.length; _i15++) {
+			var _v3 = args.value[_i15];
 			if (_v3 instanceof ArrayValue) valuelist2stack(_v3.value, queue);else if (_v3 instanceof DictionaryValue) valuelist2stack(_v3.value, queue);else if (_v3 instanceof Variable && _v3.args) valuelist2stack(_v3.args, queue);else if (_v3 && !(_v3 instanceof Variable) && _v3.value instanceof Array) valuelist2stack(_v3.value, queue);else if (_v3 instanceof CallFunction) {
 				valuelist2stack(_v3.value.parameter, queue);
 				//				valuelist2stack(v, queue);
@@ -3757,13 +3819,13 @@ var runArgsBeforeGetValue = function (_Statement9) {
 		value: function run() {
 			_get(runArgsBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue.prototype), 'run', this).call(this);
 			var queue = [];
-			for (var _i14 = 0; _i14 < this.args.length; _i14++) {
-				if (this.args[_i14] instanceof SliceValue) {
-					valuelist2stack(this.args[_i14].getValue1(), queue);
-					valuelist2stack(this.args[_i14].getValue2(), queue);
+			for (var _i16 = 0; _i16 < this.args.length; _i16++) {
+				if (this.args[_i16] instanceof SliceValue) {
+					valuelist2stack(this.args[_i16].getValue1(), queue);
+					valuelist2stack(this.args[_i16].getValue2(), queue);
 				} else {
-					if (this.args[_i14].parameter) valuelist2stack(this.args[_i14].parameter, queue);
-					if (this.args[_i14].args) valuelist2stack(this.args[_i14].args, queue);
+					if (this.args[_i16].parameter) valuelist2stack(this.args[_i16].parameter, queue);
+					if (this.args[_i16].args) valuelist2stack(this.args[_i16].args, queue);
 				}
 			}
 			code[0].stack.unshift({ statementlist: queue, index: 0 });
@@ -3788,8 +3850,8 @@ var runArgsBeforeGetValue = function (_Statement9) {
 function argsString(args) {
 	if (args instanceof ArrayValue) {
 		var a = [];
-		for (var _i15 = 0; _i15 < args.value.length; _i15++) {
-			a.push(args.value[_i15].getValue().value);
+		for (var _i17 = 0; _i17 < args.value.length; _i17++) {
+			a.push(args.value[_i17].getValue().value);
 		}return '[' + a.join(',') + ']';
 	}
 	return '';
@@ -3987,11 +4049,11 @@ var Append = function (_Statement11) {
 					var va = vt.vars[vn];
 					if (ag && ag.value.length > 0) // 配列の添字がある
 						{
-							for (var _i16 = 0; _i16 < ag.value.length; _i16++) {
-								if (ag.value[_i16] instanceof StringValue) {
-									va = va.value[ag.value[_i16].getValue().value];
-								} else if (ag.value[_i16] instanceof IntValue) {
-									if (va.value[ag.value[_i16].getValue().value]) va = va.value[ag.value[_i16].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました');
+							for (var _i18 = 0; _i18 < ag.value.length; _i18++) {
+								if (ag.value[_i18] instanceof StringValue) {
+									va = va.value[ag.value[_i18].getValue().value];
+								} else if (ag.value[_i18] instanceof IntValue) {
+									if (va.value[ag.value[_i18].getValue().value]) va = va.value[ag.value[_i18].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました');
 								} else throw new RuntimeError(this.first_line, '添字に使えないデータ型です');
 							}
 						}
@@ -4052,11 +4114,11 @@ var Extend = function (_Statement12) {
 					var va = vt.vars[vn];
 					if (ag && ag.value.length > 0) // 配列の添字がある
 						{
-							for (var _i17 = 0; _i17 < ag.value.length; _i17++) {
-								if (ag.value[_i17] instanceof StringValue) {
-									va = va.value[ag.value[_i17].getValue().value];
-								} else if (ag.value[_i17] instanceof IntValue) {
-									if (va.value[ag.value[_i17].getValue().value]) va = va.value[ag.value[_i17].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました');
+							for (var _i19 = 0; _i19 < ag.value.length; _i19++) {
+								if (ag.value[_i19] instanceof StringValue) {
+									va = va.value[ag.value[_i19].getValue().value];
+								} else if (ag.value[_i19] instanceof IntValue) {
+									if (va.value[ag.value[_i19].getValue().value]) va = va.value[ag.value[_i19].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました');
 								} else throw new RuntimeError(this.first_line, "添字に使えないデータ型です");
 							}
 						}
@@ -4285,7 +4347,7 @@ var Output = function (_Statement17) {
 		value: function clone() {
 			var val = [];
 			for (var i = 0; i < this.value.length; i++) {
-				val.push(this.value[i].clone());
+				val.push(this.value[i]);
 			}return new Output(val, this.ln, this.loc);
 		}
 	}, {
@@ -4329,15 +4391,15 @@ function array2text(v) {
 		var v0 = v.getValue();
 		if (v0 instanceof ArrayValue) {
 			var v1 = [];
-			for (var _i18 = 0; _i18 < v0.value.length; _i18++) {
-				v1.push(array2text(v0.value[_i18]));
+			for (var _i20 = 0; _i20 < v0.value.length; _i20++) {
+				v1.push(array2text(v0.value[_i20]));
 			}return '[' + v1.join(',') + ']';
 		} else if (v0 instanceof DictionaryValue) {
 			var _v8 = [];
 			var keys = Object.keys(v0.value);
 			keys.sort();
-			for (var _i19 = 0; _i19 < keys.length; _i19++) {
-				_v8.push(keys[_i19] + ':' + array2text(v0.value[keys[_i19]]));
+			for (var _i21 = 0; _i21 < keys.length; _i21++) {
+				_v8.push(keys[_i21] + ':' + array2text(v0.value[keys[_i21]]));
 			}return '{' + _v8.join(',') + '}';
 		} else if (v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';else return new String(v0.value);
 	} else return new String(v);
@@ -4348,15 +4410,15 @@ function array2code(v) {
 	var v0 = v.getValue();
 	if (v0 instanceof ArrayValue) {
 		var v1 = [];
-		for (var _i20 = 0; _i20 < v0.value.length; _i20++) {
-			v1.push(array2text(v0.value[_i20]));
+		for (var _i22 = 0; _i22 < v0.value.length; _i22++) {
+			v1.push(array2text(v0.value[_i22]));
 		}return '[' + v1.join(',') + ']';
 	} else if (v0 instanceof DictionaryValue) {
 		var _v9 = [];
 		var keys = Object.keys(v0.value);
 		keys.sort();
-		for (var _i21 = 0; _i21 < keys.length; _i21++) {
-			_v9.push(keys[_i21] + ':' + array2text(v0.value[keys[_i21]]));
+		for (var _i23 = 0; _i23 < keys.length; _i23++) {
+			_v9.push(keys[_i23] + ':' + array2text(v0.value[keys[_i23]]));
 		}return '{' + _v9.join(',') + '}';
 	} else if (v0 instanceof StringValue) return '"' + v0.value + '"';else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
@@ -4978,8 +5040,8 @@ var ForInc = function (_Statement22) {
 				var condition = new LE(variable, this.end, this.loc); // IncとDecの違うところ
 				loop.push(new runBeforeGetValue([condition], this.loc));
 				loop.push(new LoopBegin(condition, true, this.loc));
-				for (var _i22 = 0; _i22 < this.statementlist.length; _i22++) {
-					loop.push(this.statementlist[_i22]);
+				for (var _i24 = 0; _i24 < this.statementlist.length; _i24++) {
+					loop.push(this.statementlist[_i24]);
 				} // ループ終端
 				loop.push(new runBeforeGetValue([this.step, this.varname.args], this.loc));
 				var new_counter = new Add(variable, this.step, this.loc); // IncとDecの違うところ
@@ -5061,8 +5123,8 @@ var ForDec = function (_Statement23) {
 				var condition = new GE(variable, this.end, this.loc);
 				loop.push(new runBeforeGetValue([condition], this.loc));
 				loop.push(new LoopBegin(condition, true, this.loc));
-				for (var _i23 = 0; _i23 < this.statementlist.length; _i23++) {
-					loop.push(this.statementlist[_i23]);
+				for (var _i25 = 0; _i25 < this.statementlist.length; _i25++) {
+					loop.push(this.statementlist[_i25]);
 				} // ループ終端
 				loop.push(new runBeforeGetValue([this.step, this.varname.args], last_loc));
 				var new_counter = new Sub(variable, this.step, last_loc);
@@ -8379,20 +8441,20 @@ onload = function onload() {
 
 	var sample_area = document.getElementById('SampleButtons');
 
-	var _loop = function _loop(_i24) {
+	var _loop = function _loop(_i26) {
 		var button = document.createElement('button');
-		button.innerText = 'サンプル' + (_i24 + 1);
+		button.innerText = 'サンプル' + (_i26 + 1);
 		button.setAttribute('type', 'button');
 		button.setAttribute('class', 'sampleButton');
 		button.onclick = function () {
-			sampleButton(_i24);
+			sampleButton(_i26);
 		};
-		if (_i24 > 0 && _i24 % 8 == 0) sample_area.appendChild(document.createElement('br'));
+		if (_i26 > 0 && _i26 % 8 == 0) sample_area.appendChild(document.createElement('br'));
 		sample_area.appendChild(button);
 	};
 
-	for (var _i24 = 0; _i24 < sample.length; _i24++) {
-		_loop(_i24);
+	for (var _i26 = 0; _i26 < sample.length; _i26++) {
+		_loop(_i26);
 	}
 	if (setting.quiz_mode == 1 && Quizzes.length > 0) {
 		var quiz_select = document.getElementById('quiz_select');
@@ -8405,10 +8467,10 @@ onload = function onload() {
 		option.appendChild(document.createTextNode('問題選択'));
 		quiz_select.appendChild(option);
 
-		for (var _i25 = 0; _i25 < Quizzes.length; _i25++) {
+		for (var _i27 = 0; _i27 < Quizzes.length; _i27++) {
 			option = document.createElement('option');
-			option.val = _i25 + 1;
-			option.appendChild(document.createTextNode('Q' + (_i25 + 1) + ':' + Quizzes[_i25].title()));
+			option.val = _i27 + 1;
+			option.appendChild(document.createTextNode('Q' + (_i27 + 1) + ':' + Quizzes[_i27].title()));
 			quiz_select.appendChild(option);
 		}
 		document.getElementById('quiz_marking').onclick = function () {
@@ -8503,13 +8565,13 @@ function getParam(name) {
 	var getparam = window.location.search;
 	if (getparam) {
 		var params = getparam.slice(1).split('&');
-		var _iteratorNormalCompletion = true;
-		var _didIteratorError = false;
-		var _iteratorError = undefined;
+		var _iteratorNormalCompletion3 = true;
+		var _didIteratorError3 = false;
+		var _iteratorError3 = undefined;
 
 		try {
-			for (var _iterator = params[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-				var param = _step.value;
+			for (var _iterator3 = params[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+				var param = _step3.value;
 
 				var p = param.split('=');
 				if (p[0] == name) {
@@ -8517,16 +8579,16 @@ function getParam(name) {
 				}
 			}
 		} catch (err) {
-			_didIteratorError = true;
-			_iteratorError = err;
+			_didIteratorError3 = true;
+			_iteratorError3 = err;
 		} finally {
 			try {
-				if (!_iteratorNormalCompletion && _iterator.return) {
-					_iterator.return();
+				if (!_iteratorNormalCompletion3 && _iterator3.return) {
+					_iterator3.return();
 				}
 			} finally {
-				if (_didIteratorError) {
-					throw _iteratorError;
+				if (_didIteratorError3) {
+					throw _iteratorError3;
 				}
 			}
 		}

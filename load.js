@@ -14,7 +14,7 @@ var scripts = [
     "./sample.js",
     "./quiz.js",
     "./answer.js",
-    "./run1.js"
+    "./run1.min.js"
 ];
 
 function load_js(js)

@@ -161,8 +161,8 @@ function findVarTable(varname)
 {
 	var t = varTables[0].findVarTable(varname);
 	if(t) return t;
-	var n = varTables.length - 1;
-	if(n > 0) return varTables[n].findVarTable(varname);
+	// var n = varTables.length - 1;
+	// if(n > 0) return varTables[n].findVarTable(varname);
 	return null;
 }
 
@@ -2225,7 +2225,7 @@ class Variable extends Value
 	 * @param {ArrayValue} y 
 	 * @param {Location} loc 
 	 */
-	constructor(x, y, loc){super([x,y],loc);}
+	constructor(x, y, loc){super([x,y],loc); this.rtnv = null;}
 	clone()
 	{
 		var rtnv = new Variable(this.value[0], this.value[1] ? this.value[1] : null, this.loc);
@@ -2617,6 +2617,18 @@ function setCaller(statementlist, caller)
 	}
 }
 
+
+function cloneStatementlist(statementlist)
+{
+	var rtnv = [];
+	for(let i = 0; i < statementlist.length; i++)
+	{
+		let statement = statementlist[i];
+		rtnv.push(statement.clone());
+	}
+	return rtnv;
+}
+
 /**
  * 関数呼び出し
  */
@@ -2657,23 +2669,24 @@ class CallFunction extends Value
 		}
 		else if(myFuncs[func])
 		{
-			let index = code[0].stack[0].index;
+			code[0].stack[0].index++;
 			let fn = myFuncs[func];
 			let vt = new varTable();
+			let globalVarTable = varTables[varTables.length - 1];
+			for(let i of Object.keys(globalVarTable.vars))
+				vt.vars[i] = globalVarTable.vars[i].getValue().clone();
 			for(let i = 0; i < fn.params.length; i++)
-			{
 				vt.vars[fn.params[i].varname] = param[i].getValue().clone();
-			}
-			let statementlist = [new runBeforeGetValue(fn.param)];
-			for(let i = 0; i < fn.statementlist.length; i++)
-				statementlist.push(fn.statementlist[i].clone());
+			let statementlist = cloneStatementlist(fn.statementlist);
+			// let statementlist = cloneStatementlist(fn.statementlist);
+			statementlist.unshift(new runBeforeGetValue(fn.param));
 			setCaller(statementlist, this);
 //			let statementlist = fn.statementlist.concat();
 			statementlist.push(new notReturnedFunction(fn.loc));
 			let pf = new parsedFunction(statementlist);
 			code.unshift(pf);
 			varTables.unshift(vt);
-			code[1].stack[0].index = index + 1;
+			// code[1].stack[0].index = index + 1;
 		}
 		else
 			throw new RuntimeError(this.first_line, '関数 '+func+' は定義されていません');
@@ -2902,6 +2915,9 @@ class CallStep extends Statement {
 		if(myFuncs[fn])
 		{
 			let vt = new varTable();
+			let globalVarTable = varTables[varTables.length - 1];
+			for(let i of Object.keys(globalVarTable.vars))
+				vt.vars[i] = globalVarTable.vars[i].getValue().clone();
 			for(let i = 0; i < myFuncs[fn].params.length; i++)
 				vt.vars[myFuncs[fn].params[i].varname] = args[i].getValue().clone();
 			let statementlist = myFuncs[fn].statementlist.concat();
@@ -3740,7 +3756,7 @@ class Output extends Statement
 	clone()
 	{
 		var val = [];
-		for(var i = 0; i < this.value.length; i++) val.push(this.value[i].clone());
+		for(var i = 0; i < this.value.length; i++) val.push(this.value[i]);
 		return new Output(val, this.ln, this.loc);
 	}
 	run()
