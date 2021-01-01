@@ -36,7 +36,7 @@ NonZeroDigit	[1-9１-９]
 
 Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
-String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
+String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""|"”"[^”]*"”"
 Print			"表示"|"印刷"|"出力"
 Whitespace		[\s\t 　]
 Newline			\r\n|\r|\n
@@ -143,7 +143,10 @@ Colon			[:：]
 "を"{Print}"する"		{return 'を表示する';}
 "を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
 "を改行なしで"{Print}"する"	{return 'を改行無しで表示する';}
-"を入力する"			{return 'を入力する';}
+{Print}"する"		{return '表示する';}
+"改行無しで"{Print}"する"	{return '改行無しで表示する';}
+"改行なしで"{Print}"する"	{return '改行無しで表示する';}
+"入力する"			{return '入力する';}
 "もし"					{return 'もし';}
 "ならば"				{return 'ならば';}
 "そうでなければ"		{return 'そうでなければ';}
@@ -314,7 +317,7 @@ args
 	| args 'COMMA' slice {$$ = $1.concat($3);}
 	| e { $$ = [$1];}
 	| slice { $$ = [$1];}
-	|   { $$ = [];}
+	// |   { $$ = [];}
 	;
 
 statementlist
@@ -435,18 +438,22 @@ PrintStatement
 		{$$ = [new runBeforeGetValue($1, @1), new Output($1, false, new Location(@1,@2))];}
 	| args 'を表示する' '改行' 
 		{$$ = [new runBeforeGetValue($1, @1), new Output($1, true, new Location(@1,@2))];}
+	| '改行無しで表示する' '(' args ')' '改行' 
+		{$$ = [new runBeforeGetValue($3, @1), new Output($3, false, new Location(@1,@2))];}
+	| '表示する' '(' args ')' '改行' 
+		{$$ = [new runBeforeGetValue($3, @1), new Output($3, true, new Location(@1,@2))];}
 	| '改行する' '改行'
 		{$$ = new Newline(new Location(@1, @1));}
 	;
 
 InputStatement
-	: e 'に' '整数' 'を入力する' '改行'	
+	: e 'に' '整数' 'を' '入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeInt, new Location(@1, @4))];}
-	| e 'に' '実数' 'を入力する' '改行'	
+	| e 'に' '実数' 'を' '入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeFloat, new Location(@1, @4))];}
-	| e 'に' '文字列' 'を入力する' '改行'	
+	| e 'に' '文字列' 'を' '入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeString, new Location(@1, @4))];}
-	| e 'に' '真偽' 'を入力する' '改行'	
+	| e 'に' '真偽' 'を' '入力する' '改行'	
 		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeBoolean, new Location(@1, @4))];}
 	;
 

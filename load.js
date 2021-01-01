@@ -9,7 +9,7 @@ var scripts = [
     "./js/plotly-latest.min.js",
     "./js/zlib.min.js",
     "./setting.js",
-    "./dncl.js",
+    "./dncl.min.js",
     "./pypen.js",
     "./sample.js",
     "./quiz.js",
