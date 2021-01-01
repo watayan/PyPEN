@@ -5501,36 +5501,48 @@ function editButton(add_code) {
 function keyDown(e) {
 	var evt = e || window.event;
 	var sourceTextArea = document.getElementById("sourceTextarea");
-	var pos = sourceTextArea.selectionStart;
+	var pos1 = sourceTextArea.selectionStart;
+	var pos2 = sourceTextArea.selectionEnd;
 	var code = sourceTextArea.value;
-	var code1 = code.slice(0, pos);
-	var code2 = code.slice(pos, code.length);
-	var re5 = /[ 　]$/;
+	var code1 = code.slice(0, pos1);
+	var code2 = code.slice(pos1, pos2);
+	var code3 = code.slice(pos2, code.length);
+	var re1 = /^(    |　　|  　| 　 |　  )/;
+	var re2 = /(    |　　|  　| 　 |　  )$/;
 	var tab = '    ';
-	var count;
 	switch (evt.keyCode) {
 		case 9:
 			// tab
+			if (evt.shiftKey) // shift + tab
+				{
+					if (re2.exec(code1)) code1 = code1.replace(re2, '');else if (pos1 == pos2) {
+						if (re1.exec(code3)) code3 = code3.replace(re1, '');
+					} else {
+						code2 = code2.replace(/([\n])(    |　　|  　| 　 |　  )/g, '$1').replace(/^(    |　　|  　| 　 |　  )/, '');
+					}
+					sourceTextArea.value = code1 + code2 + code3;
+					sourceTextArea.setSelectionRange(code1.length, code1.length + code2.length);
+				} else // tab
+				{
+					if (pos1 < pos2) code2 = code2.replace(/\n([^$])/g, '\n    $1');
+					sourceTextArea.value = code1 + tab + code2 + code3;
+					var pos3 = code1.length + tab.length,
+					    pos4 = pos3;
+					if (pos1 < pos2) {
+						pos4 = pos3 + code2.length;
+						pos3 -= tab.length;
+					}
+					sourceTextArea.setSelectionRange(pos3, pos4);
+				}
 			evt.preventDefault();
-			sourceTextArea.value = code1 + tab + code2;
-			pos = code1.length + tab.length;
-			sourceTextArea.setSelectionRange(pos, pos);
 			return false;
 		case 8:
 			// backspace
-			count = 4;
-			while (re5.exec(code1) && count > 0) {
-				count -= code1.slice(-1) == ' ' ? 1 : 2;
-				code1 = code1.slice(0, -1);
-			}
-			if (count == 0) {
-				evt.preventDefault();
-				sourceTextArea.value = code1 + code2;
-				pos = code1.length;
-				sourceTextArea.setSelectionRange(pos, pos);
-				return false;
-			}
-			return true;
+			if (re2.exec(code1)) code1 = code1.replace(re2, '');else code1 = code1.slice(0, -1);
+			sourceTextArea.value = code1 + code3;
+			sourceTextArea.setSelectionRange(code1.length, code1.length);
+			evt.preventDefault();
+			return false;
 		default:
 			break;
 	}
