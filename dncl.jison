@@ -26,6 +26,7 @@
 		else if(/^'.*'$/.exec(s)) return s.substr(1, s.length - 2).replace(/\\'/g,"'");
 		else return s.substr(1, s.length - 2);
 	}
+
 %}
 
 
@@ -300,7 +301,7 @@ e
 	;
 
 variable
-	: '識別子' '[' args ']' {$$ = new Variable(toHalf($1, @1), new ArrayValue($3), new Location(@1,@1));}
+	: variable '[' args ']' {$1.append($3); $$ = $1;}
 	| '識別子' {$$ = new Variable(toHalf($1, @1), null, new Location(@1, @1));}
 	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
 	;
@@ -317,7 +318,7 @@ args
 	| args 'COMMA' slice {$$ = $1.concat($3);}
 	| e { $$ = [$1];}
 	| slice { $$ = [$1];}
-	// |   { $$ = [];}
+	|   { $$ = [];}
 	;
 
 statementlist

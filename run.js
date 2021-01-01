@@ -650,6 +650,10 @@ class ArrayValue extends Value
 	{
 		return this;
 	}
+	append(a)
+	{
+		this._value = this.value.concat(a);
+	}
 }
 
 /**
@@ -2280,7 +2284,13 @@ class Variable extends Value
 	{
 		return this.rtnv;
 	}
+	append(a)
+	{
+		if(this.args) this.args.append(a);
+		else this.value[1] = new ArrayValue(a, this.loc);
+	}
 }
+
 
 /**
  * 定義済み関数クラス

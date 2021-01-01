@@ -721,6 +721,11 @@ var ArrayValue = function (_Value2) {
 			return this;
 		}
 	}, {
+		key: 'append',
+		value: function append(a) {
+			this._value = this.value.concat(a);
+		}
+	}, {
 		key: 'length',
 		get: function get() {
 			return this._value.length;
@@ -2737,6 +2742,11 @@ var Variable = function (_Value37) {
 		key: 'getValue',
 		value: function getValue() {
 			return this.rtnv;
+		}
+	}, {
+		key: 'append',
+		value: function append(a) {
+			if (this.args) this.args.append(a);else this.value[1] = new ArrayValue(a, this.loc);
 		}
 	}, {
 		key: 'varname',
