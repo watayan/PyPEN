@@ -3068,6 +3068,18 @@ class notReturnedFunction extends Statement {
 	}
 }
 
+function dump()
+{
+	textareaAppend("*** 変数確認 ***\n");
+	var vars = varTables[0].varnames([]);
+	if(varTables.length > 1) vars = varTables[varTables.length - 1].varnames(vars);
+	for(var i = 0; i < vars.length; i++)
+	{
+		let vartable = findVarTable(vars[i]);
+		let v = vartable.vars[vars[i]];
+		textareaAppend(vars[i] + ":" + array2code(v) + "\n");
+	}
+}
 
 class DumpStatement extends Statement
 {
@@ -3078,15 +3090,7 @@ class DumpStatement extends Statement
 	}
 	run()
 	{
-		textareaAppend("*** 変数確認 ***\n");
-		var vars = varTables[0].varnames([]);
-		if(varTables.length > 1) vars = varTables[varTables.length - 1].varnames(vars);
-		for(var i = 0; i < vars.length; i++)
-		{
-			let vartable = findVarTable(vars[i]);
-			let v = vartable.vars[vars[i]];
-			textareaAppend(vars[i] + ":" + array2code(v) + "\n");
-		}
+		dump();
 		super.run();
 	}
 	makePython()
@@ -4710,6 +4714,7 @@ function setRunflag(b)
 	run_flag = b;
 	document.getElementById("sourceTextarea").readOnly = b;
 	document.getElementById("runButton").innerHTML = b & !step_flag ? "中断" : "実行";
+	document.getElementById("dumpButton").disabled = !step_flag;
 	setEditableflag(!b);
 }
 
@@ -7170,6 +7175,7 @@ onload = function(){
 	var flowchartButton = document.getElementById("flowchartButton");
 	var resetButton   = document.getElementById("resetButton");
 	var stepButton    = document.getElementById("stepButton");
+	var dumpButton    = document.getElementById("dumpButton");
 	var loadButton    = document.getElementById("loadButton");
 	var file_prefix   = document.getElementById("file_prefix");
 	var flowchart_canvas = document.getElementById("flowchart");
@@ -7185,10 +7191,12 @@ onload = function(){
 		{
 			setRunflag(false);
 			document.getElementById("sourceTextarea").readOnly = true;
+			dumpButton.disabled = false;
 		}
 		else
 		{
 			step_flag = false;
+			dumpButton.disabled = true;
 			run();
 		}
 	};
@@ -7213,6 +7221,9 @@ onload = function(){
 	resetButton.onclick = function(){
 		reset();
 	};
+	dumpButton.onclick = function(){
+		dump();
+	}	
 	loadButton.addEventListener("change", function(ev)
 	{
 		var file = ev.target.files;
