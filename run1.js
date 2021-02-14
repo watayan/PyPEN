@@ -8628,6 +8628,7 @@ function getParam(name) {
 }
 
 function auto_marking(i) {
+	reset();
 	setRunflag(true);
 	document.getElementById('runButton').disabled = true;
 	document.getElementById('stepButton').disabled = true;
