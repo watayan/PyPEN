@@ -8462,8 +8462,16 @@ onload = function onload() {
 	reset();
 
 	var sample_area = document.getElementById('SampleButtons');
+	var sample_table = document.createElement('table');
+	sample_area.appendChild(sample_table);
+	var sample_table_row = null;
 
 	var _loop = function _loop(_i26) {
+		if (!sample_table_row) {
+			sample_table_row = document.createElement('tr');
+			sample_table.appendChild(sample_table_row);
+		}
+		var cell = document.createElement('td');
 		var button = document.createElement('button');
 		button.innerText = 'サンプル' + (_i26 + 1);
 		button.setAttribute('type', 'button');
@@ -8471,8 +8479,9 @@ onload = function onload() {
 		button.onclick = function () {
 			sampleButton(_i26);
 		};
-		if (_i26 > 0 && _i26 % 8 == 0) sample_area.appendChild(document.createElement('br'));
-		sample_area.appendChild(button);
+		cell.appendChild(button);
+		sample_table_row.appendChild(cell);
+		if (_i26 % 8 == 7) sample_table_row = null;
 	};
 
 	for (var _i26 = 0; _i26 < sample.length; _i26++) {

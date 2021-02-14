@@ -7454,15 +7454,25 @@ onload = function(){
 	reset();
 
 	let sample_area = document.getElementById('SampleButtons')
+	let sample_table = document.createElement('table');
+	sample_area.appendChild(sample_table);
+	let sample_table_row = null;
 	for(let i = 0; i < sample.length; i++)
 	{
+		if(!sample_table_row)
+		{
+			sample_table_row = document.createElement('tr');
+			sample_table.appendChild(sample_table_row);
+		}
+		let cell = document.createElement('td');
 		let button = document.createElement('button');
 		button.innerText = 'サンプル' + (i + 1);
 		button.setAttribute('type', 'button');
 		button.setAttribute('class', 'sampleButton');
 		button.onclick = function(){sampleButton(i);};
-		if(i > 0 && i % 8 == 0) sample_area.appendChild(document.createElement('br'));
-		sample_area.appendChild(button);
+		cell.appendChild(button);
+		sample_table_row.appendChild(cell);
+		if(i % 8 == 7) sample_table_row = null;
 	}
 	if(setting.quiz_mode == 1 && Quizzes.length > 0)
 	{

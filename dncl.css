@@ -55,7 +55,12 @@
 }
 
 .sampleButton{
-	margin:2px 2px;
+	margin:0px;
+}
+
+#SampleButtons td{
+	border: 0pt;
+	padding: 0pt;
 }
 
 td{
