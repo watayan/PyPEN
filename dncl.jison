@@ -81,6 +81,7 @@ GT				[>＞]
 LT				[<＜]
 Comma			[，,、]
 Colon			[:：]
+Comment			[#＃♯].*
 
 %%
 
@@ -151,8 +152,7 @@ Colon			[:：]
 "もし"					{return 'もし';}
 "ならば"				{return 'ならば';}
 "そうでなければ"		{return 'そうでなければ';}
-"の間繰り返す"			{return 'の間繰返す';}
-"の間繰返す"			{return 'の間繰返す';}
+"の間"					{return 'の間';}
 "繰り返しを抜ける"		{return '繰り返しを抜ける';}
 "繰返しを抜ける"		{return '繰り返しを抜ける';}
 "くりかえしを抜ける"	{return '繰り返しを抜ける';}
@@ -233,6 +233,7 @@ Colon			[:：]
 "改行する"				{return '改行する';}
 "何もしない"			{return '何もしない';}
 {Identifier}			{return '識別子';}
+{Comment}				{return '改行';}
 <<EOF>>					{return 'EOF';}
 {Newline}				{return '改行';}
 {Whitespace}		/* skip whitespace */
@@ -396,10 +397,20 @@ ForStatement
 		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
 	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
+	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist 'EOB' '改行'
+		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, $7,$12, new Location(@1,@13))];}
+	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist 'EOB' '改行'
+		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, $7,$12, new Location(@1,@13))];}
+	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist 'EOB' '改行'
+		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11))];}
+	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist 'EOB' '改行'
+		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11))];}
 	;
 
 WhileStatement
-	: e 'の間繰返す' ':' '改行' statementlist 'EOB' '改行'
+	: e 'の間' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+		{$$ = new While($1, $6, new Location(@1, @7));}
+	| e 'の間' ':' '改行' statementlist 'EOB' '改行'
 		{$$ = new While($1, $5, new Location(@1, @6));}
 	;
 
