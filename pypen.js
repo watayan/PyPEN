@@ -19,7 +19,11 @@ function python_to_dncl(code)
     {
         var line = python_lines[i].trimRight();
         var result = /^([ 　]*)(.*)$/.exec(line);
-        if(i < python_lines.length - 1 && result && !result[2]) continue;
+        if(i < python_lines.length - 1 && result && !result[2])
+        {
+            dncl_lines.push(line);
+            continue;
+        } 
         if(result)
         {
             var spaces = count_spaces(result[1]);
