@@ -119,16 +119,6 @@ td{
 .context-menu-item.context-menu-icon-loop{background-image: url(images/loop.png);}
 .context-menu-item.context-menu-icon-assign{background-image: url(images/assign.png);}
 
-#bcralnit_sourceTextarea0{
-	float: left;
-}
-
-.bcr_number{
-	font-size: 16px;
-	line-height: 1.2;
-	/* font-family: "Courier New", Consolas, monospace; */
-}
-
 #sourceTextarea {
 	font-size: 16px;
 	line-height: 1.2;
@@ -151,6 +141,10 @@ td{
 #resultTextarea{
 	font-size: 16px;
 	line-height: 1.2;
+	height: 400px;
+	min-width: 100px;
+	min-height: 200px;
+	resize: both;
 }
 
 #font_up{
@@ -173,3 +167,21 @@ td{
 button{
 	font-family: monospace;
 }
+
+.CodeMirror{
+	resize: horizontal;
+	border: 1px black solid;
+	font-size: 16px;
+	min-width: 200px;
+	min-height: 200px;
+}
+
+.CodeMirror.readonly{
+	background-color:lightgray;
+}
+
+
+/* .CodeMirror-line span{
+	background-color: antiquewhite;
+} */
+

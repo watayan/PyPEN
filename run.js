@@ -37,6 +37,7 @@ var output_str = '';
 var test_limit_time = 0;
 var fontsize = 16;
 var python_lib = {};
+var editor = null;
 
 function finish()
 {
@@ -3455,7 +3456,7 @@ class Assign extends Statement
 		{
 			if(this.operator)
 			{
-				throw new RuntimeError(this.first_line, '宣言されていない変数に代入演算子が使われました');
+				throw new RuntimeError(this.first_line, '宣言されていない変数に複合代入演算子が使われました');
 			}
 			vt = varTables[0];
 			vt.vars[vn] = new NullValue(this.loc);
@@ -4662,26 +4663,27 @@ class BreakStatement extends Statement
 
 function highlightLine(l)
 {
-	var elem = document.getElementById('bcralnit_sourceTextarea0').firstElementChild;
-	var child = elem.firstElementChild;
-	var line = 1;
-//	$("#sourceTextarea").focus();
-	while(child)
+	var scroll_elem = editor.getScrollerElement();
+	var code_elems = scroll_elem.getElementsByClassName('CodeMirror-code');
+	if(!code_elems) return;
+	var code_elem = code_elems[0];
+
+	var ln = 1;
+	for(var line_elem = code_elem.firstElementChild; line_elem; line_elem = line_elem.nextElementSibling)
 	{
-		if(child.tagName == 'SPAN')
+		var number_elems = line_elem.getElementsByClassName('CodeMirror-linenumber');
+		if(!number_elems) continue;
+		var number_elem = number_elems[0];
+		if(ln++ == l)
 		{
-			if(line++ == l)
-			{
-				child.style.background = 'red';
-				child.style.color = 'white';
-			}
-			else
-			{
-				child.style.background = 'transparent';
-				child.style.color = 'black';
-			}
+			number_elem.style.background = 'red';
+			number_elem.style.color = 'white';
 		}
-		child = child.nextElementSibling;
+		else
+		{
+			number_elem.style.background = 'transparent';
+			number_elem.style.color = '#999';
+		}
 	}
 }
 
@@ -4712,7 +4714,11 @@ function reset()
 function setRunflag(b)
 {
 	run_flag = b;
+
 	document.getElementById("sourceTextarea").readOnly = b;
+	editor.options.readOnly = b;
+	if(b) editor.getWrapperElement().classList.add("readonly");
+	else  editor.getWrapperElement().classList.remove("readonly");
 	document.getElementById("runButton").innerHTML = b & !step_flag ? "中断" : "実行";
 	document.getElementById("dumpButton").disabled = !step_flag;
 	setEditableflag(!b);
@@ -4733,7 +4739,8 @@ function run()
 		try
 		{
 			reset();
-			var python_source = document.getElementById("sourceTextarea").value+"\n";
+			// var python_source = document.getElementById("sourceTextarea").value+"\n";
+			var python_source = editor.getValue();
 			var dncl_source = python_to_dncl(python_source);
 			//textareaAppend(dncl_source);	// for debug
 			code = [new parsedMainRoutine(dncl.parse(dncl_source))];
@@ -4855,6 +4862,8 @@ function openInputWindow()
 	input_area.focus();
 	document.getElementById("input_status").style.visibility = 'visible';
 	document.getElementById("sourceTextarea").readOnly = true;
+	editor.options.readOnly = true;
+	editor.getWrapperElement().classList.add("readonly");
 }
 
 function closeInputWindow()
@@ -4884,27 +4893,33 @@ function keydownInput(e)
 
 function editButton(add_code)
 {
-	var sourceTextArea = document.getElementById("sourceTextarea");
-	var pos = sourceTextArea.selectionStart;
-	var code = sourceTextArea.value;
-	var code1 = code.slice(0, pos);
-	var code2 = code.slice(pos, code.length);
-	var re1 = /[｜| 　]*$/;
-	var re2 = /[｜| 　\n]/;
+	// var sourceTextArea = document.getElementById("sourceTextarea");
+	var pos = editor.getCursor();
+	var code = editor.getValue();
+	var lines = code.split(/\r|\n|\r\n/);
+	var code1 = lines[pos.line].slice(0, pos.ch);
+	var code2 = lines[pos.line].slice(pos.ch, code.length);
+	var re1 = /^[｜| 　]*$/;
 	var add_codes = add_code.split("\n");
 	var tab = "";
 	var array = re1.exec(code1);
-	if(array != null) tab = array[0];
-	if((code[pos] && code[pos] != "\n") || (pos > 0 && !re2.exec(code[pos - 1])))
+	if(array) tab = array[0];
+	if(code2)
 	{
-		alert("この位置で入力支援ボタンを押してはいけません");
-		sourceTextArea.focus();
+		alert("カーソルの右側に文字や空白があるときに\n入力支援ボタンを押してはいけません");
+		editor.focus();
 		return;
 	}
-	for(var c in add_codes) if(c > 0) add_codes[c] = tab + add_codes[c];
-	sourceTextArea.value = code1 + add_codes.join("\n") + code2;
-	sourceTextArea.selectionStart = sourceTextArea.selectionEnd = sourceTextArea.value.length - code2.length;
-	sourceTextArea.focus();
+	for(var c in add_codes) add_codes[c] = tab + add_codes[c];
+	code = lines.slice(0, pos.line).join('\n');
+	if(code) code += '\n';
+	code += add_codes.join('\n') + '\n';
+	code += lines.slice(pos.line + 1, lines.length).join('\n');
+	editor.setValue(code);
+	// sourceTextArea.value = code1 + add_codes.join("\n") + code2;
+	// sourceTextArea.selectionStart = sourceTextArea.selectionEnd = sourceTextArea.value.length - code2.length;
+	editor.setCursor({"line": pos.line, "ch": pos.ch});
+	editor.focus();
 }
 
 function keyDown(e)
@@ -4967,77 +4982,53 @@ function keyDown(e)
 function keyUp(e)
 {
 	var evt = e || window.event;
-	var sourceTextArea = document.getElementById("sourceTextarea");
-	var pos = sourceTextArea.selectionStart;
-	var code = sourceTextArea.value;
-	var code1 = code.slice(0, pos);
-	var code2 = code.slice(pos, code.length);
-	var re1 = /《[^》《]*$/;
-	var re2 = /^[^》《]*》/;
-	var re3 = /\n?([　 ]*)([^　 \n]+.*)\n$/;
-	var re4 = /[：:]$/;
-	var re4a= /^(関数|手続き).*\(.*\)$/;
-	var tab = "";
-	var count;
 	switch(evt.keyCode)
 	{
-	case 37: case 38: case 39: case 40:
-		if(pos > 0)
+	case 37: case 38: case 39: case 40:	// left: 37 right: 39
+		var pos = editor.getCursor();
+		var lines = editor.getValue().split(/\r|\n|\r\n/);
+		// if(evt.keyCode == 37) pos.ch++;
+		// if(evt.keyCode == 39) pos.ch--;
+		var line1 = lines[pos.line].slice(0, pos.ch);
+		var line2 = lines[pos.line].slice(pos.ch);
+		var re1 = /《[^》《]*$/;
+		var re2 = /^[^》《]*》/;
+		var match1 = re1.exec(line1);
+		var match2 = re2.exec(line2);
+		if(match1 && match2)
 		{
-			var match1 = re1.exec(code1);
-			var match2 = re2.exec(code2);
-			if(match1 != null && match2 != null)
-			{
-				sourceTextArea.setSelectionRange(pos - match1[0].length, pos + match2[0].length);
-				return false;
-			}
+			var start = pos.ch - match1[0].length;
+			var end = pos.ch + match2[0].length;
+			editor.setSelection({'line':pos.line, 'ch':end}, {'line':pos.line, 'ch': start});
 		}
-		break;
-	case 13:	// \n
-//		if(!re5.exec(code2)) return true;
-		var match = re3.exec(code1);
-		if(match)
-		{
-			 tab = match[1];
-			 if(re4.exec(match[2]) || re4a.exec(match[2])) tab = "    " + tab;
-		}
-		sourceTextArea.value = code1 + tab + code2;
-		pos = code1.length + tab.length;
-		sourceTextArea.setSelectionRange(pos, pos);
-		return false;
-	default:
-		break;
 	}
-	return true;
 }
 
-function mouseClick()
+function mouseClick(evt)
 {
-	var sourceTextArea = document.getElementById("sourceTextarea");
-	var pos = sourceTextArea.selectionStart;
-	var code = sourceTextArea.value;
-	var code1 = code.slice(0, pos);
-	var code2 = code.slice(pos, code.length);
+	var pos = editor.coordsChar({'left':evt.x, 'top':evt.y});
+	var lines = editor.getValue().split(/\r|\n|\r\n/);
+	var line1 = lines[pos.line].slice(0, pos.ch);
+	var line2 = lines[pos.line].slice(pos.ch - 1);
 	var re1 = /《[^》《]*$/;
 	var re2 = /^[^》《]*》/;
-	var match1 = re1.exec(code1);
-	var match2 = re2.exec(code2);
-	if(match1 != null && match2 != null)
+	var match1 = re1.exec(line1);
+	var match2 = re2.exec(line2);
+	if(match1 && match2)
 	{
-		var start = pos - match1[0].length;
-		var end = pos + match2[0].length;
-		sourceTextArea.setSelectionRange(start, end);
+		var start = pos.ch - match1[0].length;
+		var end = pos.ch + match2[0].length - 1;
+		editor.setSelection({'line':pos.line, 'ch':end}, {'line':pos.line, 'ch': start});
 	}
 }
 
 function sampleButton(num)
 {
-	var sourceTextArea = document.getElementById("sourceTextarea");
 	if(dirty && !window.confirm("プログラムをサンプルプログラムに変更していいですか？")) return;
-	sourceTextArea.value = sample[num];
+	editor.setValue(sample[num]);
 	reset();
 	if(flowchart) codeChange();
-	$('#sourceTextarea').focus();
+	editor.focus();
 	makeDirty(false);
 }
 
@@ -5049,13 +5040,7 @@ function insertCode(add_code)
 		window.alert("プログラム実行・中断中はプログラムを編集できません");
 		return;
 	}
-	var sourceTextArea = document.getElementById("sourceTextarea");
-	var pos1 = sourceTextArea.selectionStart;
-	var pos2 = sourceTextArea.selectionEnd;
-	var code = sourceTextArea.value;
-	var code1 = code.slice(0, pos1);
-	var code2 = code.slice(pos2, code.length);
-	sourceTextArea.value = code1 + add_code + code2;
+	editor.replaceSelection(add_code);
 }
 
 function registerEvent(elem, ev, func)
@@ -5421,10 +5406,9 @@ class Flowchart
 	flowchart2code()
     {
 		if(!flowchart_display) return;
-        var code = '';
-		code += this.top.appendCode('', 0);
-		document.getElementById("sourceTextarea").value = code;
-		$('#sourceTextarea').focus();
+		var newcode = this.top.appendCode('', 0);
+		editor.setValue(newcode);
+		editor.focus();
     }
     paint()
     {
@@ -7064,7 +7048,10 @@ function keydownModal(e)
 	if(evt.keyCode == 27) // ESC
 		closeModalWindow(false);
 	else if(evt.keyCode == 13) // Enter
+	{
+		evt.preventDefault();
 		closeModalWindow(true);
+	}
 }
 
 var misc_identifier;
@@ -7180,10 +7167,34 @@ onload = function(){
 	var file_prefix   = document.getElementById("file_prefix");
 	var flowchart_canvas = document.getElementById("flowchart");
 	// var resultArea = document.getElementById("resultArea");
-	$("#sourceTextarea").bcralnit();
+	editor =  CodeMirror.fromTextArea(sourceTextArea,{
+		mode: {name :"pypen",
+		},
+		lineNumbers: true,
+		lineWrapping: true,
+		indentUnit: 4,
+		indentWithTabs: false,
+	});
+	editor.setSize(500,300);
+	editor.on("change", function()
+	{
+		editor.save();
+		makeDirty(true);
+	});
+	resultTextArea.style.width = document.getElementById('input_area').clientWidth + 'px';
+	new ResizeObserver(function(){
+		var w = editor.getScrollInfo().width;
+		var h = resultTextArea.offsetHeight - 4;
+		editor.setSize(w, h);
+		editor.refresh();
+	}).observe(resultTextArea);
+	editor.getWrapperElement().id = "CMSourceTextArea";
+	editor.getWrapperElement().addEventListener("mousedown", mouseClick);
+	editor.getWrapperElement().addEventListener("keyup", keyUp);
+
 	sourceTextArea.onchange = function(){
 		makeDirty(true);
-	}
+	};
 	makeDirty(false);
 	textarea = resultTextArea;
 	runButton.onclick = function(){
@@ -7191,6 +7202,8 @@ onload = function(){
 		{
 			setRunflag(false);
 			document.getElementById("sourceTextarea").readOnly = true;
+			editor.options.readOnly = true;
+			editor.getWrapperElement().classList.add("readonly");
 			dumpButton.disabled = false;
 		}
 		else
@@ -7207,7 +7220,7 @@ onload = function(){
 	}
 	newButton.onclick = function(){
 		if(dirty && !window.confirm("プログラムを削除していいですか？")) return;
-		sourceTextArea.value = "";
+		editor.setValue('');
 		code = null;
 		reset();
 		if(flowchart)
@@ -7215,7 +7228,7 @@ onload = function(){
 			flowchart.makeEmpty();
 			flowchart.paint();
 		}
-		$('#sourceTextarea').focus();
+		editor.focus();
 		makeDirty(false);
 	}
 	resetButton.onclick = function(){
@@ -7231,7 +7244,7 @@ onload = function(){
 		reader.readAsText(file[0], "UTF-8");
 		reader.onload = function(ev)
 		{
-			sourceTextArea.value = reader.result;
+			editor.setValue(reader.result);
 			reset();
 			if(flowchart) codeChange();
 		}
@@ -7246,7 +7259,7 @@ onload = function(){
 			('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) +
 			('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
 		filename +=	'.PyPEN';
-		var blob = new Blob([sourceTextArea.value], {type:"text/plain"});
+		var blob = new Blob([editor.getValue()], {type:"text/plain"});
 		if(window.navigator.msSaveBlob)
 		{
 			window.navigator.msSaveBlob(blob, filename);
@@ -7279,7 +7292,7 @@ onload = function(){
 		}
 	}
 	flowchartButton.click();
-	sourceTextArea.ondrop = function(e)
+	editor.getWrapperElement().ondrop = function(e)
 	{
 		var filelist = e.dataTransfer.files;
 		if(!filelist) return;
@@ -7290,10 +7303,10 @@ onload = function(){
 			{
 				try{
 					var reader = new FileReader();
-					var text = reader.readAsText(filelist[i]);
+					reader.readAsText(filelist[i]);
 					reader.onload = function(event)
 					{
-						sourceTextArea.value = event.target.result;
+						editor.setValue(event.target.result);
 						codeChange();
 					}
 					break;
@@ -7303,8 +7316,6 @@ onload = function(){
 		}
 		return false;
 	}
-	registerEvent(sourceTextArea, "keyup", keyUp);
-	registerEvent(sourceTextArea, "keydown", keyDown);
 	registerEvent(flowchart_canvas, "mousedown", mouseDown);
 	registerEvent(flowchart_canvas, "mouseup", mouseUp);
 	registerEvent(flowchart_canvas, "mousemove", mouseMove);
@@ -7312,16 +7323,16 @@ onload = function(){
 
 	$.contextMenu(
 		{
-			selector: "#sourceTextarea",
+			selector: '#CMSourceTextArea',
+			zIndex: 2,
 			items:{
 //				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 				zenkaku: {name: "入力補助",
 					items:{
-						かつ:		{name:"かつ",	callback(k,e){insertCode("《値》 かつ 《値》");}},
+						かつ:	{name:"かつ",	callback: function(k,e){insertCode("《値》 かつ 《値》");}},
 						または:	{name:"または",	callback: function(k,e){insertCode("《値》 または 《値》");}},
 						でない:	{name:"でない",	callback: function(k,e){insertCode("《値》 でない");}},
 						と:		{name:"と",		callback: function(k,e){insertCode("《値》と《値》");}},
-						カッコ:	{name:"「」",	callback: function(k,e){insertCode("「《値》」");}},
 					}
 				},
 				convert:{name:"変換",
@@ -7678,17 +7689,14 @@ function font_size(updown)
 		fontsize += updown;
 	}
 	else fontsize = 16;
-	var elem = document.getElementById('sourceTextarea');
-	elem.style.backgroundSize = '2em 2em'; //(fontsize * 4) + 'px '+ (fontsize * 4) + 'px';
+	var elem = document.getElementById('CMSourceTextArea');
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = '1.2';
-	elem = document.getElementById('resultTextarea');
+	elem = document.getElementsByClassName('CodeMirror-cursor')[0];
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = '1.2';
-	elem = document.getElementsByClassName('bcr_number')[0];
+	editor.refresh();
+	elem = textarea;
 	elem.style.fontSize = fontsize + 'px';
-	elem.style.lineHeight = '1.2';
-	$('#sourceTextarea').focus();
+	editor.focus();
 }
 
 function makePython()
@@ -7699,7 +7707,8 @@ function makePython()
 	myFuncs = {};
 	python_lib = {};
 	try{
-		var code = document.getElementById("sourceTextarea").value + "\n";
+		// var code = document.getElementById("sourceTextarea").value + "\n";
+		var code = editor.getValue();
 		var dncl_code = python_to_dncl(code);
 		var main_routine = new parsedMainRoutine(dncl.parse(dncl_code));
 		var python_code = main_routine.makePython();

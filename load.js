@@ -2,8 +2,6 @@
 
 var scripts = [
     "./js/jquery.min.js",
-    "./js/jquery.exresize-latest.js",
-    "./js/bcralnit.js",
     "./js/jquery.contextMenu.min.js",
     "./js/jquery.ui.position.min.js",
     "./js/plotly-latest.min.js",
@@ -14,6 +12,8 @@ var scripts = [
     "./sample.js",
     "./quiz.js",
     "./answer.js",
+    "./js/codemirror.js",
+    "./js/codemirror_pypen.js",
     "./run1.min.js"
 ];
 
