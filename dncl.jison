@@ -81,7 +81,7 @@ GT				[>＞]
 LT				[<＜]
 Comma			[，,、]
 Colon			[:：]
-Comment			[#＃♯].*
+Comment			[#＃♯].*(\r|\n|\r\n)
 
 %%
 

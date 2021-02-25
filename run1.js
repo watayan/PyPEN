@@ -232,7 +232,7 @@ function findVarTable(varname) {
  */
 function codeChange() {
 	if (converting || !flowchart_display) return;
-	var code = document.getElementById("sourceTextarea").value + "\n";
+	var code = editor.getValue() + "\n";
 	textarea.value = "";
 	try {
 		myFuncs = {};
@@ -5489,7 +5489,10 @@ function keydownInput(e) {
 }
 
 function editButton(add_code) {
-	// var sourceTextArea = document.getElementById("sourceTextarea");
+	if (document.getElementById("sourceTextarea").readOnly) {
+		window.alert("プログラム実行・中断中はプログラムを編集できません");
+		return;
+	}
 	var pos = editor.getCursor();
 	var code = editor.getValue();
 	var lines = code.split(/\r|\n|\r\n/);
@@ -8052,7 +8055,11 @@ onload = function onload() {
 		lineNumbers: true,
 		lineWrapping: true,
 		indentUnit: 4,
-		indentWithTabs: false
+		indentWithTabs: false,
+		extraKeys: {
+			"Tab": "indentMore",
+			"Shift-Tab": "indentLess"
+		}
 	});
 	editor.setSize(500, 300);
 	editor.on("change", function () {
@@ -8545,7 +8552,7 @@ onload = function onload() {
 
 	var code = getParam('code');
 	if (code) {
-		sourceTextArea.value = code;
+		editor.setValue(code);
 		codeChange();
 		highlightLine(-1);
 	}
