@@ -4065,9 +4065,9 @@ var Append = function (_Statement11) {
 					if (ag && ag.value.length > 0) // 配列の添字がある
 						{
 							for (var _i18 = 0; _i18 < ag.value.length; _i18++) {
-								if (ag.value[_i18] instanceof StringValue) {
+								if (ag.value[_i18].getValue() instanceof StringValue) {
 									va = va.value[ag.value[_i18].getValue().value];
-								} else if (ag.value[_i18] instanceof IntValue) {
+								} else if (ag.value[_i18].getValue() instanceof IntValue) {
 									if (va.value[ag.value[_i18].getValue().value]) va = va.value[ag.value[_i18].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました');
 								} else throw new RuntimeError(this.first_line, '添字に使えないデータ型です');
 							}
@@ -8061,7 +8061,7 @@ onload = function onload() {
 	});
 	resultTextArea.style.width = document.getElementById('input_area').clientWidth + 'px';
 	new ResizeObserver(function () {
-		var w = editor.getScrollInfo().width;
+		var w = editor.getWrapperElement().width;
 		var h = resultTextArea.offsetHeight - 4;
 		editor.setSize(w, h);
 		editor.refresh();

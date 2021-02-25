@@ -3509,11 +3509,11 @@ class Append extends Statement
 			{
 				for(let i = 0; i < ag.value.length; i++) 
 				{
-					if(ag.value[i] instanceof StringValue)
+					if(ag.value[i].getValue() instanceof StringValue)
 					{
 						va = va.value[ag.value[i].getValue().value];
 					}
-					else if(ag.value[i] instanceof IntValue)
+					else if(ag.value[i].getValue() instanceof IntValue)
 					{
 						if(va.value[ag.value[i].getValue().value])
 							va = va.value[ag.value[i].getValue().value];
@@ -7183,7 +7183,7 @@ onload = function(){
 	});
 	resultTextArea.style.width = document.getElementById('input_area').clientWidth + 'px';
 	new ResizeObserver(function(){
-		var w = editor.getScrollInfo().width;
+		var w = editor.getWrapperElement().width;
 		var h = resultTextArea.offsetHeight - 4;
 		editor.setSize(w, h);
 		editor.refresh();
