@@ -3158,14 +3158,14 @@
   function drawSelectionCursor(cm, head, output) {
     var pos = cursorCoords(cm, head, "div", null, null, !cm.options.singleCursorHeightPerLine);
 
-    var cursor = output.appendChild(elt("div", "\u00a0", "CodeMirror-cursor"));
+    var cursor = output.appendChild(elt("div", "", "CodeMirror-cursor")); // removed \u00a0 (wata)
     cursor.style.left = pos.left + "px";
     cursor.style.top = pos.top + "px";
     cursor.style.height = Math.max(0, pos.bottom - pos.top) * cm.options.cursorHeight + "px";
 
     if (pos.other) {
       // Secondary cursor, shown when on a 'jump' in bi-directional text
-      var otherCursor = output.appendChild(elt("div", "\u00a0", "CodeMirror-cursor CodeMirror-secondarycursor"));
+      var otherCursor = output.appendChild(elt("div", "", "CodeMirror-cursor CodeMirror-secondarycursor")); // removed \u00a0 (wata)
       otherCursor.style.display = "";
       otherCursor.style.left = pos.other.left + "px";
       otherCursor.style.top = pos.other.top + "px";

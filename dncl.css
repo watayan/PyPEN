@@ -1,5 +1,22 @@
 /* by watayan <watayan@watayan.net> */
 
+@font-face{
+	font-family: 'mplus_with_space';
+	src: url(font/mplus-1m-regular_space.woff) format('woff'),
+		 url(font/mplus-1m-regular_space.ttf) format('ttf');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face{
+	font-family: 'mplus';
+	src: url(font/mplus-1m-regular.woff) format('woff'),
+		 url(font/mplus-1m-regular.ttf) format('ttf');
+	font-weight: normal;
+	font-style: normal;
+}
+
+
 #input_status{
 	background: #ff0;
 	font-size: 50%;
@@ -81,6 +98,7 @@ td{
 
 #resultTextarea{
 	float: left;
+	font-family: 'mplus';
 }
 
 #canvas{
@@ -171,6 +189,7 @@ button{
 .CodeMirror{
 	resize: horizontal;
 	border: 1px black solid;
+	font-family: 'mplus_with_space';
 	font-size: 16px;
 	min-width: 200px;
 	min-height: 200px;
