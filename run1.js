@@ -8045,7 +8045,7 @@ function cmBackspace(cm) {
 	if (/^\s+$/.exec(code1)) cm.execCommand("indentLess");else cm.execCommand("delCharBefore");
 }
 
-function cmShiftRight(cm) {
+function cmCtrlRight(cm) {
 	var pos = cm.getCursor();
 	var code = cm.getValue();
 	var lines = code.split(/\r|\n|\r\n/);
@@ -8061,7 +8061,7 @@ function cmShiftRight(cm) {
 	} else cm.execCommand("goLineEnd");
 }
 
-function cmShiftLeft(cm) {
+function cmCtrlLeft(cm) {
 	var pos = cm.getCursor();
 	var code = cm.getValue();
 	var lines = code.split(/\r|\n|\r\n/);
@@ -8102,8 +8102,8 @@ onload = function onload() {
 			"Tab": "indentMore",
 			"Shift-Tab": "indentLess",
 			"Backspace": cmBackspace,
-			"Shift-Left": cmShiftLeft,
-			"Shift-Right": cmShiftRight
+			"Ctrl-Left": cmCtrlLeft,
+			"Ctrl-Right": cmCtrlRight
 		}
 	});
 	editor.setSize(500, 300);

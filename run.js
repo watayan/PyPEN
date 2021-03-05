@@ -7169,7 +7169,7 @@ function cmBackspace(cm)
 	else cm.execCommand("delCharBefore");
 }
 
-function cmShiftRight(cm)
+function cmCtrlRight(cm)
 {
 	var pos = cm.getCursor();
 	var code = cm.getValue();
@@ -7188,7 +7188,7 @@ function cmShiftRight(cm)
 	else cm.execCommand("goLineEnd");
 }
 
-function cmShiftLeft(cm)
+function cmCtrlLeft(cm)
 {
 	var pos = cm.getCursor();
 	var code = cm.getValue();
@@ -7234,8 +7234,8 @@ onload = function(){
 			"Tab": "indentMore",
 			"Shift-Tab": "indentLess",
 			"Backspace": cmBackspace,
-			"Shift-Left": cmShiftLeft,
-			"Shift-Right": cmShiftRight,
+			"Ctrl-Left": cmCtrlLeft,
+			"Ctrl-Right": cmCtrlRight,
 		},
 	});
 	editor.setSize(500,300);
