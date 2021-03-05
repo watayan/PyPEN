@@ -8036,6 +8036,48 @@ function keydownModalforMisc(e) {
 		closeModalWindowforMisc(true);
 }
 
+function cmBackspace(cm) {
+	var pos = cm.getCursor();
+	var code = cm.getValue();
+	var lines = code.split(/\r|\n|\r\n/);
+	var code1 = lines[pos.line].slice(0, pos.ch);
+	// var code2 = lines[pos.line].slice(pos.ch);
+	if (/^\s+$/.exec(code1)) cm.execCommand("indentLess");else cm.execCommand("delCharBefore");
+}
+
+function cmShiftRight(cm) {
+	var pos = cm.getCursor();
+	var code = cm.getValue();
+	var lines = code.split(/\r|\n|\r\n/);
+	var selected = cm.getSelection();
+	var ch = pos.ch;
+	if (selected) ch += selected.length;
+	var code2 = lines[pos.line].slice(ch);
+	var find = /《[^《]*》/.exec(code2);
+	if (find) {
+		var ch1 = ch + find.index;
+		var ch2 = ch1 + find[0].length;
+		cm.setSelection({ "line": pos.line, "ch": ch2 }, { "line": pos.line, "ch": ch1 });
+	} else cm.execCommand("goLineEnd");
+}
+
+function cmShiftLeft(cm) {
+	var pos = cm.getCursor();
+	var code = cm.getValue();
+	var lines = code.split(/\r|\n|\r\n/);
+	var code1 = lines[pos.line].slice(0, pos.ch);
+	var re1 = new RegExp('《[^《]*》', 'g');
+	var find = re1.exec(code1);
+	if (find) {
+		do {
+			var ch1 = find.index;
+			var ch2 = ch1 + find[0].length;
+			find = re1.exec(code1);
+		} while (re1.lastIndex > 0);
+		cm.setSelection({ "line": pos.line, "ch": ch2 }, { "line": pos.line, "ch": ch1 });
+	} else if (/^\s*$/.exec(code1)) cm.execCommand("goLineStart");else cm.execCommand("goLineStartSmart");
+}
+
 onload = function onload() {
 	var sourceTextArea = document.getElementById("sourceTextarea");
 	var resultTextArea = document.getElementById("resultTextarea");
@@ -8058,7 +8100,10 @@ onload = function onload() {
 		indentWithTabs: false,
 		extraKeys: {
 			"Tab": "indentMore",
-			"Shift-Tab": "indentLess"
+			"Shift-Tab": "indentLess",
+			"Backspace": cmBackspace,
+			"Shift-Left": cmShiftLeft,
+			"Shift-Right": cmShiftRight
 		}
 	});
 	editor.setSize(500, 300);
