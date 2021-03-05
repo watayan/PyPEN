@@ -141,7 +141,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "かつ"			{return 'かつ';}
 "または"		{return 'または';}
 "でない"		{return 'でない';}
-"■"				{return 'EOB'}
+"■"				{return 'ブロック終端'}
 "を"{Print}"する"		{return 'を表示する';}
 "を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
 "を改行なしで"{Print}"する"	{return 'を改行無しで表示する';}
@@ -363,9 +363,9 @@ DumpStatement
 	;
 
 DefineFuncStatement
-	: '手続き' '識別子' '(' args ')' ':' '改行' statementlist 'EOB' '改行'
+	: '手続き' '識別子' '(' args ')' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = new DefineStep($2, $4, $8, new Location(@1, @9));}
-	| '関数' '識別子' '(' args ')' ':' '改行' statementlist 'EOB' '改行'
+	| '関数' '識別子' '(' args ')' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @9));}
 	;
 
@@ -382,35 +382,35 @@ CallStatement
 
 
 IfStatement
-	: 'もし' e 'ならば' ':' '改行' statementlist 'EOB' '改行'
+	: 'もし' e 'ならば' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,null, new Location(@1, @7))];}
-	| 'もし' e 'ならば' ':' '改行' statementlist 'そうでなければ' ':' '改行' statementlist 'EOB' '改行'
+	| 'もし' e 'ならば' ':' '改行' statementlist 'そうでなければ' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,$10, new Location(@1, @11))];}
 	;
 
 ForStatement
-	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, $7,$13, new Location(@1,@14))];}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, $7,$13, new Location(@1,@14))];}
-	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
-	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, $7,$12, new Location(@1,@13))];}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, $7,$12, new Location(@1,@13))];}
-	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11))];}
-	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist 'EOB' '改行'
+	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11))];}
 	;
 
 WhileStatement
-	: e 'の間' '繰り返す' ':' '改行' statementlist 'EOB' '改行'
+	: e 'の間' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = new While($1, $6, new Location(@1, @7));}
-	| e 'の間' ':' '改行' statementlist 'EOB' '改行'
+	| e 'の間' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = new While($1, $5, new Location(@1, @6));}
 	;
 

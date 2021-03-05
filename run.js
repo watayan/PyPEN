@@ -914,7 +914,7 @@ class Pow extends Value
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub" || c2 == "Mul" || c2 == "Div" || c2 == "DivInt" || c2 == "Mod") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' ** '
+			+ '**'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -979,7 +979,7 @@ class Add extends Value
 		if(c1 == "Minus") brace1 = true;
 		if(c2 == "Minus") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' + '
+			+ '+'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1038,7 +1038,7 @@ class Sub extends Value
 		if(c1 == "Minus") brace1 = true;
 		if(c2 == "Minus") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' - '
+			+ '-'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1097,7 +1097,7 @@ class Mul extends Value
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' * '
+			+ '*'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1149,7 +1149,7 @@ class Div extends Value	// /
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' / '
+			+ '/'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1201,7 +1201,7 @@ class DivInt extends Value // //
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' // '
+			+ '//'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1256,7 +1256,7 @@ class Mod extends Value
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' % '
+			+ '%'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1356,7 +1356,7 @@ class And extends Value
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' かつ '
+			+ 'かつ'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1407,7 +1407,7 @@ class Or extends Value
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' または '
+			+ 'または'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1449,7 +1449,7 @@ class Not extends Value
 		let brace1 = false;
 	//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' でない';
+			+ 'でない';
 	}
 	makePython()
 	{
@@ -1500,7 +1500,7 @@ class BitAnd extends Value
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' & '
+			+ '&'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1555,7 +1555,7 @@ class BitOr extends Value
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' | '
+			+ '|'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1610,7 +1610,7 @@ class BitXor extends Value
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' ^ '
+			+ '^'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1711,7 +1711,7 @@ class BitLShift extends Value
 		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' << '
+			+ '<<'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1765,7 +1765,7 @@ class BitRShift extends Value
 		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' >> '
+			+ '>>'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1826,7 +1826,7 @@ class EQ extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' = '
+			+ '='
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1866,7 +1866,7 @@ class NE extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' != '
+			+ '!='
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1906,7 +1906,7 @@ class GT extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' > '
+			+ '>'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1946,7 +1946,7 @@ class GE extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' >= '
+			+ '>='
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1986,7 +1986,7 @@ class LT extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' < '
+			+ '<'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -2026,7 +2026,7 @@ class LE extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' <= '
+			+ '<='
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -2764,7 +2764,7 @@ class Connect extends Value
 	}
 	getCode()
 	{
-		return this.value[0].getCode() + " と " + this.value[1].getCode();
+		return this.value[0].getCode() + "と" + this.value[1].getCode();
 	}
 	makePython()
 	{
@@ -6470,7 +6470,7 @@ class Parts_LoopBegin1 extends Parts_LoopBegin
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.condition + " の間繰り返す：\n";
+		code += this.condition + "の間：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
 		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
 		else code += code_inner;
@@ -6535,7 +6535,7 @@ class Parts_LoopBeginInc extends Parts_LoopBegin
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.var +"を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら繰り返す：\n";
+		code += this.var +"を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
 		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
 		else code += code_inner;
@@ -6599,7 +6599,7 @@ class Parts_LoopBeginDec extends Parts_LoopBegin
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.var +"を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら繰り返す：\n";
+		code += this.var +"を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
 		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
 		else code += code_inner;

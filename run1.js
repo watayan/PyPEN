@@ -1061,7 +1061,7 @@ var Pow = function (_Value9) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub" || c2 == "Mul" || c2 == "Div" || c2 == "DivInt" || c2 == "Mod") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' ** ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '**' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1136,7 +1136,7 @@ var Add = function (_Value10) {
 			    brace2 = false;
 			if (c1 == "Minus") brace1 = true;
 			if (c2 == "Minus") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' + ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '+' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1206,7 +1206,7 @@ var Sub = function (_Value11) {
 			    brace2 = false;
 			if (c1 == "Minus") brace1 = true;
 			if (c2 == "Minus") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' - ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '-' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1276,7 +1276,7 @@ var Mul = function (_Value12) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' * ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '*' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1342,7 +1342,7 @@ var Div = function (_Value13) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' / ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '/' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1409,7 +1409,7 @@ var DivInt = function (_Value14) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' // ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '//' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1475,7 +1475,7 @@ var Mod = function (_Value15) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 			if (c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' % ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '%' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1594,7 +1594,7 @@ var And = function (_Value17) {
 			var brace1 = false,
 			    brace2 = false;
 			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' かつ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + 'かつ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1656,7 +1656,7 @@ var Or = function (_Value18) {
 			var brace1 = false,
 			    brace2 = false;
 			if (c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' または ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + 'または' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1710,7 +1710,7 @@ var Not = function (_Value19) {
 			var c1 = constructor_name(v1);
 			var brace1 = false;
 			//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' でない';
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + 'でない';
 		}
 	}, {
 		key: 'makePython',
@@ -1770,7 +1770,7 @@ var BitAnd = function (_Value20) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
 			if (c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' & ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '&' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1834,7 +1834,7 @@ var BitOr = function (_Value21) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 			if (c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' | ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '|' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -1898,7 +1898,7 @@ var BitXor = function (_Value22) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 			if (c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' ^ ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '^' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2015,7 +2015,7 @@ var BitLShift = function (_Value24) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "BitNot") brace1 = true;
 			if (c2 == "Minus" || c2 == "BitNot") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' << ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '<<' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2079,7 +2079,7 @@ var BitRShift = function (_Value25) {
 			    brace2 = false;
 			if (c1 == "Minus" || c1 == "BitNot") brace1 = true;
 			if (c2 == "Minus" || c2 == "BitNot") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >> ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '>>' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2153,7 +2153,7 @@ var EQ = function (_Value26) {
 			    v2 = this.value[1];
 			var brace1 = false,
 			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' = ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '=' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2205,7 +2205,7 @@ var NE = function (_Value27) {
 			    v2 = this.value[1];
 			var brace1 = false,
 			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' != ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '!=' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2258,7 +2258,7 @@ var GT = function (_Value28) {
 			    v2 = this.value[1];
 			var brace1 = false,
 			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' > ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '>' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2311,7 +2311,7 @@ var GE = function (_Value29) {
 			    v2 = this.value[1];
 			var brace1 = false,
 			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' >= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '>=' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2364,7 +2364,7 @@ var LT = function (_Value30) {
 			    v2 = this.value[1];
 			var brace1 = false,
 			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' < ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '<' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -2417,7 +2417,7 @@ var LE = function (_Value31) {
 			    v2 = this.value[1];
 			var brace1 = false,
 			    brace2 = false;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + ' <= ' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '<=' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
 		}
 	}, {
 		key: 'makePython',
@@ -3218,7 +3218,7 @@ var Connect = function (_Value39) {
 	}, {
 		key: 'getCode',
 		value: function getCode() {
-			return this.value[0].getCode() + " と " + this.value[1].getCode();
+			return this.value[0].getCode() + "と" + this.value[1].getCode();
 		}
 	}, {
 		key: 'makePython',
@@ -7311,7 +7311,7 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.condition + " の間繰り返す：\n";
+			code += this.condition + "の間：\n";
 			var code_inner = this.next.appendCode('', indent + 1);
 			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
 
@@ -7394,7 +7394,7 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら繰り返す：\n";
+			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら：\n";
 			var code_inner = this.next.appendCode('', indent + 1);
 			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
 
@@ -7492,7 +7492,7 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 		key: 'appendCode',
 		value: function appendCode(code, indent) {
 			code += Parts.makeIndent(indent);
-			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら繰り返す：\n";
+			code += this.var + "を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら：\n";
 			var code_inner = this.next.appendCode('', indent + 1);
 			if (code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";else code += code_inner;
 
