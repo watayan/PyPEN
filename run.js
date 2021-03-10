@@ -2367,11 +2367,13 @@ var definedFunction = {
 		else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);
 		else throw new RuntimeError(loc.first_line, "absは数値にしか使えません");
 	}, null, null),
-	"random": new DefinedFunction(1, function(param, loc){
-		var par1 = param[0].getValue();
-		if(par1 instanceof IntValue) 
-		return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
-		else throw new RuntimeError(loc.first_line, "randomは整数にしか使えません");
+	"random": new DefinedFunction([0,1], function(param, loc){
+		if(param.length == 0) return new FloatValue(Math.random(), this.loc);
+		else{
+			var par1 = param[0].getValue();
+			if(par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
+			else throw new RuntimeError(loc.first_line, "randomは整数にしか使えません");
+		} 
 	}, "random", function(argc){
 		return "random.randint(0," + argc[0] + ")";
 	}),
