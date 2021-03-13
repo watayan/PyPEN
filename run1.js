@@ -5038,8 +5038,6 @@ var ForInc = function (_Statement22) {
 		value: function run() {
 			var index = code[0].stack[0].index;
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var last_loc = new Location(last_token, last_token);
 			var varTable = findVarTable(this.varname.varname);
 			if (!varTable) {
 				varTable = varTables[0];
@@ -5064,7 +5062,7 @@ var ForInc = function (_Statement22) {
 				var new_counter = new Add(variable, this.step, this.loc); // IncとDecの違うところ
 				loop.push(new runBeforeGetValue([variable, new_counter], this.loc));
 				loop.push(new Assign(this.varname, new_counter, null, this.loc));
-				loop.push(new LoopEnd(null, true, last_loc));
+				loop.push(new LoopEnd(null, true, this.loc));
 				code[0].stack.unshift({ statementlist: loop, index: 0 });
 				code[0].stack[1].index = index + 1;
 			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
@@ -5121,8 +5119,6 @@ var ForDec = function (_Statement23) {
 		key: 'run',
 		value: function run() {
 			if (this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
-			var last_loc = new Location(last_token, last_token);
 			var varTable = findVarTable(this.varname.varname);
 			if (!varTable) {
 				varTable = varTables[0];
@@ -5143,11 +5139,11 @@ var ForDec = function (_Statement23) {
 				for (var _i25 = 0; _i25 < this.statementlist.length; _i25++) {
 					loop.push(this.statementlist[_i25]);
 				} // ループ終端
-				loop.push(new runBeforeGetValue([this.step, this.varname.args], last_loc));
-				var new_counter = new Sub(variable, this.step, last_loc);
-				loop.push(new runBeforeGetValue([variable, new_counter], last_loc));
-				loop.push(new Assign(this.varname, new_counter, null, last_loc));
-				loop.push(new LoopEnd(null, true, last_loc));
+				loop.push(new runBeforeGetValue([this.step, this.varname.args], this.loc));
+				var new_counter = new Sub(variable, this.step, this.loc);
+				loop.push(new runBeforeGetValue([variable, new_counter], this.loc));
+				loop.push(new Assign(this.varname, new_counter, null, this.loc));
+				loop.push(new LoopEnd(null, true, this.loc));
 				code[0].stack.unshift({ statementlist: loop, index: 0 });
 			} else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
 			_get(ForDec.prototype.__proto__ || Object.getPrototypeOf(ForDec.prototype), 'run', this).call(this);
@@ -5196,11 +5192,10 @@ var While = function (_Statement24) {
 		key: 'run',
 		value: function run() {
 			_get(While.prototype.__proto__ || Object.getPrototypeOf(While.prototype), 'run', this).call(this);
-			var last_token = { first_line: this.last_line, last_line: this.last_line };
 			var loop = [new runBeforeGetValue([this.condition], this.loc), new LoopBegin(this.condition, true, this.loc)];
 			for (var i = 0; i < this.statementlist.length; i++) {
 				loop.push(this.statementlist[i]);
-			}loop.push(new LoopEnd(null, false, new Location(last_token, last_token)));
+			}loop.push(new LoopEnd(null, false, this.loc));
 			code[0].stack.unshift({ statementlist: loop, index: 0 });
 		}
 	}]);
@@ -5272,8 +5267,37 @@ var NopStatement = function (_Statement26) {
 	return NopStatement;
 }(Statement);
 
-var BreakStatement = function (_Statement27) {
-	_inherits(BreakStatement, _Statement27);
+var PauseStatement = function (_Statement27) {
+	_inherits(PauseStatement, _Statement27);
+
+	function PauseStatement(loc) {
+		_classCallCheck(this, PauseStatement);
+
+		return _possibleConstructorReturn(this, (PauseStatement.__proto__ || Object.getPrototypeOf(PauseStatement)).call(this, loc));
+	}
+
+	_createClass(PauseStatement, [{
+		key: 'clone',
+		value: function clone() {
+			return new PauseStatement(this.loc);
+		}
+	}, {
+		key: 'run',
+		value: function run() {
+			_get(PauseStatement.prototype.__proto__ || Object.getPrototypeOf(PauseStatement.prototype), 'run', this).call(this);
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython(indent) {
+			return '';
+		}
+	}]);
+
+	return PauseStatement;
+}(Statement);
+
+var BreakStatement = function (_Statement28) {
+	_inherits(BreakStatement, _Statement28);
 
 	function BreakStatement(loc) {
 		_classCallCheck(this, BreakStatement);
@@ -5453,6 +5477,7 @@ function next_line() {
 			statement = code[0].stack[0].statementlist[index];
 			if (statement && statement instanceof Statement) {
 				if (statement.loc) highlightLine(current_line = statement.first_line);
+				if (statement instanceof PauseStatement) step_flag = true;
 			}
 		} else highlightLine(++current_line);
 	}
@@ -6036,6 +6061,12 @@ var Flowchart = function () {
 					p1.setValue("NopStatement", []);
 					parts.next = p1;
 					parts = p1.next = b1;
+				} else if (statement == "PauseStatement") {
+					var p1 = new Parts_Misc();
+					var b1 = new Parts_Bar();
+					p1.setValue("PauseStatement", []);
+					parts.next = p1;
+					parts = p1.next = b1;
 				}
 			}
 		}
@@ -6403,10 +6434,10 @@ var Parts_Output = function (_Parts4) {
 	function Parts_Output() {
 		_classCallCheck(this, Parts_Output);
 
-		var _this74 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
+		var _this75 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
 
-		_this74.setValue("《値》", true);
-		return _this74;
+		_this75.setValue("《値》", true);
+		return _this75;
 	}
 
 	_createClass(Parts_Output, [{
@@ -6527,10 +6558,10 @@ var Parts_Input = function (_Parts5) {
 	function Parts_Input() {
 		_classCallCheck(this, Parts_Input);
 
-		var _this75 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
+		var _this76 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
 
-		_this75.setValue("《変数》", 0);
-		return _this75;
+		_this76.setValue("《変数》", 0);
+		return _this76;
 	}
 
 	_createClass(Parts_Input, [{
@@ -6633,10 +6664,10 @@ var Parts_Substitute = function (_Parts6) {
 	function Parts_Substitute() {
 		_classCallCheck(this, Parts_Substitute);
 
-		var _this76 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
+		var _this77 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
 
-		_this76.setValue("《変数》", "《値》", null);
-		return _this76;
+		_this77.setValue("《変数》", "《値》", null);
+		return _this77;
 	}
 
 	_createClass(Parts_Substitute, [{
@@ -6750,10 +6781,10 @@ var Parts_Append = function (_Parts7) {
 	function Parts_Append() {
 		_classCallCheck(this, Parts_Append);
 
-		var _this77 = _possibleConstructorReturn(this, (Parts_Append.__proto__ || Object.getPrototypeOf(Parts_Append)).call(this));
+		var _this78 = _possibleConstructorReturn(this, (Parts_Append.__proto__ || Object.getPrototypeOf(Parts_Append)).call(this));
 
-		_this77.setValue("《変数》", "《値》");
-		return _this77;
+		_this78.setValue("《変数》", "《値》");
+		return _this78;
 	}
 
 	_createClass(Parts_Append, [{
@@ -6860,10 +6891,10 @@ var Parts_Extend = function (_Parts8) {
 	function Parts_Extend() {
 		_classCallCheck(this, Parts_Extend);
 
-		var _this78 = _possibleConstructorReturn(this, (Parts_Extend.__proto__ || Object.getPrototypeOf(Parts_Extend)).call(this));
+		var _this79 = _possibleConstructorReturn(this, (Parts_Extend.__proto__ || Object.getPrototypeOf(Parts_Extend)).call(this));
 
-		_this78.setValue("《変数》", "《値》");
-		return _this78;
+		_this79.setValue("《変数》", "《値》");
+		return _this79;
 	}
 
 	_createClass(Parts_Extend, [{
@@ -6970,12 +7001,12 @@ var Parts_If = function (_Parts9) {
 	function Parts_If() {
 		_classCallCheck(this, Parts_If);
 
-		var _this79 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
+		var _this80 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
 
-		_this79.setValue("《条件》");
-		_this79.left = _this79.right = null;
-		_this79.left_bar_expand = _this79.right_bar_expand = 0;
-		return _this79;
+		_this80.setValue("《条件》");
+		_this80.left = _this80.right = null;
+		_this80.left_bar_expand = _this80.right_bar_expand = 0;
+		return _this80;
 	}
 
 	_createClass(Parts_If, [{
@@ -7297,10 +7328,10 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	function Parts_LoopBegin1() {
 		_classCallCheck(this, Parts_LoopBegin1);
 
-		var _this81 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
+		var _this82 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
 
-		_this81.setValue("《条件》");
-		return _this81;
+		_this82.setValue("《条件》");
+		return _this82;
 	}
 
 	_createClass(Parts_LoopBegin1, [{
@@ -7377,10 +7408,10 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this82 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this83 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
 
-		_this82.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this82;
+		_this83.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this83;
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
@@ -7475,10 +7506,10 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this83 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this84 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
 
-		_this83.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this83;
+		_this84.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this84;
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
@@ -7695,10 +7726,10 @@ var Parts_LoopEnd = function (_Parts11) {
 
 var misc_menu_ja = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["何もしない", "NopStatement", "何もしない", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["文字色設定", "gSetTextColor", "文字色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["点描画", "gDrawPoint", "点描画(	,	,	,	)", ["x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["楕円描画", "gDrawCircle", "楕円描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["楕円塗描画", "gFillCircle", "楕円塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["弧描画", "gDrawArc", "弧描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["弧塗描画", "gFillArc", "弧塗描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["グラフ描画", "gDrawGraph", "グラフ描画(	,	)", ["レイアウト情報", "値の配列"]], ["グラフ消去", "gClearGraph", "グラフ消去()", []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]],
+["《各種処理》", "none", "《各種処理》", []], ["何もしない", "NopStatement", "何もしない", []], ["描画領域開く", "gOpenWindow", "描画領域開く(	,	)", ["幅", "高さ"]], ["描画領域閉じる", "gCloseWindow", "描画領域閉じる()", []], ["描画領域全消去", "gClearWindow", "描画領域全消去()", []], ["線色設定", "gSetLineColor", "線色設定(	,	,	)", ["赤", "青", "緑"]], ["塗色設定", "gSetFillColor", "塗色設定(	,	,	)", ["赤", "青", "緑"]], ["文字色設定", "gSetTextColor", "文字色設定(	,	,	)", ["赤", "青", "緑"]], ["線太さ設定", "gSetLineWidth", "線太さ設定(	)", ["太さ"]], ["文字サイズ設定", "gSetFontSize", "文字サイズ設定(	)", ["サイズ"]], ["文字描画", "gDrawText", "文字描画(	,	,	)", ["文字列", "x", "y"]], ["点描画", "gDrawPoint", "点描画(	,	,	,	)", ["x", "y"]], ["線描画", "gDrawLine", "線描画(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["矩形描画", "gDrawBox", "矩形描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["矩形塗描画", "gFillBox", "矩形塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["円描画", "gDrawCircle", "円描画(	,	,	)", ["x", "y", "半径"]], ["円塗描画", "gFillCircle", "円塗描画(	,	,	)", ["x", "y", "半径"]], ["楕円描画", "gDrawCircle", "楕円描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["楕円塗描画", "gFillCircle", "楕円塗描画(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["弧描画", "gDrawArc", "弧描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["弧塗描画", "gFillArc", "弧塗描画(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["棒グラフ描画", "gBarplot", "棒グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["線グラフ描画", "gLineplot", "線グラフ描画(	,	,	)", ["幅", "高さ", "配列"]], ["グラフ描画", "gDrawGraph", "グラフ描画(	,	)", ["レイアウト情報", "値の配列"]], ["グラフ消去", "gClearGraph", "グラフ消去()", []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []], ["一時停止する", "PauseStatement", "一時停止する", []]],
     misc_menu_en = [
 //表示            識別子            プログラム上の表現            [引数の意味]
-["《各種処理》", "none", "《各種処理》", []], ["何もしない", "NopStatement", "何もしない", []], ["gOpenWindow", "gOpenWindow", "gOpenWindow(	,	)", ["幅", "高さ"]], ["gCloseWindow", "gCloseWindow", "gCloseWindow()", []], ["gClearWindow", "gClearWindow", "gClearWindow()", []], ["gSetLineColor", "gSetLineColor", "gSetLineColor(	,	,	)", ["赤", "青", "緑"]], ["gSetFillColor", "gSetFillColor", "gSetFillColor(	,	,	)", ["赤", "青", "緑"]], ["gSetTextColor", "gSetTextColor", "gSetTextColor(	,	,	)", ["赤", "青", "緑"]], ["gSetLineWidth", "gSetLineWidth", "gSetLineWidth(	)", ["太さ"]], ["gSetFontSize", "gSetFontSize", "gSetFontSize(	)", ["サイズ"]], ["gDrawText", "gDrawText", "gDrawText(	,	,	)", ["文字列", "x", "y"]], ["gDrawPoint", "gDrawPoint", "gDrawPoint(	,	,	,	)", ["x", "y"]], ["gDrawLine", "gDrawLine", "gDrawLine(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["gDrawBox", "gDrawBox", "gDrawBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillBox", "gFillBox", "gFillBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawCircle", "gDrawCircle", "gDrawCicle(	,	,	)", ["x", "y", "半径"]], ["gFillCircle", "gFillCircle", "gFillCircle(	,	,	)", ["x", "y", "半径"]], ["gDrawOval", "gDrawCircle", "gDrawOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillOval", "gFillCircle", "gFillOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawArc", "gDrawArc", "gDrawArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gFillArc", "gFillArc", "gFillArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gBarplot", "gBarplot", "gBarplot(	,	,	)", ["幅", "高さ", "値"]], ["gLineplot", "gLineplot", "gLineplot(	,	,	)", ["幅", "高さ", "値"]], ["gDrawGraph", "gDrawGraph", "gDrawGraph(	,	)", ["レイアウト情報", "値の配列"]], ["gClearGraph", "gClearGraph", "gClearGraph()",, []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []]];
+["《各種処理》", "none", "《各種処理》", []], ["何もしない", "NopStatement", "何もしない", []], ["gOpenWindow", "gOpenWindow", "gOpenWindow(	,	)", ["幅", "高さ"]], ["gCloseWindow", "gCloseWindow", "gCloseWindow()", []], ["gClearWindow", "gClearWindow", "gClearWindow()", []], ["gSetLineColor", "gSetLineColor", "gSetLineColor(	,	,	)", ["赤", "青", "緑"]], ["gSetFillColor", "gSetFillColor", "gSetFillColor(	,	,	)", ["赤", "青", "緑"]], ["gSetTextColor", "gSetTextColor", "gSetTextColor(	,	,	)", ["赤", "青", "緑"]], ["gSetLineWidth", "gSetLineWidth", "gSetLineWidth(	)", ["太さ"]], ["gSetFontSize", "gSetFontSize", "gSetFontSize(	)", ["サイズ"]], ["gDrawText", "gDrawText", "gDrawText(	,	,	)", ["文字列", "x", "y"]], ["gDrawPoint", "gDrawPoint", "gDrawPoint(	,	,	,	)", ["x", "y"]], ["gDrawLine", "gDrawLine", "gDrawLine(	,	,	,	)", ["x1", "y1", "x2", "y2"]], ["gDrawBox", "gDrawBox", "gDrawBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillBox", "gFillBox", "gFillBox(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawCircle", "gDrawCircle", "gDrawCicle(	,	,	)", ["x", "y", "半径"]], ["gFillCircle", "gFillCircle", "gFillCircle(	,	,	)", ["x", "y", "半径"]], ["gDrawOval", "gDrawCircle", "gDrawOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gFillOval", "gFillCircle", "gFillOval(	,	,	,	)", ["x", "y", "幅", "高さ"]], ["gDrawArc", "gDrawArc", "gDrawArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gFillArc", "gFillArc", "gFillArc(	,	,	,	,	,	,	)", ["x", "y", "幅", "高さ", "開始角", "終了角", "閉じ方"]], ["gBarplot", "gBarplot", "gBarplot(	,	,	)", ["幅", "高さ", "値"]], ["gLineplot", "gLineplot", "gLineplot(	,	,	)", ["幅", "高さ", "値"]], ["gDrawGraph", "gDrawGraph", "gDrawGraph(	,	)", ["レイアウト情報", "値の配列"]], ["gClearGraph", "gClearGraph", "gClearGraph()",, []], ["待つ", "sleep", "	ミリ秒待つ", ["ミリ秒数"]], ["繰り返しを抜ける", "break", "繰り返しを抜ける", []], ["変数を確認する", "dump", "変数を確認する", []], ["一時停止する", "PauseStatement", "一時停止する", []]];
 
 var misc_menu = setting.graphic_command == 0 ? misc_menu_ja : misc_menu_en;
 
@@ -7708,10 +7739,10 @@ var Parts_Misc = function (_Parts12) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this85 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this86 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
 
-		_this85.setValue("none", []);
-		return _this85;
+		_this86.setValue("none", []);
+		return _this86;
 	}
 
 	_createClass(Parts_Misc, [{
@@ -8489,9 +8520,11 @@ onload = function onload() {
 					sleep: { name: "待つ", callback: function callback(k, e) {
 							insertCode("《ミリ秒数》ミリ秒待つ");
 						} },
-					//						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
 					dump: { name: "変数を確認する", callback: function callback(k, e) {
 							insertCode("変数を確認する");
+						} },
+					pause: { name: "一時停止する", callback: function callback(k, e) {
+							insertCode("一時停止する");
 						} }
 				}
 			}

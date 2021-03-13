@@ -232,6 +232,8 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "変数を確認する"		{return '変数を確認する';}
 "改行する"				{return '改行する';}
 "何もしない"			{return '何もしない';}
+"一時停止する"			{return '一時停止する';}
+"一時停止"				{return '一時停止';}
 {Identifier}			{return '識別子';}
 {Comment}				{return '改行';}
 <<EOF>>					{return 'EOF';}
@@ -349,6 +351,8 @@ statement
 NopStatement
 	: '何もしない' '改行'
 		{$$ = new NopStatement(new Location(@1,@1));}
+	| '一時停止する' '改行'
+		{$$ = new PauseStatement(new Location(@1, @1));}
 	;
 
 EmptyStatement

@@ -23,3 +23,4 @@ gitから入手すると，バージョンアップの際にgit pullするだけ
 * jQuery ui.position
 * [CodeMirror](https://github.com/codemirror/CodeMirror)
 * [zlib.js](https://github.com/imaya/zlib.js)
+* [Plotly](https://plotly.com/javascript/)

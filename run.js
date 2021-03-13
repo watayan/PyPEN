@@ -4456,8 +4456,6 @@ class ForInc extends Statement
 	{
 		let index = code[0].stack[0].index;
 		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-		let last_token = {first_line: this.last_line, last_line: this.last_line};
-		let last_loc = new Location(last_token, last_token);
 		let varTable = findVarTable(this.varname.varname);
 		if(!varTable)
 		{
@@ -4485,7 +4483,7 @@ class ForInc extends Statement
 			let new_counter = new Add(variable, this.step, this.loc);	// IncとDecの違うところ
 			loop.push(new runBeforeGetValue([variable, new_counter], this.loc));
 			loop.push(new Assign(this.varname, new_counter, null, this.loc));
-			loop.push(new LoopEnd(null, true, last_loc));
+			loop.push(new LoopEnd(null, true, this.loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 			code[0].stack[1].index = index + 1;
 		}
@@ -4529,8 +4527,6 @@ class ForDec extends Statement
 	run()
 	{
 		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-		let last_token = {first_line: this.last_line, last_line: this.last_line};
-		let last_loc = new Location(last_token, last_token);
 		let varTable = findVarTable(this.varname.varname);
 		if(!varTable)
 		{
@@ -4554,11 +4550,11 @@ class ForDec extends Statement
 			loop.push(new LoopBegin(condition, true, this.loc));
 			for(let i = 0; i < this.statementlist.length; i++)loop.push(this.statementlist[i]);
 			// ループ終端
-			loop.push(new runBeforeGetValue([this.step, this.varname.args], last_loc));
-			let new_counter = new Sub(variable, this.step, last_loc);
-			loop.push(new runBeforeGetValue([variable, new_counter], last_loc));
-			loop.push(new Assign(this.varname, new_counter, null, last_loc));
-			loop.push(new LoopEnd(null, true, last_loc));
+			loop.push(new runBeforeGetValue([this.step, this.varname.args], this.loc));
+			let new_counter = new Sub(variable, this.step, this.loc);
+			loop.push(new runBeforeGetValue([variable, new_counter], this.loc));
+			loop.push(new Assign(this.varname, new_counter, null, this.loc));
+			loop.push(new LoopEnd(null, true, this.loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 		}
 		else throw new RuntimeError(this.first_line, this.varname.varname + "は数値型の変数ではありません");
@@ -4597,10 +4593,9 @@ class While extends Statement
 	run()
 	{
 		super.run();
-		let last_token = {first_line: this.last_line, last_line: this.last_line};
 		let loop = [new runBeforeGetValue([this.condition], this.loc), new LoopBegin(this.condition, true, this.loc)];
 		for(var i = 0; i < this.statementlist.length; i++) loop.push(this.statementlist[i]);
-		loop.push(new LoopEnd(null, false, new Location(last_token, last_token)));
+		loop.push(new LoopEnd(null, false, this.loc));
 		code[0].stack.unshift({statementlist: loop, index: 0});
 	}
 }
@@ -4638,6 +4633,17 @@ class NopStatement extends Statement
 		return Parts.makeIndent(indent) + "None\n";
 	}
 }
+
+class PauseStatement extends Statement
+{
+	constructor(loc) {super(loc);}
+	clone(){return new PauseStatement(this.loc);}
+	run(){super.run(); }
+	makePython(indent){
+		return '';
+	}
+}
+
 
 class BreakStatement extends Statement
 {
@@ -4847,6 +4853,7 @@ function next_line()
 			if(statement && (statement instanceof Statement))
 			{
 				if(statement.loc) highlightLine(current_line = statement.first_line);
+				if(statement instanceof PauseStatement) step_flag = true;
 			}
 		}
 		else highlightLine(++current_line);
@@ -5403,6 +5410,14 @@ class Flowchart
 				var p1 = new Parts_Misc();
 				var b1 = new Parts_Bar();
 				p1.setValue("NopStatement",[]);
+				parts.next = p1;
+				parts = p1.next = b1;
+			}
+			else if(statement == "PauseStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue("PauseStatement",[]);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -6765,7 +6780,8 @@ var misc_menu_ja =[
 	["グラフ消去"	, "gClearGraph"		,"グラフ消去()"					,[]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
-	["変数を確認する", "dump"			,"変数を確認する",[]]
+	["変数を確認する", "dump"			,"変数を確認する",[]],
+	["一時停止する", "PauseStatement", "一時停止する",[]]
 ],
 misc_menu_en = [
 	//表示            識別子            プログラム上の表現            [引数の意味]
@@ -6796,7 +6812,8 @@ misc_menu_en = [
 	["gClearGraph"	, "gClearGraph"		,"gClearGraph()",				,[]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
-	["変数を確認する", "dump"			,"変数を確認する",[]]
+	["変数を確認する", "dump"			,"変数を確認する",[]],
+	["一時停止する", "PauseStatement", "一時停止する",[]]
 ];
 
 var misc_menu = setting.graphic_command == 0 ? misc_menu_ja : misc_menu_en;
@@ -7494,8 +7511,8 @@ onload = function(){
 					items:{
 						nop:{name:"何もしない", callback: function(k,e){insertCode("何もしない");}},
 						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》ミリ秒待つ");}},
-//						break:{name:"繰り返しを抜ける", callback: function(k,e){insertCode("繰り返しを抜ける");}},
-						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}}
+						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}},
+						pause:{name:"一時停止する", callback: function(k,e){insertCode("一時停止する");}}
 					}
 				}
 			}
