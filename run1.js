@@ -4232,7 +4232,7 @@ var Input = function (_Statement13) {
 	_createClass(Input, [{
 		key: 'clone',
 		value: function clone() {
-			new Input(this.varname, this.type, this.loc);
+			return new Input(this.varname, this.type, this.loc);
 		}
 	}, {
 		key: 'run',

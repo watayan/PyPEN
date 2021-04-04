@@ -3659,7 +3659,7 @@ class Input extends Statement
 	}
 	clone()
 	{
-		new Input(this.varname, this.type, this.loc);
+		return new Input(this.varname, this.type, this.loc);
 	}
 	run()
 	{
