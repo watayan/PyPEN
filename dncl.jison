@@ -163,6 +163,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "の中に"				{return 'の中に';}
 "に"					{return 'に';}
 "を"					{return 'を';}
+"個の"					{return '個の';}
 "から"				{return 'から';}
 "まで"				{return 'まで';}
 "ずつ"				{return 'ずつ';}
@@ -255,6 +256,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 %left '*' '/' '//' '%'
 %left UMINUS '~'
 %right '**'
+%right '個の'
 %
 %start Program
 
@@ -301,6 +303,7 @@ e
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
 	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
+	| e '個の' e	{$$ = new NumberOf($1, $3, new Location(@1, @3));}
 	;
 
 variable

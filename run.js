@@ -21,7 +21,6 @@ const nameOfType=['','整数','実数','文字列','真偽','配列'];
 var code = null;		// コードを積む（関数・手続き単位で）
 var varTables = [];		// 変数テーブルを積む
 var myFuncs = {};		// プログラム中で定義される関数・手続き
-var returnValues = [];	// 関数からの返り値を積む
 var run_flag = false, step_flag = false, editable_flag = true;
 var flowchart = null;
 var textarea = null;
@@ -615,7 +614,7 @@ class ArrayValue extends Value
 	 * @param {Array<Value>} v 
 	 * @param {Location} loc 
 	 */
-	constructor(v, loc)
+	constructor(v,loc)
 	{
 		super(v, loc);
 		this.rtnv = v;
@@ -2085,6 +2084,51 @@ class IN extends Value
 	}
 }
 
+class NumberOf extends Value
+{
+	constructor(x, y, loc){super([x,y], loc);}
+	clone()
+	{
+		var rtnv = new NumberOf(this.value[0], this.value[1], this.loc);
+		rtnv.rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
+		if(v1 instanceof IntValue && v2 instanceof Value)
+		{
+			let l = v1.value;
+			let a =  new Array(l);
+			for(let i = 0; i < l; i++)a[i] = v2.clone();
+			this.rtnv = new ArrayValue(a, this.loc);
+		}
+		else throw new RuntimeError(this.loc.first_line, "\"個の\"の使い方が違います");
+		code[0].stack[0].index++;
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+ '個の'
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[1];
+		let brace1 = false, brace2 = false;
+		return '[' + (brace1 ? '(' : '') + v2.makePython() + (brace1 ? ')' : '')
+			+ ' for _ in range('
+			+ (brace2 ? '(' : '') + v1.makePython() + (brace2 ? ')' : '')
+			+ ')]';
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
+}
+
 
 class ConvertInt extends Value
 {
@@ -2671,7 +2715,6 @@ class CallFunction extends Value
 		if(definedFunction[func])
 		{
 			let index = code[0].stack[0].index;
-//			returnValues.push(definedFunction[func].exec(param, this.loc));
 			let fn = definedFunction[func].clone();
 			fn.setCaller(this);
 			fn.setParameter(param);
@@ -2710,7 +2753,6 @@ class CallFunction extends Value
 	}
 	getValue()
 	{
-//		return returnValues.pop();
 		return this.rtnv;
 	}
 	getCode()
@@ -3038,7 +3080,6 @@ class ReturnStatement extends Statement {
 		if(code[0] instanceof parsedFunction)
 		{
 //			this.value.getValue().run();
-//			returnValues.push(this.value.getValue());
 			this.caller.setValue(this.value.getValue());
 			code.shift();
 			if(this.flag) varTables.shift();
@@ -3456,10 +3497,7 @@ class Assign extends Statement
 		}
 		else // 変数が定義されていない
 		{
-			if(this.operator)
-			{
-				throw new RuntimeError(this.first_line, '宣言されていない変数に複合代入演算子が使われました');
-			}
+			if(this.operator) throw new RuntimeError(this.first_line, '宣言されていない変数に複合代入演算子が使われました');
 			vt = varTables[0];
 			vt.vars[vn] = new NullValue(this.loc);
 			setVariableByArgs(vt, vn, ag, vl.clone(), this.loc);
@@ -4704,7 +4742,6 @@ function reset()
 	setRunflag(false);
 	code = null;
 	highlightLine(-1);
-	returnValues = [];
 	var canvas = document.getElementById('canvas');
 	canvas.style.display = 'none';
 	var input_area = document.getElementById('input_area');
@@ -4828,6 +4865,8 @@ function next_line()
 				else textareaAppend("実行時エラーです\n" + e + "\n");
 				setRunflag(false);
 				code = null;
+				varTables = [];
+				myFuncs = {};
 			}
 			else throw e;
 		}

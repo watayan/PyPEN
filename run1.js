@@ -32,7 +32,6 @@ var nameOfType = ['', '整数', '実数', '文字列', '真偽', '配列'];
 var code = null; // コードを積む（関数・手続き単位で）
 var varTables = []; // 変数テーブルを積む
 var myFuncs = {}; // プログラム中で定義される関数・手続き
-var returnValues = []; // 関数からの返り値を積む
 var run_flag = false,
     step_flag = false,
     editable_flag = true;
@@ -2495,8 +2494,66 @@ var IN = function (_Value32) {
 	return IN;
 }(Value);
 
-var ConvertInt = function (_Value33) {
-	_inherits(ConvertInt, _Value33);
+var NumberOf = function (_Value33) {
+	_inherits(NumberOf, _Value33);
+
+	function NumberOf(x, y, loc) {
+		_classCallCheck(this, NumberOf);
+
+		return _possibleConstructorReturn(this, (NumberOf.__proto__ || Object.getPrototypeOf(NumberOf)).call(this, [x, y], loc));
+	}
+
+	_createClass(NumberOf, [{
+		key: 'clone',
+		value: function clone() {
+			var rtnv = new NumberOf(this.value[0], this.value[1], this.loc);
+			rtnv.rtnv = this.rtnv;
+			return rtnv;
+		}
+	}, {
+		key: 'run',
+		value: function run() {
+			var v1 = this.value[0].getValue(),
+			    v2 = this.value[1].getValue();
+			if (v1 instanceof IntValue && v2 instanceof Value) {
+				var l = v1.value;
+				var a = new Array(l);
+				for (var _i3 = 0; _i3 < l; _i3++) {
+					a[_i3] = v2.clone();
+				}this.rtnv = new ArrayValue(a, this.loc);
+			} else throw new RuntimeError(this.loc.first_line, "\"個の\"の使い方が違います");
+			code[0].stack[0].index++;
+		}
+	}, {
+		key: 'getCode',
+		value: function getCode() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var brace1 = false,
+			    brace2 = false;
+			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '') + '個の' + (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '');
+		}
+	}, {
+		key: 'makePython',
+		value: function makePython() {
+			var v1 = this.value[0],
+			    v2 = this.value[1];
+			var brace1 = false,
+			    brace2 = false;
+			return '[' + (brace1 ? '(' : '') + v2.makePython() + (brace1 ? ')' : '') + ' for _ in range(' + (brace2 ? '(' : '') + v1.makePython() + (brace2 ? ')' : '') + ')]';
+		}
+	}, {
+		key: 'getValue',
+		value: function getValue() {
+			return this.rtnv;
+		}
+	}]);
+
+	return NumberOf;
+}(Value);
+
+var ConvertInt = function (_Value34) {
+	_inherits(ConvertInt, _Value34);
 
 	function ConvertInt(x, loc) {
 		_classCallCheck(this, ConvertInt);
@@ -2540,8 +2597,8 @@ var ConvertInt = function (_Value33) {
 	return ConvertInt;
 }(Value);
 
-var ConvertFloat = function (_Value34) {
-	_inherits(ConvertFloat, _Value34);
+var ConvertFloat = function (_Value35) {
+	_inherits(ConvertFloat, _Value35);
 
 	function ConvertFloat(x, loc) {
 		_classCallCheck(this, ConvertFloat);
@@ -2585,8 +2642,8 @@ var ConvertFloat = function (_Value34) {
 	return ConvertFloat;
 }(Value);
 
-var ConvertString = function (_Value35) {
-	_inherits(ConvertString, _Value35);
+var ConvertString = function (_Value36) {
+	_inherits(ConvertString, _Value36);
 
 	function ConvertString(x, loc) {
 		_classCallCheck(this, ConvertString);
@@ -2630,8 +2687,8 @@ var ConvertString = function (_Value35) {
 	return ConvertString;
 }(Value);
 
-var ConvertBool = function (_Value36) {
-	_inherits(ConvertBool, _Value36);
+var ConvertBool = function (_Value37) {
+	_inherits(ConvertBool, _Value37);
 
 	function ConvertBool(x, loc) {
 		_classCallCheck(this, ConvertBool);
@@ -2676,8 +2733,8 @@ var ConvertBool = function (_Value36) {
 	return ConvertBool;
 }(Value);
 
-var Variable = function (_Value37) {
-	_inherits(Variable, _Value37);
+var Variable = function (_Value38) {
+	_inherits(Variable, _Value38);
 
 	/**
   * 
@@ -2688,9 +2745,9 @@ var Variable = function (_Value37) {
 	function Variable(x, y, loc) {
 		_classCallCheck(this, Variable);
 
-		var _this40 = _possibleConstructorReturn(this, (Variable.__proto__ || Object.getPrototypeOf(Variable)).call(this, [x, y], loc));
+		var _this41 = _possibleConstructorReturn(this, (Variable.__proto__ || Object.getPrototypeOf(Variable)).call(this, [x, y], loc));
 
-		_this40.rtnv = null;return _this40;
+		_this41.rtnv = null;return _this41;
 	}
 
 	_createClass(Variable, [{
@@ -2718,8 +2775,8 @@ var Variable = function (_Value37) {
 			var pm = this.value[1];
 			if (pm != null) {
 				var ag = new Array(pm.length);
-				for (var _i3 = 0; _i3 < pm.length; _i3++) {
-					ag[_i3] = pm.value[_i3].getCode();
+				for (var _i4 = 0; _i4 < pm.length; _i4++) {
+					ag[_i4] = pm.value[_i4].getCode();
 				}
 				vn += '[' + ag.join(',') + ']';
 			}
@@ -2732,8 +2789,8 @@ var Variable = function (_Value37) {
 			var pm = this.value[1];
 			if (pm != null) {
 				var ag = new Array(pm.length);
-				for (var _i4 = 0; _i4 < pm.length; _i4++) {
-					ag[_i4] = '[' + pm.value[_i4].makePython() + ']';
+				for (var _i5 = 0; _i5 < pm.length; _i5++) {
+					ag[_i5] = '[' + pm.value[_i5].makePython() + ']';
 				}
 				vn += ag.join('');
 			}
@@ -2838,8 +2895,8 @@ var definedFunction = {
 			var args = [];
 			var keys = Object.keys(par1.value);
 			keys.sort();
-			for (var _i5 = 0; _i5 < keys.length; _i5++) {
-				args.push(new StringValue(keys[_i5], loc));
+			for (var _i6 = 0; _i6 < keys.length; _i6++) {
+				args.push(new StringValue(keys[_i6], loc));
 			}return new ArrayValue(args, this.loc);
 		} else throw new RuntimeError(loc.first_line, 'keysは辞書にしか使えません');
 	}, null, null),
@@ -3038,19 +3095,19 @@ var definedFunction = {
 };
 
 function setCaller(statementlist, caller) {
-	for (var _i6 = 0; _i6 < statementlist.length; _i6++) {
-		if (statementlist[_i6].statementlist) setCaller(statementlist[_i6].statementlist, caller);
-		if (statementlist[_i6].state) setCaller(statementlist[_i6].state, caller);
-		if (statementlist[_i6].state1) setCaller(statementlist[_i6].state1, caller);
-		if (statementlist[_i6].state2) setCaller(statementlist[_i6].state2, caller);
-		if (statementlist[_i6] instanceof ReturnStatement) statementlist[_i6].setCaller(caller, true);
+	for (var _i7 = 0; _i7 < statementlist.length; _i7++) {
+		if (statementlist[_i7].statementlist) setCaller(statementlist[_i7].statementlist, caller);
+		if (statementlist[_i7].state) setCaller(statementlist[_i7].state, caller);
+		if (statementlist[_i7].state1) setCaller(statementlist[_i7].state1, caller);
+		if (statementlist[_i7].state2) setCaller(statementlist[_i7].state2, caller);
+		if (statementlist[_i7] instanceof ReturnStatement) statementlist[_i7].setCaller(caller, true);
 	}
 }
 
 function cloneStatementlist(statementlist) {
 	var rtnv = [];
-	for (var _i7 = 0; _i7 < statementlist.length; _i7++) {
-		var statement = statementlist[_i7];
+	for (var _i8 = 0; _i8 < statementlist.length; _i8++) {
+		var statement = statementlist[_i8];
 		rtnv.push(statement.clone());
 	}
 	return rtnv;
@@ -3060,8 +3117,8 @@ function cloneStatementlist(statementlist) {
  * 関数呼び出し
  */
 
-var CallFunction = function (_Value38) {
-	_inherits(CallFunction, _Value38);
+var CallFunction = function (_Value39) {
+	_inherits(CallFunction, _Value39);
 
 	/**
   * @constructor
@@ -3072,11 +3129,11 @@ var CallFunction = function (_Value38) {
 	function CallFunction(funcname, parameter, loc) {
 		_classCallCheck(this, CallFunction);
 
-		var _this41 = _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
+		var _this42 = _possibleConstructorReturn(this, (CallFunction.__proto__ || Object.getPrototypeOf(CallFunction)).call(this, { funcname: funcname, parameter: parameter }, loc));
 
-		_this41.rtnv = null;
+		_this42.rtnv = null;
 		//		this.rtnv = new StringValue("関数が終了していません", loc);
-		return _this41;
+		return _this42;
 	}
 
 	_createClass(CallFunction, [{
@@ -3093,7 +3150,6 @@ var CallFunction = function (_Value38) {
 			    param = this.value.parameter;
 			if (definedFunction[func]) {
 				var index = code[0].stack[0].index;
-				//			returnValues.push(definedFunction[func].exec(param, this.loc));
 				var fn = definedFunction[func].clone();
 				fn.setCaller(this);
 				fn.setParameter(param);
@@ -3112,9 +3168,9 @@ var CallFunction = function (_Value38) {
 
 				try {
 					for (var _iterator = Object.keys(globalVarTable.vars)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-						var _i8 = _step.value;
+						var _i9 = _step.value;
 
-						vt.vars[_i8] = globalVarTable.vars[_i8].getValue().clone();
+						vt.vars[_i9] = globalVarTable.vars[_i9].getValue().clone();
 					}
 				} catch (err) {
 					_didIteratorError = true;
@@ -3131,8 +3187,8 @@ var CallFunction = function (_Value38) {
 					}
 				}
 
-				for (var _i9 = 0; _i9 < _fn.params.length; _i9++) {
-					vt.vars[_fn.params[_i9].varname] = param[_i9].getValue().clone();
+				for (var _i10 = 0; _i10 < _fn.params.length; _i10++) {
+					vt.vars[_fn.params[_i10].varname] = param[_i10].getValue().clone();
 				}var _statementlist = cloneStatementlist(_fn.statementlist);
 				// let statementlist = cloneStatementlist(fn.statementlist);
 				_statementlist.unshift(new runBeforeGetValue(_fn.param));
@@ -3153,7 +3209,6 @@ var CallFunction = function (_Value38) {
 	}, {
 		key: 'getValue',
 		value: function getValue() {
-			//		return returnValues.pop();
 			return this.rtnv;
 		}
 	}, {
@@ -3162,8 +3217,8 @@ var CallFunction = function (_Value38) {
 			var func = this.value.funcname,
 			    param = this.value.parameter;
 			var ag = [];
-			for (var _i10 = 0; _i10 < param.length; _i10++) {
-				ag.push(param[_i10].getCode());
+			for (var _i11 = 0; _i11 < param.length; _i11++) {
+				ag.push(param[_i11].getCode());
 			}return func + '(' + ag.join(',') + ')';
 		}
 	}, {
@@ -3174,8 +3229,8 @@ var CallFunction = function (_Value38) {
 			var deffunc = null;
 			if (definedFunction[func]) deffunc = definedFunction[func];else if (myFuncs[func]) deffunc = myFuncs[func];
 			var ag = [];
-			for (var _i11 = 0; _i11 < param.length; _i11++) {
-				ag.push(param[_i11].makePython());
+			for (var _i12 = 0; _i12 < param.length; _i12++) {
+				ag.push(param[_i12].makePython());
 			}if (deffunc) {
 				var prefix = '';
 				if (deffunc.module) {
@@ -3190,8 +3245,8 @@ var CallFunction = function (_Value38) {
 	return CallFunction;
 }(Value);
 
-var Connect = function (_Value39) {
-	_inherits(Connect, _Value39);
+var Connect = function (_Value40) {
+	_inherits(Connect, _Value40);
 
 	function Connect(x, y, loc) {
 		_classCallCheck(this, Connect);
@@ -3242,8 +3297,8 @@ var Connect = function (_Value39) {
 	return Connect;
 }(Value);
 
-var SliceValue = function (_Value40) {
-	_inherits(SliceValue, _Value40);
+var SliceValue = function (_Value41) {
+	_inherits(SliceValue, _Value41);
 
 	function SliceValue(x, y, loc) {
 		_classCallCheck(this, SliceValue);
@@ -3372,15 +3427,15 @@ var DefineStep = function (_Statement) {
 	function DefineStep(funcName, params, statementlist, loc) {
 		_classCallCheck(this, DefineStep);
 
-		var _this44 = _possibleConstructorReturn(this, (DefineStep.__proto__ || Object.getPrototypeOf(DefineStep)).call(this, loc));
+		var _this45 = _possibleConstructorReturn(this, (DefineStep.__proto__ || Object.getPrototypeOf(DefineStep)).call(this, loc));
 
-		if (definedFunction[funcName]) throw new RuntimeError(_this44.first_line, '手続き ' + funcName + ' と同名の標準関数が存在します');
-		if (myFuncs[funcName]) throw new RuntimeError(_this44.first_line, '手続き ' + funcName + ' と同名の関数、または手続きが既に定義されています');
-		_this44.params = params;
-		_this44.statementlist = statementlist;
-		_this44.funcName = funcName;
-		myFuncs[funcName] = _this44;
-		return _this44;
+		if (definedFunction[funcName]) throw new RuntimeError(_this45.first_line, '手続き ' + funcName + ' と同名の標準関数が存在します');
+		if (myFuncs[funcName]) throw new RuntimeError(_this45.first_line, '手続き ' + funcName + ' と同名の関数、または手続きが既に定義されています');
+		_this45.params = params;
+		_this45.statementlist = statementlist;
+		_this45.funcName = funcName;
+		myFuncs[funcName] = _this45;
+		return _this45;
 	}
 
 	_createClass(DefineStep, [{
@@ -3438,11 +3493,11 @@ var CallStep = function (_Statement2) {
 	function CallStep(funcName, args, loc) {
 		_classCallCheck(this, CallStep);
 
-		var _this45 = _possibleConstructorReturn(this, (CallStep.__proto__ || Object.getPrototypeOf(CallStep)).call(this, loc));
+		var _this46 = _possibleConstructorReturn(this, (CallStep.__proto__ || Object.getPrototypeOf(CallStep)).call(this, loc));
 
-		_this45.funcName = funcName;
-		_this45.args = args;
-		return _this45;
+		_this46.funcName = funcName;
+		_this46.args = args;
+		return _this46;
 	}
 
 	_createClass(CallStep, [{
@@ -3465,9 +3520,9 @@ var CallStep = function (_Statement2) {
 
 				try {
 					for (var _iterator2 = Object.keys(globalVarTable.vars)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-						var _i12 = _step2.value;
+						var _i13 = _step2.value;
 
-						vt.vars[_i12] = globalVarTable.vars[_i12].getValue().clone();
+						vt.vars[_i13] = globalVarTable.vars[_i13].getValue().clone();
 					}
 				} catch (err) {
 					_didIteratorError2 = true;
@@ -3484,8 +3539,8 @@ var CallStep = function (_Statement2) {
 					}
 				}
 
-				for (var _i13 = 0; _i13 < myFuncs[fn].params.length; _i13++) {
-					vt.vars[myFuncs[fn].params[_i13].varname] = args[_i13].getValue().clone();
+				for (var _i14 = 0; _i14 < myFuncs[fn].params.length; _i14++) {
+					vt.vars[myFuncs[fn].params[_i14].varname] = args[_i14].getValue().clone();
 				}var statementlist = myFuncs[fn].statementlist.concat();
 				// TODO 呼ばれる保証がない
 				statementlist.push(new afterCallStep());
@@ -3550,15 +3605,15 @@ var DefineFunction = function (_Statement4) {
 	function DefineFunction(funcName, params, statementlist, loc) {
 		_classCallCheck(this, DefineFunction);
 
-		var _this47 = _possibleConstructorReturn(this, (DefineFunction.__proto__ || Object.getPrototypeOf(DefineFunction)).call(this, loc));
+		var _this48 = _possibleConstructorReturn(this, (DefineFunction.__proto__ || Object.getPrototypeOf(DefineFunction)).call(this, loc));
 
-		if (definedFunction[funcName]) throw new RuntimeError(_this47.first_line, '関数 ' + funcName + ' と同名の標準関数が存在します');
-		if (myFuncs[funcName]) throw new RuntimeError(_this47.first_line, '関数 ' + funcName + ' と同名の関数、または手続きが既に定義されています');
-		_this47.params = params;
-		_this47.funcName = funcName;
-		myFuncs[funcName] = _this47;
-		_this47.statementlist = statementlist;
-		return _this47;
+		if (definedFunction[funcName]) throw new RuntimeError(_this48.first_line, '関数 ' + funcName + ' と同名の標準関数が存在します');
+		if (myFuncs[funcName]) throw new RuntimeError(_this48.first_line, '関数 ' + funcName + ' と同名の関数、または手続きが既に定義されています');
+		_this48.params = params;
+		_this48.funcName = funcName;
+		myFuncs[funcName] = _this48;
+		_this48.statementlist = statementlist;
+		return _this48;
 	}
 
 	_createClass(DefineFunction, [{
@@ -3601,12 +3656,12 @@ var ReturnStatement = function (_Statement5) {
 	function ReturnStatement(value, loc) {
 		_classCallCheck(this, ReturnStatement);
 
-		var _this48 = _possibleConstructorReturn(this, (ReturnStatement.__proto__ || Object.getPrototypeOf(ReturnStatement)).call(this, loc));
+		var _this49 = _possibleConstructorReturn(this, (ReturnStatement.__proto__ || Object.getPrototypeOf(ReturnStatement)).call(this, loc));
 
-		_this48.value = value;
-		_this48.caller = null;
-		_this48.flag = false;
-		return _this48;
+		_this49.value = value;
+		_this49.caller = null;
+		_this49.flag = false;
+		return _this49;
 	}
 
 	_createClass(ReturnStatement, [{
@@ -3625,7 +3680,6 @@ var ReturnStatement = function (_Statement5) {
 		value: function run() {
 			if (code[0] instanceof parsedFunction) {
 				//			this.value.getValue().run();
-				//			returnValues.push(this.value.getValue());
 				this.caller.setValue(this.value.getValue());
 				code.shift();
 				if (this.flag) varTables.shift();
@@ -3724,8 +3778,8 @@ var DumpStatement = function (_Statement7) {
 
 function valuelist2stack(args, queue) {
 	if (args instanceof Array) {
-		for (var _i14 = 0; _i14 < args.length; _i14++) {
-			var v = args[_i14];
+		for (var _i15 = 0; _i15 < args.length; _i15++) {
+			var v = args[_i15];
 			if (v instanceof ArrayValue) valuelist2stack(v.value, queue);else if (v instanceof DictionaryValue) valuelist2stack(v.value, queue);else if (v instanceof Variable && v.args) valuelist2stack(v.args, queue);else if (v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);else if (v instanceof CallFunction) {
 				valuelist2stack(v.value.parameter, queue);
 				//				valuelist2stack(v, queue);
@@ -3733,8 +3787,8 @@ function valuelist2stack(args, queue) {
 			queue.push(v);
 		}
 	} else if (args instanceof ArrayValue) {
-		for (var _i15 = 0; _i15 < args.length; _i15++) {
-			var _v3 = args.value[_i15];
+		for (var _i16 = 0; _i16 < args.length; _i16++) {
+			var _v3 = args.value[_i16];
 			if (_v3 instanceof ArrayValue) valuelist2stack(_v3.value, queue);else if (_v3 instanceof DictionaryValue) valuelist2stack(_v3.value, queue);else if (_v3 instanceof Variable && _v3.args) valuelist2stack(_v3.args, queue);else if (_v3 && !(_v3 instanceof Variable) && _v3.value instanceof Array) valuelist2stack(_v3.value, queue);else if (_v3 instanceof CallFunction) {
 				valuelist2stack(_v3.value.parameter, queue);
 				//				valuelist2stack(v, queue);
@@ -3775,10 +3829,10 @@ var runBeforeGetValue = function (_Statement8) {
 	function runBeforeGetValue(args, loc) {
 		_classCallCheck(this, runBeforeGetValue);
 
-		var _this51 = _possibleConstructorReturn(this, (runBeforeGetValue.__proto__ || Object.getPrototypeOf(runBeforeGetValue)).call(this, loc));
+		var _this52 = _possibleConstructorReturn(this, (runBeforeGetValue.__proto__ || Object.getPrototypeOf(runBeforeGetValue)).call(this, loc));
 
-		_this51.args = args;
-		return _this51;
+		_this52.args = args;
+		return _this52;
 	}
 
 	_createClass(runBeforeGetValue, [{
@@ -3817,10 +3871,10 @@ var runArgsBeforeGetValue = function (_Statement9) {
 	function runArgsBeforeGetValue(args, loc) {
 		_classCallCheck(this, runArgsBeforeGetValue);
 
-		var _this52 = _possibleConstructorReturn(this, (runArgsBeforeGetValue.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue)).call(this, loc));
+		var _this53 = _possibleConstructorReturn(this, (runArgsBeforeGetValue.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue)).call(this, loc));
 
-		_this52.args = args;
-		return _this52;
+		_this53.args = args;
+		return _this53;
 	}
 
 	_createClass(runArgsBeforeGetValue, [{
@@ -3836,13 +3890,13 @@ var runArgsBeforeGetValue = function (_Statement9) {
 		value: function run() {
 			_get(runArgsBeforeGetValue.prototype.__proto__ || Object.getPrototypeOf(runArgsBeforeGetValue.prototype), 'run', this).call(this);
 			var queue = [];
-			for (var _i16 = 0; _i16 < this.args.length; _i16++) {
-				if (this.args[_i16] instanceof SliceValue) {
-					valuelist2stack(this.args[_i16].getValue1(), queue);
-					valuelist2stack(this.args[_i16].getValue2(), queue);
+			for (var _i17 = 0; _i17 < this.args.length; _i17++) {
+				if (this.args[_i17] instanceof SliceValue) {
+					valuelist2stack(this.args[_i17].getValue1(), queue);
+					valuelist2stack(this.args[_i17].getValue2(), queue);
 				} else {
-					if (this.args[_i16].parameter) valuelist2stack(this.args[_i16].parameter, queue);
-					if (this.args[_i16].args) valuelist2stack(this.args[_i16].args, queue);
+					if (this.args[_i17].parameter) valuelist2stack(this.args[_i17].parameter, queue);
+					if (this.args[_i17].args) valuelist2stack(this.args[_i17].args, queue);
 				}
 			}
 			code[0].stack.unshift({ statementlist: queue, index: 0 });
@@ -3867,8 +3921,8 @@ var runArgsBeforeGetValue = function (_Statement9) {
 function argsString(args) {
 	if (args instanceof ArrayValue) {
 		var a = [];
-		for (var _i17 = 0; _i17 < args.value.length; _i17++) {
-			a.push(args.value[_i17].getValue().value);
+		for (var _i18 = 0; _i18 < args.value.length; _i18++) {
+			a.push(args.value[_i18].getValue().value);
 		}return '[' + a.join(',') + ']';
 	}
 	return '';
@@ -3887,13 +3941,13 @@ var Assign = function (_Statement10) {
 	function Assign(variable, value, operator, loc) {
 		_classCallCheck(this, Assign);
 
-		var _this53 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
+		var _this54 = _possibleConstructorReturn(this, (Assign.__proto__ || Object.getPrototypeOf(Assign)).call(this, loc));
 
 		if (!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
-		_this53.variable = variable;
-		_this53.value = value;
-		_this53.operator = operator;
-		return _this53;
+		_this54.variable = variable;
+		_this54.value = value;
+		_this54.operator = operator;
+		return _this54;
 	}
 
 	_createClass(Assign, [{
@@ -4003,9 +4057,7 @@ var Assign = function (_Statement10) {
 					} else setVariableByArgs(vt, vn, ag, vl.clone(), this.loc);
 				} else // 変数が定義されていない
 				{
-					if (this.operator) {
-						throw new RuntimeError(this.first_line, '宣言されていない変数に複合代入演算子が使われました');
-					}
+					if (this.operator) throw new RuntimeError(this.first_line, '宣言されていない変数に複合代入演算子が使われました');
 					vt = varTables[0];
 					vt.vars[vn] = new NullValue(this.loc);
 					setVariableByArgs(vt, vn, ag, vl.clone(), this.loc);
@@ -4038,12 +4090,12 @@ var Append = function (_Statement11) {
 	function Append(variable, value, loc) {
 		_classCallCheck(this, Append);
 
-		var _this54 = _possibleConstructorReturn(this, (Append.__proto__ || Object.getPrototypeOf(Append)).call(this, loc));
+		var _this55 = _possibleConstructorReturn(this, (Append.__proto__ || Object.getPrototypeOf(Append)).call(this, loc));
 
 		if (!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
-		_this54.variable = variable;
-		_this54.value = value;
-		return _this54;
+		_this55.variable = variable;
+		_this55.value = value;
+		return _this55;
 	}
 
 	_createClass(Append, [{
@@ -4066,11 +4118,11 @@ var Append = function (_Statement11) {
 					var va = vt.vars[vn];
 					if (ag && ag.value.length > 0) // 配列の添字がある
 						{
-							for (var _i18 = 0; _i18 < ag.value.length; _i18++) {
-								if (ag.value[_i18].getValue() instanceof StringValue) {
-									va = va.value[ag.value[_i18].getValue().value];
-								} else if (ag.value[_i18].getValue() instanceof IntValue) {
-									if (va.value[ag.value[_i18].getValue().value]) va = va.value[ag.value[_i18].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました');
+							for (var _i19 = 0; _i19 < ag.value.length; _i19++) {
+								if (ag.value[_i19].getValue() instanceof StringValue) {
+									va = va.value[ag.value[_i19].getValue().value];
+								} else if (ag.value[_i19].getValue() instanceof IntValue) {
+									if (va.value[ag.value[_i19].getValue().value]) va = va.value[ag.value[_i19].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました');
 								} else throw new RuntimeError(this.first_line, '添字に使えないデータ型です');
 							}
 						}
@@ -4103,12 +4155,12 @@ var Extend = function (_Statement12) {
 	function Extend(variable, value, loc) {
 		_classCallCheck(this, Extend);
 
-		var _this55 = _possibleConstructorReturn(this, (Extend.__proto__ || Object.getPrototypeOf(Extend)).call(this, loc));
+		var _this56 = _possibleConstructorReturn(this, (Extend.__proto__ || Object.getPrototypeOf(Extend)).call(this, loc));
 
 		if (!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
-		_this55.variable = variable;
-		_this55.value = value;
-		return _this55;
+		_this56.variable = variable;
+		_this56.value = value;
+		return _this56;
 	}
 
 	_createClass(Extend, [{
@@ -4131,11 +4183,11 @@ var Extend = function (_Statement12) {
 					var va = vt.vars[vn];
 					if (ag && ag.value.length > 0) // 配列の添字がある
 						{
-							for (var _i19 = 0; _i19 < ag.value.length; _i19++) {
-								if (ag.value[_i19] instanceof StringValue) {
-									va = va.value[ag.value[_i19].getValue().value];
-								} else if (ag.value[_i19] instanceof IntValue) {
-									if (va.value[ag.value[_i19].getValue().value]) va = va.value[ag.value[_i19].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました');
+							for (var _i20 = 0; _i20 < ag.value.length; _i20++) {
+								if (ag.value[_i20] instanceof StringValue) {
+									va = va.value[ag.value[_i20].getValue().value];
+								} else if (ag.value[_i20] instanceof IntValue) {
+									if (va.value[ag.value[_i20].getValue().value]) va = va.value[ag.value[_i20].getValue().value];else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました');
 								} else throw new RuntimeError(this.first_line, "添字に使えないデータ型です");
 							}
 						}
@@ -4169,12 +4221,12 @@ var Input = function (_Statement13) {
 	function Input(x, type, loc) {
 		_classCallCheck(this, Input);
 
-		var _this56 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
+		var _this57 = _possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, loc));
 
 		if (!(x instanceof Variable || x instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
-		_this56.varname = x;
-		_this56.type = type;
-		return _this56;
+		_this57.varname = x;
+		_this57.type = type;
+		return _this57;
 	}
 
 	_createClass(Input, [{
@@ -4268,11 +4320,11 @@ var InputEnd = function (_Statement15) {
 	function InputEnd(x, type, loc) {
 		_classCallCheck(this, InputEnd);
 
-		var _this58 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
+		var _this59 = _possibleConstructorReturn(this, (InputEnd.__proto__ || Object.getPrototypeOf(InputEnd)).call(this, loc));
 
-		_this58.varname = x;
-		_this58.type = type;
-		return _this58;
+		_this59.varname = x;
+		_this59.type = type;
+		return _this59;
 	}
 
 	_createClass(InputEnd, [{
@@ -4352,11 +4404,11 @@ var Output = function (_Statement17) {
 	function Output(x, ln, loc) {
 		_classCallCheck(this, Output);
 
-		var _this60 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
+		var _this61 = _possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, loc));
 
-		_this60.value = x;
-		_this60.ln = ln;
-		return _this60;
+		_this61.value = x;
+		_this61.ln = ln;
+		return _this61;
 	}
 
 	_createClass(Output, [{
@@ -4408,15 +4460,15 @@ function array2text(v) {
 		var v0 = v.getValue();
 		if (v0 instanceof ArrayValue) {
 			var v1 = [];
-			for (var _i20 = 0; _i20 < v0.value.length; _i20++) {
-				v1.push(array2text(v0.value[_i20]));
+			for (var _i21 = 0; _i21 < v0.value.length; _i21++) {
+				v1.push(array2text(v0.value[_i21]));
 			}return '[' + v1.join(',') + ']';
 		} else if (v0 instanceof DictionaryValue) {
 			var _v8 = [];
 			var keys = Object.keys(v0.value);
 			keys.sort();
-			for (var _i21 = 0; _i21 < keys.length; _i21++) {
-				_v8.push(keys[_i21] + ':' + array2text(v0.value[keys[_i21]]));
+			for (var _i22 = 0; _i22 < keys.length; _i22++) {
+				_v8.push(keys[_i22] + ':' + array2text(v0.value[keys[_i22]]));
 			}return '{' + _v8.join(',') + '}';
 		} else if (v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';else return new String(v0.value);
 	} else return new String(v);
@@ -4427,15 +4479,15 @@ function array2code(v) {
 	var v0 = v.getValue();
 	if (v0 instanceof ArrayValue) {
 		var v1 = [];
-		for (var _i22 = 0; _i22 < v0.value.length; _i22++) {
-			v1.push(array2text(v0.value[_i22]));
+		for (var _i23 = 0; _i23 < v0.value.length; _i23++) {
+			v1.push(array2text(v0.value[_i23]));
 		}return '[' + v1.join(',') + ']';
 	} else if (v0 instanceof DictionaryValue) {
 		var _v9 = [];
 		var keys = Object.keys(v0.value);
 		keys.sort();
-		for (var _i23 = 0; _i23 < keys.length; _i23++) {
-			_v9.push(keys[_i23] + ':' + array2text(v0.value[keys[_i23]]));
+		for (var _i24 = 0; _i24 < keys.length; _i24++) {
+			_v9.push(keys[_i24] + ':' + array2text(v0.value[keys[_i24]]));
 		}return '{' + _v9.join(',') + '}';
 	} else if (v0 instanceof StringValue) return '"' + v0.value + '"';else if (v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
@@ -4447,11 +4499,11 @@ var GraphicStatement = function (_Statement18) {
 	function GraphicStatement(command, args, loc) {
 		_classCallCheck(this, GraphicStatement);
 
-		var _this61 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
+		var _this62 = _possibleConstructorReturn(this, (GraphicStatement.__proto__ || Object.getPrototypeOf(GraphicStatement)).call(this, loc));
 
-		_this61.command = command;
-		_this61.args = args;
-		return _this61;
+		_this62.command = command;
+		_this62.args = args;
+		return _this62;
 	}
 
 	_createClass(GraphicStatement, [{
@@ -4849,12 +4901,12 @@ var If = function (_Statement19) {
 	function If(condition, state1, state2, loc) {
 		_classCallCheck(this, If);
 
-		var _this62 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
+		var _this63 = _possibleConstructorReturn(this, (If.__proto__ || Object.getPrototypeOf(If)).call(this, loc));
 
-		_this62.condition = condition;
-		_this62.state1 = state1;
-		_this62.state2 = state2;
-		return _this62;
+		_this63.condition = condition;
+		_this63.state1 = state1;
+		_this63.state2 = state2;
+		return _this63;
 	}
 
 	_createClass(If, [{
@@ -4920,11 +4972,11 @@ var LoopBegin = function (_Statement20) {
 	function LoopBegin(condition, continuous, loc) {
 		_classCallCheck(this, LoopBegin);
 
-		var _this63 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
+		var _this64 = _possibleConstructorReturn(this, (LoopBegin.__proto__ || Object.getPrototypeOf(LoopBegin)).call(this, loc));
 
-		_this63.condition = condition;
-		_this63.continuous = continuous;
-		return _this63;
+		_this64.condition = condition;
+		_this64.continuous = continuous;
+		return _this64;
 	}
 
 	_createClass(LoopBegin, [{
@@ -4954,11 +5006,11 @@ var LoopEnd = function (_Statement21) {
 	function LoopEnd(condition, continuous, loc) {
 		_classCallCheck(this, LoopEnd);
 
-		var _this64 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
+		var _this65 = _possibleConstructorReturn(this, (LoopEnd.__proto__ || Object.getPrototypeOf(LoopEnd)).call(this, loc));
 
-		_this64.condition = condition;
-		_this64.continuous = continuous;
-		return _this64;
+		_this65.condition = condition;
+		_this65.continuous = continuous;
+		return _this65;
 	}
 
 	_createClass(LoopEnd, [{
@@ -4996,15 +5048,15 @@ var ForInc = function (_Statement22) {
 	function ForInc(varname, begin, end, step, statementlist, loc) {
 		_classCallCheck(this, ForInc);
 
-		var _this65 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
+		var _this66 = _possibleConstructorReturn(this, (ForInc.__proto__ || Object.getPrototypeOf(ForInc)).call(this, loc));
 
 		if (!(varname instanceof Variable || varname instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
-		_this65.varname = varname;
-		_this65.begin = begin;
-		_this65.end = end;
-		_this65.step = step;
-		_this65.statementlist = statementlist;
-		return _this65;
+		_this66.varname = varname;
+		_this66.begin = begin;
+		_this66.end = end;
+		_this66.step = step;
+		_this66.statementlist = statementlist;
+		return _this66;
 	}
 
 	_createClass(ForInc, [{
@@ -5055,8 +5107,8 @@ var ForInc = function (_Statement22) {
 				var condition = new LE(variable, this.end, this.loc); // IncとDecの違うところ
 				loop.push(new runBeforeGetValue([condition], this.loc));
 				loop.push(new LoopBegin(condition, true, this.loc));
-				for (var _i24 = 0; _i24 < this.statementlist.length; _i24++) {
-					loop.push(this.statementlist[_i24]);
+				for (var _i25 = 0; _i25 < this.statementlist.length; _i25++) {
+					loop.push(this.statementlist[_i25]);
 				} // ループ終端
 				loop.push(new runBeforeGetValue([this.step, this.varname.args], this.loc));
 				var new_counter = new Add(variable, this.step, this.loc); // IncとDecの違うところ
@@ -5078,15 +5130,15 @@ var ForDec = function (_Statement23) {
 	function ForDec(varname, begin, end, step, statementlist, loc) {
 		_classCallCheck(this, ForDec);
 
-		var _this66 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
+		var _this67 = _possibleConstructorReturn(this, (ForDec.__proto__ || Object.getPrototypeOf(ForDec)).call(this, loc));
 
 		if (!(varname instanceof Variable || varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
-		_this66.varname = varname;
-		_this66.begin = begin;
-		_this66.end = end;
-		_this66.step = step;
-		_this66.statementlist = statementlist;
-		return _this66;
+		_this67.varname = varname;
+		_this67.begin = begin;
+		_this67.end = end;
+		_this67.step = step;
+		_this67.statementlist = statementlist;
+		return _this67;
 	}
 
 	_createClass(ForDec, [{
@@ -5136,8 +5188,8 @@ var ForDec = function (_Statement23) {
 				var condition = new GE(variable, this.end, this.loc);
 				loop.push(new runBeforeGetValue([condition], this.loc));
 				loop.push(new LoopBegin(condition, true, this.loc));
-				for (var _i25 = 0; _i25 < this.statementlist.length; _i25++) {
-					loop.push(this.statementlist[_i25]);
+				for (var _i26 = 0; _i26 < this.statementlist.length; _i26++) {
+					loop.push(this.statementlist[_i26]);
 				} // ループ終端
 				loop.push(new runBeforeGetValue([this.step, this.varname.args], this.loc));
 				var new_counter = new Sub(variable, this.step, this.loc);
@@ -5159,11 +5211,11 @@ var While = function (_Statement24) {
 	function While(condition, statementlist, loc) {
 		_classCallCheck(this, While);
 
-		var _this67 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
+		var _this68 = _possibleConstructorReturn(this, (While.__proto__ || Object.getPrototypeOf(While)).call(this, loc));
 
-		_this67.condition = condition;
-		_this67.statementlist = statementlist;
-		return _this67;
+		_this68.condition = condition;
+		_this68.statementlist = statementlist;
+		return _this68;
 	}
 
 	_createClass(While, [{
@@ -5209,10 +5261,10 @@ var SleepStatement = function (_Statement25) {
 	function SleepStatement(sec, loc) {
 		_classCallCheck(this, SleepStatement);
 
-		var _this68 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
+		var _this69 = _possibleConstructorReturn(this, (SleepStatement.__proto__ || Object.getPrototypeOf(SleepStatement)).call(this, loc));
 
-		_this68.sec = new IntValue(sec.value, loc); // milli seconds
-		return _this68;
+		_this69.sec = new IntValue(sec.value, loc); // milli seconds
+		return _this69;
 	}
 
 	_createClass(SleepStatement, [{
@@ -5360,7 +5412,6 @@ function reset() {
 	setRunflag(false);
 	code = null;
 	highlightLine(-1);
-	returnValues = [];
 	var canvas = document.getElementById('canvas');
 	canvas.style.display = 'none';
 	var input_area = document.getElementById('input_area');
@@ -5458,6 +5509,8 @@ function next_line() {
 				if (e instanceof RuntimeError) textareaAppend("実行時エラーです\n" + e.line + "行目:" + e.message + "\n");else textareaAppend("実行時エラーです\n" + e + "\n");
 				setRunflag(false);
 				code = null;
+				varTables = [];
+				myFuncs = {};
 			} else throw e;
 		}
 	} else code[0].stack[0].index++;
@@ -6434,10 +6487,10 @@ var Parts_Output = function (_Parts4) {
 	function Parts_Output() {
 		_classCallCheck(this, Parts_Output);
 
-		var _this75 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
+		var _this76 = _possibleConstructorReturn(this, (Parts_Output.__proto__ || Object.getPrototypeOf(Parts_Output)).call(this));
 
-		_this75.setValue("《値》", true);
-		return _this75;
+		_this76.setValue("《値》", true);
+		return _this76;
 	}
 
 	_createClass(Parts_Output, [{
@@ -6558,10 +6611,10 @@ var Parts_Input = function (_Parts5) {
 	function Parts_Input() {
 		_classCallCheck(this, Parts_Input);
 
-		var _this76 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
+		var _this77 = _possibleConstructorReturn(this, (Parts_Input.__proto__ || Object.getPrototypeOf(Parts_Input)).call(this));
 
-		_this76.setValue("《変数》", 0);
-		return _this76;
+		_this77.setValue("《変数》", 0);
+		return _this77;
 	}
 
 	_createClass(Parts_Input, [{
@@ -6664,10 +6717,10 @@ var Parts_Substitute = function (_Parts6) {
 	function Parts_Substitute() {
 		_classCallCheck(this, Parts_Substitute);
 
-		var _this77 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
+		var _this78 = _possibleConstructorReturn(this, (Parts_Substitute.__proto__ || Object.getPrototypeOf(Parts_Substitute)).call(this));
 
-		_this77.setValue("《変数》", "《値》", null);
-		return _this77;
+		_this78.setValue("《変数》", "《値》", null);
+		return _this78;
 	}
 
 	_createClass(Parts_Substitute, [{
@@ -6781,10 +6834,10 @@ var Parts_Append = function (_Parts7) {
 	function Parts_Append() {
 		_classCallCheck(this, Parts_Append);
 
-		var _this78 = _possibleConstructorReturn(this, (Parts_Append.__proto__ || Object.getPrototypeOf(Parts_Append)).call(this));
+		var _this79 = _possibleConstructorReturn(this, (Parts_Append.__proto__ || Object.getPrototypeOf(Parts_Append)).call(this));
 
-		_this78.setValue("《変数》", "《値》");
-		return _this78;
+		_this79.setValue("《変数》", "《値》");
+		return _this79;
 	}
 
 	_createClass(Parts_Append, [{
@@ -6891,10 +6944,10 @@ var Parts_Extend = function (_Parts8) {
 	function Parts_Extend() {
 		_classCallCheck(this, Parts_Extend);
 
-		var _this79 = _possibleConstructorReturn(this, (Parts_Extend.__proto__ || Object.getPrototypeOf(Parts_Extend)).call(this));
+		var _this80 = _possibleConstructorReturn(this, (Parts_Extend.__proto__ || Object.getPrototypeOf(Parts_Extend)).call(this));
 
-		_this79.setValue("《変数》", "《値》");
-		return _this79;
+		_this80.setValue("《変数》", "《値》");
+		return _this80;
 	}
 
 	_createClass(Parts_Extend, [{
@@ -7001,12 +7054,12 @@ var Parts_If = function (_Parts9) {
 	function Parts_If() {
 		_classCallCheck(this, Parts_If);
 
-		var _this80 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
+		var _this81 = _possibleConstructorReturn(this, (Parts_If.__proto__ || Object.getPrototypeOf(Parts_If)).call(this));
 
-		_this80.setValue("《条件》");
-		_this80.left = _this80.right = null;
-		_this80.left_bar_expand = _this80.right_bar_expand = 0;
-		return _this80;
+		_this81.setValue("《条件》");
+		_this81.left = _this81.right = null;
+		_this81.left_bar_expand = _this81.right_bar_expand = 0;
+		return _this81;
 	}
 
 	_createClass(Parts_If, [{
@@ -7328,10 +7381,10 @@ var Parts_LoopBegin1 = function (_Parts_LoopBegin) {
 	function Parts_LoopBegin1() {
 		_classCallCheck(this, Parts_LoopBegin1);
 
-		var _this82 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
+		var _this83 = _possibleConstructorReturn(this, (Parts_LoopBegin1.__proto__ || Object.getPrototypeOf(Parts_LoopBegin1)).call(this));
 
-		_this82.setValue("《条件》");
-		return _this82;
+		_this83.setValue("《条件》");
+		return _this83;
 	}
 
 	_createClass(Parts_LoopBegin1, [{
@@ -7408,10 +7461,10 @@ var Parts_LoopBeginInc = function (_Parts_LoopBegin2) {
 	function Parts_LoopBeginInc() {
 		_classCallCheck(this, Parts_LoopBeginInc);
 
-		var _this83 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
+		var _this84 = _possibleConstructorReturn(this, (Parts_LoopBeginInc.__proto__ || Object.getPrototypeOf(Parts_LoopBeginInc)).call(this));
 
-		_this83.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this83;
+		_this84.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this84;
 	}
 
 	_createClass(Parts_LoopBeginInc, [{
@@ -7506,10 +7559,10 @@ var Parts_LoopBeginDec = function (_Parts_LoopBegin3) {
 	function Parts_LoopBeginDec() {
 		_classCallCheck(this, Parts_LoopBeginDec);
 
-		var _this84 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
+		var _this85 = _possibleConstructorReturn(this, (Parts_LoopBeginDec.__proto__ || Object.getPrototypeOf(Parts_LoopBeginDec)).call(this));
 
-		_this84.setValue("《変数》", "《値》", "《値》", "《値》");
-		return _this84;
+		_this85.setValue("《変数》", "《値》", "《値》", "《値》");
+		return _this85;
 	}
 
 	_createClass(Parts_LoopBeginDec, [{
@@ -7739,10 +7792,10 @@ var Parts_Misc = function (_Parts12) {
 	function Parts_Misc() {
 		_classCallCheck(this, Parts_Misc);
 
-		var _this86 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
+		var _this87 = _possibleConstructorReturn(this, (Parts_Misc.__proto__ || Object.getPrototypeOf(Parts_Misc)).call(this));
 
-		_this86.setValue("none", []);
-		return _this86;
+		_this87.setValue("none", []);
+		return _this87;
 	}
 
 	_createClass(Parts_Misc, [{
@@ -8573,26 +8626,26 @@ onload = function onload() {
 	sample_area.appendChild(sample_table);
 	var sample_table_row = null;
 
-	var _loop = function _loop(_i26) {
+	var _loop = function _loop(_i27) {
 		if (!sample_table_row) {
 			sample_table_row = document.createElement('tr');
 			sample_table.appendChild(sample_table_row);
 		}
 		var cell = document.createElement('td');
 		var button = document.createElement('button');
-		button.innerText = 'サンプル' + (_i26 + 1);
+		button.innerText = 'サンプル' + (_i27 + 1);
 		button.setAttribute('type', 'button');
 		button.setAttribute('class', 'sampleButton');
 		button.onclick = function () {
-			sampleButton(_i26);
+			sampleButton(_i27);
 		};
 		cell.appendChild(button);
 		sample_table_row.appendChild(cell);
-		if (_i26 % 8 == 7) sample_table_row = null;
+		if (_i27 % 8 == 7) sample_table_row = null;
 	};
 
-	for (var _i26 = 0; _i26 < sample.length; _i26++) {
-		_loop(_i26);
+	for (var _i27 = 0; _i27 < sample.length; _i27++) {
+		_loop(_i27);
 	}
 	if (setting.quiz_mode == 1 && Quizzes.length > 0) {
 		var quiz_select = document.getElementById('quiz_select');
@@ -8605,10 +8658,10 @@ onload = function onload() {
 		option.appendChild(document.createTextNode('問題選択'));
 		quiz_select.appendChild(option);
 
-		for (var _i27 = 0; _i27 < Quizzes.length; _i27++) {
+		for (var _i28 = 0; _i28 < Quizzes.length; _i28++) {
 			option = document.createElement('option');
-			option.val = _i27 + 1;
-			option.appendChild(document.createTextNode('Q' + (_i27 + 1) + ':' + Quizzes[_i27].title()));
+			option.val = _i28 + 1;
+			option.appendChild(document.createTextNode('Q' + (_i28 + 1) + ':' + Quizzes[_i28].title()));
 			quiz_select.appendChild(option);
 		}
 		document.getElementById('quiz_marking').onclick = function () {

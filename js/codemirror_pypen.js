@@ -20,6 +20,7 @@
                         "繰り返す", "繰返す", "くりかえす", "表示する", "印刷する", "改行する","入力する","整数","実数","文字列","真偽",
                         "改行なしで", "改行無しで", "追加する", "連結する", "追加","連結","繰り返し","繰返し","くりかえし","抜ける","関数","手続き","返す",
                         "変数を確認する","何もしない","一時停止する","一時停止",
+                        "個の",
                         "に", "を"];
   var commonBuiltins = ["abs", "random", "ceil", "floor", "round", "sin", "cos", "tan","asin","acos","atan","atan2",
                         "sqrt","log","exp","pow","length","length","append","substring","split","extract","insert","replace",
