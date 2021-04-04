@@ -2419,7 +2419,7 @@ var definedFunction = {
 			else throw new RuntimeError(loc.first_line, "randomは整数にしか使えません");
 		} 
 	}, "random", function(argc){
-		if(argc.length < 1)	return "random.randint(0," + argc[0] + ")";
+		if(argc[0])	return "random.randint(0," + argc[0] + ")";
 		else return "random.random()";
 	}),
 	"ceil": new DefinedFunction(1, function(param, loc){
