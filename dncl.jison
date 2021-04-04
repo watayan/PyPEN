@@ -243,6 +243,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 
 /lex
 
+%right '個の'
 %left 'と'
 %left 'または'
 %left 'かつ' 
@@ -256,7 +257,6 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 %left '*' '/' '//' '%'
 %left UMINUS '~'
 %right '**'
-%right '個の'
 %
 %start Program
 
