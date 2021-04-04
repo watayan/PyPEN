@@ -572,7 +572,7 @@ function setVariableByArgs(vt, vn, args, newval, loc) {
 				if (!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
 				var str = v.getValue().value;
 				v.getValue()._value = str.substr(0, idx) + newval.getValue()._value + str.substr(idx + 1);
-			} else throw new RuntimeError(loc, "整数の添字は配列か文字列にしか使えません");
+			} else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列にしか使えません");
 		} else if (arg.getValue() instanceof StringValue) {
 			if (v.getValue() instanceof DictionaryValue) v.getValue().value[arg.getValue().value] = newval.clone();else throw new RuntimeError(loc.first_line, "文字列の添字は辞書にしか使えません");
 		} else if (arg.getValue() instanceof SliceValue) {

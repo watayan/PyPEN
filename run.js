@@ -481,7 +481,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 				var str = v.getValue().value;
 				v.getValue()._value = str.substr(0, idx) + newval.getValue()._value + str.substr(idx + 1);
 			}
-			else throw new RuntimeError(loc, "整数の添字は配列か文字列にしか使えません");
+			else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列にしか使えません");
 		}
 		else if(arg.getValue() instanceof StringValue)
 		{
