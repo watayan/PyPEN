@@ -2910,7 +2910,7 @@ var definedFunction = {
 			if (par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);else throw new RuntimeError(loc.first_line, "randomは整数にしか使えません");
 		}
 	}, "random", function (argc) {
-		return "random.randint(0," + argc[0] + ")";
+		if (argc.length < 1) return "random.randint(0," + argc[0] + ")";else return "random.random()";
 	}),
 	"ceil": new DefinedFunction(1, function (param, loc) {
 		var par1 = param[0].getValue();
