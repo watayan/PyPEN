@@ -5,6 +5,8 @@ var scripts = [
     "./js/jquery.contextMenu.min.js",
     "./js/jquery.ui.position.min.js",
     "./js/plotly-latest.min.js",
+    "./js/codemirror.js",
+    "./js/codemirror_pypen.js",
     "./js/zlib.min.js",
     "./setting.js",
     "./dncl.min.js",
@@ -12,9 +14,7 @@ var scripts = [
     "./sample.js",
     "./quiz.js",
     "./answer.js",
-    "./js/codemirror.js",
-    "./js/codemirror_pypen.js",
-    "./run1.min.js"
+    "./run.min.js"
 ];
 
 function load_js(js)

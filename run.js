@@ -2089,22 +2089,33 @@ class NumberOf extends Value
 	constructor(x, y, loc){super([x,y], loc);}
 	clone()
 	{
-		var rtnv = new NumberOf(this.value[0], this.value[1], this.loc);
+		var rtnv = new NumberOf(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
 	run()
 	{
-		let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-		if(v1 instanceof IntValue && v2 instanceof Value)
+		let v1 = this.value[0].getValue(), v2 = this.value[1];
+		// if(v1 instanceof IntValue && v2 instanceof Value)
 		{
-			let l = v1.value;
-			let a =  new Array(l);
-			for(let i = 0; i < l; i++)a[i] = v2.clone();
-			this.rtnv = new ArrayValue(a, this.loc);
+			code[0].stack[0].index++;
+			let vt = new varTable();
+			let statementlist = [new runBeforeGetValue([v1], this.loc)];
+			for(let v of Object.keys(varTables[0].vars)) vt.vars[v] = varTables[0].vars[v].getValue().clone();
+			// 空リストを'!'という変数に代入する。カウンタは'!!'
+			let var1 = new Variable('!', null, this.loc);
+			let var2 = new Variable('!!', null, this.loc);
+			statementlist.push(new Assign(var1, new ArrayValue([], this.loc), null, this.loc));
+			statementlist.push(new ForInc(var2, new IntValue(1, this.loc),v1.getValue(), new IntValue(1, this.loc),
+				[new runBeforeGetValue([v2], this.loc), new Append(var1, v2, this.loc)], this.loc));
+			statementlist.push(new runBeforeGetValue([var1], this.loc));
+			statementlist.push(new ReturnStatement(var1, this.loc));
+
+			setCaller(statementlist, this);
+			code.unshift(new parsedFunction(statementlist));
+			varTables.unshift(vt);
 		}
-		else throw new RuntimeError(this.loc.first_line, "\"個の\"の使い方が違います");
-		code[0].stack[0].index++;
+		// else throw new RuntimeError(this.loc.first_line, "\"個の\"の使い方が違います");
 	}
 	getCode()
 	{
@@ -2126,6 +2137,10 @@ class NumberOf extends Value
 	getValue()
 	{
 		return this.rtnv;
+	}
+	setValue(v)
+	{
+		this.rtnv = v;
 	}
 }
 
@@ -3157,6 +3172,7 @@ function valuelist2stack(args, queue)
 		{
 			let v = args[i];
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
+			else if(v instanceof NumberOf) queue.push(v.value[0]);
 			else if(v instanceof DictionaryValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
 			else if(v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);
@@ -3174,6 +3190,7 @@ function valuelist2stack(args, queue)
 		{
 			let v = args.value[i];
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
+			else if(v instanceof NumberOf) queue.push(v.value[0]);
 			else if(v instanceof DictionaryValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
 			else if(v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);
@@ -3191,6 +3208,7 @@ function valuelist2stack(args, queue)
 		{
 			let v = args.getValue().value[key];
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
+			else if(v instanceof NumberOf) queue.push(v.value[0]);
 			else if(v instanceof DictionaryValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
 			else if(v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);
@@ -3210,6 +3228,7 @@ function valuelist2stack(args, queue)
 			let v = args[key];
 			if(!v) continue;
 			if(v instanceof ArrayValue) valuelist2stack(v.value, queue);
+			else if(v instanceof NumberOf) queue.push(v.value[0]);
 			else if(v instanceof DictionaryValue) valuelist2stack(v.value, queue);
 			else if(v instanceof Variable && v.args) valuelist2stack(v.args, queue);
 			else if(v && !(v instanceof Variable) && v.value instanceof Array) valuelist2stack(v.value, queue);
@@ -3218,7 +3237,7 @@ function valuelist2stack(args, queue)
 				valuelist2stack(v.value.parameter, queue);
 //				valuelist2stack(v, queue);
 			} 
-			if(v)queue.push(v);
+			queue.push(v);
 		}
 
 	}

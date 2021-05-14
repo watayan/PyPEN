@@ -13,8 +13,8 @@
   "main": "run1.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel run.js -o run1.js",
-    "jison": "jison dncl.jison; patch < dncl.patch"
+    "build": "uglifyjs run.js -o run.min.js",
+    "jison": "jison dncl.jison; patch < dncl.patch; uglifyjs dncl.js -o dncl.min.js"
   },
   "repository": {
     "type": "git",
@@ -24,15 +24,9 @@
     "url": "https://github.com/watayan/PyPEN/issues"
   },
   "homepage": "https://github.com/watayan/PyPEN#readme",
-  "babel": {
-    "presets": [
-      "env"
-    ]
-  },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "jison": "^0.4.18"
+    "jison": "^0.4.18",
+    "uglify-es": "^3.3.9"
   },
   "dependencies": {
     "eslint": "^5.16.0",
