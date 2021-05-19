@@ -315,7 +315,7 @@ variable
 slice
 	: ':' {$$ = new SliceValue(new NullValue(@1), new NullValue(@1), new Location(@1,@1));}
 	| ':' e {$$ = new SliceValue(new NullValue(@1), $2, new Location(@1,@1));}
-	| e ':' {$$ = new SliceValue($1, new NullValue(@2), new Location(@1,@1));}
+	| e ':' {$$ = new SliceValue($1, new NullValue(@1), new Location(@1,@1));}
 	| e ':' e {$$ = new SliceValue($1, $3, new Location(@1,@3));}
 	;
 
@@ -379,39 +379,39 @@ DefineFuncStatement
 ReturnStatement
 	: '手続きを抜ける' '改行' {$$ = new ExitStatement(new Location(@1,@1));}
 	| e 'を返す' '改行' 
-		{$$ = [new runBeforeGetValue([$1], @1), new ReturnStatement($1, new Location(@1, @2))];}
+		{$$ = new ReturnStatement($1, new Location(@1, @2));}
 	;
 
 CallStatement
 	: '識別子' '(' args ')' '改行' 
-		{$$ = [new runBeforeGetValue($3, @1), new CallStep($1, $3, new Location(@1,@4))];}
+		{$$ = new CallStep($1, $3, new Location(@1,@4));}
 	;
 
 
 IfStatement
 	: 'もし' e 'ならば' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,null, new Location(@1, @7))];}
+		{$$ = new If($2,$6,null, new Location(@1, @7));}
 	| 'もし' e 'ならば' ':' '改行' statementlist 'そうでなければ' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$2], @1), new If($2,$6,$10, new Location(@1, @11))];}
+		{$$ = new If($2,$6,$10, new Location(@1, @11));}
 	;
 
 ForStatement
 	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, $7,$13, new Location(@1,@14))];}
+		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@14));}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, $7,$13, new Location(@1,@14))];}
+		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@14));}
 	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
+		{$$ =  new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
 	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12))];}
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, $7,$12, new Location(@1,@13))];}
+		{$$ = new ForInc($1, $3, $5, $7,$12, new Location(@1,@13));}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, $7,$12, new Location(@1,@13))];}
+		{$$ = new ForDec($1, $3, $5, $7,$12, new Location(@1,@13));}
 	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11))];}
+		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
 	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11))];}
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
 	;
 
 WhileStatement
@@ -423,111 +423,111 @@ WhileStatement
 
 AssignStatement
 	: e '←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, null, new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
 	| e '=' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, null, new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
 	| e '+←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '+', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '+', new Location(@1,@3));}
 	| e '-←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '-', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '-', new Location(@1,@3));}
 	| e '*←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '*', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '*', new Location(@1,@3));}
 	| e '/←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '/', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
 	| e '//←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '//', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
 	| e '&←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '&', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
 	| e '|←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '|', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '|', new Location(@1,@3));}
 	| e '^←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '^', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '^', new Location(@1,@3));}
 	| e '<<←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '<<', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '<<', new Location(@1,@3));}
 	| e '>>←' e '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Assign($1, $3, '>>', new Location(@1,@3))];}
+		{$$ = new Assign($1, $3, '>>', new Location(@1,@3));}
 	| e 'に' e 'を' '追加する' '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Append($1, $3, new Location(@1,@5))];}
+		{$$ = new Append($1, $3, new Location(@1,@5));}
 	| e 'に' e 'を' '連結する' '改行'
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new runBeforeGetValue([$3], @1), new Extend($1, $3, new Location(@1,@5))];}
+		{$$ = new Extend($1, $3, new Location(@1,@5));}
 	;
 
 PrintStatement
 	: args 'を改行無しで表示する' '改行' 
-		{$$ = [new runBeforeGetValue($1, @1), new Output($1, false, new Location(@1,@2))];}
+		{$$ = new Output($1, false, new Location(@1,@2));}
 	| args 'を表示する' '改行' 
-		{$$ = [new runBeforeGetValue($1, @1), new Output($1, true, new Location(@1,@2))];}
+		{$$ = new Output($1, true, new Location(@1,@2));}
 	| '改行無しで表示する' '(' args ')' '改行' 
-		{$$ = [new runBeforeGetValue($3, @1), new Output($3, false, new Location(@1,@2))];}
+		{$$ = new Output($3, false, new Location(@1,@2));}
 	| '表示する' '(' args ')' '改行' 
-		{$$ = [new runBeforeGetValue($3, @1), new Output($3, true, new Location(@1,@2))];}
+		{$$ = new Output($3, true, new Location(@1,@2));}
 	| '改行する' '改行'
 		{$$ = new Newline(new Location(@1, @1));}
 	;
 
 InputStatement
 	: e 'に' '整数' 'を' '入力する' '改行'	
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeInt, new Location(@1, @4))];}
+		{$$ = new Input($1, typeOfValue.typeInt, new Location(@1, @4));}
 	| e 'に' '実数' 'を' '入力する' '改行'	
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeFloat, new Location(@1, @4))];}
+		{$$ = new Input($1, typeOfValue.typeFloat, new Location(@1, @4));}
 	| e 'に' '文字列' 'を' '入力する' '改行'	
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeString, new Location(@1, @4))];}
+		{$$ = new Input($1, typeOfValue.typeString, new Location(@1, @4));}
 	| e 'に' '真偽' 'を' '入力する' '改行'	
-		{$$ = [new runArgsBeforeGetValue([$1], @1), new Input($1, typeOfValue.typeBoolean, new Location(@1, @4))];}
+		{$$ = new Input($1, typeOfValue.typeBoolean, new Location(@1, @4));}
 	;
 
 GraphicStatement
 	: 'gOpenWindow' '(' e 'COMMA' e ')'	'改行'
-		{$$ = [new runBeforeGetValue([$3,$5], @1), new GraphicStatement('gOpenWindow', [$3,$5], new Location(@1, @1))];}
+		{$$ = new GraphicStatement('gOpenWindow', [$3,$5], new Location(@1, @1));}
 	| 'gCloseWindow' '(' ')' '改行'	
 		{$$ = new GraphicStatement('gCloseWindow', [], new Location(@1,@1));}
 	| 'gClearWindow' '(' ')' '改行'	
 		{$$ = new GraphicStatement('gClearWindow', [], new Location(@1,@1));}
 	| 'gSetLineColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetLineColor', [$3,$5,$7], new Location(@1, @1))];}
+		{$$ = new GraphicStatement('gSetLineColor', [$3,$5,$7], new Location(@1, @1));}
 	| 'gSetFillColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetFillColor', [$3,$5,$7], new Location(@1, @1))];}
+		{$$ = new GraphicStatement('gSetFillColor', [$3,$5,$7], new Location(@1, @1));}
 	| 'gSetTextColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gSetTextColor', [$3,$5,$7], new Location(@1, @1))];}
+		{$$ = new GraphicStatement('gSetTextColor', [$3,$5,$7], new Location(@1, @1));}
 	| 'gSetLineWidth' '(' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new GraphicStatement('gSetLineWidth', [$3], new Location(@1, @1))];}
+		{$$ = new GraphicStatement('gSetLineWidth', [$3], new Location(@1, @1));}
 	| 'gSetFontSize' '(' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3], @1), new GraphicStatement('gSetFontSize', [$3], new Location(@1, @1))];}
+		{$$ = new GraphicStatement('gSetFontSize', [$3], new Location(@1, @1));}
 	| 'gDrawText' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawText', [$3,$5,$7], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawText', [$3,$5,$7], new Location(@1,@1));}
 	| 'gDrawLine' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawLine', [$3,$5,$7,$9], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawLine', [$3,$5,$7,$9], new Location(@1,@1));}
 	| 'gDrawPoint' '(' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5], @1), new GraphicStatement('gDrawPoint', [$3,$5], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawPoint', [$3,$5], new Location(@1,@1));}
 	| 'gDrawBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawBox', [$3,$5,$7,$9], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawBox', [$3,$5,$7,$9], new Location(@1,@1));}
 	| 'gFillBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gFillBox', [$3,$5,$7,$9], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gFillBox', [$3,$5,$7,$9], new Location(@1,@1));}
 	| 'gDrawCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1));}
 	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1));}
 	| 'gDrawOval' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gDrawOval', [$3,$5,$7,$9], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawOval', [$3,$5,$7,$9], new Location(@1,@1));}
 	| 'gFillOval' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9], @1), new GraphicStatement('gFillOval', [$3,$5,$7,$9], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gFillOval', [$3,$5,$7,$9], new Location(@1,@1));}
 	| 'gDrawArc' '(' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9,$11,$13,$15], @1), new GraphicStatement('gDrawArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1));}
 	| 'gFillArc' '(' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7,$9,$11,$13,$15], @1), new GraphicStatement('gFillArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gFillArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1));}
 	| 'gBarplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gBarplot', [$3,$5,$7], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gBarplot', [$3,$5,$7], new Location(@1,@1));}
 	| 'gLineplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5,$7], @1), new GraphicStatement('gLineplot', [$3,$5,$7], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gLineplot', [$3,$5,$7], new Location(@1,@1));}
 	| 'gDrawGraph' '(' e 'COMMA' e ')' '改行'
-		{$$ = [new runBeforeGetValue([$3,$5], @1), new GraphicStatement('gDrawGraph', [$3,$5], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gDrawGraph', [$3,$5], new Location(@1,@1));}
 	| 'gClearGraph' '(' ')' '改行'
-		{$$ = [new GraphicStatement('gClearGraph',[], new Location(@1,@1))];}
+		{$$ = new GraphicStatement('gClearGraph',[], new Location(@1,@1));}
 	;
 
 SleepStatement
 	: e 'ミリ秒待つ' '改行' 
-		{$$ = [new runBeforeGetValue([$1], @1), new SleepStatement($1, new Location(@1, @1))];}
+		{$$ = new SleepStatement($1, new Location(@1, @1));}
 	;
 
 BreakStatement

@@ -219,7 +219,7 @@ case 46:
 this.$ = new SliceValue(new NullValue(_$[$0-1]), $$[$0], new Location(_$[$0-1],_$[$0-1]));
 break;
 case 47:
-this.$ = new SliceValue($$[$0-1], new NullValue(_$[$0]), new Location(_$[$0-1],_$[$0-1]));
+this.$ = new SliceValue($$[$0-1], new NullValue(_$[$0-1]), new Location(_$[$0-1],_$[$0-1]));
 break;
 case 48:
 this.$ = new SliceValue($$[$0-2], $$[$0], new Location(_$[$0-2],_$[$0]));
@@ -264,40 +264,40 @@ case 79:
 this.$ = new ExitStatement(new Location(_$[$0-1],_$[$0-1]));
 break;
 case 80:
-this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-2]), new ReturnStatement($$[$0-2], new Location(_$[$0-2], _$[$0-1]))];
+this.$ = new ReturnStatement($$[$0-2], new Location(_$[$0-2], _$[$0-1]));
 break;
 case 81:
-this.$ = [new runBeforeGetValue($$[$0-2], _$[$0-4]), new CallStep($$[$0-4], $$[$0-2], new Location(_$[$0-4],_$[$0-1]))];
+this.$ = new CallStep($$[$0-4], $$[$0-2], new Location(_$[$0-4],_$[$0-1]));
 break;
 case 82:
-this.$ = [new runBeforeGetValue([$$[$0-6]], _$[$0-7]), new If($$[$0-6],$$[$0-2],null, new Location(_$[$0-7], _$[$0-1]))];
+this.$ = new If($$[$0-6],$$[$0-2],null, new Location(_$[$0-7], _$[$0-1]));
 break;
 case 83:
-this.$ = [new runBeforeGetValue([$$[$0-10]], _$[$0-11]), new If($$[$0-10],$$[$0-6],$$[$0-2], new Location(_$[$0-11], _$[$0-1]))];
+this.$ = new If($$[$0-10],$$[$0-6],$$[$0-2], new Location(_$[$0-11], _$[$0-1]));
 break;
 case 84:
-this.$ = [new runBeforeGetValue([$$[$0-12]], _$[$0-14]), new ForInc($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]))];
+this.$ = new ForInc($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]));
 break;
 case 85:
-this.$ = [new runBeforeGetValue([$$[$0-12]], _$[$0-14]), new ForDec($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]))];
+this.$ = new ForDec($$[$0-14], $$[$0-12], $$[$0-10], $$[$0-8],$$[$0-2], new Location(_$[$0-14],_$[$0-1]));
 break;
 case 86:
-this.$ = [new runBeforeGetValue([$$[$0-10]], _$[$0-12]), new ForInc($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]))];
+this.$ =  new ForInc($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]));
 break;
 case 87:
-this.$ = [new runBeforeGetValue([$$[$0-10]], _$[$0-12]), new ForDec($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]))];
+this.$ = new ForDec($$[$0-12], $$[$0-10], $$[$0-8], new IntValue(1, new Location(_$[$0-12], _$[$0-12])),$$[$0-2], new Location(_$[$0-12],_$[$0-1]));
 break;
 case 88:
-this.$ = [new runBeforeGetValue([$$[$0-11]], _$[$0-13]), new ForInc($$[$0-13], $$[$0-11], $$[$0-9], $$[$0-7],$$[$0-2], new Location(_$[$0-13],_$[$0-1]))];
+this.$ = new ForInc($$[$0-13], $$[$0-11], $$[$0-9], $$[$0-7],$$[$0-2], new Location(_$[$0-13],_$[$0-1]));
 break;
 case 89:
-this.$ = [new runBeforeGetValue([$$[$0-11]], _$[$0-13]), new ForDec($$[$0-13], $$[$0-11], $$[$0-9], $$[$0-7],$$[$0-2], new Location(_$[$0-13],_$[$0-1]))];
+this.$ = new ForDec($$[$0-13], $$[$0-11], $$[$0-9], $$[$0-7],$$[$0-2], new Location(_$[$0-13],_$[$0-1]));
 break;
 case 90:
-this.$ = [new runBeforeGetValue([$$[$0-9]], _$[$0-11]), new ForInc($$[$0-11], $$[$0-9], $$[$0-7], new IntValue(1, new Location(_$[$0-11], _$[$0-11])),$$[$0-2], new Location(_$[$0-11],_$[$0-1]))];
+this.$ = new ForInc($$[$0-11], $$[$0-9], $$[$0-7], new IntValue(1, new Location(_$[$0-11], _$[$0-11])),$$[$0-2], new Location(_$[$0-11],_$[$0-1]));
 break;
 case 91:
-this.$ = [new runBeforeGetValue([$$[$0-9]], _$[$0-11]), new ForDec($$[$0-11], $$[$0-9], $$[$0-7], new IntValue(1, new Location(_$[$0-11], _$[$0-11])),$$[$0-2], new Location(_$[$0-11],_$[$0-1]))];
+this.$ = new ForDec($$[$0-11], $$[$0-9], $$[$0-7], new IntValue(1, new Location(_$[$0-11], _$[$0-11])),$$[$0-2], new Location(_$[$0-11],_$[$0-1]));
 break;
 case 92:
 this.$ = new While($$[$0-7], $$[$0-2], new Location(_$[$0-7], _$[$0-1]));
@@ -306,73 +306,73 @@ case 93:
 this.$ = new While($$[$0-6], $$[$0-2], new Location(_$[$0-6], _$[$0-1]));
 break;
 case 94: case 95:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], null, new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], null, new Location(_$[$0-3],_$[$0-1]));
 break;
 case 96:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '+', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '+', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 97:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '-', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '-', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 98:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '*', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '*', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 99:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '/', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '/', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 100:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '//', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '//', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 101:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '&', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '&', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 102:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '|', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '|', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 103:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '^', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '^', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 104:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '<<', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '<<', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 105:
-this.$ = [new runArgsBeforeGetValue([$$[$0-3]], _$[$0-3]), new runBeforeGetValue([$$[$0-1]], _$[$0-3]), new Assign($$[$0-3], $$[$0-1], '>>', new Location(_$[$0-3],_$[$0-1]))];
+this.$ = new Assign($$[$0-3], $$[$0-1], '>>', new Location(_$[$0-3],_$[$0-1]));
 break;
 case 106:
-this.$ = [new runArgsBeforeGetValue([$$[$0-5]], _$[$0-5]), new runBeforeGetValue([$$[$0-3]], _$[$0-5]), new Append($$[$0-5], $$[$0-3], new Location(_$[$0-5],_$[$0-1]))];
+this.$ = new Append($$[$0-5], $$[$0-3], new Location(_$[$0-5],_$[$0-1]));
 break;
 case 107:
-this.$ = [new runArgsBeforeGetValue([$$[$0-5]], _$[$0-5]), new runBeforeGetValue([$$[$0-3]], _$[$0-5]), new Extend($$[$0-5], $$[$0-3], new Location(_$[$0-5],_$[$0-1]))];
+this.$ = new Extend($$[$0-5], $$[$0-3], new Location(_$[$0-5],_$[$0-1]));
 break;
 case 108:
-this.$ = [new runBeforeGetValue($$[$0-2], _$[$0-2]), new Output($$[$0-2], false, new Location(_$[$0-2],_$[$0-1]))];
+this.$ = new Output($$[$0-2], false, new Location(_$[$0-2],_$[$0-1]));
 break;
 case 109:
-this.$ = [new runBeforeGetValue($$[$0-2], _$[$0-2]), new Output($$[$0-2], true, new Location(_$[$0-2],_$[$0-1]))];
+this.$ = new Output($$[$0-2], true, new Location(_$[$0-2],_$[$0-1]));
 break;
 case 110:
-this.$ = [new runBeforeGetValue($$[$0-2], _$[$0-4]), new Output($$[$0-2], false, new Location(_$[$0-4],_$[$0-3]))];
+this.$ = new Output($$[$0-2], false, new Location(_$[$0-4],_$[$0-3]));
 break;
 case 111:
-this.$ = [new runBeforeGetValue($$[$0-2], _$[$0-4]), new Output($$[$0-2], true, new Location(_$[$0-4],_$[$0-3]))];
+this.$ = new Output($$[$0-2], true, new Location(_$[$0-4],_$[$0-3]));
 break;
 case 112:
 this.$ = new Newline(new Location(_$[$0-1], _$[$0-1]));
 break;
 case 113:
-this.$ = [new runArgsBeforeGetValue([$$[$0-5]], _$[$0-5]), new Input($$[$0-5], typeOfValue.typeInt, new Location(_$[$0-5], _$[$0-2]))];
+this.$ = new Input($$[$0-5], typeOfValue.typeInt, new Location(_$[$0-5], _$[$0-2]));
 break;
 case 114:
-this.$ = [new runArgsBeforeGetValue([$$[$0-5]], _$[$0-5]), new Input($$[$0-5], typeOfValue.typeFloat, new Location(_$[$0-5], _$[$0-2]))];
+this.$ = new Input($$[$0-5], typeOfValue.typeFloat, new Location(_$[$0-5], _$[$0-2]));
 break;
 case 115:
-this.$ = [new runArgsBeforeGetValue([$$[$0-5]], _$[$0-5]), new Input($$[$0-5], typeOfValue.typeString, new Location(_$[$0-5], _$[$0-2]))];
+this.$ = new Input($$[$0-5], typeOfValue.typeString, new Location(_$[$0-5], _$[$0-2]));
 break;
 case 116:
-this.$ = [new runArgsBeforeGetValue([$$[$0-5]], _$[$0-5]), new Input($$[$0-5], typeOfValue.typeBoolean, new Location(_$[$0-5], _$[$0-2]))];
+this.$ = new Input($$[$0-5], typeOfValue.typeBoolean, new Location(_$[$0-5], _$[$0-2]));
 break;
 case 117:
-this.$ = [new runBeforeGetValue([$$[$0-4],$$[$0-2]], _$[$0-6]), new GraphicStatement('gOpenWindow', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6], _$[$0-6]))];
+this.$ = new GraphicStatement('gOpenWindow', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6], _$[$0-6]));
 break;
 case 118:
 this.$ = new GraphicStatement('gCloseWindow', [], new Location(_$[$0-3],_$[$0-3]));
@@ -381,67 +381,67 @@ case 119:
 this.$ = new GraphicStatement('gClearWindow', [], new Location(_$[$0-3],_$[$0-3]));
 break;
 case 120:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gSetLineColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]))];
+this.$ = new GraphicStatement('gSetLineColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]));
 break;
 case 121:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gSetFillColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]))];
+this.$ = new GraphicStatement('gSetFillColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]));
 break;
 case 122:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gSetTextColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]))];
+this.$ = new GraphicStatement('gSetTextColor', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8], _$[$0-8]));
 break;
 case 123:
-this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-4]), new GraphicStatement('gSetLineWidth', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]))];
+this.$ = new GraphicStatement('gSetLineWidth', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]));
 break;
 case 124:
-this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-4]), new GraphicStatement('gSetFontSize', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]))];
+this.$ = new GraphicStatement('gSetFontSize', [$$[$0-2]], new Location(_$[$0-4], _$[$0-4]));
 break;
 case 125:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gDrawText', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
+this.$ = new GraphicStatement('gDrawText', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
 break;
 case 126:
-this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gDrawLine', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
+this.$ = new GraphicStatement('gDrawLine', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
 break;
 case 127:
-this.$ = [new runBeforeGetValue([$$[$0-4],$$[$0-2]], _$[$0-6]), new GraphicStatement('gDrawPoint', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6],_$[$0-6]))];
+this.$ = new GraphicStatement('gDrawPoint', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6],_$[$0-6]));
 break;
 case 128:
-this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gDrawBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
+this.$ = new GraphicStatement('gDrawBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
 break;
 case 129:
-this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gFillBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
+this.$ = new GraphicStatement('gFillBox', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
 break;
 case 130:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gDrawCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
+this.$ = new GraphicStatement('gDrawCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
 break;
 case 131:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gFillCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
+this.$ = new GraphicStatement('gFillCircle', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
 break;
 case 132:
-this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gDrawOval', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
+this.$ = new GraphicStatement('gDrawOval', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
 break;
 case 133:
-this.$ = [new runBeforeGetValue([$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-10]), new GraphicStatement('gFillOval', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]))];
+this.$ = new GraphicStatement('gFillOval', [$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-10],_$[$0-10]));
 break;
 case 134:
-this.$ = [new runBeforeGetValue([$$[$0-14],$$[$0-12],$$[$0-10],$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-16]), new GraphicStatement('gDrawArc', [$$[$0-14],$$[$0-12],$$[$0-10],$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-16],_$[$0-16]))];
+this.$ = new GraphicStatement('gDrawArc', [$$[$0-14],$$[$0-12],$$[$0-10],$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-16],_$[$0-16]));
 break;
 case 135:
-this.$ = [new runBeforeGetValue([$$[$0-14],$$[$0-12],$$[$0-10],$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-16]), new GraphicStatement('gFillArc', [$$[$0-14],$$[$0-12],$$[$0-10],$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-16],_$[$0-16]))];
+this.$ = new GraphicStatement('gFillArc', [$$[$0-14],$$[$0-12],$$[$0-10],$$[$0-8],$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-16],_$[$0-16]));
 break;
 case 136:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gBarplot', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
+this.$ = new GraphicStatement('gBarplot', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
 break;
 case 137:
-this.$ = [new runBeforeGetValue([$$[$0-6],$$[$0-4],$$[$0-2]], _$[$0-8]), new GraphicStatement('gLineplot', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]))];
+this.$ = new GraphicStatement('gLineplot', [$$[$0-6],$$[$0-4],$$[$0-2]], new Location(_$[$0-8],_$[$0-8]));
 break;
 case 138:
-this.$ = [new runBeforeGetValue([$$[$0-4],$$[$0-2]], _$[$0-6]), new GraphicStatement('gDrawGraph', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6],_$[$0-6]))];
+this.$ = new GraphicStatement('gDrawGraph', [$$[$0-4],$$[$0-2]], new Location(_$[$0-6],_$[$0-6]));
 break;
 case 139:
-this.$ = [new GraphicStatement('gClearGraph',[], new Location(_$[$0-3],_$[$0-3]))];
+this.$ = new GraphicStatement('gClearGraph',[], new Location(_$[$0-3],_$[$0-3]));
 break;
 case 140:
-this.$ = [new runBeforeGetValue([$$[$0-2]], _$[$0-2]), new SleepStatement($$[$0-2], new Location(_$[$0-2], _$[$0-2]))];
+this.$ = new SleepStatement($$[$0-2], new Location(_$[$0-2], _$[$0-2]));
 break;
 case 141:
 this.$ = new BreakStatement(new Location(_$[$0-1],_$[$0-1]));
