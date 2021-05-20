@@ -3583,8 +3583,11 @@ class Assign extends Statement
 		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
-			if(this.variable.args) code[0].stack.unshift({statementlist: this.variable.args.value, index: 0});
-			code[0].stack.unshift({statementlist: [this.value], index: 0});
+			let a=[];
+			if(this.operator) a.push(this.variable);
+			else if(this.variable.args) a = a.concat(this.variable.args.value);
+			a.push(this.value);
+			code[0].stack.unshift({statementlist: a, index: 0});
 			this.state = 1;
 		}
 		else
@@ -3655,7 +3658,7 @@ class Assign extends Statement
 						else
 						{
 							if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							let v4 = v1.value - Math.floor(v1.value / v2.value) * v2.value;
+							let v4 = Math.floor(v1.value / v2.value);
 							if(v1 instanceof IntValue && v2 instanceof IntValue ) v3 = new IntValue(v4, this.loc);
 							else v3 = new FloatValue(v4, this.loc);
 						}
@@ -4972,7 +4975,7 @@ class While extends Statement
 	{
 		code[0].stack[0].index++;
 		let loop = [new LoopBegin(this.condition, true, this.loc)];
-		for(var i = 0; i < this.statementlist.length; i++) loop.push(this.statementlist[i]);
+		for(var i = 0; i < this.statementlist.length; i++) loop.push(this.statementlist[i].clone());
 		loop.push(new LoopEnd(null, false, this.loc));
 		code[0].stack.unshift({statementlist: loop, index: 0});
 	}
