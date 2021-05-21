@@ -2307,7 +2307,7 @@ class IN extends Value
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 			var flag = false;
 			if(v1 instanceof ArrayValue)
-				for(i = 0; i < v1.value.length; i++) flag |= ArrayCompare(v1.value[i], v2);
+				for(let i = 0; i < v1.value.length; i++) flag |= ArrayCompare(v1.value[i], v2);
 			else throw new RuntimeError(this.first_line, "\"の中に\"の前には配列が必要です");
 			this.rtnv = new BooleanValue(flag, this.loc);
 			this.state = 0;
