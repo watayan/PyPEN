@@ -248,7 +248,8 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 %left 'または'
 %left 'かつ' 
 %left 'でない'
-%nonassoc '=' '==' '!=' '>' '<' '>=' '<=' 'の中に'
+%right 'の中に'
+%left '=' '==' '!=' '>' '<' '>=' '<='
 %left '|'
 %left '^'
 %left '&'
@@ -283,14 +284,22 @@ e
 	| e '<<' e		{$$ = new BitLShift($1, $3, new Location(@1, @3));}
 	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
-	| e '==' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
-	| e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
-	| e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
-	| e '>' e		{$$ = new GT($1, $3, new Location(@1, @3));}
-	| e '<' e		{$$ = new LT($1, $3, new Location(@1, @3));}
-	| e '>=' e		{$$ = new GE($1, $3, new Location(@1, @3));}
-	| e '<=' e		{$$ = new LE($1, $3, new Location(@1, @3));}
-	| e 'の中に' e	{$$ = new IN($1, $3, new Location(@1, @3));}
+	| e '==' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '!=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '>' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '<' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '>=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '<=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e 'の中に' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	// | e '==' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
+	// | e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
+	// | e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
+	// | e '>' e		{$$ = new GT($1, $3, new Location(@1, @3));}
+	// | e '<' e		{$$ = new LT($1, $3, new Location(@1, @3));}
+	// | e '>=' e		{$$ = new GE($1, $3, new Location(@1, @3));}
+	// | e '<=' e		{$$ = new LE($1, $3, new Location(@1, @3));}
+	// | e 'の中に' e	{$$ = new IN($1, $3, new Location(@1, @3));}
 	| e 'かつ' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'または' e	{$$ = new Or($1, $3, new Location(@1, @3));}
 	| e 'でない'	{$$ = new Not($1, new Location(@1, @1));}

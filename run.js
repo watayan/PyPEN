@@ -644,7 +644,7 @@ class ArrayValue extends Value
 	}
 	append(a)
 	{
-		this._value.push(a);
+		for(var i of a) this._value.push(i);
 	}
 }
 
@@ -1954,6 +1954,127 @@ function ArrayCompare(v1, v2)
 	}
 	else rtnv = rtnv && typeof v1 == typeof v2 && v1.value == v2.value;
 	return rtnv;
+}
+
+class Compare extends Value
+{
+	constructor(x,y,z,loc)
+	{
+		super([x,y,z],loc);
+		this.rtnv = null;
+		this.state = 0;
+	}
+	clone()
+	{
+		var rtnv = new Compare(this.value[0].clone(), this.value[1], this.value[2].clone(), this.loc);
+		rtnv .rtnv = this.rtnv;
+		return rtnv;
+	}
+	run()
+	{
+		if(this.state == 0)
+		{
+			code[0].stack.unshift({statementlist: [this.value[0]], index: 0});
+			this.state = 1;
+		}
+		else if(this.state == 1)
+		{
+			if(this.value[0] instanceof Compare && !this.value[0].getValue().value)
+			{
+				code[0].stack[0].index++;
+				this.state = 0;
+				this.rtnv = new BooleanValue(false, this.loc);
+			}
+			else
+			{
+				code[0].stack.unshift({statementlist:[this.value[2]], index: 0});
+				this.state = 2;
+			}
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			this.state = 0;
+			var v1, v2 = this.value[2].getValue();
+			if(this.value[0] instanceof Compare) v1 = this.value[0].value[0].getValue();
+			else v1 = this.value[0].getValue();
+			switch(this.value[1])
+			{
+			case '==':
+			case '=':
+				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);
+				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
+				else this.rtnv = new BooleanValue(v1.value == v2.value, this.loc);
+				break;
+			case '!=':
+				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(!ArrayCompare(v1, v2), this.loc);
+				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
+				else this.rtnv = new BooleanValue(v1.value != v2.value, this.loc);
+				break;
+			case '>':
+				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
+				this.rtnv = new BooleanValue(v1.value > v2.value, this.loc);
+				break;
+			case '<':
+				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
+				this.rtnv = new BooleanValue(v1.value < v2.value, this.loc);
+				break;
+			case '>=':
+				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
+				this.rtnv = new BooleanValue(v1.value >= v2.value, this.loc);
+				break;
+			case '<=':
+				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
+				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
+				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
+				this.rtnv = new BooleanValue(v1.value <= v2.value, this.loc);
+				break;
+			case 'の中に':
+				var flag = false;
+				if(v1 instanceof ArrayValue)
+					for(let i = 0; i < v1.value.length; i++) flag |= ArrayCompare(v1.value[i], v2);
+				else throw new RuntimeError(this.first_line, "\"の中に\"の前には配列が必要です");
+				this.rtnv = new BooleanValue(flag, this.loc);
+			}
+		}
+	}
+	getCode()
+	{
+		let v1 = this.value[0], v2 = this.value[2];
+		let brace1 = false, brace2 = false;
+		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+			+  this.value[1]
+			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+	}
+	makePython()
+	{
+		let v1 = this.value[0], v2 = this.value[2];
+		let brace1 = false, brace2 = false;
+		var op = this.value[1];
+		switch(this.value[1])
+		{
+		case '=': op = '=='; break;
+		case 'の中に':
+			op = ' IN '; 
+			var tmp = v1; v1 = v2; v2 = tmp;
+			break;
+		}
+		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+			+  op
+			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+	}
+	getValue()
+	{
+		return this.rtnv;
+	}
 }
 
 class EQ extends Value
