@@ -169,7 +169,7 @@ function codeChange()
 		highlightLine(-1);
 		textareaClear();
 		if(e.line) textareaAppend(e.line + "行目");
-		textareaAppend('構文エラーです\n${e.message}\n');
+		textareaAppend('構文エラーです\n' + e.message);
 		converting = false;
 	}
 }
@@ -849,7 +849,7 @@ class Pow extends Value
 	{
 		if(this.state == 0)
 		{
-			code[0].stack({statementlist: this.value, index:0});
+			code[0].stack.unshift({statementlist: this.value, index:0});
 			this.state = 1;
 		}
 		else
@@ -3319,7 +3319,7 @@ class SliceValue extends Value
 	}
 	run()
 	{
-		if(this.state = 0)
+		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: this.value, index: 0});
 			this.state = 1;

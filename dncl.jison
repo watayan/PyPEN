@@ -47,18 +47,19 @@ IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
 Identifier		{IdentifierStart}{IdentifierPart}*
 StringTrue		"真"|[Tt][Rr][Uu][Ee]
 StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
-Assign			[:：][\=＝]|"←"
-AssignAdd		[\+＋][\=＝←]
-AssignDel		[\-ー−‐][\=＝←]
-AssignMul		[\*＊×][\=＝←]
-AssignDiv		[/／÷][\=＝←]
-AssignDivInt	[/／÷][/／÷][\=＝←]
-AssignMod		[%％][\=＝←]
-AssignAnd		[&＆][\=＝←]
-AssignOr		[\|｜][\=＝←]
-AssignXor		[\^＾][\=＝←]
-AssignLshift	[<＜][<＜][\=＝←]
-AssignRshift	[>＞][>＞][\=＝←]
+EQEQ			[\=＝][\=＝]
+Assign			[\=＝]
+AssignAdd		[\+＋][\=＝]
+AssignDel		[\-ー−‐][\=＝]
+AssignMul		[\*＊×][\=＝]
+AssignDiv		[/／÷][\=＝]
+AssignDivInt	[/／÷][/／÷][\=＝]
+AssignMod		[%％][\=＝]
+AssignAnd		[&＆][\=＝]
+AssignOr		[\|｜][\=＝]
+AssignXor		[\^＾][\=＝]
+AssignLshift	[<＜][<＜][\=＝]
+AssignRshift	[>＞][>＞][\=＝]
 Add				[+＋]
 Del				[-ー−‐]
 Pow				[\*＊×][\*＊×]
@@ -66,14 +67,15 @@ Mul				[\*＊×]
 Div				[/／÷]
 DivInt			[/／÷][/／÷]
 Mod				[%％]
-And				[&＆]
-Or				[\|｜]
-Xor				[\^＾]
-Not				[~〜]
+BitAnd			[&＆]
+BitOr			[\|｜]
+BitXor			[\^＾]
+BitNot			[~〜]
+And				[ＡａAa][ＮｎNn][ＤｄDd]
+Or				[ＯｏOo][ＲｒRr]
+Not				[ＮｎNn][ＯｏOo][ＴｔTt]
 Lshift			[<＜][<＜]
 Rshift			[>＞][>＞]
-EQ				[=＝]
-EQEQ			[=＝][=＝]
 NE				([!！][=＝])|([<＜][>＞])|"≠"
 GE				([>＞][=＝])|"≧"
 LE				([<＜][=＝])|"≦"
@@ -92,18 +94,19 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 {Float}			{return '実数値';}
 {Integer}		{return '整数値';}
 {UNDEFINED}		{return 'UNDEFINED';}
-{Assign}		{return '←';}
-{AssignAdd}		{return '+←';}
-{AssignDel}		{return '-←';}
-{AssignMul}		{return '*←';}
-{AssignDiv}		{return '/←';}
-{AssignDivInt}	{return '//←';}
-{AssignMod}		{return '%←';}
-{AssignAnd}		{return '&←';}
-{AssignOr}		{return '|←';}
-{AssignXor}		{return '^←';}
-{AssignLshift}	{return '<<←';}
-{AssignRshift}	{return '>>←';}
+{EQEQ}			{return '=='}
+{Assign}		{return '=';}
+{AssignAdd}		{return '+=';}
+{AssignDel}		{return '-=';}
+{AssignMul}		{return '*=';}
+{AssignDiv}		{return '/=';}
+{AssignDivInt}	{return '//=';}
+{AssignMod}		{return '%=';}
+{AssignAnd}		{return '&=';}
+{AssignOr}		{return '|=';}
+{AssignXor}		{return '^=';}
+{AssignLshift}	{return '<<=';}
+{AssignRshift}	{return '>>=';}
 {Add}			{return '+';}
 {Del}			{return '-';}
 {Pow}			{return '**';}
@@ -129,18 +132,16 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 {Lshift}		{return '<<';}
 {GT}			{return '>';}
 {LT}			{return '<';}
-{EQEQ}			{return '=='}
-{EQ}			{return '=';}
 {NE}			{return '!=';}
-{And}			{return '&';}
-{Or}			{return '|';}
-{Xor}			{return '^';}
-{Not}			{return '~';}
+{BitAnd}		{return '&';}
+{BitOr}			{return '|';}
+{BitXor}		{return '^';}
+{BitNot}		{return '~';}
 {Comma}			{return 'COMMA';}
 {Colon}			{return ':'}
-"かつ"			{return 'かつ';}
-"または"		{return 'または';}
-"でない"		{return 'でない';}
+{And}			{return 'and';}
+{Or}			{return 'or';}
+{Not}			{return 'not';}
 "■"				{return 'ブロック終端'}
 "を"{Print}"する"		{return 'を表示する';}
 "を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
@@ -245,9 +246,9 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 
 %right '個の'
 %left 'と'
-%left 'または'
-%left 'かつ' 
-%left 'でない'
+%left 'or'
+%left 'and' 
+%right 'not'
 %right 'の中に'
 %left '=' '==' '!=' '>' '<' '>=' '<='
 %left '|'
@@ -285,7 +286,7 @@ e
 	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
 	| e '==' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	// | e '=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '!=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '>' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '<' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
@@ -300,9 +301,9 @@ e
 	// | e '>=' e		{$$ = new GE($1, $3, new Location(@1, @3));}
 	// | e '<=' e		{$$ = new LE($1, $3, new Location(@1, @3));}
 	// | e 'の中に' e	{$$ = new IN($1, $3, new Location(@1, @3));}
-	| e 'かつ' e	{$$ = new And($1, $3, new Location(@1, @3));}
-	| e 'または' e	{$$ = new Or($1, $3, new Location(@1, @3));}
-	| e 'でない'	{$$ = new Not($1, new Location(@1, @1));}
+	| e 'and' e	{$$ = new And($1, $3, new Location(@1, @3));}
+	| e 'or' e	{$$ = new Or($1, $3, new Location(@1, @3));}
+	| 'not' e 	{$$ = new Not($2, new Location(@1, @2));}
 	| e 'と' e		{$$ = new Connect($1, $3, new Location(@1, @3));}
 	| '整数' '(' e ')' {$$ = new ConvertInt($3, new Location(@1, @4));}
 	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
@@ -431,29 +432,27 @@ WhileStatement
 	;
 
 AssignStatement
-	: e '←' e '改行'
+	: e '=' e '改行'
 		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
-	| e '=' e '改行'
-		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
-	| e '+←' e '改行'
+	| e '+=' e '改行'
 		{$$ = new Assign($1, $3, '+', new Location(@1,@3));}
-	| e '-←' e '改行'
+	| e '-=' e '改行'
 		{$$ = new Assign($1, $3, '-', new Location(@1,@3));}
-	| e '*←' e '改行'
+	| e '*=' e '改行'
 		{$$ = new Assign($1, $3, '*', new Location(@1,@3));}
-	| e '/←' e '改行'
+	| e '/=' e '改行'
 		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
-	| e '//←' e '改行'
+	| e '//=' e '改行'
 		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
-	| e '&←' e '改行'
+	| e '&=' e '改行'
 		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
-	| e '|←' e '改行'
+	| e '|=' e '改行'
 		{$$ = new Assign($1, $3, '|', new Location(@1,@3));}
-	| e '^←' e '改行'
+	| e '^=' e '改行'
 		{$$ = new Assign($1, $3, '^', new Location(@1,@3));}
-	| e '<<←' e '改行'
+	| e '<<=' e '改行'
 		{$$ = new Assign($1, $3, '<<', new Location(@1,@3));}
-	| e '>>←' e '改行'
+	| e '>>=' e '改行'
 		{$$ = new Assign($1, $3, '>>', new Location(@1,@3));}
 	| e 'に' e 'を' '追加する' '改行'
 		{$$ = new Append($1, $3, new Location(@1,@5));}
@@ -546,8 +545,7 @@ BreakStatement
 
 Program
 	: SourceElements 'EOF'
-	{ typeof console !== 'undefined' ? console.log($1) : print($1);
-	          return $1; }
+	{ return $1;}
 	;
 
 SourceElements

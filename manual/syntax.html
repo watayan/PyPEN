@@ -39,15 +39,15 @@
         </p>
         <p class="part">
             「《整数》個の《値》」で配列をつくることもできる。<br>
-            例：a←10個の0
+            例：a=10個の0
         </p>
         </div>
         <h3>条件式</h3>
         <p class="part">2つの値を==,≠,!=,&gt;,&lt;,≧,&gt;=,≦,&lt;=で比べることができる。
         !=は≠，&gt;=は≧，&lt;=は≦とそれぞれ同じである。
-        条件式を"または""かつ"でつないだり，"でない"を後置することで否定することができる。
-        "または""かつ"を使った条件は左から順に評価される（"でない"は優先的に結合する）。
-        </p>
+        条件式を"and"，"or"でつないだり，"not"を前置することで否定することができる。
+        "not"，"and"，"or"の順に優先的に結合され，同じものどうしは左から順に評価される。
+        3つ以上の値を比べる場合は，たとえばa&lt;b&lt;cをa&lt;b and b&lt;cのように評価する。</p>
         <p class="part">配列の中にある値が含まれるかどうかを"《配列》の中に《値》"で調べることができる。</p>
         <h3>文字列結合</h3>
         <p class="part">"と"で文字列を結合することができる。数値は文字列に変換してから結合される。
@@ -92,18 +92,18 @@
         <h2>代入</h2>
         <div class="part">
         <pre class="code">
-《変数》←《値》
+《変数》=《値》
         </pre>
         <p class="flowchart">
             <img src="flowsubstitute.png" alt="代入">
         </p>
         <p>"《配列変数》に《値》を追加する"，"《配列変数》に《配列値》を連結する"という構文も用意されている。</p>
         <pre>
-a←[0,1,2,3,4,5]
+a=[0,1,2,3,4,5]
 aに6を追加する
 aに[7,8]を連結する
         </pre>
-        <p>+←や&←のような複合代入演算子も使える。</p>
+        <p>+=や&=のような複合代入演算子も使える。</p>
         </div>
         <h2>入力</h2>
         <div class="part">
@@ -118,18 +118,20 @@ aに[7,8]を連結する
         <h2>出力</h2>
         <div class="part">
         <pre class="code">
+表示する(《値》)
 《値》を表示する
         </pre>
         <p class="flowchart">
-            <img src="flowoutput.png" alt="代入">
+            <img src="flowoutput.png" alt="表示">
         </p>
         <pre class="code">
+改行無しで表示する(《値》)
 《値》を改行無しで表示する
         </pre>
         <p class="flowchart">
-            <img src="flowoutput1.png" alt="代入">
+            <img src="flowoutput1.png" alt="表示">
         </p>
-        <p>《値》に配列を指定すると，配列の全要素が表示される。値をコンマ区切りで複数指定すると，それらが空白区切りで表示される。</p>
+        <p class="code">《値》に配列を指定すると，配列の全要素が表示される。値をコンマ区切りで複数指定すると，それらが空白区切りで表示される。</p>
         </div>
         <h2>分岐（選択）</h2>
         <div class="part">
@@ -146,7 +148,7 @@ aに[7,8]を連結する
         </pre>
         </div>
         <p class="flowchart">
-            <img src="flowif.png" alt="代入">
+            <img src="flowif.png" alt="分岐">
         </p>
         </div>
         <h2>ループ</h2>
@@ -157,7 +159,7 @@ aに[7,8]を連結する
     《命令》
         </pre>
         <p class="flowchart">
-            <img src="flowwhile.png" alt="代入">
+            <img src="flowwhile.png" alt="ループ">
         </p>
         <h3>増やしながら・減らしながら</h3>
         <pre class="code">
@@ -165,14 +167,14 @@ aに[7,8]を連結する
     《命令》
         </pre>
         <p class="flowchart">
-            <img src="flowforinc.png" alt="代入">
+            <img src="flowforinc.png" alt="ループ">
         </p>
         <pre class="code">
 《変数》を《値》から《値》まで《値》ずつ減らしながら：
     《命令》
         </pre>
         <p class="flowchart">
-            <img src="flowfordec.png" alt="代入">
+            <img src="flowfordec.png" alt="ループ">
         </p>
         <p>"繰り返しを抜ける"命令で繰り返しから抜けることができる。</p>
         </div>
