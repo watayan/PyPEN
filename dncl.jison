@@ -162,6 +162,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "関数"					{return '関数';}
 "を返す"				{return 'を返す';}
 "の中に"				{return 'の中に';}
+"について"				{return 'について';}
 "に"					{return 'に';}
 "を"					{return 'を';}
 "個の"					{return '個の';}
@@ -175,6 +176,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "くりかえす"		{return '繰り返す';}
 "繰り返す"			{return '繰り返す';}
 "繰返す"			{return '繰り返す';}
+"の要素"			{return 'の要素';}
 "整数"				{return '整数';}
 "実数"				{return '実数';}
 "文字列"				{return '文字列';}
@@ -422,6 +424,8 @@ ForStatement
 		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
 	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
+	| e 'の要素' e 'について' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
+		{$$ = new ForIn($1, $3, $8, new Location(@1,@10));}
 	;
 
 WhileStatement
