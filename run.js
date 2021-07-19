@@ -603,7 +603,7 @@ class ArrayValue extends Value
 		var a = [];
 		for(var i = 0; i < this.value.length; i++) a.push(this.value[i].clone());
 		var rtnv = new ArrayValue(a, this.loc);
-		rtnv.rtnv = this.rtnv;
+		rtnv.rtnv = rtnv;
 		return rtnv;
 	}
 	run()
@@ -668,20 +668,20 @@ class DictionaryValue extends Value
 				this.value[v[i].getValue1().getValue().value] = v[i].getValue2();
 			else throw new RuntimeError(loc.first_line, "辞書の初期化が間違っています");
 		}
+		this.state = 0;
 	}
 	clone()
 	{
 		var rtnv = new DictionaryValue({}, this.loc);
-		var keys = Object.keys(this.value);
-		for(var i = 0; i < keys.length; i++)
+		for(var key of Object.keys(this.value))
 		{
-			if(this.value[keys[i]])
+			if(this.value[key])
 			{
-				// this.value[keys[i]].run();
-				rtnv.getValue().value[keys[i]] = this.value[keys[i]].getValue().clone();
+				rtnv.value[key] = this.value[key].getValue().clone();
 			}
 			else throw new RuntimeError(this.first_line, keys[i]+"が定義されていません");
 		}
+		rtnv.rtnv = rtnv;
 		return rtnv;
 	}
 	getCode()
@@ -705,6 +705,32 @@ class DictionaryValue extends Value
 	getValue()
 	{
 		return this.rtnv;
+	}
+	run()
+	{
+		if(this.state == 0)
+		{
+			var a = [];
+			for(let key of Object.keys(this.value))
+			{
+				// a.push(key);
+				a.push(this.value[key]);
+			}
+			code[0].stack.unshift({statementlist: a, index: 0});
+			this.state = 1;
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			var a = [];
+			for(let key of Object.keys(this.value))
+			{
+				a.push(new SliceValue(new StringValue(key, this.loc), this.value[key], this.loc));
+			}
+			this.rtnv = new DictionaryValue(a, this.loc);
+			this.rtnv.rtnv = this.rtnv;
+			this.state = 0;
+		}
 	}
 }
 
