@@ -619,9 +619,10 @@ class ArrayValue extends Value
 			var a = [];
 			for(var i = 0; i < this.value.length; i++) 
 			{
-				a.push(this.value[i].getValue().clone());
+				a.push(this.value[i].getValue());
 			}
-			this.rtnv = a;
+			this.rtnv = new ArrayValue(a, this.loc);
+			this.rtnv.rtnv = this.rtnv;
 			this.state = 0;
 		}
 	}
@@ -640,7 +641,7 @@ class ArrayValue extends Value
 	get length() {return this._value.length;}
 	getValue()
 	{
-		return this;
+		return this.rtnv;
 	}
 	append(a)
 	{
@@ -703,7 +704,7 @@ class DictionaryValue extends Value
 	}
 	getValue()
 	{
-		return this;
+		return this.rtnv;
 	}
 }
 
@@ -3577,6 +3578,8 @@ class ReturnStatement extends Statement {
 	clone()
 	{
 		let rtnv = new ReturnStatement(this.value.clone(), this.loc);
+		rtnv.caller  = this.caller;
+		rtnv.flag  = this.flag;
 		return rtnv;
 	}
 	setCaller(caller, flag)
