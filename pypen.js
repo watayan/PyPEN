@@ -27,6 +27,11 @@ function python_to_dncl(code)
         if(result)
         {
             var spaces = count_spaces(result[1]);
+            if(/^[#＃]/.exec(result[2]))
+            {
+                dncl_lines.push(line);
+                continue;
+            }
             if(wait_for_indent)
             {
                 if(spaces <= pre_spaces[0]) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
