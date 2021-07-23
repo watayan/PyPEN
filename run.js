@@ -6351,7 +6351,7 @@ class Parts_Output extends Parts
 	{
 		code += Parts.makeIndent(indent);
 		if(this.text == '改行') code += '改行する\n';
-		else code += this.text + "を" + (this.newline ? "" : "改行なしで") + "表示する\n";
+		else code += (this.newline ? "" : "改行なしで") + "表示する(" + this.text +")\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
 	}
