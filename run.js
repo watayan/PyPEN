@@ -5493,15 +5493,8 @@ function editButton(add_code)
 		editor.focus();
 		return;
 	}
-	for(var c in add_codes) add_codes[c] = tab + add_codes[c];
-	code = lines.slice(0, pos.line).join('\n');
-	if(code) code += '\n';
-	code += add_codes.join('\n') + '\n';
-	code += lines.slice(pos.line + 1, lines.length).join('\n');
-	editor.setValue(code);
-	// sourceTextArea.value = code1 + add_codes.join("\n") + code2;
-	// sourceTextArea.selectionStart = sourceTextArea.selectionEnd = sourceTextArea.value.length - code2.length;
-	editor.setCursor({"line": pos.line, "ch": pos.ch});
+	editor.replaceSelection(add_codes.join('\n' + tab));
+	editor.setCursor({"line": pos.line, "ch": pos.ch, "scroll": false});
 	editor.focus();
 }
 
@@ -5623,7 +5616,10 @@ function insertCode(add_code)
 		window.alert("プログラム実行・中断中はプログラムを編集できません");
 		return;
 	}
+	var pos = editor.getCursor();
 	editor.replaceSelection(add_code);
+	editor.setCursor({"line": pos.line, "ch": pos.ch})
+	editor.focus();
 }
 
 function registerEvent(elem, ev, func)
@@ -7981,10 +7977,9 @@ onload = function(){
 //				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
 				zenkaku: {name: "入力補助",
 					items:{
-						かつ:	{name:"かつ",	callback: function(k,e){insertCode("《値》 かつ 《値》");}},
-						または:	{name:"または",	callback: function(k,e){insertCode("《値》 または 《値》");}},
-						でない:	{name:"でない",	callback: function(k,e){insertCode("《値》 でない");}},
-						と:		{name:"と",		callback: function(k,e){insertCode("《値》と《値》");}},
+						の中に:	{name:"の中に",	callback: function(k,e){insertCode("《配列》の中に《値》");}},
+						個の:	{name:"個の",	callback: function(k,e){insertCode("《整数》個の《値》");}},
+						と: 	{name:"と",		callback: function(k,e){insertCode("《値》と《値》")}},
 					}
 				},
 				convert:{name:"変換",
@@ -8262,7 +8257,7 @@ function B64decode(string)
 					c4 = base64str.indexOf(string[i + 3]);
 					convert.push(((c3 & 0x03) << 6) | c4);
 				}
-			}		
+			}
 		}
 		var inflate = new Zlib.Inflate(convert);
 		var textdecoder = new TextDecoder();
