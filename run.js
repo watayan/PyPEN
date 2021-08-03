@@ -146,7 +146,7 @@ function findVarTable(varname)
 function codeChange()
 {
 	if(converting || !flowchart_display) return;
-	var code = editor.getValue() + "\n";
+	var code = editor.getDoc().getValue() + "\n";
 	textareaClear();
 	try{
 		myFuncs = {};
@@ -5356,7 +5356,7 @@ function run()
 		try
 		{
 			reset(true);
-			var pypen_source = editor.getValue();
+			var pypen_source = editor.getDoc().getValue();
 			var dncl_source = python_to_dncl(pypen_source);
 			code = [new parsedMainRoutine(dncl.parse(dncl_source))];
 		}
@@ -5477,8 +5477,8 @@ function editButton(add_code)
 		window.alert("プログラム実行・中断中はプログラムを編集できません");
 		return;
 	}
-	var pos = editor.getCursor();
-	var code = editor.getValue();
+	var pos = editor.getDoc().getCursor();
+	var code = editor.getDoc().getValue();
 	var lines = code.split(/\r|\n|\r\n/);
 	var code1 = lines[pos.line].slice(0, pos.ch);
 	var code2 = lines[pos.line].slice(pos.ch, code.length);
@@ -5561,8 +5561,8 @@ function keyUp(e)
 	switch(evt.keyCode)
 	{
 	case 37: case 38: case 39: case 40:	// left: 37 right: 39
-		var pos = editor.getCursor();
-		var lines = editor.getValue().split(/\r|\n|\r\n/);
+		var pos = editor.getDoc().getCursor();
+		var lines = editor.getDoc().getValue().split(/\r|\n|\r\n/);
 		// if(evt.keyCode == 37) pos.ch++;
 		// if(evt.keyCode == 39) pos.ch--;
 		var line1 = lines[pos.line].slice(0, pos.ch);
@@ -5575,7 +5575,7 @@ function keyUp(e)
 		{
 			var start = pos.ch - match1[0].length;
 			var end = pos.ch + match2[0].length;
-			editor.setSelection({'line':pos.line, 'ch':end}, {'line':pos.line, 'ch': start});
+			editor.getDoc().setSelection({'line':pos.line, 'ch':end}, {'line':pos.line, 'ch': start});
 		}
 	}
 }
@@ -5594,16 +5594,17 @@ function mouseClick(evt)
 	{
 		var start = pos.ch - match1[0].length;
 		var end = pos.ch + match2[0].length - 1;
-		editor.setSelection({'line':pos.line, 'ch':end}, {'line':pos.line, 'ch': start});
+		editor.getDoc().setSelection({'line':pos.line, 'ch':end}, {'line':pos.line, 'ch': start});
 	}
 }
 
 function sampleButton(num)
 {
 	if(dirty && !window.confirm("プログラムをサンプルプログラムに変更していいですか？")) return;
-	editor.setValue(sample[num]);
+	editor.getDoc().setValue(sample[num]);
 	reset(true);
 	if(flowchart) codeChange();
+	editor.refresh();
 	editor.focus();
 	makeDirty(false);
 }
@@ -5616,9 +5617,9 @@ function insertCode(add_code)
 		window.alert("プログラム実行・中断中はプログラムを編集できません");
 		return;
 	}
-	var pos = editor.getCursor();
-	editor.replaceSelection(add_code);
-	editor.setCursor({"line": pos.line, "ch": pos.ch})
+	var pos = editor.getDoc().getCursor();
+	editor.getDoc().replaceSelection(add_code);
+	editor.getDoc().setCursor({"line": pos.line, "ch": pos.ch})
 	editor.focus();
 }
 
@@ -5994,7 +5995,7 @@ class Flowchart
     {
 		if(!flowchart_display) return;
 		var newcode = this.top.appendCode('', 0);
-		editor.setValue(newcode);
+		editor.getDoc().setValue(newcode);
 		editor.focus();
     }
     paint()
@@ -7794,412 +7795,19 @@ function cmCtrlLeft(cm)
 	else cm.execCommand("goLineStartSmart");
 }
 
-
-onload = function(){
-	var sourceTextArea = document.getElementById("sourceTextarea");
-	var resultTextArea = document.getElementById("resultTextarea");
-	var newButton     = document.getElementById("newButton");
-	var runButton     = document.getElementById("runButton");
-	var flowchartButton = document.getElementById("flowchartButton");
-	var resetButton   = document.getElementById("resetButton");
-	var stepButton    = document.getElementById("stepButton");
-	var dumpButton    = document.getElementById("dumpButton");
-	var loadButton    = document.getElementById("loadButton");
-	var file_prefix   = document.getElementById("file_prefix");
-	var flowchart_canvas = document.getElementById("flowchart");
-	// var resultArea = document.getElementById("resultArea");
-	editor =  CodeMirror.fromTextArea(sourceTextArea,{
-		mode: {name :"pypen",
-		},
-		lineNumbers: true,
-		lineWrapping: true,
-		indentUnit: 4,
-		indentWithTabs: false,
-		extraKeys:{
-			"Tab": "indentMore",
-			"Shift-Tab": "indentLess",
-			"Backspace": cmBackspace,
-			"Ctrl-Left": cmCtrlLeft,
-			"Ctrl-Right": cmCtrlRight,
-		},
-	});
-	editor.setSize(500,300);
-	editor.on("change", function()
-	{
-		editor.save();
-		makeDirty(true);
-	});
-	resultTextArea.style.width = document.getElementById('input_area').clientWidth + 'px';
-	new ResizeObserver(function(){
-		var w = editor.getWrapperElement().width;
-		var h = resultTextArea.offsetHeight - 4;
-		editor.setSize(w, h);
-		editor.refresh();
-	}).observe(resultTextArea);
-	editor.getWrapperElement().id = "CMSourceTextArea";
-	editor.getWrapperElement().addEventListener("mousedown", mouseClick);
-	editor.getWrapperElement().addEventListener("keyup", keyUp);
-
-	sourceTextArea.onchange = function(){
-		makeDirty(true);
-	};
-	makeDirty(false);
-	textarea = resultTextArea;
-	runButton.onclick = function(){
-		if(run_flag && !step_flag)
-		{
-			setRunflag(false);
-			document.getElementById("sourceTextarea").readOnly = true;
-			editor.options.readOnly = true;
-			editor.getWrapperElement().classList.add("readonly");
-			dumpButton.disabled = false;
-		}
-		else
-		{
-			step_flag = false;
-			dumpButton.disabled = true;
-			run();
-		}
-	};
-	stepButton.onclick = function()
-	{
-		step_flag = true;
-		run();
-	}
-	newButton.onclick = function(){
-		if(dirty && !window.confirm("プログラムを削除していいですか？")) return;
-		editor.setValue('');
-		code = null;
-		reset(true);
-		if(flowchart)
-		{
-			flowchart.makeEmpty();
-			flowchart.paint();
-		}
-		editor.focus();
-		makeDirty(false);
-	}
-	resetButton.onclick = function(){
-		reset(true);
-	};
-	dumpButton.onclick = function(){
-		dump();
-	}	
-	loadButton.addEventListener("change", function(ev)
-	{
-		var file = ev.target.files;
-		var reader = new FileReader();
-		reader.readAsText(file[0], "UTF-8");
-		reader.onload = function(ev)
-		{
-			editor.setValue(reader.result);
-			reset(true);
-			if(flowchart) codeChange();
-		}
-	}
-	,false);
-	downloadLink.onclick = function()
-	{
-		var now = new Date();
-		var filename = file_prefix.value.trim();
-		if(filename.length < 1)
-			filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
-			('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) +
-			('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
-		filename +=	'.PyPEN';
-		var blob = new Blob([editor.getValue()], {type:"text/plain"});
-		if(window.navigator.msSaveBlob)
-		{
-			window.navigator.msSaveBlob(blob, filename);
-		}
-		else
-		{
-			window.URL = window.URL || window.webkitURL;
-			downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
-			downloadLink.setAttribute("download", filename);
-		}
-		makeDirty(false);
-	};
-	flowchartButton.onchange = function(){
-		flowchart_display = this.checked;
-		var flowchart_area = document.getElementById("Flowchart_area");
-		var drawButton = document.getElementById("drawButton");
-		if(flowchart_display)
-		{
-			flowchart_area.style.display = "block";
-			drawButton.style.display = "inline";
-			flowchart = new Flowchart();
-			codeChange();
-//			flowchart.paint();
-		}
-		else
-		{
-			flowchart_area.style.display = "none";
-			drawButton.style.display = "none";
-			flowchart = null;
-		}
-	}
-	flowchartButton.click();
-	editor.getWrapperElement().ondrop = function(e)
-	{
-		var filelist = e.dataTransfer.files;
-		if(!filelist) return;
-		for(var i = 0; i < filelist.length; i++)
-		{
-			if(!/\.PyPEN$/i.exec(filelist[i].name)) continue;
-			if(window.FileReader)
-			{
-				try{
-					var reader = new FileReader();
-					reader.readAsText(filelist[i]);
-					reader.onload = function(event)
-					{
-						editor.setValue(event.target.result);
-						codeChange();
-					}
-					break;
-				}
-				catch(e){}
-			}
-		}
-		return false;
-	}
-	registerEvent(flowchart_canvas, "mousedown", mouseDown);
-	registerEvent(flowchart_canvas, "mouseup", mouseUp);
-	registerEvent(flowchart_canvas, "mousemove", mouseMove);
-	registerEvent(flowchart_canvas, "dblclick", doubleclick_Flowchart);
-
-	$.contextMenu(
-		{
-			selector: '#CMSourceTextArea',
-			zIndex: 2,
-			items:{
-//				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
-				zenkaku: {name: "入力補助",
-					items:{
-						の中に:	{name:"の中に",	callback: function(k,e){insertCode("《配列》の中に《値》");}},
-						個の:	{name:"個の",	callback: function(k,e){insertCode("《整数》個の《値》");}},
-						と: 	{name:"と",		callback: function(k,e){insertCode("《値》と《値》")}},
-					}
-				},
-				convert:{name:"変換",
-					items:{
-						int:	{name:"整数", callback: function(k,e){insertCode("整数(《値》)");}},
-						float:	{name:"実数", callback: function(k,e){insertCode("実数(《値》)");}},
-						string:	{name:"文字列", callback: function(k,e){insertCode("文字列(《値》)");}},
-						bool:	{name:"真偽", callback: function(k,e){insertCode("真偽(《値》)");}}
-					}
-				},
-				math:{ name:"数学関数",
-				 	items:{
-						abs:	{name:"abs 絶対値", callback: function(k,e){insertCode("abs(《値》)");}},
-						random:	{name: "random 乱数", callback: function(k,e){insertCode("random(《整数》)");}},
-						ceil:	{name: "ceil 切り上げ", callback: function(k,e){insertCode("ceil(《実数》)");}},
-						floor:	{name: "floor 切り捨て", callback: function(k,e){insertCode("floor(《実数》)");}},
-						round:	{name: "round 四捨五入", callback: function(k,e){insertCode("round(《実数》)");}},
-						sin:	{name: "sin サイン", callback: function(k,e){insertCode("sin(《実数》)");}},
-						cos:	{name: "cos コサイン", callback: function(k,e){insertCode("cos(《実数》)");}},
-						tan:	{name: "tan タンジェント", callback: function(k,e){insertCode("tan(《実数》)");}},
-						sqrt:	{name: "sqrt ルート", callback: function(k,e){insertCode("sqrt(《実数》)");}},
-						log:	{name: "log 自然対数", callback: function(k,e){insertCode("log(《実数》)");}},
-						exp:	{name: "exp 指数関数", callback: function(k,e){insertCode("exp(《実数》)");}},
-						pow:	{name: "pow 累乗", callback: function(k,e){insertCode("pow(《実数》,《実数》)");}}
-					}
-				},
-				str:{name:"文字列関数",
-					items:{
-						length:	{name: "length 長さ", callback: function(k,e){insertCode("length(《文字列》)");}},
-						append:	{name: "append 文字列結合", callback: function(k,e){insertCode("append(《文字列》,《文字列》)");}},
-						substring1:	{name: "substring 部分文字列（最後まで）", callback: function(k,e){insertCode("substring(《文字列》,《開始位置》)");}},
-						substring2:	{name: "substring 部分文字列（長さ指定）", callback: function(k,e){insertCode("substring(《文字列》,《開始位置》,《長さ》)");}},
-						split:		{name: "split 文字列分割", callback: function(k,e){insertCode("split(《文字列》,《区切文字列》)");}},
-						extract:	{name: "extract 文字列分割（番号指定）", callback: function(k,e){insertCode("extract(《文字列》,《区切文字列》,《番号》)");}},
-						insert:	{name: "insert 挿入", callback: function(k,e){insertCode("insert(《文字列》,《位置》,《文字列》)");}},
-						replace:	{name: "replace 置換", callback: function(k,e){insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");}},
-					}
-				},
-				graphic1:{ name:"グラフィック命令（日本語）",
-					items:{
-						gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCode("描画領域開く(《幅》,《高さ》)");}},
-						gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCode("描画領域閉じる()");}},
-						gClearWindow:{name:"描画領域全消去", callback: function(k,e){insertCode("描画領域全消去()");}},
-						gSetLineColor:{name:"線色設定", callback: function(k,e){insertCode("線色設定(《赤》,《緑》,《青》)");}},
-						gSetFillColor:{name:"塗色設定", callback: function(k,e){insertCode("塗色設定(《赤》,《緑》,《青》)");}},
-						gSetTextColor:{name:"文字色設定", callback: function(k,e){insertCode("文字色設定(《赤》,《緑》,《青》)");}},
-						gSetLineWidth:{name:"線太さ設定", callback: function(k,e){insertCode("線太さ設定(《太さ》)");}},
-						gSetFontSize:{name:"文字サイズ設定", callback: function(k,e){insertCode("文字サイズ設定(《サイズ》)");}},
-						gDrawText:{name:"文字描画", callback: function(k,e){insertCode("文字描画(《文字列》,《x》,《y》)");}},
-						gDrawPoint:{name:"点描画", callback: function(k,e){insertCode("点描画(《x》,《y》)");}},
-						gDrawLine:{name:"線描画", callback: function(k,e){insertCode("線描画(《x1》,《y1》,《x2》,《y2》)");}},
-						gDrawBox:{name:"矩形描画", callback: function(k,e){insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");}},
-						gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
-						gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
-						gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
-						gDrawOval:{name:"楕円描画", callback: function(k,e){insertCode("楕円描画(《x》,《y》,《幅》,《高さ》)");}},
-						gFillOval:{name:"楕円塗描画", callback: function(k,e){insertCode("楕円塗描画(《x》,《y》,《幅》,《高さ》)");}},
-						gDrawArc:{name:"弧描画", callback: function(k,e){insertCode("弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
-						gFillArc:{name:"弧塗描画", callback: function(k,e){insertCode("弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
-						gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《値》)");}},
-						gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《値》)");}},
-						gDrawGraph:{name:"グラフ描画",  callback: function(k,e){insertCode("グラフ描画(《レイアウト情報》,《値の配列》)");}},
-						gClearGraph:{name:"グラフ消去", callback: function(k,e){insertCode("グラフ消去()");}}
-					}
-				},
-				graphic2:{ name:"グラフィック命令（英語）",
-					items:{
-						gOpenWindow:{name:"gOpenWindow", callback: function(k,e){insertCode("gOpenWindow(《幅》,《高さ》)");}},
-						gCloseWindow:{name:"gCloseWindow", callback: function(k,e){insertCode("gCloseWindow()");}},
-						gClearWindow:{name:"gClearWindow", callback: function(k,e){insertCode("gClearWindow()");}},
-						gSetLineColor:{name:"gSetLineColor", callback: function(k,e){insertCode("gSetLineColor(《赤》,《緑》,《青》)");}},
-						gSetFillColor:{name:"gSetFillColor", callback: function(k,e){insertCode("gSetFillColor(《赤》,《緑》,《青》)");}},
-						gSetTextColor:{name:"gSetTextColor", callback: function(k,e){insertCode("gSetTextColor(《赤》,《緑》,《青》)");}},
-						gSetLineWidth:{name:"gSetLineWidth", callback: function(k,e){insertCode("gSetLineWidth(《太さ》)");}},
-						gSetFontSize:{name:"gSetFontSize", callback: function(k,e){insertCode("gSetFontSize(《サイズ》)");}},
-						gDrawText:{name:"gDrawText", callback: function(k,e){insertCode("gDraeText(《文字列》,《x》,《y》)");}},
-						gDrawPoint:{name:"gDrawPoint", callback: function(k,e){insertCode("gDrawPoint(《x》,《y》)");}},
-						gDrawLine:{name:"gDrawLine", callback: function(k,e){insertCode("gDrawLine(《x1》,《y1》,《x2》,《y2》)");}},
-						gDrawBox:{name:"gDrawBox", callback: function(k,e){insertCode("gDrawBox(《x》,《y》,《幅》,《高さ》)");}},
-						gFillBox:{name:"gFillBox", callback: function(k,e){insertCode("gFillBox(《x》,《y》,《幅》,《高さ》)");}},
-						gDrawCircle:{name:"gDrawCircle", callback: function(k,e){insertCode("gDrawCircle(《x》,《y》,《半径》)");}},
-						gFillCircle:{name:"gFillCircle", callback: function(k,e){insertCode("gFillCircle(《x》,《y》,《半径》)");}},
-						gDrawOval:{name:"gDrawOval", callback: function(k,e){insertCode("gDrawOval(《x》,《y》,《幅》,《高さ》)");}},
-						gFillOval:{name:"gFillOval", callback: function(k,e){insertCode("gFillOval(《x》,《y》,《幅》,《高さ》)");}},
-						gDrawArc:{name:"gDrawArc", callback: function(k,e){insertCode("gDrawArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
-						gFillArc:{name:"gFillArc", callback: function(k,e){insertCode("gFillArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
-						gBarplot:{name:"gBarplot", callback: function(k,e){insertCode("gBarplot(《幅》,《高さ》,《値》)");}},
-						gLineplot:{name:"gLineplot", callback: function(k,e){insertCode("gLineplot(《幅》,《高さ》,《値》)");}},
-						gDrawGraph:{name:"gDrawGraph",  callback: function(k,e){insertCode("gDrawGraph(《レイアウト情報》,《値の配列》)");}},
-						gClearGraph:{name:"gClearGraph", callback: function(k,e){insertCode("gClearGraph()");}}
-					}
-				},
-				misc:{ name: "各種命令",
-					items:{
-						nop:{name:"何もしない", callback: function(k,e){insertCode("何もしない");}},
-						sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》ミリ秒待つ");}},
-						dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}},
-						pause:{name:"一時停止する", callback: function(k,e){insertCode("一時停止する");}}
-					}
-				}
-			}
-		}
-	);
-	$.contextMenu(
-		{
-			selector: "#flowchart",
-			build: contextMenu_Flowchart
-		}
-	);
-	// this code is from David Baron's Weblog
-	// https://dbaron.org/log/20100309-faster-timeouts
-//	var timeouts = [];
-	var messageName = "zero-timeout-message";
-
-	// Like setTimeout, but only takes a function argument.  There's
-	// no time argument (always zero) and no arguments (you have to
-	// use a closure).
-	function setZeroTimeout(fn) {
-		timeouts.push(fn);
-		window.postMessage(messageName, "*");
-	}
-
-	function handleMessage(event) {
-		if (event.source == window && event.data == messageName) {
-			event.stopPropagation();
-			if (timeouts.length > 0) {
-				var fn = timeouts.shift();
-				fn();
-			}
-		}
-	}
-
-	if(window.addEventListener) window.addEventListener("message", handleMessage, true);
-	else if(window.attachEvent) window.attachEvent("onmessage", handleMessage);
-
-	// Add the one thing we want added to the window object.
-	window.setZeroTimeout = setZeroTimeout;
-
-	$(window).bind("beforeunload", function(){if(dirty) return "プログラムが消去されます";});
-
-	reset(true);
-
-	let sample_area = document.getElementById('SampleButtons')
-	let sample_table = document.createElement('table');
-	sample_area.appendChild(sample_table);
-	let sample_table_row = null;
-	for(let i = 0; i < sample.length; i++)
-	{
-		if(!sample_table_row)
-		{
-			sample_table_row = document.createElement('tr');
-			sample_table.appendChild(sample_table_row);
-		}
-		let cell = document.createElement('td');
-		let button = document.createElement('button');
-		button.innerText = 'サンプル' + (i + 1);
-		button.setAttribute('type', 'button');
-		button.setAttribute('class', 'sampleButton');
-		button.onclick = function(){sampleButton(i);};
-		cell.appendChild(button);
-		sample_table_row.appendChild(cell);
-		if(i % 8 == 7) sample_table_row = null;
-	}
-	if(setting.quiz_mode == 1 && Quizzes.length > 0)
-	{
-		let quiz_select = document.getElementById('quiz_select');
-		quiz_select.onchange = function ()
-		{
-			let i = quiz_select.selectedIndex;
-			if(i > 0) document.getElementById('quiz_question').innerHTML = Quizzes[i - 1].question();
-			else document.getElementById('quiz_question').innerHTML = '';
-		};
-		let option = document.createElement('option');
-		option.val = 0;
-		option.appendChild(document.createTextNode('問題選択'));
-		quiz_select.appendChild(option);
-	
-		for(let i = 0; i < Quizzes.length; i++)
-		{
-			option = document.createElement('option');
-			option.val = i + 1;
-			option.appendChild(document.createTextNode('Q' + (i + 1) + ':' + Quizzes[i].title()));
-			quiz_select.appendChild(option);
-		}
-		document.getElementById('quiz_marking').onclick = function ()
-		{
-			let i = quiz_select.selectedIndex;
-			if(i > 0) auto_marking(i - 1);
-			else 
-			{
-				textareaClear();
-				textareaAppend('問題が選択されていないので採点できません。'); 
-			}
-		}
-	}
-	else
-	{
-		document.getElementById('Quiz_area').style.display = 'none';
-	}
-	document.getElementById('urlButton').onclick = function()
-	{
-		var code = sourceTextArea.value.trim();
-		if(code == '') return;
-		code = B64encode(code);
-		if(code){
-			var url = window.location;
-			textareaClear();
-			highlightLine(-1);
-			textareaAppend(url.protocol + '//' + url.hostname + url.pathname + '?code=' + code);
-		} 
-	}
-
-
+onload = function()
+{
 	var code = getParam('code');
 	if(code)
 	{
-		editor.setValue(code);
+		editor.getDoc().setValue(code);
 		codeChange();
 		highlightLine(-1);
+		editor.getDoc().setCursor({"line":0, "ch": 0});
+		makeDirty(false);
 	}
+	editor.refresh();
+	editor.focus();
 }
 
 var base64str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_="
@@ -8359,7 +7967,7 @@ function makePython()
 	python_lib = {};
 	try{
 		// var code = document.getElementById("sourceTextarea").value + "\n";
-		var code = editor.getValue();
+		var code = editor.getDoc().getValue();
 		var dncl_code = python_to_dncl(code);
 		var main_routine = new parsedMainRoutine(dncl.parse(dncl_code));
 		var python_code = main_routine.makePython();
@@ -8390,4 +7998,400 @@ function code_dump()
 		}
 	}
 	console.log(str);
+}
+
+var sourceTextArea = document.getElementById("sourceTextarea");
+var resultTextArea = document.getElementById("resultTextarea");
+var newButton     = document.getElementById("newButton");
+var runButton     = document.getElementById("runButton");
+var flowchartButton = document.getElementById("flowchartButton");
+var resetButton   = document.getElementById("resetButton");
+var stepButton    = document.getElementById("stepButton");
+var dumpButton    = document.getElementById("dumpButton");
+var loadButton    = document.getElementById("loadButton");
+var file_prefix   = document.getElementById("file_prefix");
+var flowchart_canvas = document.getElementById("flowchart");
+// var resultArea = document.getElementById("resultArea");
+editor =  CodeMirror.fromTextArea(sourceTextArea,{
+	mode: {name :"pypen",
+	},
+	lineNumbers: true,
+	lineWrapping: true,
+	indentUnit: 4,
+	indentWithTabs: false,
+	extraKeys:{
+		"Tab": "indentMore",
+		"Shift-Tab": "indentLess",
+		"Backspace": cmBackspace,
+		"Ctrl-Left": cmCtrlLeft,
+		"Ctrl-Right": cmCtrlRight,
+	},
+});
+editor.setSize(500,300);
+editor.on("change", function()
+{
+	editor.save();
+	makeDirty(true);
+});
+resultTextArea.style.width = document.getElementById('input_area').clientWidth + 'px';
+new ResizeObserver(function(){
+	var w = editor.getWrapperElement().width;
+	var h = resultTextArea.offsetHeight - 4;
+	editor.setSize(w, h);
+	editor.refresh();
+}).observe(resultTextArea);
+editor.getWrapperElement().id = "CMSourceTextArea";
+editor.getWrapperElement().addEventListener("mousedown", mouseClick);
+editor.getWrapperElement().addEventListener("keyup", keyUp);
+
+sourceTextArea.onchange = function(){
+	makeDirty(true);
+};
+makeDirty(false);
+textarea = resultTextArea;
+runButton.onclick = function(){
+	if(run_flag && !step_flag)
+	{
+		setRunflag(false);
+		document.getElementById("sourceTextarea").readOnly = true;
+		editor.options.readOnly = true;
+		editor.getWrapperElement().classList.add("readonly");
+		dumpButton.disabled = false;
+	}
+	else
+	{
+		step_flag = false;
+		dumpButton.disabled = true;
+		run();
+	}
+};
+stepButton.onclick = function()
+{
+	step_flag = true;
+	run();
+}
+newButton.onclick = function(){
+	if(dirty && !window.confirm("プログラムを削除していいですか？")) return;
+	editor.getDoc().setValue('');
+	code = null;
+	reset(true);
+	if(flowchart)
+	{
+		flowchart.makeEmpty();
+		flowchart.paint();
+	}
+	editor.focus();
+	makeDirty(false);
+}
+resetButton.onclick = function(){
+	reset(true);
+};
+dumpButton.onclick = function(){
+	dump();
+}	
+loadButton.addEventListener("change", function(ev)
+{
+	var file = ev.target.files;
+	var reader = new FileReader();
+	reader.readAsText(file[0], "UTF-8");
+	reader.onload = function(ev)
+	{
+		editor.setValue(reader.result);
+		reset(true);
+		if(flowchart) codeChange();
+	}
+}
+,false);
+downloadLink.onclick = function()
+{
+	var now = new Date();
+	var filename = file_prefix.value.trim();
+	if(filename.length < 1)
+		filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
+		('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) +
+		('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
+	filename +=	'.PyPEN';
+	var blob = new Blob([editor.getDoc().getValue()], {type:"text/plain"});
+	if(window.navigator.msSaveBlob)
+	{
+		window.navigator.msSaveBlob(blob, filename);
+	}
+	else
+	{
+		window.URL = window.URL || window.webkitURL;
+		downloadLink.setAttribute("href", window.URL.createObjectURL(blob));
+		downloadLink.setAttribute("download", filename);
+	}
+	makeDirty(false);
+};
+flowchartButton.onchange = function(){
+	flowchart_display = this.checked;
+	var flowchart_area = document.getElementById("Flowchart_area");
+	var drawButton = document.getElementById("drawButton");
+	if(flowchart_display)
+	{
+		flowchart_area.style.display = "block";
+		drawButton.style.display = "inline";
+		flowchart = new Flowchart();
+		codeChange();
+//			flowchart.paint();
+	}
+	else
+	{
+		flowchart_area.style.display = "none";
+		drawButton.style.display = "none";
+		flowchart = null;
+	}
+}
+flowchartButton.click();
+editor.getWrapperElement().ondrop = function(e)
+{
+	var filelist = e.dataTransfer.files;
+	if(!filelist) return;
+	for(var i = 0; i < filelist.length; i++)
+	{
+		if(!/\.PyPEN$/i.exec(filelist[i].name)) continue;
+		if(window.FileReader)
+		{
+			try{
+				var reader = new FileReader();
+				reader.readAsText(filelist[i]);
+				reader.onload = function(event)
+				{
+					editor.getDoc().setValue(event.target.result);
+					codeChange();
+				}
+				break;
+			}
+			catch(e){}
+		}
+	}
+	return false;
+}
+registerEvent(flowchart_canvas, "mousedown", mouseDown);
+registerEvent(flowchart_canvas, "mouseup", mouseUp);
+registerEvent(flowchart_canvas, "mousemove", mouseMove);
+registerEvent(flowchart_canvas, "dblclick", doubleclick_Flowchart);
+
+$.contextMenu(
+	{
+		selector: '#CMSourceTextArea',
+		zIndex: 10,
+		items:{
+//				copyAll: {name: "プログラムをコピー", callback(k,e){document.getElementById("sourceTextarea").select(); document.execCommand('copy');}},
+			zenkaku: {name: "入力補助",
+				items:{
+					の中に:	{name:"の中に",	callback: function(k,e){insertCode("《配列》の中に《値》");}},
+					個の:	{name:"個の",	callback: function(k,e){insertCode("《整数》個の《値》");}},
+					と: 	{name:"と",		callback: function(k,e){insertCode("《値》と《値》")}},
+				}
+			},
+			convert:{name:"変換",
+				items:{
+					int:	{name:"整数", callback: function(k,e){insertCode("整数(《値》)");}},
+					float:	{name:"実数", callback: function(k,e){insertCode("実数(《値》)");}},
+					string:	{name:"文字列", callback: function(k,e){insertCode("文字列(《値》)");}},
+					bool:	{name:"真偽", callback: function(k,e){insertCode("真偽(《値》)");}}
+				}
+			},
+			math:{ name:"数学関数",
+				items:{
+					abs:	{name:"abs 絶対値", callback: function(k,e){insertCode("abs(《値》)");}},
+					random:	{name: "random 乱数", callback: function(k,e){insertCode("random(《整数》)");}},
+					ceil:	{name: "ceil 切り上げ", callback: function(k,e){insertCode("ceil(《実数》)");}},
+					floor:	{name: "floor 切り捨て", callback: function(k,e){insertCode("floor(《実数》)");}},
+					round:	{name: "round 四捨五入", callback: function(k,e){insertCode("round(《実数》)");}},
+					sin:	{name: "sin サイン", callback: function(k,e){insertCode("sin(《実数》)");}},
+					cos:	{name: "cos コサイン", callback: function(k,e){insertCode("cos(《実数》)");}},
+					tan:	{name: "tan タンジェント", callback: function(k,e){insertCode("tan(《実数》)");}},
+					sqrt:	{name: "sqrt ルート", callback: function(k,e){insertCode("sqrt(《実数》)");}},
+					log:	{name: "log 自然対数", callback: function(k,e){insertCode("log(《実数》)");}},
+					exp:	{name: "exp 指数関数", callback: function(k,e){insertCode("exp(《実数》)");}},
+					pow:	{name: "pow 累乗", callback: function(k,e){insertCode("pow(《実数》,《実数》)");}}
+				}
+			},
+			str:{name:"文字列関数",
+				items:{
+					length:	{name: "length 長さ", callback: function(k,e){insertCode("length(《文字列》)");}},
+					append:	{name: "append 文字列結合", callback: function(k,e){insertCode("append(《文字列》,《文字列》)");}},
+					substring1:	{name: "substring 部分文字列（最後まで）", callback: function(k,e){insertCode("substring(《文字列》,《開始位置》)");}},
+					substring2:	{name: "substring 部分文字列（長さ指定）", callback: function(k,e){insertCode("substring(《文字列》,《開始位置》,《長さ》)");}},
+					split:		{name: "split 文字列分割", callback: function(k,e){insertCode("split(《文字列》,《区切文字列》)");}},
+					extract:	{name: "extract 文字列分割（番号指定）", callback: function(k,e){insertCode("extract(《文字列》,《区切文字列》,《番号》)");}},
+					insert:	{name: "insert 挿入", callback: function(k,e){insertCode("insert(《文字列》,《位置》,《文字列》)");}},
+					replace:	{name: "replace 置換", callback: function(k,e){insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");}},
+				}
+			},
+			graphic1:{ name:"グラフィック命令（日本語）",
+				items:{
+					gOpenWindow:{name:"描画領域開く", callback: function(k,e){insertCode("描画領域開く(《幅》,《高さ》)");}},
+					gCloseWindow:{name:"描画領域閉じる", callback: function(k,e){insertCode("描画領域閉じる()");}},
+					gClearWindow:{name:"描画領域全消去", callback: function(k,e){insertCode("描画領域全消去()");}},
+					gSetLineColor:{name:"線色設定", callback: function(k,e){insertCode("線色設定(《赤》,《緑》,《青》)");}},
+					gSetFillColor:{name:"塗色設定", callback: function(k,e){insertCode("塗色設定(《赤》,《緑》,《青》)");}},
+					gSetTextColor:{name:"文字色設定", callback: function(k,e){insertCode("文字色設定(《赤》,《緑》,《青》)");}},
+					gSetLineWidth:{name:"線太さ設定", callback: function(k,e){insertCode("線太さ設定(《太さ》)");}},
+					gSetFontSize:{name:"文字サイズ設定", callback: function(k,e){insertCode("文字サイズ設定(《サイズ》)");}},
+					gDrawText:{name:"文字描画", callback: function(k,e){insertCode("文字描画(《文字列》,《x》,《y》)");}},
+					gDrawPoint:{name:"点描画", callback: function(k,e){insertCode("点描画(《x》,《y》)");}},
+					gDrawLine:{name:"線描画", callback: function(k,e){insertCode("線描画(《x1》,《y1》,《x2》,《y2》)");}},
+					gDrawBox:{name:"矩形描画", callback: function(k,e){insertCode("矩形描画(《x》,《y》,《幅》,《高さ》)");}},
+					gFillBox:{name:"矩形塗描画", callback: function(k,e){insertCode("矩形塗描画(《x》,《y》,《幅》,《高さ》)");}},
+					gDrawCircle:{name:"円描画", callback: function(k,e){insertCode("円描画(《x》,《y》,《半径》)");}},
+					gFillCircle:{name:"円塗描画", callback: function(k,e){insertCode("円塗描画(《x》,《y》,《半径》)");}},
+					gDrawOval:{name:"楕円描画", callback: function(k,e){insertCode("楕円描画(《x》,《y》,《幅》,《高さ》)");}},
+					gFillOval:{name:"楕円塗描画", callback: function(k,e){insertCode("楕円塗描画(《x》,《y》,《幅》,《高さ》)");}},
+					gDrawArc:{name:"弧描画", callback: function(k,e){insertCode("弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+					gFillArc:{name:"弧塗描画", callback: function(k,e){insertCode("弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+					gBarplot:{name:"棒グラフ描画", callback: function(k,e){insertCode("棒グラフ描画(《幅》,《高さ》,《値》)");}},
+					gLineplot:{name:"線グラフ描画", callback: function(k,e){insertCode("線グラフ描画(《幅》,《高さ》,《値》)");}},
+					gDrawGraph:{name:"グラフ描画",  callback: function(k,e){insertCode("グラフ描画(《レイアウト情報》,《値の配列》)");}},
+					gClearGraph:{name:"グラフ消去", callback: function(k,e){insertCode("グラフ消去()");}}
+				}
+			},
+			graphic2:{ name:"グラフィック命令（英語）",
+				items:{
+					gOpenWindow:{name:"gOpenWindow", callback: function(k,e){insertCode("gOpenWindow(《幅》,《高さ》)");}},
+					gCloseWindow:{name:"gCloseWindow", callback: function(k,e){insertCode("gCloseWindow()");}},
+					gClearWindow:{name:"gClearWindow", callback: function(k,e){insertCode("gClearWindow()");}},
+					gSetLineColor:{name:"gSetLineColor", callback: function(k,e){insertCode("gSetLineColor(《赤》,《緑》,《青》)");}},
+					gSetFillColor:{name:"gSetFillColor", callback: function(k,e){insertCode("gSetFillColor(《赤》,《緑》,《青》)");}},
+					gSetTextColor:{name:"gSetTextColor", callback: function(k,e){insertCode("gSetTextColor(《赤》,《緑》,《青》)");}},
+					gSetLineWidth:{name:"gSetLineWidth", callback: function(k,e){insertCode("gSetLineWidth(《太さ》)");}},
+					gSetFontSize:{name:"gSetFontSize", callback: function(k,e){insertCode("gSetFontSize(《サイズ》)");}},
+					gDrawText:{name:"gDrawText", callback: function(k,e){insertCode("gDraeText(《文字列》,《x》,《y》)");}},
+					gDrawPoint:{name:"gDrawPoint", callback: function(k,e){insertCode("gDrawPoint(《x》,《y》)");}},
+					gDrawLine:{name:"gDrawLine", callback: function(k,e){insertCode("gDrawLine(《x1》,《y1》,《x2》,《y2》)");}},
+					gDrawBox:{name:"gDrawBox", callback: function(k,e){insertCode("gDrawBox(《x》,《y》,《幅》,《高さ》)");}},
+					gFillBox:{name:"gFillBox", callback: function(k,e){insertCode("gFillBox(《x》,《y》,《幅》,《高さ》)");}},
+					gDrawCircle:{name:"gDrawCircle", callback: function(k,e){insertCode("gDrawCircle(《x》,《y》,《半径》)");}},
+					gFillCircle:{name:"gFillCircle", callback: function(k,e){insertCode("gFillCircle(《x》,《y》,《半径》)");}},
+					gDrawOval:{name:"gDrawOval", callback: function(k,e){insertCode("gDrawOval(《x》,《y》,《幅》,《高さ》)");}},
+					gFillOval:{name:"gFillOval", callback: function(k,e){insertCode("gFillOval(《x》,《y》,《幅》,《高さ》)");}},
+					gDrawArc:{name:"gDrawArc", callback: function(k,e){insertCode("gDrawArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+					gFillArc:{name:"gFillArc", callback: function(k,e){insertCode("gFillArc(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)");}},
+					gBarplot:{name:"gBarplot", callback: function(k,e){insertCode("gBarplot(《幅》,《高さ》,《値》)");}},
+					gLineplot:{name:"gLineplot", callback: function(k,e){insertCode("gLineplot(《幅》,《高さ》,《値》)");}},
+					gDrawGraph:{name:"gDrawGraph",  callback: function(k,e){insertCode("gDrawGraph(《レイアウト情報》,《値の配列》)");}},
+					gClearGraph:{name:"gClearGraph", callback: function(k,e){insertCode("gClearGraph()");}}
+				}
+			},
+			misc:{ name: "各種命令",
+				items:{
+					nop:{name:"何もしない", callback: function(k,e){insertCode("何もしない");}},
+					sleep:{name:"待つ", callback: function(k,e){insertCode("《ミリ秒数》ミリ秒待つ");}},
+					dump:{name:"変数を確認する", callback: function(k,e){insertCode("変数を確認する");}},
+					pause:{name:"一時停止する", callback: function(k,e){insertCode("一時停止する");}}
+				}
+			}
+		}
+	}
+);
+$.contextMenu(
+	{
+		selector: "#flowchart",
+		build: contextMenu_Flowchart
+	}
+);
+// this code is from David Baron's Weblog
+// https://dbaron.org/log/20100309-faster-timeouts
+//	var timeouts = [];
+var messageName = "zero-timeout-message";
+
+// Like setTimeout, but only takes a function argument.  There's
+// no time argument (always zero) and no arguments (you have to
+// use a closure).
+function setZeroTimeout(fn) {
+	timeouts.push(fn);
+	window.postMessage(messageName, "*");
+}
+
+function handleMessage(event) {
+	if (event.source == window && event.data == messageName) {
+		event.stopPropagation();
+		if (timeouts.length > 0) {
+			var fn = timeouts.shift();
+			fn();
+		}
+	}
+}
+
+if(window.addEventListener) window.addEventListener("message", handleMessage, true);
+else if(window.attachEvent) window.attachEvent("onmessage", handleMessage);
+
+// Add the one thing we want added to the window object.
+window.setZeroTimeout = setZeroTimeout;
+
+$(window).bind("beforeunload", function(){if(dirty) return "プログラムが消去されます";});
+
+reset(true);
+
+let sample_area = document.getElementById('SampleButtons')
+let sample_table = document.createElement('table');
+sample_area.appendChild(sample_table);
+let sample_table_row = null;
+for(let i = 0; i < sample.length; i++)
+{
+	if(!sample_table_row)
+	{
+		sample_table_row = document.createElement('tr');
+		sample_table.appendChild(sample_table_row);
+	}
+	let cell = document.createElement('td');
+	let button = document.createElement('button');
+	button.innerText = 'サンプル' + (i + 1);
+	button.setAttribute('type', 'button');
+	button.setAttribute('class', 'sampleButton');
+	button.onclick = function(){sampleButton(i);};
+	cell.appendChild(button);
+	sample_table_row.appendChild(cell);
+	if(i % 8 == 7) sample_table_row = null;
+}
+if(setting.quiz_mode == 1 && Quizzes.length > 0)
+{
+	let quiz_select = document.getElementById('quiz_select');
+	quiz_select.onchange = function ()
+	{
+		let i = quiz_select.selectedIndex;
+		if(i > 0) document.getElementById('quiz_question').innerHTML = Quizzes[i - 1].question();
+		else document.getElementById('quiz_question').innerHTML = '';
+	};
+	let option = document.createElement('option');
+	option.val = 0;
+	option.appendChild(document.createTextNode('問題選択'));
+	quiz_select.appendChild(option);
+
+	for(let i = 0; i < Quizzes.length; i++)
+	{
+		option = document.createElement('option');
+		option.val = i + 1;
+		option.appendChild(document.createTextNode('Q' + (i + 1) + ':' + Quizzes[i].title()));
+		quiz_select.appendChild(option);
+	}
+	document.getElementById('quiz_marking').onclick = function ()
+	{
+		let i = quiz_select.selectedIndex;
+		if(i > 0) auto_marking(i - 1);
+		else 
+		{
+			textareaClear();
+			textareaAppend('問題が選択されていないので採点できません。'); 
+		}
+	}
+}
+else
+{
+	document.getElementById('Quiz_area').style.display = 'none';
+}
+document.getElementById('urlButton').onclick = function()
+{
+	var code = sourceTextArea.value.trim();
+	if(code == '') return;
+	code = B64encode(code);
+	if(code){
+		var url = window.location;
+		textareaClear();
+		highlightLine(-1);
+		textareaAppend(url.protocol + '//' + url.hostname + url.pathname + '?code=' + code);
+	} 
 }
