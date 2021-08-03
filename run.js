@@ -6472,7 +6472,7 @@ class Parts_Substitute extends Parts
 		this._val = value;
 		this._operator = operator
 
-		this._text = this._var + (this._operator ? this._operator : '') + "←" + this._val;
+		this._text = this._var + (this._operator ? this._operator : '') + "=" + this._val;
 	}
 	get var(){return this._var;}
 	get val(){return this._val;}
@@ -6530,7 +6530,7 @@ class Parts_Substitute extends Parts
 	appendCode(code, indent)
 	{
 		code += Parts.makeIndent(indent);
-		code += this.var + (this.operator ? this.operator : "") + "←" + this.val + "\n";
+		code += this.var + (this.operator ? this.operator : "") + "=" + this.val + "\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
 	}
