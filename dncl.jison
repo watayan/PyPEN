@@ -71,9 +71,11 @@ BitAnd			[&＆]
 BitOr			[\|｜]
 BitXor			[\^＾]
 BitNot			[~〜]
+NotIn			[ＮｎNn][ＯｏOo][ＴｔTt]\s+[ＩｉIi][ＮｎNn]
 And				[ＡａAa][ＮｎNn][ＤｄDd]
 Or				[ＯｏOo][ＲｒRr]
 Not				[ＮｎNn][ＯｏOo][ＴｔTt]
+In				[ＩｉIi][ＮｎNn]
 Lshift			[<＜][<＜]
 Rshift			[>＞][>＞]
 NE				([!！][=＝])|([<＜][>＞])|"≠"
@@ -139,9 +141,11 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 {BitNot}		{return '~';}
 {Comma}			{return 'COMMA';}
 {Colon}			{return ':'}
+{NotIn}			{return 'not_in';}
 {And}			{return 'and';}
 {Or}			{return 'or';}
 {Not}			{return 'not';}
+{In}			{return 'in';}
 "■"				{return 'ブロック終端'}
 "を"{Print}"する"		{return 'を表示する';}
 "を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
@@ -252,7 +256,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 %left 'and' 
 %right 'not'
 %right 'の中に'
-%left '=' '==' '!=' '>' '<' '>=' '<='
+%left '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in'
 %left '|'
 %left '^'
 %left '&'
@@ -295,6 +299,8 @@ e
 	| e '>=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '<=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e 'の中に' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e 'not_in' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e 'in' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	// | e '==' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
 	// | e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
 	// | e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}

@@ -2058,7 +2058,6 @@ class Compare extends Value
 			switch(this.value[1])
 			{
 			case '==':
-			case '=':
 				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);
 				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
@@ -2100,6 +2099,20 @@ class Compare extends Value
 					for(let i = 0; i < v1.value.length; i++) flag |= ArrayCompare(v1.value[i], v2);
 				else throw new RuntimeError(this.first_line, "\"の中に\"の前には配列が必要です");
 				this.rtnv = new BooleanValue(flag, this.loc);
+				break;
+			case 'in':
+				var flag = false;
+				if(v2 instanceof ArrayValue)
+					for(let i = 0; i < v2.value.length; i++) flag |= ArrayCompare(v2.value[i], v1);
+				else throw new RuntimeError(this.first_line, "\"in\"の後には配列が必要です");
+				this.rtnv = new BooleanValue(flag, this.loc);
+				break;
+			case 'not in':
+				var flag = false;
+				if(v2 instanceof ArrayValue)
+					for(let i = 0; i < v2.value.length; i++) flag |= ArrayCompare(v2.value[i], v1);
+				else throw new RuntimeError(this.first_line, "\"not in\"の後には配列が必要です");
+				this.rtnv = new BooleanValue(!flag, this.loc);
 			}
 		}
 	}
@@ -2118,7 +2131,12 @@ class Compare extends Value
 		var op = this.value[1];
 		switch(this.value[1])
 		{
-		case '=': op = '=='; break;
+		case 'not_in':
+			op = ' not in '; 
+			break;
+			case 'in':
+			op = ' in '; 
+			break;
 		case 'の中に':
 			op = ' in '; 
 			var tmp = v1; v1 = v2; v2 = tmp;
