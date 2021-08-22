@@ -954,9 +954,16 @@ class Add extends Value
 		{
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はできません");
-			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
-			if(v1 instanceof StringValue || v2 instanceof StringValue) // 一方でも文字列なら文字列結合
+			if(v1 instanceof ArrayValue && v2 instanceof ArrayValue)
+			{
+				let v = []
+				for(let i = 0; i < v1.length; i++) v.push(v1.value[i])
+				for(let i = 0; i < v2.length; i++) v.push(v2.value[i])
+				this.rtnv = new ArrayValue(v, this.loc);
+			}
+			else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はできません");
+			else if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
+			else if(v1 instanceof StringValue || v2 instanceof StringValue) // 一方でも文字列なら文字列結合
 			{
 				this.rtnv = new StringValue(v1.value + v2.value, this.loc);
 			}
@@ -1100,19 +1107,42 @@ class Mul extends Value
 		{
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のかけ算はできません");
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
-			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のかけ算はできません");
-			let v = v1.value * v2.value;
-			if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+			else if(v1 instanceof StringValue || v2 instanceof StringValue)
 			{
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				this.rtnv = new FloatValue(v, this.loc);
+				let va = null, vn = null;
+				if(v1 instanceof IntValue){va = v2; vn = v1;}
+				else if(v2 instanceof IntValue){va = v1; vn = v2;}
+				else throw new RuntimeError(this.first_line, "文字列には整数しか掛けられません");
+				let v = '';
+				for(let i = 0; i < vn.value; i++)
+					v += va.value;
+				this.rtnv = new StringValue(v, this.loc);
 			}
+			else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
+			{
+				let va = null, vn = null;
+				if(v1 instanceof IntValue){va = v2; vn = v1;}
+				else if(v2 instanceof IntValue){va = v1; vn = v2;}
+				else throw new RuntimeError(this.first_line, "配列には整数しか掛けられません");
+				let v = []
+				for(let i = 0; i < vn.value; i++)
+					for(let j = 0; j < va.length; j++) v.push(va.value[j]);
+				this.rtnv = new ArrayValue(v, this.loc);
+			} 
 			else
 			{
-				if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				this.rtnv = new IntValue(v, this.loc);
+				let v = v1.value * v2.value;
+				if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+				{
+					if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+					this.rtnv = new FloatValue(v, this.loc);
+				}
+				else
+				{
+					if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
+					this.rtnv = new IntValue(v, this.loc);
+				}
 			}
 			this.state = 0;
 		}
