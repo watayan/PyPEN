@@ -3484,7 +3484,7 @@ class DefineStep extends Statement {
 				codes = 1;
 				code += this.statementlist[i].makePython(1);
 			}
-		if(codes == 0) code += Parts.makeIndent(1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(1) + "pass\n";
 		return code;
 	}
 }
@@ -3615,7 +3615,7 @@ class DefineFunction extends Statement {
 				codes = 1;
 				code += this.statementlist[i].makePython(1);
 			}
-		if(codes == 0) code += Parts.makeIndent(1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(1) + "pass\n";
 		return code;
 	}
 }
@@ -4899,7 +4899,7 @@ class If extends Statement
 					codes = 1;
 				}
 		}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
 		if(this.state2)
 		{
 			codes = 0;
@@ -5014,7 +5014,7 @@ class ForIn extends Statement
 				codes = 1;
 				code += this.statementlist[i].makePython(indent + 1);
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
 		return code;
 	}
 	run()
@@ -5110,7 +5110,7 @@ class ForInc extends Statement
 				codes = 1;
 				code += this.statementlist[i].makePython(indent + 1);
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
 		return code;
 	}
 	run()
@@ -5172,7 +5172,7 @@ class ForDec extends Statement
 				codes = 1;
 				code += this.statementlist[i].makePython(indent + 1);
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
 		return code;
 	}
 	run()
@@ -5229,7 +5229,7 @@ class While extends Statement
 				codes = 1;
 				code += this.statementlist[i].makePython(indent + 1);
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "None\n";
+		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
 		return code;
 	}
 	run()
@@ -5272,7 +5272,7 @@ class NopStatement extends Statement
 	clone()	{return new NopStatement(this.loc);}
 	run(){ code[0].stack[0].index++;}
 	makePython(indent){
-		return Parts.makeIndent(indent) + "None\n";
+		return Parts.makeIndent(indent) + "pass\n";
 	}
 }
 
