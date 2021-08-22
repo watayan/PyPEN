@@ -5737,7 +5737,8 @@ function contextMenu_Flowchart(trigger, event)
 					items:{
 						loop1: {name:"〜の間"},
 						loopinc:{name:"増やしながら"},
-						loopdec:{name:"減らしながら"}
+						loopdec:{name:"減らしながら"},
+						loopfor:{name:"配列の要素について"}
 					}
 				},
 				array:{name:"配列操作",
@@ -5782,6 +5783,7 @@ function callbackPartsBar(bar, key)
 	else if(key == "loop1") Parts_LoopBegin1.appendMe(bar);
 	else if(key == "loopinc") Parts_LoopBeginInc.appendMe(bar);
 	else if(key == "loopdec") Parts_LoopBeginDec.appendMe(bar);
+	else if(key == "loopfor") Parts_LoopBeginFor.appendMe(bar);
 	else if(key == "misc") Parts_Misc.appendMe(bar);
 	else return;
 	makeDirty(true);
@@ -5943,6 +5945,17 @@ class Flowchart
 				var p1 = new Parts_LoopBeginDec(), p2 = new Parts_LoopEnd();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
 				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				parts.next = p1; 
+				p1.next = b1; b1.next = p2; p2.next = b2;
+				p1._end = p2; p2._begin = p1;
+				Flowchart.appendParts(b1, p.statementlist);
+				parts = b2;
+			}
+			else if(statement == "ForIn")
+			{
+				var p1 = new Parts_LoopBeginFor(), p2 = new Parts_LoopEnd();
+				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
+				p1.setValue(p.array.getCode(), p.variable.getCode());
 				parts.next = p1; 
 				p1.next = b1; b1.next = p2; p2.next = b2;
 				p1._end = p2; p2._begin = p1;
@@ -6956,10 +6969,14 @@ class Parts_LoopBegin extends Parts
 			this._hspace = this._hspace2 = 0;
 			var tw = flowchart.context.measureText(this.text).width;
 			if(tw > this._textwidth) this._textwidth = tw;
-			var tw2 = flowchart.context.measureText(this.text2).width;
-			if(tw2 > this._textwidth) this._textwidth = tw2;
 			if(tw < this._textwidth) this._hspace = (this._textwidth - tw) / 2;
-			if(tw2 < this._textwidth) this._hspace2 = (this._textwidth - tw2) / 2;
+			if(this.text2)
+			{
+				var tw2 = flowchart.context.measureText(this.text2).width;
+				if(tw2 > this._textwidth) this._textwidth = tw2;
+				if(tw < this._textwidth) this._hspace = (this._textwidth - tw) / 2;
+				if(tw2 < this._textwidth) this._hspace2 = (this._textwidth - tw2) / 2;
+			}
             this._textheight = FlowchartSetting.fontsize;
         }
 		else
@@ -6974,7 +6991,7 @@ class Parts_LoopBegin extends Parts
         this.calcTextsize();    // textWidth, textHeightの計算
 		var size = FlowchartSetting.size;
 
-        this._height = this.textHeight * (this.hasText ? 2 : 1) + size * 2;
+        this._height = this.textHeight * (this.hasText && this.text2 ? 2 : 1) + size * 2;
         this._width = this.textWidth + size * 2;
 		var x1 = p0.x - this.width / 2;
 		var x2 = p0.x + this.width / 2;
@@ -7010,7 +7027,8 @@ class Parts_LoopBegin extends Parts
 		if(this.hasText)
 		{
 			flowchart.context.fillText(this.text, this.x1 + size + this.hspace, this.y1 + size + this.textHeight);
-			flowchart.context.fillText(this.text2, this.x1 + size + this.hspace2, this.y1 + size + this.textHeight * 2);
+			if(this.text2)
+				flowchart.context.fillText(this.text2, this.x1 + size + this.hspace2, this.y1 + size + this.textHeight * 2);
 		}
 
 		if(position != null)
@@ -7094,6 +7112,63 @@ class Parts_LoopBegin1 extends Parts_LoopBegin
 		if(values != null)
 		{
 			this.setValue(values[0]);
+		}
+		flowchart.paint();
+		flowchart.flowchart2code();
+	}
+}
+
+class Parts_LoopBeginFor extends Parts_LoopBegin
+{
+	get hasText(){return true;}
+	constructor()
+	{
+		super();
+		this.setValue("《配列》","《変数》");
+	}
+	setValue(array, variable)
+	{
+		this.array = array;
+		this.variable = variable;
+		this._text = this.variable + ':' + this.array;
+	}
+	get text2(){return null;}
+	static appendMe(bar)
+	{
+		var parts = new Parts_LoopBeginFor();
+		bar.next = parts;
+		parts.next = new Parts_Bar();
+		parts.next.next = new Parts_LoopEnd();
+		parts.next.next.next = new Parts_Bar();
+		parts._end = parts.next.next;
+		parts.next.next._begin = parts;
+
+		return parts.end;
+	}
+
+	appendCode(code, indent)
+	{
+		code += Parts.makeIndent(indent);
+		code += this.array +"の要素" + this.variable + "について繰り返す：\n";
+		var code_inner = this.next.appendCode('', indent + 1);
+		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
+		else code += code_inner;
+
+		if(this.end.next != null) return this.end.next.appendCode(code, indent);
+		return code;
+	}
+
+	editMe()
+	{
+		var subtitle = ["配列","変数"];
+		var values = [ this.array, this.variable];
+		openModalWindow("繰り返しの編集", subtitle, values, this);
+	}
+	edited(values)
+	{
+		if(values != null)
+		{
+			this.setValue(values[0], values[1]);
 		}
 		flowchart.paint();
 		flowchart.flowchart2code();
