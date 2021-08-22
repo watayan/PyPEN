@@ -285,7 +285,7 @@ case 91:
 this.$ = new ForIn($$[$0-9], $$[$0-7], $$[$0-2], new Location(_$[$0-9],_$[$0]));
 break;
 case 92:
-this.$ = new ForIn($$[$0-8], $$[$0-6], $$[$0-2], new Location(_$[$0-8],_$[$01]));
+this.$ = new ForIn($$[$0-8], $$[$0-6], $$[$0-2], new Location(_$[$0-8],_$[$0]));
 break;
 case 93:
 this.$ = new While($$[$0-7], $$[$0-2], new Location(_$[$0-7], _$[$0-1]));
