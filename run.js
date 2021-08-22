@@ -4998,24 +4998,44 @@ class ForIn extends Statement
 		else
 		{
 			code[0].stack[0].index++;
-			if(this.begin.getValue() instanceof IntValue || this.begin.getValue() instanceof FloatValue)
-			{
-				let variable = new Variable(this.varname.varname, this.varname.args,this.loc);
-				let condition = new LE(variable, this.end, this.loc);	// IncとDecの違うところ
-				let loop = [variable, condition, new LoopBegin(condition, true, this.loc)];
-				for(let i = 0; i < this.statementlist.length; i++)loop.push(this.statementlist[i]);
-				loop.push(this.step);
-				loop.push(new Assign(variable, this.step, '+', this.loc));	// IncとDecの違うところ
-				loop.push(new LoopEnd(null, true, this.loc));
-				code[0].stack.unshift({statementlist: loop, index: 0});
-			}
-			else throw new RuntimeError(this.first_line, '初期値は数値型である必要があります');
+			let variable = new Variable(this.variable.varname, this.variable.args, this.loc);
+			let loop = [new ForIn_step(this, variable, this.array, this.loc), new LoopBegin(new BooleanValue(true, this.loc), true, this.loc)];
+			for(let i = 0; i < this.statementlist.length; i++)loop.push(this.statementlist[i]);
+			loop.push(new LoopEnd(null, true, this.loc));
+			code[0].stack.unshift({statementlist: loop, index: 0});
 			this.state = 0;
 		}
 	}
-
 }
 
+class ForIn_step extends Statement
+{
+	constructor(forin, variable, array, loc)
+	{
+		super(loc);
+		this.forin = forin;
+		this.variable = variable;
+		this.array = array;
+		this.index = 0;
+	}
+	clone()
+	{
+		return new ForIn_step(this.forin.clone(), this.variable.clone(), this.array.clone(), this.loc);
+	}
+	run()
+	{
+		code[0].stack[0].index++;
+		if(this.index < this.array.rtnv.length)
+		{
+			let assign = new Assign(this.variable, this.array.rtnv.rtnv.value[this.index++], null, this.loc);
+			code[0].stack.unshift({statementlist: [assign], index: 0});
+		}
+		else
+		{
+			code[0].stack[0].statementlist[1] = new LoopBegin(new BooleanValue(false, true, this.loc),true, this.loc);
+		}
+	}
+}
 
 /**
  * forループ（加算）
