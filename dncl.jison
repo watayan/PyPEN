@@ -426,6 +426,8 @@ ForStatement
 		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
 	| e 'の要素' e 'について' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
 		{$$ = new ForIn($1, $3, $8, new Location(@1,@10));}
+	| e 'の要素' e 'について' ':' '改行' statementlist 'ブロック終端' '改行'
+		{$$ = new ForIn($1, $3, $7, new Location(@1,@10));}
 	;
 
 WhileStatement
