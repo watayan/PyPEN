@@ -4342,7 +4342,7 @@ class Output extends Statement
 			let s = '';
 			for(var i = 0; i < this.value.length; i++)
 			{
-				let v = this.value[i].getValue();
+				let v = this.value[i];
 				s += (i > 0 ? ' ' : '') + array2text(v);
 			}
 			if(this.ln)	s += '\n';
