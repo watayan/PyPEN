@@ -2058,6 +2058,7 @@ class Compare extends Value
 			switch(this.value[1])
 			{
 			case '==':
+			case '=':
 				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.rtnv = new BooleanValue(ArrayCompare(v1, v2), this.loc);
 				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
 				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
@@ -5917,7 +5918,10 @@ class Flowchart
 			{
 				var p1 = new Parts_Substitute();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.variable.getCode(), p.value.getCode(), p.operator);
+				var c = constructor_name(p.value);
+				var brace = false;
+				if(c == 'Compare'){brace = true;}
+				p1.setValue(p.variable.getCode(), (brace ? '(' : '') + p.value.getCode() + (brace ? ')' : ''), p.operator);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}

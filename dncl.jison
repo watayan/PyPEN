@@ -256,7 +256,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 %left 'and' 
 %right 'not'
 %right 'の中に'
-%left '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in'
+%left '=' '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in'
 %left '|'
 %left '^'
 %left '&'
@@ -292,7 +292,7 @@ e
 	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
 	| e '==' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	// | e '=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e '=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '!=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '>' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '<' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
