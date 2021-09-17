@@ -2672,7 +2672,7 @@ class ConvertFloat extends Value
 	{
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: list, index: 0});
+			code[0].stack.unshift({statementlist: this.value, index: 0});
 			this.state = 1;
 		}
 		else
@@ -2720,7 +2720,7 @@ class ConvertString extends Value
 	{
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: list, index: 0});
+			code[0].stack.unshift({statementlist: this.value, index: 0});
 			this.state = 1;
 		}
 		else
@@ -2767,7 +2767,7 @@ class ConvertBool extends Value
 	{
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: list, index: 0});
+			code[0].stack.unshift({statementlist: this.value, index: 0});
 			this.state = 1;
 		}
 		else
