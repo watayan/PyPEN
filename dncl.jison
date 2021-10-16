@@ -250,13 +250,13 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 
 /lex
 
-%right '個の'
 %left 'と'
 %left 'or'
 %left 'and' 
 %right 'not'
 %right 'の中に'
 %left '=' '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in'
+%right '個の'
 %left '|'
 %left '^'
 %left '&'

@@ -20,9 +20,10 @@
 		<input    id="flowchartButton" type="checkbox">フローチャート
 		<button   id="drawButton" type="button" onclick="codeChange();">コード→フローチャート</button>
 		<button   id="pythonButton" type="button" onclick="makePython();">コード→Python</button>
-		<button    id="urlButton" type="button">URL生成</button><br>
-		Upload <input id="loadButton" type="file" accept=".PyPEN"/>
-		<a href="#" id="downloadLink">Download</a>
+		<button   id="urlButton" type="button">URL生成</button><br>
+		<button   id="loadButton1" type="button">Load</button>
+		<input id="loadButton" type="file" accept=".PyPEN"/>
+		<a href="#" id="downloadLink"><button>Save</button></a>
 		ファイル名：<input id="file_prefix" type="text"/><br>
 		</div>
 		<div id="Quiz_area">
@@ -93,6 +94,14 @@
 			<button type="button" onclick="changeSize(-1);" style="width:2em;height:2em;float:left;">−</button>
 		</div>
 		<canvas id="flowchart" width="400px" height="600px"></canvas><br>
+	</div>
+	<div id="Storage_area">
+		<select id="storage_list" size="10">
+			<option>ファイル一覧</option>
+		</select><br>
+		<input type="file"   class="storage_upload"></input><br>
+		<button type="button" class="storage_remove">削除</button>
+		<button type="button" class="storage_clear">全削除</button>
 	</div>
 	<canvas id="canvas"></canvas>
 	<div id="graph"></div>

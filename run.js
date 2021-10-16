@@ -4952,7 +4952,7 @@ class LoopBegin extends Statement
 	}
 	clone()
 	{
-		return new LoopBegin(this.condition.clone(), this.continuous, this.loc);
+		return new LoopBegin(this.condition ? this.condition.clone() : null, this.continuous, this.loc);
 	}
 	run()
 	{
@@ -4987,7 +4987,7 @@ class LoopEnd extends Statement
 	}
 	clone()
 	{
-		return new LoopEnd(this.condition.clone(), this.continuous, this.loc);
+		return new LoopEnd(this.condition ? this.condition.clone() : null, this.continuous, this.loc);
 	}
 	run()
 	{
@@ -8235,7 +8235,13 @@ resetButton.onclick = function(){
 };
 dumpButton.onclick = function(){
 	dump();
-}	
+};	
+
+document.getElementById("loadButton1").onclick = function(ev){
+	loadButton.click();
+	return false;
+};
+
 loadButton.addEventListener("change", function(ev)
 {
 	var file = ev.target.files;
@@ -8249,14 +8255,15 @@ loadButton.addEventListener("change", function(ev)
 	}
 }
 ,false);
+
 downloadLink.onclick = function()
 {
-	var now = new Date();
 	var filename = file_prefix.value.trim();
 	if(filename.length < 1)
-		filename = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) +
-		('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) +
-		('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2);
+	{
+		alert("ファイル名を入力しないと保存できません");
+		return false;
+	}
 	filename +=	'.PyPEN';
 	var blob = new Blob([editor.getDoc().getValue()], {type:"text/plain"});
 	if(window.navigator.msSaveBlob)
