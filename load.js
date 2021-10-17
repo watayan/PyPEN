@@ -8,12 +8,14 @@ var scripts = [
     "./js/codemirror.js",
     "./js/codemirror_pypen.js",
     "./js/zlib.min.js",
-    "./setting.js",
-    "./dncl.min.js",
+    './dncl.min.js',
+    './setting.js',
     "./pypen.js",
     "./sample.js",
     "./quiz.js",
     "./answer.js",
+    "./base64.js",
+    "./fileio.js",
     "./run.min.js"
 ];
 

@@ -189,6 +189,24 @@ button{
 	display: none;
 }
 
+#Storage_area{
+	float: left;
+	margin-left: 4px;
+}
+
+#storage_upload{
+	display: none;
+}
+
+#storage_list{
+	width: 20em;
+}
+
+#storage_upload1, #storage_download1, #storage_remove, #storage_clear{
+	height: 2em;
+}
+
+
 .CodeMirror{
 	resize: horizontal;
 	border: 1px black solid;

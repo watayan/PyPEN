@@ -22,7 +22,7 @@
 		<button   id="pythonButton" type="button" onclick="makePython();">コード→Python</button>
 		<button   id="urlButton" type="button">URL生成</button><br>
 		<button   id="loadButton1" type="button">Load</button>
-		<input id="loadButton" type="file" accept=".PyPEN"/>
+		<input    id="loadButton" type="file" accept=".PyPEN"/>
 		<a href="#" id="downloadLink"><button>Save</button></a>
 		ファイル名：<input id="file_prefix" type="text"/><br>
 		</div>
@@ -96,12 +96,14 @@
 		<canvas id="flowchart" width="400px" height="600px"></canvas><br>
 	</div>
 	<div id="Storage_area">
+		<!-- <p>ファイル一覧</p> -->
+		<button type="button" id="storage_upload1">アップロード</button>
+		<input type="file"    id="storage_upload"></input>
+		<a href="#" id="storage_download"><button id="storage_download1">ダウンロード</button></a>
+		<button type="button" id="storage_remove">削除</button>
+		<button type="button" id="storage_clear">全削除</button><br>
 		<select id="storage_list" size="10">
-			<option>ファイル一覧</option>
-		</select><br>
-		<input type="file"   class="storage_upload"></input><br>
-		<button type="button" class="storage_remove">削除</button>
-		<button type="button" class="storage_clear">全削除</button>
+		</select>
 	</div>
 	<canvas id="canvas"></canvas>
 	<div id="graph"></div>

@@ -1,7 +1,5 @@
 "use strict";
 
-// programmed by watayan <watayan@watayan.net>
-
 const typeOfValue=
 {
 	typeInt:1,
@@ -3204,9 +3202,48 @@ var definedFunction = {
 		else throw new RuntimeError(loc.first_line, "replaceの引数の型が違います");
 	}, null, function (argc){
 		return argc[0] + '[:' + argc[1] + ']+' + argc[3] + '+' + argc[0] + '[' + argc[1] + '+' + argc[2] + ':]';  
-	})
+	}),
+	"isfile": new DefinedFunction(1, function(param, loc){
+		var par = param[0].getValue();
+		if(par instanceof StringValue) return new BooleanValue(storage.getItem(par.value) != null, loc);
+		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
+	}, null, null),
+	"openr": new DefinedFunction(1, function(param, loc){
+		var par = param[0].getValue();
+		if(par instanceof StringValue) return new IntValue(filesystem.openr(par.value), loc);
+		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
+	}, null, null),
+	"openw": new DefinedFunction(1, function(param, loc){
+		var par = param[0].getValue();
+		if(par instanceof StringValue) return new IntValue(filesystem.openw(par.value), loc);
+		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
+	}, null, null),
+	"opena": new DefinedFunction(1, function(param, loc){
+		var par = param[0].getValue();
+		if(par instanceof StringValue) return new IntValue(filesystem.opena(par.value), loc);
+		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
+	}, null, null),
+	"getline": new DefinedFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof IntValue)
+		{
+			var rtnv = filesystem.read_line(par1.value);
+			if(rtnv == null) throw new RuntimeError(loc.first_line, "ファイル番号が不正です");
+			return new StringValue(rtnv, loc);
+		}
+		else throw new RuntimeError(loc.first_line, "ファイル番号が必要です");
+	}, null, null),
+	"getch": new DefinedFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof IntValue)
+		{
+			var rtnv = filesystem.read_ch(par1.value);
+			if(rtnv == null) throw new RuntimeError(loc.first_line, "ファイル番号が不正です");
+			return new StringValue(rtnv, loc);
+		}
+		else throw new RuntimeError(loc.first_line, "ファイル番号が必要です");
+	}, null, null),
 };
-
 
 function setCaller(statementlist, caller)
 {
@@ -3219,7 +3256,6 @@ function setCaller(statementlist, caller)
 		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
 	}
 }
-
 
 function cloneStatementlist(statementlist)
 {
@@ -4419,6 +4455,52 @@ function array2code(v)
 	return v0.value;
 }
 
+class FileIOStatement extends Statement
+{
+	constructor(command, args, loc)
+	{
+		super(loc);
+		this.command = command;
+		this.args = args;
+		this.state = 0;
+	}
+	clone()
+	{
+		var args = [];
+		for(var i = 0; i < this.args.length; i++) args.push(this.args[i].clone());
+		return new FileIOStatement(this.command, args, this.loc);
+	}
+	run()
+	{
+		if(this.state == 0)
+		{
+			if(this.args) code[0].stack.unshift({statementlist: this.args, index: 0});
+			this.state = 1;
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			if(this.command == 'putline')
+			{
+				var str = array2text(this.args[1].getValue());
+				var rtnv = filesystem.write_str(this.args[0].getValue().value, str, true);
+				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
+			}
+			else if(this.command == 'putstr')
+			{
+				var str = array2text(this.args[1].getValue());
+				var rtnv = filesystem.write_str(this.args[0].getValue().value, str, false);
+				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
+			}
+			else if(this.command == 'close')
+			{
+				var rtnv = filesystem.close(this.args[0].getValue().value, true);
+				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
+			}
+		}
+	}
+}
+
 class GraphicStatement extends Statement
 {
 	constructor(command, args, loc)
@@ -5387,6 +5469,9 @@ function reset(b = true)
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';
+	filesystem.all_close();
+	filesystem.clear();
+	storage_list_update();
 }
 
 /**
@@ -6024,6 +6109,14 @@ class Flowchart
 				p1._end = p2; p2._begin = p1;
 				Flowchart.appendParts(b1, p.statementlist);
 				parts = b2;
+			}
+			else if(statement == "FileIOStatement")
+			{
+				var p1 = new Parts_Misc();
+				var b1 = new Parts_Bar();
+				p1.setValue(p.command, p.args);
+				parts.next = p1;
+				parts = p1.next = b1;
 			}
 			else if(statement == "GraphicStatement")
 			{
@@ -7492,6 +7585,9 @@ var misc_menu_ja =[
 	["線グラフ描画" , "gLineplot"		,"線グラフ描画(	,	,	)"		,["幅","高さ","配列"]],
 	["グラフ描画"	, "gDrawGraph"		,"グラフ描画(	,	)"			,["レイアウト情報","値の配列"]],
 	["グラフ消去"	, "gClearGraph"		,"グラフ消去()"					,[]],
+	["putline"		, "putline"			,"putline(	,	)"				,["ファイル番号","文字列"]],
+	["putstr"		, "putstr"			,"putstr(	,	)"				,["ファイル番号","文字列"]],
+	["close"		, "close"			,"close(	)"					,["ファイル番号"]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]],
@@ -7524,6 +7620,9 @@ misc_menu_en = [
 	["gLineplot" , "gLineplot"		,"gLineplot(	,	,	)"		,["幅","高さ","値"]],
 	["gDrawGraph"	, "gDrawGraph"		,"gDrawGraph(	,	)"			,["レイアウト情報","値の配列"]],
 	["gClearGraph"	, "gClearGraph"		,"gClearGraph()",				,[]],
+	["putline"		, "putline"			,"putline(	,	)"				,["ファイル番号","文字列"]],
+	["putstr"		, "putstr"			,"putstr(	,	)"				,["ファイル番号","文字列"]],
+	["close"		, "close"			,"close(	)"					,["ファイル番号"]],
 	["待つ"       , "sleep"           , "	ミリ秒待つ"                 ,["ミリ秒数"]],
 	["繰り返しを抜ける","break"			,"繰り返しを抜ける",[]],
 	["変数を確認する", "dump"			,"変数を確認する",[]],
@@ -7955,75 +8054,9 @@ onload = function()
 	}
 	editor.refresh();
 	editor.focus();
+	storage_list_update();
 }
 
-var base64str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_="
-
-function B64encode(string)
-{
-	var textencoder = new TextEncoder();
-	var deflate = new Zlib.Deflate(textencoder.encode(string));
-	var origin = deflate.compress();
-	if(origin.length > 1500)
-	{
-		textareaAppend('*** プログラムが大きすぎて変換できません ***');
-		return null;
-	}
-	var convert = new Array(Math.floor((origin.length + 2) / 3) * 4);
-	for(var i = 0; i < origin.length; i+= 3)
-	{
-		var v1, v2, v3 = 64, v4 = 64;
-		v1 = origin[i] >>> 2;
-		v2 = 0x30 & (origin[i] << 4);
-		if(i + 1 < origin.length)
-		{
-			v2 |= (0x0f & (origin[i + 1] >>> 4));
-			v3 = 0x3C & origin[i + 1] <<2;
-			if(i + 2 < origin.length)
-			{
-				v3 |= (0x03 & (origin[i + 2] >>> 6));
-				v4 = 0x3f & origin[i + 2];
-			}
-		}
-		var j = i / 3 * 4;
-		convert[j++] = base64str[v1];
-		convert[j++] = base64str[v2];
-		convert[j++] = base64str[v3];
-		convert[j]   = base64str[v4];
-	}
-	return convert.join('').replace(/=+$/,'');
-}
-
-function B64decode(string)
-{
-	var convert = new Array();
-	try
-	{
-		for(var i = 0; i < string.length; i += 4)
-		{
-			var c1 = base64str.indexOf(string[i]), c2 = base64str.indexOf(string[i + 1]), c3, c4;
-			convert.push((c1 << 2) | (c2 >> 4));
-			if(i + 2 < string.length)
-			{
-				c3 = base64str.indexOf(string[i + 2]);
-				convert.push(((c2 & 0x0f) << 4) | (c3 >>> 2));
-				if(i + 3 < string.length)
-				{
-					c4 = base64str.indexOf(string[i + 3]);
-					convert.push(((c3 & 0x03) << 6) | c4);
-				}
-			}
-		}
-		var inflate = new Zlib.Inflate(convert);
-		var textdecoder = new TextDecoder();
-		return textdecoder.decode((inflate.decompress()));
-	}
-	catch(e)
-	{
-		return '';
-	}
-
-}
 
 function getParam(name)
 {
@@ -8256,6 +8289,97 @@ loadButton.addEventListener("change", function(ev)
 }
 ,false);
 
+document.getElementById("storage_download").onclick = function(ev)
+{
+	var element = document.getElementById("storage_download");
+	var list = document.getElementById("storage_list");
+	var n = list.options.selectedIndex;
+	if(n >= 0)
+	{
+		var filename = list.options[n].value;
+		var str = storage.getItem(filename);
+		var blob = new Blob([str], {type:"text/plain"});
+		if(window.navigator.msSaveBlob)
+		{
+			window.navigator.msSaveBlob(blob, filename);
+		}
+		else
+		{
+			window.URL = window.URL || window.webkitURL;
+			element.setAttribute("href", window.URL.createObjectURL(blob));
+			element.setAttribute("download", filename);
+		}
+	}
+};
+
+
+document.getElementById("storage_upload1").onclick = function(ev){
+	document.getElementById("storage_upload").click();
+	return false;
+}
+
+document.getElementById("storage_upload").addEventListener("change", function(ev){
+	var file = ev.target.files;
+	var reader = new FileReader();
+	reader.readAsText(file[0], "UTF-8");
+	reader.onload = function(ev)
+	{
+		var data = reader.result;
+		try{
+			storage.setItem(file[0].name,B64encode(data, false));
+			storage_list_update();
+		}
+		catch(e)
+		{
+			window.alert("ストレージに保存できませんでした");
+		}
+	}
+});
+
+document.getElementById("storage_remove").onclick = function(ev)
+{
+	var list = document.getElementById("storage_list");
+	var n = list.options.selectedIndex;
+	if(n >= 0)
+	{
+		var key = list.options[n].value;
+		storage.removeItem(key);
+		storage_list_update();	
+	}
+};
+
+document.getElementById("storage_clear").onclick = function(ev)
+{
+	if(window.confirm("ストレージを空にしていいですか？"))
+	{
+		storage.clear();
+		storage_list_update();	
+	}
+};
+
+function storage_list_update()
+{
+	var list = document.getElementById("storage_list");
+	while(list.options.length) list.options.remove(0);
+	var n = storage.length;
+	if(n > 0)
+	{
+		for(var i = 0; i < n; i++)
+		{
+			var option = document.createElement("option");
+			option.text = option.value = storage.key(i);
+			list.appendChild(option);
+		}
+	}
+	else
+	{
+		var option = document.createElement("option");
+		option.text = "--空--";
+		// option.attributes.add("disabled");
+		list.appendChild(option);
+	}
+}
+
 downloadLink.onclick = function()
 {
 	var filename = file_prefix.value.trim();
@@ -8374,6 +8498,13 @@ $.contextMenu(
 					extract:	{name: "extract 文字列分割（番号指定）", callback: function(k,e){insertCode("extract(《文字列》,《区切文字列》,《番号》)");}},
 					insert:	{name: "insert 挿入", callback: function(k,e){insertCode("insert(《文字列》,《位置》,《文字列》)");}},
 					replace:	{name: "replace 置換", callback: function(k,e){insertCode("replace(《文字列》,《位置》,《長さ》,《文字列》)");}},
+				}
+			},
+			fileio:{name: "File I/O",
+				items:{
+					openr: {name:"openr 読込用オープン", callback: function(k,e){insertCode("openr(《ファイル名》)");}},
+					openw: {name:"openr 書込用オープン", callback: function(k,e){insertCode("openw(《ファイル名》)");}},
+					opena: {name:"openr 追記用オープン", callback: function(k,e){insertCode("opena(《ファイル名》)");}},
 				}
 			},
 			graphic1:{ name:"グラフィック命令（日本語）",
