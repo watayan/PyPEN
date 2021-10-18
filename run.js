@@ -8294,7 +8294,7 @@ document.getElementById("storage_download").onclick = function(ev)
 	var element = document.getElementById("storage_download");
 	var list = document.getElementById("storage_list");
 	var n = list.options.selectedIndex;
-	if(n >= 0)
+	if(n >= 0 && n < storage.length)
 	{
 		var filename = list.options[n].value;
 		var str = storage.getItem(filename);
@@ -8326,7 +8326,7 @@ document.getElementById("storage_upload").addEventListener("change", function(ev
 	{
 		var data = reader.result;
 		try{
-			storage.setItem(file[0].name,B64encode(data, false));
+			storage.setItem(file[0].name,data);
 			storage_list_update();
 		}
 		catch(e)

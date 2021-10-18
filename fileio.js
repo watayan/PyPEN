@@ -96,7 +96,7 @@ class FileIO {
         if(res)
         {
             this.files[n].pos += res[1].length + res[2].length;
-            return res[1];
+            return res[0];
         }
         else{
             this.files[n].pos += substr.length;
@@ -106,7 +106,7 @@ class FileIO {
     read_ch(n)
     {
         if(n < 0 || n >= this.files.length || this.files[n] == null) return null;
-        if(this.files[n].pos >= this.files[n].length) return "";
+        if(this.files[n].pos >= this.files[n].val.length) return "";
         return this.files[n].val[this.files[n].pos++];
     }
     write_str(n, str, newline)
