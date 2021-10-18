@@ -3130,14 +3130,13 @@ var definedFunction = {
 	}, null, function(argc){
 		return argc[0] + '+' + argc[1];
 	}),
-	"split": new DefinedFunction(2, function(param, loc){
+	"split": new DefinedFunction([1,2], function(param, loc){
 		var par1 = param[0].getValue();
-		var par2 = param[1].getValue();
-		if(par1 instanceof StringValue && par2 instanceof StringValue)
+		var par2 = param.length == 2 ? param[1].getValue() : null;
+		if(par1 instanceof StringValue && (par2 instanceof StringValue || par2 == null))
 		{
 			var v1 = par1.value;
-			var v2 = par2.value;
-			var v = v1.split(v2);
+			var v = par2 ? v1.split(par2.value) : v1.split("");
 			var vr = [];
 			for(var i = 0; i < v.length; i++) vr.push(new StringValue(v[i], this.loc));
 			return new ArrayValue(vr, this.loc);
