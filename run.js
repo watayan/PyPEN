@@ -8310,6 +8310,10 @@ document.getElementById("storage_download").onclick = function(ev)
 			element.setAttribute("download", filename);
 		}
 	}
+	else
+	{
+		element.removeAttribute("href");
+	}
 };
 
 
