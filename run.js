@@ -3143,7 +3143,8 @@ var definedFunction = {
 		}
 		else throw new RuntimeError(loc.first_line, "splitの引数の型が違います");
 	}, null, function(argc){
-		return argc[0] + '.split(' + argc[1] + ')';
+		if(argc.length == 2) return argc[0] + '.split(' + argc[1] + ')';
+		else return 'list(' + argc[0] + ')';
 	}),
 	"extract": new DefinedFunction(3, function(param, loc){
 		var par1 = param[0].getValue();
