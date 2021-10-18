@@ -3233,7 +3233,7 @@ var definedFunction = {
 		}
 		else throw new RuntimeError(loc.first_line, "ファイル番号が必要です");
 	}, null, null),
-	"getch": new DefinedFunction(1, function(param, loc){
+	"getchar": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue)
 		{
@@ -8505,6 +8505,10 @@ $.contextMenu(
 					openr: {name:"openr 読込用オープン", callback: function(k,e){insertCode("openr(《ファイル名》)");}},
 					openw: {name:"openr 書込用オープン", callback: function(k,e){insertCode("openw(《ファイル名》)");}},
 					opena: {name:"openr 追記用オープン", callback: function(k,e){insertCode("opena(《ファイル名》)");}},
+					getline: {name:"getline", callback: function(k,e){insertCode("getline(《ファイル番号》)");}},
+					getchar: {name:"getchar", callback: function(k,e){insertCode("getchar(《ファイル番号》)");}},
+					putline: {name:"putline", callback: function(k,e){insertCode("putline(《ファイル番号》,《文字列》)");}},
+					putstr:  {name:"putstr",  callback: function(k,e){insertCode("putstr(《ファイル番号》,《文字列》)");}},
 				}
 			},
 			graphic1:{ name:"グラフィック命令（日本語）",
