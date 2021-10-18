@@ -75,11 +75,12 @@
             <tr><td>exp(《実数》)</td><td>指数関数（底は自然対数の底）</td><td>exp(1)→2.718…</td></tr>
             <tr><td>pow(《実数》,《実数》)</td><td>累乗</td><td>pow(2,3)→8</td></tr>
             <tr><td>length(《文字列》)</td><td>文字列の長さ（文字数）</td><td>length("こんにちは")→5</td></tr>
-            <tr><td>length(《配列》)</td><td>配列の長さ</td><td>length({1,2,3,4,5})→5</td></tr>
+            <tr><td>length(《配列》)</td><td>配列の長さ</td><td>length([1,2,3,4,5])→5</td></tr>
             <tr><td>append(《文字列》,《文字列》)</td><td>文字列結合</td><td>append("Wa","PEN")→"WaPEN"</td></tr>
             <tr><td>substring(《文字列》,《開始位置》)</td><td>部分文字列（最後まで）</td><td>substring("こんにちは",2)→"にちは"</td></tr>
             <tr><td>substring(《文字列》,《開始位置》,《長さ》)</td><td>部分文字列（長さ指定）</td><td>substring("こんにちは",2,1)→"に"</td></tr>
-            <tr><td>split(《文字列》,《区切文字列》)</td><td>文字列分割</td><td>split("a:b:c:d",":")→"a","b],"c","d"（配列）</td></tr>
+            <tr><td>split(《文字列》)</td><td>文字列分割</td><td>split("abcd")→["a","b,"c","d"]（配列）</td></tr>
+            <tr><td>split(《文字列》,《区切文字列》)</td><td>文字列分割</td><td>split("a:b:c:d",":")→["a","b,"c","d"]（配列）</td></tr>
             <tr><td>extract(《文字列》,《区切文字列》,《番号》)</td><td>文字列分割（番号指定）</td><td>extract("a:b:c:d",":",2)→"c"</td></tr>
             <tr><td>insert(《文字列》,《位置》,《文字列》)</td><td>文字列挿入</td><td>insert("こんは",2,"にち")→"こんにちは"</td></tr>
             <tr><td>replace(《文字列》,《位置》,《長さ》,《文字列》)</td><td>文字列置換</td><td>replace("こんにちは",2,2,"ばん")→"こんばんは"</td></tr>
@@ -186,6 +187,21 @@ aに[7,8]を連結する
         </p>
         <p>"繰り返しを抜ける"命令で繰り返しから抜けることができる。</p>
         </div>
+        <h2>ファイル操作</h2>
+        <div class="part">
+        <table class="def_table" id="fileio">
+            <tr><th>関数・命令</th><th>意味</th></tr>
+            <tr><td>openr(《ファイル名》)</td><td>ファイルを読込用にオープンする。戻り値はファイル番号</td></tr>
+            <tr><td>openw(《ファイル名》)</td><td>ファイルを書込用にオープンする。戻り値はファイル番号</td></tr>
+            <tr><td>opena(《ファイル名》)</td><td>ファイルを追記用にオープンする。戻り値はファイル番号</td></tr>
+            <tr><td>getline(《ファイル番号》)</td><td>ファイルから1行読み込む。戻り値は文字列（改行含む）</td></tr>
+            <tr><td>getchar(《ファイル番号》)</td><td>ファイルから1文字読み込む。戻り値は文字列</td></tr>
+            <tr><td>putline(《ファイル番号》,《文字列》)</td><td>ファイルに文字列と改行を書き込む</td></tr>
+            <tr><td>putstr(《ファイル番号》,《文字列》)</td><td>ファイルに文字列と改行を書き込む</td></tr>
+            <tr><td>close(《ファイル番号》)</td><td>ファイルをクローズする</td></tr>
+        </table>
+        <p>書込・追記用ファイルはクローズしないと保存しないことに注意。</p>
+        </div>
         <h2>グラフィック関係などの命令</h2>
         <div class="part">
         <table class="def_table" id="function">
@@ -199,13 +215,13 @@ aに[7,8]を連結する
             <tr><td>線太さ設定(《太さ》)</td><td>gSetLineWidth</td><td></td></tr>
             <tr><td>文字サイズ設定(《サイズ》)</td><td>gSetTextSize</td><td></td></tr>
             <tr><td>文字描画(《文字列》,《x》,《y》)</td><td>gDrawText</td><td>(x,y)は文字列の左下の座標</td></tr>
-            <tr><td>点描画(《x1》,《y1》)</td><td>gDrawPoint</td><td></td></tr>
+            <tr><td>点描画(《x》,《y》)</td><td>gDrawPoint</td><td></td></tr>
             <tr><td>線描画(《x1》,《y1》,《x2》,《y2》)</td><td>gDrawLine</td><td></td></tr>
             <tr><td>矩形描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawBox</td><td>(x,y)は矩形の左上の座標</td></tr>
             <tr><td>矩形塗描画(《x》,《y》,《幅》,《高さ》)</td><td>gFillBox</td><td></td></tr>
-            <tr><td>円描画(《x》,《y》,《半径》)</td><td>gDrawCircle</td><td></td>(x,y)は中心の座標</tr>
+            <tr><td>円描画(《x》,《y》,《半径》)</td><td>gDrawCircle</td><td>(x,y)は中心の座標</td></tr>
             <tr><td>円塗描画(《x》,《y》,《半径》)</td><td>gFillCircle</td><td></td></tr>
-            <tr><td>楕円描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawOval</td><td></td>(x,y)は楕円に外接する長方形の左上の座標</tr>
+            <tr><td>楕円描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawOval</td><td>(x,y)は楕円に外接する長方形の左上の座標</td></tr>
             <tr><td>楕円塗描画(《x》,《y》,《幅》,《高さ》)</td><td>gFillOval</td><td></td></tr>
             <tr><td>弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)</td><td>gDrawArc</td><td>(x,y)は楕円に外接する長方形の左上の座標<br>角度の単位は度<br>閉じ方は0:閉じない，1:弦，2:半径</td></tr>
             <tr><td>弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)</td><td>gFillArc</td><td></td></tr>
