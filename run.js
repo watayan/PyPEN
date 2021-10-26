@@ -8479,7 +8479,8 @@ $.contextMenu(
 			math:{ name:"数学関数",
 				items:{
 					abs:	{name:"abs 絶対値", callback: function(k,e){insertCode("abs(《値》)");}},
-					random:	{name: "random 乱数", callback: function(k,e){insertCode("random(《整数》)");}},
+					random1:{name: "random 乱数（整数）", callback: function(k,e){insertCode("random(《整数》)");}},
+					random2:{name: "random 乱数（0〜1）", callback: function(k,e){insertCode("random()");}},
 					ceil:	{name: "ceil 切り上げ", callback: function(k,e){insertCode("ceil(《実数》)");}},
 					floor:	{name: "floor 切り捨て", callback: function(k,e){insertCode("floor(《実数》)");}},
 					round:	{name: "round 四捨五入", callback: function(k,e){insertCode("round(《実数》)");}},
