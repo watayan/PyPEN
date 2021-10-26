@@ -343,6 +343,8 @@ slice
 args
 	: args 'COMMA' e {$$ = $1.concat($3);}
 	| args 'COMMA' slice {$$ = $1.concat($3);}
+	| args 'COMMA' '改行' e {$$ = $1.concat($4);}
+	| args 'COMMA' '改行' slice {$$ = $1.concat($4);}
 	| e { $$ = [$1];}
 	| slice { $$ = [$1];}
 	|   { $$ = [];}
