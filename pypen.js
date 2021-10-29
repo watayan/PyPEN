@@ -15,6 +15,7 @@ function python_to_dncl(code)
     var dncl_lines = [];
     var pre_spaces = [0];
     var wait_for_indent = false;
+    var ignore_spaces = false;
     for(var i = 0; i < python_lines.length; i++)
     {
         var line = python_lines[i].trimRight();
@@ -34,11 +35,11 @@ function python_to_dncl(code)
             }
             if(wait_for_indent)
             {
-                if(spaces <= pre_spaces[0]) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
+                if(!ignore_spaces && spaces <= pre_spaces[0]) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
                 pre_spaces.unshift(spaces);
             }
             var deindent = false;
-            while(spaces < pre_spaces[0])
+            while(!ignore_spaces && spaces < pre_spaces[0])
             {
                 var indent = pre_spaces.shift();
                 if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです2"};
@@ -52,8 +53,9 @@ function python_to_dncl(code)
                 }
                 else throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
             }
-            if(spaces > pre_spaces[0]) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
+            if(!ignore_spaces && spaces > pre_spaces[0]) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
             wait_for_indent = /[：:]$/.exec(result[2]) ? true : false;
+            ignore_spaces = /[,，、\[{]$/.exec(result[2]) ? true : false;
         }
         dncl_lines.push(line);
     }

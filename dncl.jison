@@ -323,7 +323,9 @@ e
 	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
+	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1, @4));}
 	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
+	| '{' '改行' args '}'	{$$ = new DictionaryValue($3, new Location(@1, @4));}
 	| e '個の' e	{$$ = new NumberOf($1, $3, new Location(@1, @3));}
 	;
 
@@ -345,6 +347,8 @@ args
 	| args 'COMMA' slice {$$ = $1.concat($3);}
 	| args 'COMMA' '改行' e {$$ = $1.concat($4);}
 	| args 'COMMA' '改行' slice {$$ = $1.concat($4);}
+	| args 'COMMA' '改行' {$$ = $1;}
+	| args 'COMMA'  {$$ = $1;}
 	| e { $$ = [$1];}
 	| slice { $$ = [$1];}
 	|   { $$ = [];}
