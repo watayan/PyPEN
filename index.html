@@ -87,23 +87,25 @@
 		</div>
 		<p><a href="manual/index.html" target="_blank">マニュアル</a></p>
 	</div>
-	<div id="Flowchart_area">
-		<div>
-			<button type="button" onclick="changeSize(1);" style="width:2em;height:2em;float:left;">＋</button>
-			<button type="button" onclick="changeSize(0);" style="width:2em;height:2em;float:left;">0</button>
-			<button type="button" onclick="changeSize(-1);" style="width:2em;height:2em;float:left;">−</button>
+	<div id="Right_area">
+		<div id="Flowchart_area">
+			<div>
+				<button type="button" onclick="changeSize(1);" style="width:2em;height:2em;float:left;">＋</button>
+				<button type="button" onclick="changeSize(0);" style="width:2em;height:2em;float:left;">0</button>
+				<button type="button" onclick="changeSize(-1);" style="width:2em;height:2em;float:left;">−</button>
+			</div>
+			<canvas id="flowchart" width="400px" height="600px"></canvas><br>
 		</div>
-		<canvas id="flowchart" width="400px" height="600px"></canvas><br>
-	</div>
-	<div id="Storage_area">
-		<!-- <p>ファイル一覧</p> -->
-		<button type="button" id="storage_upload1">アップロード</button>
-		<input type="file"    id="storage_upload"></input>
-		<a href="#" id="storage_download"><button id="storage_download1">ダウンロード</button></a>
-		<button type="button" id="storage_remove">削除</button>
-		<button type="button" id="storage_clear">全削除</button><br>
-		<select id="storage_list" size="10">
-		</select>
+		<div id="Storage_area">
+			<!-- <p>ファイル一覧</p> -->
+			<button type="button" id="storage_upload1">アップロード</button>
+			<input type="file"    id="storage_upload"></input>
+			<a href="#" id="storage_download"><button id="storage_download1">ダウンロード</button></a>
+			<button type="button" id="storage_remove">削除</button>
+			<button type="button" id="storage_clear">全削除</button><br>
+			<select id="storage_list" size="10">
+			</select>
+		</div>
 	</div>
 	<canvas id="canvas"></canvas>
 	<div id="graph"></div>

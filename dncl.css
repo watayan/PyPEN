@@ -190,7 +190,7 @@ button{
 }
 
 #Storage_area{
-	float: left;
+	clear: left;
 	margin-left: 4px;
 }
 
@@ -206,6 +206,9 @@ button{
 	height: 2em;
 }
 
+#Right_area{
+	float: left;
+}
 
 .CodeMirror{
 	resize: horizontal;
