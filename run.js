@@ -3212,17 +3212,23 @@ var definedFunction = {
 		var par = param[0].getValue();
 		if(par instanceof StringValue) return new IntValue(filesystem.openr(par.value), loc);
 		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
-	}, null, null),
+	}, null, function(argc){
+		return "open(" + argc[0] + ",'r')";
+	}),
 	"openw": new DefinedFunction(1, function(param, loc){
 		var par = param[0].getValue();
 		if(par instanceof StringValue) return new IntValue(filesystem.openw(par.value), loc);
 		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
-	}, null, null),
+	}, null, function(argc){
+		return "open(" + argc[0] + ",'w')";
+	}),
 	"opena": new DefinedFunction(1, function(param, loc){
 		var par = param[0].getValue();
 		if(par instanceof StringValue) return new IntValue(filesystem.opena(par.value), loc);
 		else throw new RuntimeError(loc.first_line, "ファイル名は文字列でなくてはいけません");
-	}, null, null),
+	}, null, function(argc){
+		return "open(" + argc[0] + ",'a')";
+	}),
 	"getline": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue)
@@ -3232,7 +3238,9 @@ var definedFunction = {
 			return new StringValue(rtnv, loc);
 		}
 		else throw new RuntimeError(loc.first_line, "ファイル番号が必要です");
-	}, null, null),
+	}, null, function(argc){
+		return argc[0] + ".readline()";
+	}),
 	"getchar": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue)
@@ -3242,7 +3250,9 @@ var definedFunction = {
 			return new StringValue(rtnv, loc);
 		}
 		else throw new RuntimeError(loc.first_line, "ファイル番号が必要です");
-	}, null, null),
+	}, null, function(argc){
+		return argc[0] + ".read(1)";
+	}),
 };
 
 function setCaller(statementlist, caller)
@@ -4498,6 +4508,29 @@ class FileIOStatement extends Statement
 				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
 			}
 		}
+	}
+	makePython(indent)
+	{
+		var code = Parts.makeIndent(indent);
+		if(this.command == 'putline')
+		{
+			var str = this.args[1].makePython();
+			if(!(this.args[1] instanceof StringValue))
+				str = 'str(' + str + ')';
+			code += this.args[0].makePython() + '.write(' + str + " + '\n')";
+		}
+		else if(this.command == 'putstr')
+		{
+			var str = this.args[1].makePython();
+			if(!(this.value[1] instanceof StringValue))
+				str = 'str(' + str + ')';
+			code += this.args[0].makePython() + '.write(' + str + ")";
+		}
+		else if(this.command == 'close')
+		{
+			code += this.args[0].makePython() + ".close()";
+		}
+		return code + "\n";
 	}
 }
 
@@ -8508,8 +8541,8 @@ $.contextMenu(
 			fileio:{name: "File I/O",
 				items:{
 					openr: {name:"openr 読込用オープン", callback: function(k,e){insertCode("openr(《ファイル名》)");}},
-					openw: {name:"openr 書込用オープン", callback: function(k,e){insertCode("openw(《ファイル名》)");}},
-					opena: {name:"openr 追記用オープン", callback: function(k,e){insertCode("opena(《ファイル名》)");}},
+					openw: {name:"openw 書込用オープン", callback: function(k,e){insertCode("openw(《ファイル名》)");}},
+					opena: {name:"opena 追記用オープン", callback: function(k,e){insertCode("opena(《ファイル名》)");}},
 					getline: {name:"getline", callback: function(k,e){insertCode("getline(《ファイル番号》)");}},
 					getchar: {name:"getchar", callback: function(k,e){insertCode("getchar(《ファイル番号》)");}},
 					putline: {name:"putline", callback: function(k,e){insertCode("putline(《ファイル番号》,《文字列》)");}},
