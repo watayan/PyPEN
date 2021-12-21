@@ -5536,13 +5536,13 @@ function setEditableflag(b)
 	document.getElementById("urlButton").disabled = !b;
 }
 
-function run()
+function run(clear = true)
 {
 	if(code == null)
 	{
 		try
 		{
-			reset(true);
+			reset(clear);
 			var pypen_source = editor.getDoc().getValue();
 			var dncl_source = python_to_dncl(pypen_source);
 			code = [new parsedMainRoutine(dncl.parse(dncl_source))];
@@ -8129,7 +8129,7 @@ function auto_marking(i)
 		try{
 			selected_quiz_case = j;
 			test_limit_time = Date.now() + Quizzes[selected_quiz].timeout();
-			run();
+			run(false);
 			if(selected_quiz_input != Quizzes[selected_quiz].inputs(selected_quiz_case).length) throw new RuntimeError(-1, '入力の回数がおかしいです。');
 			else if(output_str.trim() != Quizzes[selected_quiz].output(selected_quiz_case).toString().trim()) throw new RuntimeError(-1, '結果が違います。');
 			textareaAppend('成功\n');
@@ -8141,7 +8141,8 @@ function auto_marking(i)
 			clear = false;
 		}
 		all_clear &= clear;
-		code = null;
+		reset(false);
+		// code = null;
 	}
 	if(all_clear)textareaAppend('*** 合格 ***\n');
 	else textareaAppend('--- 不合格 ---\n');
