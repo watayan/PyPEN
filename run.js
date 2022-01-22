@@ -2133,12 +2133,15 @@ class Compare extends Value
 		case 'not_in':
 			op = ' not in '; 
 			break;
-			case 'in':
+		case 'in':
 			op = ' in '; 
 			break;
 		case 'の中に':
 			op = ' in '; 
 			var tmp = v1; v1 = v2; v2 = tmp;
+			break;
+		case '=':
+			op = '==';
 			break;
 		}
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
@@ -2188,7 +2191,7 @@ class EQ extends Value
 		let v1 = this.value[0], v2 = this.value[1];
 		let brace1 = false, brace2 = false;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '='
+			+ '=='
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -3616,7 +3619,7 @@ class CallStep extends Statement {
 		for(var i = 0; i < this.args.length; i++)
 		{
 			if(i > 0) code += ',';
-			code += this.args[i].varname;
+			code += this.args[i].makePython(0);
 		}
 		return code + ')\n';
 	}  
