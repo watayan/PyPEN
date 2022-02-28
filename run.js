@@ -5317,7 +5317,7 @@ class ForDec extends Statement
 		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: [new Assign(this.varname, this.begin.getValue(), null, this.loc)], index: 0});
+			code[0].stack.unshift({statementlist: [new Assign(this.varname, this.begin, null, this.loc)], index: 0});
 			this.state = 1;
 		}
 		else
