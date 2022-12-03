@@ -52,7 +52,7 @@ class parsedCode
 		for(var i = 0; i < this.stack[0].statementlist.length; i++) // 関数・手続き宣言を先に
 		{
 			var state = this.stack[0].statementlist[i];
-			if(state && (state instanceof DefineFunction || state instanceof DefineStep)) code += state.makePython(0);
+			if(state && (state instanceof DefineFunction || state instanceof DefineStep)) code += state.makePython(0) + "\n\n";
 		}
 		for(var i = 0; i < this.stack[0].statementlist.length; i++)	// メインルーチン
 		{
@@ -634,7 +634,7 @@ class ArrayValue extends Value
 	{
 		var ag = [];
 		for(var i = 0; i < this.value.length; i++) ag.push(this.value[i].makePython());
-		return '[' + ag.join(',') + ']';
+		return '[' + ag.join(', ') + ']';
 	}
 	get length() {return this._value.length;}
 	getValue()
@@ -698,7 +698,7 @@ class DictionaryValue extends Value
 		keys.sort();
 		for(var i = 0; i < keys.length; i++) 
 			ag.push("'" + keys[i] + "':" + this.value[keys[i]].makePython());
-		return '{' + ag.join(',') + '}';
+		return '{' + ag.join(', ') + '}';
 	}
 	getValue()
 	{
@@ -1356,7 +1356,7 @@ class Mod extends Value
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ '%'
+			+ ' % '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
 	getValue()
@@ -2141,8 +2141,10 @@ class Compare extends Value
 			var tmp = v1; v1 = v2; v2 = tmp;
 			break;
 		case '=':
-			op = '==';
+			op = ' == ';
 			break;
+		default:
+			op = ' ' + op + ' ';
 		}
 		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
 			+  op
@@ -3373,10 +3375,10 @@ class CallFunction extends Value
 				python_lib[deffunc.module] = 1;
 			}
 			if(deffunc.convert) return deffunc.convert(ag);
-			else return prefix + func + '(' + ag.join(',') + ')';
+			else return prefix + func + '(' + ag.join(', ') + ')';
 		}
 		else 
-			return func + '(' + ag.join(',') + ')';
+			return func + '(' + ag.join(', ') + ')';
 	}
 }
 
@@ -3421,7 +3423,7 @@ class Connect extends Value
 		var p2 = this.value[1].makePython();
 		if(!re.exec(p1) && !(this.value[0] instanceof StringValue)) p1 = "str(" + p1 + ")";
 		if(!re.exec(p2) && !(this.value[1] instanceof StringValue)) p2 = "str(" + p2 + ")";
-		return  p1 + "+" + p2;
+		return  p1 + " + " + p2;
 	}
 	getValue()
 	{
@@ -3541,7 +3543,7 @@ class DefineStep extends Statement {
 		var code = "def " + this.funcName + '(';
 		for(var i = 0; i < this.params.length; i++)
 		{
-			if(i > 0) code += ',';
+			if(i > 0) code += ', ';
 			code += this.params[i].varname;
 		}
 		code += '):\n';
@@ -3618,7 +3620,7 @@ class CallStep extends Statement {
 		code += this.funcName + '(';
 		for(var i = 0; i < this.args.length; i++)
 		{
-			if(i > 0) code += ',';
+			if(i > 0) code += ', ';
 			code += this.args[i].makePython(0);
 		}
 		return code + ')\n';
@@ -3672,7 +3674,7 @@ class DefineFunction extends Statement {
 		code += this.funcName + '(';
 		for(var i = 0; i < this.params.length; i++)
 		{
-			if(i > 0) code += ',';
+			if(i > 0) code += ', ';
 			code += this.params[i].makePython();
 		}
 		code += '):\n';
@@ -4406,7 +4408,7 @@ class Output extends Statement
 		var code = Parts.makeIndent(indent);
 		code += "print(";
 		for(var i = 0; i < this.value.length; i++)
-			code += (i > 0 ? ',' : '') + this.value[i].makePython();
+			code += (i > 0 ? ', ' : '') + this.value[i].makePython();
 		if(!this.ln) code += ",end=''";
 		return code + ")\n";
 	}
@@ -5239,7 +5241,7 @@ class ForInc extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		var pv = this.varname.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + "," + pe + "+1," + ps + "):\n";
+		code += "for " + pv + " in range(" + pb + ", " + pe + "+1, " + ps + "):\n";
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
@@ -5301,7 +5303,7 @@ class ForDec extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		var pv = this.varname.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + "," + pe + "-1,-" + ps + "):\n";
+		code += "for " + pv + " in range(" + pb + ", " + pe + "-1, -" + ps + "):\n";
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
@@ -5399,7 +5401,7 @@ class SleepStatement extends Statement
 	{
 		var code = Parts.makeIndent(indent);
 		python_lib["time"] = 1;
-		return code + "time.sleep(" + this.sec.makePython() + "/1000)\n";
+		return code + "time.sleep(" + this.sec.makePython() + " / 1000)\n";
 	}
 }
 
