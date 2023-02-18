@@ -157,6 +157,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "もし"					{return 'もし';}
 "ならば"				{return 'ならば';}
 "そうでなければ"		{return 'そうでなければ';}
+"そうでなくもし"		{return 'そうでなくもし';}
 "の間"					{return 'の間';}
 "繰り返しを抜ける"		{return '繰り返しを抜ける';}
 "繰返しを抜ける"		{return '繰り返しを抜ける';}
@@ -356,7 +357,7 @@ args
 
 statementlist
 	: statementlist statement	{ if($2 != null) $$ = $1.concat($2);}
-	| 	{$$ = [];}
+	| statement	{$$ = [$1];}
 	;
 
 statement
@@ -385,9 +386,9 @@ NopStatement
 		{$$ = new PauseStatement(new Location(@1, @1));}
 	;
 
-EmptyStatement
-	: '改行' {$$ = null;}
-	;
+ EmptyStatement
+ 	: '改行' {$$ = null;}
+ 	;
 
 DumpStatement
 	: '変数を確認する' '改行'
@@ -414,12 +415,44 @@ CallStatement
 		{$$ = new CallStep($1, $3, new Location(@1,@4));}
 	;
 
+If_If
+	: 'もし' e 'ならば' ':' '改行' statementlist
+		{$$ = [$2, $6];}
+	| 'もし' e 'ならば' ':' statement
+		{$$ = [$2, [$5]];}
+	;
+
+If_EndIf
+	: 'ブロック終端' '改行'
+	  {$$ = null;}
+	;
+
+If_Else
+	: 'そうでなければ' ':' '改行' statementlist
+		{$$ = [null, $4];}
+	;
+
+If_ElseIf
+	: 'そうでなくもし' e 'ならば' ':' '改行' statementlist
+		{$$ = [$2, $6];}
+	;
+
+If_ElseIfs
+	: If_ElseIfs If_ElseIf
+		{$1.push($2); $$ = $1;}
+	| If_ElseIf
+		{$$ = [$1];}
+	;
 
 IfStatement
-	: 'もし' e 'ならば' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new If($2,$6,null, new Location(@1, @7));}
-	| 'もし' e 'ならば' ':' '改行' statementlist 'そうでなければ' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new If($2,$6,$10, new Location(@1, @11));}
+	: If_If If_ElseIfs If_Else If_EndIf
+		{ tmp = [$1]; tmp = tmp.concat($2); tmp.push($3); $$ = new If(tmp, new Location(@1, @3))}
+	| If_If If_ElseIfs If_EndIf
+		{ tmp = [$1]; tmp = tmp.concat($2); $$ = new If(tmp, new Location(@1, @3))}
+	| If_If If_Else If_EndIf
+		{ tmp = [$1]; tmp.push($2); $$ = new If(tmp, new Location(@1, @3))}
+	| If_If If_EndIf
+		{ tmp = [$1]; $$ = new If(tmp, new Location(@1, @1))}
 	;
 
 ForStatement

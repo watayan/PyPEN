@@ -3266,8 +3266,11 @@ function setCaller(statementlist, caller)
 	{
 		if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
 		if(statementlist[i].state) setCaller(statementlist[i].state, caller);
-		if(statementlist[i].state1) setCaller(statementlist[i].state1, caller);
-		if(statementlist[i].state2) setCaller(statementlist[i].state2, caller);
+		if(statementlist[i].blocks)
+		{
+			for(var j = 0; j < statementlist[i].blocks.length; j++)
+				setCaller(statementlist[i].blocks[j][1], caller);
+		}
 		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
 	}
 }
@@ -4984,72 +4987,80 @@ class If extends Statement
 {
 	/**
 	 * 
-	 * @param {Value} condition 
-	 * @param {Array<Statement>} state1 
-	 * @param {Array<Statement>} state2 
+	 * @param {list} blocks
 	 * @param {Location} loc 
 	 */
-	constructor(condition, state1, state2, loc)
+	constructor(blocks, loc)
 	{
 		super(loc);
-		this.condition = condition;
-		this.state1 = state1;
-		this.state2 = state2;
+		this.blocks = blocks;
+		this.running = -1;
 	}
 	clone()
 	{
-		var state1 = [], state2 = [];
-		if(this.state1)
-			for(var i = 0; i < this.state1.length; i++) state1.push(this.state1[i].clone());
-		if(this.state2)
-			for(var i = 0; i < this.state2.length; i++) state2.push(this.state2[i].clone());
-		return new If(this.condition.clone(), state1, state2, this.loc);
+		var newblock = [];
+		for(var i = 0; i < this.blocks.length; i++)
+		{
+			var newblock1 = [];
+			for(var j = 0; j < this.blocks[i][1].length; j++) newblock1.push(this.blocks[i][1][j].clone());
+			newblock.push([this.blocks[i][0] ? this.blocks[i][0].clone() : null, newblock1]);
+		}
+		return new If(newblock,this.loc);
 	}
 	run()
 	{
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: [this.condition], index: 0});
+			this.running = 0;
 			this.state = 1;
 		}
-		else
+		else if(this.state == 1)
 		{
-			code[0].stack[0].index++;
-			if(this.condition.getValue() instanceof BooleanValue)
+			if(this.running < this.blocks.length)
 			{
-				if(this.condition.getValue().value) code[0].stack.unshift({statementlist: this.state1, index: 0});
-				else if(this.state2 && this.state2.length > 0) code[0].stack.unshift({statementlist: this.state2, index: 0});
+				if(this.blocks[this.running][0]) code[0].stack.unshift({statementlist: [this.blocks[this.running][0]], index: 0});
+				this.state = 2;
 			}
-			else throw new RuntimeError(this.first_line, "もし〜の構文で条件式が使われていません");
-			this.state = 0;
+			else
+			{
+				this.state = 0;
+				code[0].stack[0].index++;
+			}
+		}
+		else if(this.state == 2)
+		{
+			var flag = this.blocks[this.running][0] ? this.blocks[this.running][0].getValue() : new BooleanValue(true, this.loc);
+			if(flag instanceof BooleanValue)
+			{
+				if(flag.value)
+				{
+					code[0].stack[0].index++;
+					this.state = 0;
+					code[0].stack.unshift({statementlist: this.blocks[this.running][1], index: 0});
+				}
+				else
+				{
+					this.running++;
+					this.state = 1;
+				}
+			}
+			else throw new RuntimeError(this.first_line, "条件式が使われるべき場所なのに，条件式が使われていません");
 		}
 	}
 	makePython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		code += "if " + this.condition.makePython() + ":\n";
-		var codes = 0;
-		if(this.state1)
+		var code = '';
+		for(var i = 0; i < this.blocks.length; i++)
 		{
-			for(var i = 0; i < this.state1.length; i++)
-				if(this.state1[i])
-				{
-					code += this.state1[i].makePython(indent + 1);
-					codes = 1;
-				}
-		}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
-		if(this.state2)
-		{
-			codes = 0;
-			var code2 = '';
-			for(var i = 0; i < this.state2.length; i++)
-				if(this.state2[i])
-				{
-					code2 += this.state2[i].makePython(indent + 1);
-					codes = 1;
-				}
-			if(codes > 0) code += Parts.makeIndent(indent) + "else:\n" + code2;
+			if(i == 0) code += Parts.makeIndent(indent) + "if " + this.blocks[i][0].makePython(0) + ":\n";
+			else if(this.blocks[i][0]) code += Parts.makeIndent(indent) + "elseif " + this.blocks[i][0].makePython(0) + ":\n";
+			else code += Parts.makeIndent(indent) + "else:\n";
+			if(this.blocks[i][1] && this.blocks[i][1].length > 0)
+			{
+				for(var j = 0; j < this.blocks[i][1].length; j++)
+					code += this.blocks[i][1][j].makePython(indent + 1);
+			}	
+			else code += Parts.makeIndent(indent + 1) + "pass\n";
 		}
 		return code;
 	}

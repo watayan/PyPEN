@@ -45,7 +45,7 @@ function python_to_dncl(code)
                 if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです2"};
                 if(spaces <=indent)
                 {
-                    if(spaces < indent && (deindent || !/^そうでなければ[：:]$/.exec(result[2])))
+                    if(spaces < indent && (deindent || !/^(そうでなければ|そうでなくもし.*)[：:]$/.exec(result[2])))
                     {
                         dncl_lines.push('■');
                     }
