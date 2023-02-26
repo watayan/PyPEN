@@ -866,7 +866,7 @@ class Pow extends Value
 	}
 	clone()
 	{
-		var rtnv = new Pow(this.value[0], this.value[1], this.loc);
+		var rtnv = new Pow(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -937,7 +937,7 @@ class Add extends Value
 	}
 	clone()
 	{
-		var rtnv = new Add(this.value[0], this.value[1], this.loc);
+		var rtnv = new Add(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1020,7 +1020,7 @@ class Sub extends Value
 	}
 	clone()
 	{
-		var rtnv = new Sub(this.value[0], this.value[1], this.loc);
+		var rtnv = new Sub(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1090,7 +1090,7 @@ class Mul extends Value
 	}
 	clone()
 	{
-		var rtnv = new Mul(this.value[0], this.value[1], this.loc);
+		var rtnv = new Mul(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1183,7 +1183,7 @@ class Div extends Value	// /
 	}
 	clone()
 	{
-		var rtnv = new Div(this.value[0], this.value[1], this.loc);
+		var rtnv = new Div(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1246,7 +1246,7 @@ class DivInt extends Value // //
 	}
 	clone()
 	{
-		var rtnv = new DivInt(this.value[0], this.value[1], this.loc);
+		var rtnv = new DivInt(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1310,7 +1310,7 @@ class Mod extends Value
 	}
 	clone()
 	{
-		var rtnv = new Mod(this.value[0], this.value[1], this.loc);
+		var rtnv = new Mod(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1375,7 +1375,7 @@ class Minus extends Value
 	}
 	clone()
 	{
-		var rtnv = new Minus(this.value[0], this.loc);
+		var rtnv = new Minus(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1434,7 +1434,7 @@ class And extends Value
 	}
 	clone()
 	{
-		var rtnv = new And(this.value[0], this.value[1], this.loc);
+		var rtnv = new And(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1499,7 +1499,7 @@ class Or extends Value
 	}
 	clone()
 	{
-		var rtnv = new Or(this.value[0], this.value[1], this.loc);
+		var rtnv = new Or(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1564,7 +1564,7 @@ class Not extends Value
 	}
 	clone()
 	{
-		var rtnv = new Not(this.value[0], this.loc);
+		var rtnv = new Not(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1617,7 +1617,7 @@ class BitAnd extends Value
 	}
 	clone()
 	{
-		var rtnv = new BitAnd(this.value[0], this.value[1], this.loc);
+		var rtnv = new BitAnd(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1683,7 +1683,7 @@ class BitOr extends Value
 	}
 	clone()
 	{
-		var rtnv = new BitOr(this.value[0], this.value[1], this.loc);
+		var rtnv = new BitOr(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1749,7 +1749,7 @@ class BitXor extends Value
 	}
 	clone()
 	{
-		var rtnv = new BitXor(this.value[0], this.value[1], this.loc);
+		var rtnv = new BitXor(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1815,7 +1815,7 @@ class BitNot extends Value
 	}
 	clone()
 	{
-		var rtnv = new BitNot(this.value[0], this.loc);
+		var rtnv = new BitNot(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1873,7 +1873,7 @@ class BitLShift extends Value
 	}
 	clone()
 	{
-		var rtnv = new BitLShift(this.value[0], this.value[1], this.loc);
+		var rtnv = new BitLShift(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -1938,7 +1938,7 @@ class BitRShift extends Value
 	}
 	clone()
 	{
-		var rtnv = new BitRShift(this.value[0], this.value[1], this.loc);
+		var rtnv = new BitRShift(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2166,7 +2166,7 @@ class EQ extends Value
 	}
 	clone()
 	{
-		var rtnv = new EQ(this.value[0], this.value[1], this.loc);
+		var rtnv = new EQ(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2220,7 +2220,7 @@ class NE extends Value
 	}
 	clone()
 	{
-		var rtnv = new NE(this.value[0], this.value[1], this.loc);
+		var rtnv = new NE(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2274,7 +2274,7 @@ class GT extends Value
 	}
 	clone()
 	{
-		var rtnv = new GT(this.value[0], this.value[1], this.loc);
+		var rtnv = new GT(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2328,7 +2328,7 @@ class GE extends Value
 	}
 	clone()
 	{
-		var rtnv = new GE(this.value[0], this.value[1], this.loc);
+		var rtnv = new GE(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2382,7 +2382,7 @@ class LT extends Value
 	}
 	clone()
 	{
-		var rtnv = new LT(this.value[0], this.value[1], this.loc);
+		var rtnv = new LT(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2436,7 +2436,7 @@ class LE extends Value
 	}
 	clone()
 	{
-		var rtnv = new LE(this.value[0], this.value[1], this.loc);
+		var rtnv = new LE(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2490,7 +2490,7 @@ class IN extends Value
 	}
 	clone()
 	{
-		var rtnv = new IN(this.value[0], this.value[1], this.loc);
+		var rtnv = new IN(this.value[0].clone(), this.value[1].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2618,7 +2618,7 @@ class ConvertInt extends Value
 	}
 	clone()
 	{
-		var rtnv = new ConvertInt(this.value[0], this.loc);
+		var rtnv = new ConvertInt(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2667,7 +2667,7 @@ class ConvertFloat extends Value
 	}
 	clone()
 	{
-		var rtnv = new ConvertFloat(this.value[0], this.loc);
+		var rtnv = new ConvertFloat(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2715,7 +2715,7 @@ class ConvertString extends Value
 	}
 	clone()
 	{
-		var rtnv = new ConvertString(this.value[0], this.loc);
+		var rtnv = new ConvertString(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -2762,7 +2762,7 @@ class ConvertBool extends Value
 	}
 	clone()
 	{
-		var rtnv = new ConvertBool(this.value[0], this.loc);
+		var rtnv = new ConvertBool(this.value[0].clone(), this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -3301,7 +3301,9 @@ class CallFunction extends Value
 	}
 	clone()
 	{
-		var rtnv = new CallFunction(this.value[0], this.value[1], this.loc);
+		var parm = [];
+		for(var i = 0; i < this.value[1].length; i++) parm.push(this.value[1][i].clone());
+		var rtnv = new CallFunction(this.value[0], parm, this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
@@ -5053,7 +5055,7 @@ class If extends Statement
 		for(var i = 0; i < this.blocks.length; i++)
 		{
 			if(i == 0) code += Parts.makeIndent(indent) + "if " + this.blocks[i][0].makePython(0) + ":\n";
-			else if(this.blocks[i][0]) code += Parts.makeIndent(indent) + "elseif " + this.blocks[i][0].makePython(0) + ":\n";
+			else if(this.blocks[i][0]) code += Parts.makeIndent(indent) + "elif " + this.blocks[i][0].makePython(0) + ":\n";
 			else code += Parts.makeIndent(indent) + "else:\n";
 			if(this.blocks[i][1] && this.blocks[i][1].length > 0)
 			{
