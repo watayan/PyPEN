@@ -166,8 +166,8 @@ function codeChange()
 	{
 		highlightLine(-1);
 		textareaClear();
-		if(e.line) textareaAppend(e.line + "行目");
-		textareaAppend('構文エラーです\n' + e.message);
+		if(e.line && e.line > 0) textareaAppend(e.line + "行目構文エラーです\n");
+		textareaAppend(e.message);
 		converting = false;
 	}
 }
@@ -4989,7 +4989,7 @@ class If extends Statement
 {
 	/**
 	 * 
-	 * @param {list} blocks
+	 * @param {Array} blocks
 	 * @param {Location} loc 
 	 */
 	constructor(blocks, loc)
@@ -6108,12 +6108,20 @@ class Flowchart
 				var p1 = new Parts_If();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar(), b3 = new Parts_Bar();
 				var n1 = new Parts_Null(), n2 = new Parts_Null(), n3 = new Parts_Null();
-				p1.setValue(p.condition.getCode());
-				parts.next = p1; 
+				p1.setValue(p.blocks[0][0].getCode());
+				parts.next = p1;
 				p1.next = n1; n1.next = b1;
 				p1.left = b2; b2._prev = p1; b2.next = n2;
 				p1.right = b3; b3._prev = p1; b3.next = n3;
-				if(p.state1) Flowchart.appendParts(b2, p.state1);
+				if(p.blocks[0][1]) Flowchart.appendParts(b2, p.blocks[0][1]);
+				if(p.blocks.length > 1)
+				{
+					if(p.blocks.length == 2 && !p.blocks[1][0])
+					{
+						if(p.blocks[1][1]) Flowchart.appendParts(b3, p.blocks[1][1]);
+					}
+					else throw new RuntimeError(-1, "「そうでなくもし」はフローチャートで表せません。");
+				}
 				if(p.state2) Flowchart.appendParts(b3, p.state2);
 				parts = b1;
 			}
@@ -8210,8 +8218,8 @@ function makePython()
 	{
 		highlightLine(-1);
 		textareaClear();
-		if(e.line) textareaAppend(e.line + "行目");
-		textareaAppend("構文エラーです\n" + e.message);
+		if(e.line && e.line > 0) textareaAppend(e.line + "行目構文エラーです\n");
+		textareaAppend(e.message);
 	}
 }
 
