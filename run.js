@@ -6122,7 +6122,6 @@ class Flowchart
 					}
 					else throw new RuntimeError(-1, "「そうでなくもし」はフローチャートで表せません。");
 				}
-				if(p.state2) Flowchart.appendParts(b3, p.state2);
 				parts = b1;
 			}
 			else if(statement == "ForInc")
