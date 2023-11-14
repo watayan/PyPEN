@@ -4108,6 +4108,7 @@ class Extend extends Statement
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
+		this.state = 0;
 	}
 	clone()
 	{
@@ -4115,46 +4116,54 @@ class Extend extends Statement
 	}
 	run()
 	{
-		code[0].stack[0].index++;
 		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-
-		let vn = this.variable.varname;
-		let ag = this.variable.args;
-		let vl = this.value.getValue();
-		let vt = findVarTable(vn);
-		if(vt) // 変数が定義されている
+		if(this.state == 0)
 		{
-			let va = vt.vars[vn];
-			if(ag && ag.value.length > 0) // 配列の添字がある
-			{
-				for(let i = 0; i < ag.value.length; i++) 
-				{
-					ag.value[i].run();
-					if(ag.value[i] instanceof StringValue)
-					{
-						va = va.value[ag.value[i].getValue().value];					}
-					else if(ag.value[i] instanceof IntValue)
-					{
-						if(va.value[ag.value[i].getValue().value])
-							va = va.value[ag.value[i].getValue().value];
-						else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました')
-					}
-					else throw new RuntimeError(this.first_line, "添字に使えないデータ型です");
-				}
-			}
-			if(va instanceof ArrayValue)
-			{
-				if(vl instanceof ArrayValue)
-				{
-					var l = vl.value.length;
-					for(var i = 0; i < l; i++) va.value.push(vl.value[i].clone());
-				}
-				else throw new RuntimeError(this.first_line, '配列でない値を連結することはできません');
-			} 
-			else throw new RuntimeError(this.first_line, '配列でない変数に連結はできません');
+			code[0].stack.unshift({statementlist: [this.variable, this.value], index: 0});
+			this.state = 1;
 		}
-		else // 変数が定義されていない
-			throw new RuntimeError(this.first_line, '存在しない配列に連結はできません');
+		else
+		{
+			code[0].stack[0].index++;
+			let vn = this.variable.varname;
+			let ag = this.variable.args;
+			let vl = this.value.getValue();
+			let vt = findVarTable(vn);
+			if(vt) // 変数が定義されている
+			{
+				let va = vt.vars[vn];
+				if(ag && ag.value.length > 0) // 配列の添字がある
+				{
+					for(let i = 0; i < ag.value.length; i++) 
+					{
+						ag.value[i].run();
+						if(ag.value[i] instanceof StringValue)
+						{
+							va = va.value[ag.value[i].getValue().value];					}
+						else if(ag.value[i] instanceof IntValue)
+						{
+							if(va.value[ag.value[i].getValue().value])
+								va = va.value[ag.value[i].getValue().value];
+							else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました')
+						}
+						else throw new RuntimeError(this.first_line, "添字に使えないデータ型です");
+					}
+				}
+				if(va instanceof ArrayValue)
+				{
+					if(vl instanceof ArrayValue)
+					{
+						var l = vl.value.length;
+						for(var i = 0; i < l; i++) va.value.push(vl.value[i].clone());
+					}
+					else throw new RuntimeError(this.first_line, '配列でない値を連結することはできません');
+				} 
+				else throw new RuntimeError(this.first_line, '配列でない変数に連結はできません');
+			}
+			else // 変数が定義されていない
+				throw new RuntimeError(this.first_line, '存在しない配列に連結はできません');
+			this.state = 0;
+		}
 	}
 	makePython(indent)
 	{
