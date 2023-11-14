@@ -28,7 +28,7 @@ function python_to_dncl(code)
         if(result)
         {
             var spaces = count_spaces(result[1]);
-            if(/^[#＃]/.exec(result[2]))
+            if(/^[ 　]*[#＃]/.exec(result[2]))
             {
                 dncl_lines.push(line);
                 continue;

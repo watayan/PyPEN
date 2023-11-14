@@ -3278,7 +3278,7 @@ function setCaller(statementlist, caller)
 function cloneStatementlist(statementlist)
 {
 	var rtnv = [];
-	for(let i = 0; i < statementlist.length; i++) rtnv.push(statementlist[i].clone());
+	for(let i = 0; i < statementlist.length; i++) if(statementlist[i]) rtnv.push(statementlist[i].clone());
 	return rtnv;
 }
 
@@ -5013,7 +5013,7 @@ class If extends Statement
 		for(var i = 0; i < this.blocks.length; i++)
 		{
 			var newblock1 = [];
-			for(var j = 0; j < this.blocks[i][1].length; j++) newblock1.push(this.blocks[i][1][j].clone());
+			for(var j = 0; j < this.blocks[i][1].length; j++) if(this.blocks[i][1][j]) newblock1.push(this.blocks[i][1][j].clone());
 			newblock.push([this.blocks[i][0] ? this.blocks[i][0].clone() : null, newblock1]);
 		}
 		return new If(newblock,this.loc);
@@ -5160,7 +5160,7 @@ class ForIn extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
+		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new ForIn(this.array.clone(), this.variable.clone(), state, this.loc);
 	}
 	makePython(indent)
@@ -5191,7 +5191,7 @@ class ForIn extends Statement
 			code[0].stack[0].index++;
 			let variable = new Variable(this.variable.varname, this.variable.args, this.loc);
 			let loop = [new ForIn_step(this, variable, this.array, this.loc), new LoopBegin(new BooleanValue(true, this.loc), true, this.loc)];
-			for(let i = 0; i < this.statementlist.length; i++)loop.push(this.statementlist[i]);
+			for(let i = 0; i < this.statementlist.length; i++)if(this.statementlist[i])loop.push(this.statementlist[i].clone());
 			loop.push(new LoopEnd(null, true, this.loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 			this.state = 0;
@@ -5256,7 +5256,7 @@ class ForInc extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
+		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new ForInc(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
@@ -5290,7 +5290,7 @@ class ForInc extends Statement
 				let variable = new Variable(this.varname.varname, this.varname.args,this.loc);
 				let condition = new LE(variable, this.end, this.loc);	// IncとDecの違うところ
 				let loop = [variable, condition, new LoopBegin(condition, true, this.loc)];
-				for(let i = 0; i < this.statementlist.length; i++)loop.push(this.statementlist[i]);
+				for(let i = 0; i < this.statementlist.length; i++)if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
 				loop.push(this.step);
 				loop.push(new Assign(variable, this.step, '+', this.loc));	// IncとDecの違うところ
 				loop.push(new LoopEnd(null, true, this.loc));
@@ -5318,7 +5318,7 @@ class ForDec extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
+		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i])state.push(this.statementlist[i].clone());
 		return new ForDec(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
@@ -5352,7 +5352,7 @@ class ForDec extends Statement
 				let variable = new Variable(this.varname.varname, this.varname.args,this.loc);
 				let condition = new GE(variable, this.end, this.loc);	// IncとDecの違うところ
 				let loop = [variable, condition, new LoopBegin(condition, true, this.loc)];
-				for(let i = 0; i < this.statementlist.length; i++)loop.push(this.statementlist[i]);
+				for(let i = 0; i < this.statementlist.length; i++) if(this.statementlist[i])loop.push(this.statementlist[i].clone());
 				loop.push(this.step);
 				loop.push(new Assign(variable, this.step, '-', this.loc));	// IncとDecの違うところ
 				loop.push(new LoopEnd(null, true, this.loc));
@@ -5376,7 +5376,7 @@ class While extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) state.push(this.statementlist[i].clone());
+		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new While(this.condition.clone(), state, this.loc);
 	}
 	makePython(indent)
@@ -5395,11 +5395,20 @@ class While extends Statement
 	}
 	run()
 	{
-		code[0].stack[0].index++;
-		let loop = [new LoopBegin(this.condition, true, this.loc)];
-		for(var i = 0; i < this.statementlist.length; i++) loop.push(this.statementlist[i].clone());
-		loop.push(new LoopEnd(null, false, this.loc));
-		code[0].stack.unshift({statementlist: loop, index: 0});
+		if(this.status == 0)
+		{
+			code[0].stack.unshift({statementlist: [this.condition], index: 0});
+			this.state = 1;
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			let loop = [new LoopBegin(this.condition, true, this.loc)];
+			for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
+			loop.push(new LoopEnd(null, false, this.loc));
+			code[0].stack.unshift({statementlist: loop, index: 0});
+			this.status = 0;
+		}
 	}
 }
 
