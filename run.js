@@ -5371,7 +5371,7 @@ class While extends Statement
 		super(loc);
 		this.condition = condition;
 		this.statementlist = statementlist;
-		this.state = 0;
+		this.status = 0;
 	}
 	clone()
 	{
@@ -5398,7 +5398,7 @@ class While extends Statement
 		if(this.status == 0)
 		{
 			code[0].stack.unshift({statementlist: [this.condition], index: 0});
-			this.state = 1;
+			this.status = 1;
 		}
 		else
 		{
