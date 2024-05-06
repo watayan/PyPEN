@@ -1824,7 +1824,7 @@ class BitNot extends Value
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: this.value, index: 0});
-			this.state = 0;
+			this.state = 1;
 		}
 		else
 		{
