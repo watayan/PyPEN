@@ -736,9 +736,9 @@ class IntValue extends Value
 {
 	constructor(v, loc)
 	{
-		 super(v, loc);
-		 if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
-		 this.rtnv = this.value;
+		super(v, loc);
+		if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
+		this.rtnv = this.value;
 	}
 	clone()
 	{
@@ -3042,7 +3042,7 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
 		if((par1 instanceof IntValue || par1 instanceof FloatValue) && 
-		   (par2 instanceof IntValue || par2 instanceof FloatValue))
+			(par2 instanceof IntValue || par2 instanceof FloatValue))
 			return new FloatValue(Math.atan2(par1.value, par2.value), this.loc);
 		else throw new RuntimeError(loc.first_line, "atan2は数値にしか使えません");
 	}, "math", null),
@@ -3051,7 +3051,7 @@ var definedFunction = {
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
 			if(par1.value < 0) throw new RuntimeError(loc.first_line, "負の数のルートを求めようとしました");
-			 return new FloatValue(Math.sqrt(par1.value), this.loc);
+			return new FloatValue(Math.sqrt(par1.value), this.loc);
 		}
 		else throw new RuntimeError(this.first_line, "sqrtは数値にしか使えません");
 	}, "math", null),
@@ -3531,9 +3531,9 @@ class DefineStep extends Statement {
 	 * @param {Location} loc 
 	 */
 	constructor(funcName, params, statementlist, loc) {
-    	super(loc);
-    	if (definedFunction[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の標準関数が存在します');
-    	if (myFuncs[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の関数、または手続きが既に定義されています');
+		super(loc);
+		if (definedFunction[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の標準関数が存在します');
+		if (myFuncs[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の関数、または手続きが既に定義されています');
 		this.params = params;
 		this.statementlist = statementlist;
 		this.funcName = funcName;
@@ -3580,16 +3580,16 @@ class afterCallStep
  * 手続き呼び出し
  */
 class CallStep extends Statement {
-  	constructor(funcName, args, loc) {
-    	super(loc);
-    	this.funcName = funcName;
-    	this.args = args;
+	constructor(funcName, args, loc) {
+		super(loc);
+		this.funcName = funcName;
+		this.args = args;
 	}
 	clone()
 	{
 		return new CallStep(this.funcName, this.args.clone(), this.loc);
 	}  
- 	run() {
+	run() {
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: this.args, index: 0});
@@ -3634,7 +3634,7 @@ class CallStep extends Statement {
 
 class ExitStatement extends Statement {
 	constructor(loc) {
- 		super(loc);
+		super(loc);
 	}
 	clone()
 	{
@@ -6439,8 +6439,8 @@ class Parts_Bar extends Parts
 		if(position != null)
 		{
 			this.x1 = this.x2 = position.x;
-	        this.y1 = position.y;
-	        this.y2 = this.y1 + this.height;
+			this.y1 = position.y;
+			this.y2 = this.y1 + this.height;
 		}
         flowchart.context.beginPath();
         flowchart.context.moveTo(this.x1, this.y1);
@@ -6449,7 +6449,7 @@ class Parts_Bar extends Parts
 		if(position != null)
 		{
 			position.x = this.x2; position.y = this.y2;
-	        return this.next.paint(position);
+			return this.next.paint(position);
 		}
 		return this;
     }
@@ -6482,9 +6482,9 @@ class Parts_Terminal extends Parts
 		if(position != null)
 		{
 			this.x1 = position.x - this.textWidth / 2 - this.height / 2;
-	        this.x2 = position.x + this.textWidth / 2 + this.height / 2;
-	        this.y1 = position.y;
-	        this.y2 = position.y + this.height;
+			this.x2 = position.x + this.textWidth / 2 + this.height / 2;
+			this.y1 = position.y;
+			this.y2 = position.y + this.height;
 		}
         flowchart.context.beginPath();    // 上
         flowchart.context.moveTo(this.x1 + this.height / 2, this.y1);
