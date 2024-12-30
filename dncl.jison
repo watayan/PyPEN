@@ -242,7 +242,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 "改行する"				{return '改行する';}
 "何もしない"			{return '何もしない';}
 "一時停止する"			{return '一時停止する';}
-"一時停止"				{return '一時停止';}
+"一時停止"				{return '一時停止する';}
 "putline"				{return 'putline';}
 "putstr"				{return 'putstr';}
 "close"					{return 'close';}
@@ -305,14 +305,6 @@ e
 	| e 'の中に' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e 'not_in' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e 'in' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	// | e '==' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
-	// | e '=' e		{$$ = new EQ($1, $3, new Location(@1, @3));}
-	// | e '!=' e		{$$ = new NE($1, $3, new Location(@1, @3));}
-	// | e '>' e		{$$ = new GT($1, $3, new Location(@1, @3));}
-	// | e '<' e		{$$ = new LT($1, $3, new Location(@1, @3));}
-	// | e '>=' e		{$$ = new GE($1, $3, new Location(@1, @3));}
-	// | e '<=' e		{$$ = new LE($1, $3, new Location(@1, @3));}
-	// | e 'の中に' e	{$$ = new IN($1, $3, new Location(@1, @3));}
 	| e 'and' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'or' e	{$$ = new Or($1, $3, new Location(@1, @3));}
 	| 'not' e 	{$$ = new Not($2, new Location(@1, @2));}
@@ -498,6 +490,8 @@ AssignStatement
 		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
 	| e '//=' e '改行'
 		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
+	| e '%=' e '改行'
+		{$$ = new Assign($1, $3, '%', new Location(@1,@3));}
 	| e '&=' e '改行'
 		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
 	| e '|=' e '改行'
