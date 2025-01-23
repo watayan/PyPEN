@@ -810,21 +810,21 @@ class BooleanValue extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
-		this.rtnv = this.value;
+		this.rtnv = this.value ? true : false;
 	}
 	clone()
 	{
-		var rtnv = new BooleanValue(this.value, this.loc);
+		var rtnv = new BooleanValue(this.rtnv, this.loc);
 		rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
 	getCode()
 	{
-		return this.value ? 'True' : 'False';
+		return this.rtnv ? 'True' : 'False';
 	}
 	makePython()
 	{
-		return this.value ? "True" : "False";
+		return this.rtnv ? "True" : "False";
 	}
 	getValue()
 	{
@@ -1470,7 +1470,7 @@ class And extends Value
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ 'かつ'
+			+ ' and '
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1535,7 +1535,7 @@ class Or extends Value
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
 		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ 'または'
+			+ ' or '
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
 	makePython()
@@ -1590,8 +1590,7 @@ class Not extends Value
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 	//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ 'でない';
+		return 'not ' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
 	}
 	makePython()
 	{
@@ -2130,7 +2129,7 @@ class Compare extends Value
 		var op = this.value[1];
 		switch(this.value[1])
 		{
-		case 'not_in':
+		case 'not in':
 			op = ' not in '; 
 			break;
 		case 'in':
@@ -6074,7 +6073,7 @@ class Flowchart
 				var b1 = new Parts_Bar();
 				var c = constructor_name(p.value);
 				var brace = false;
-				if(c == 'Compare'){brace = true;}
+				// if(c == 'Compare'){brace = true;}
 				p1.setValue(p.variable.getCode(), (brace ? '(' : '') + p.value.getCode() + (brace ? ')' : ''), p.operator);
 				parts.next = p1;
 				parts = p1.next = b1;

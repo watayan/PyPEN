@@ -39,14 +39,13 @@ Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
 String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
 Print			"表示"|"印刷"|"出力"
-Whitespace		[\s\t 　]
 Newline			\r\n|\r|\n
 UNDEFINED		"《"[^》]*"》"
 IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ]
 IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
 Identifier		{IdentifierStart}{IdentifierPart}*
-StringTrue		"真"|[Tt][Rr][Uu][Ee]
-StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
+StringTrue		\b("真"|[Tt][Rr][Uu][Ee])\b
+StringFalse		\b("偽"|[Ff][Aa][Ll][Ss][Ee])\b
 EQEQ			[\=＝][\=＝]
 Assign			[\=＝]
 AssignAdd		[\+＋][\=＝]
@@ -60,6 +59,10 @@ AssignOr		[\|｜][\=＝]
 AssignXor		[\^＾][\=＝]
 AssignLshift	[<＜][<＜][\=＝]
 AssignRshift	[>＞][>＞][\=＝]
+In				\b[Ii][Nn]\b
+And				\b[Aa][Nn][Dd]\b
+Or				\b[Oo][Rr]\b
+Not				\b[Nn][Oo][Tt]\b
 Add				[+＋]
 Del				[-ー−‐]
 Pow				[\*＊×][\*＊×]
@@ -71,11 +74,6 @@ BitAnd			[&＆]
 BitOr			[\|｜]
 BitXor			[\^＾]
 BitNot			[~〜]
-NotIn			[ＮｎNn][ＯｏOo][ＴｔTt]\s+[ＩｉIi][ＮｎNn]
-And				[ＡａAa][ＮｎNn][ＤｄDd]
-Or				[ＯｏOo][ＲｒRr]
-Not				[ＮｎNn][ＯｏOo][ＴｔTt]
-In				[ＩｉIi][ＮｎNn]
 Lshift			[<＜][<＜]
 Rshift			[>＞][>＞]
 NE				([!！][=＝])|([<＜][>＞])|"≠"
@@ -86,6 +84,7 @@ LT				[<＜]
 Comma			[，,、]
 Colon			[:：]
 Comment			[#＃♯].*(\r|\n|\r\n)
+Whitespace		[ 　]
 
 %%
 
@@ -141,7 +140,6 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 {BitNot}					{return '~';}
 {Comma}						{return 'COMMA';}
 {Colon}						{return ':'}
-{NotIn}						{return 'not_in';}
 {And}						{return 'and';}
 {Or}						{return 'or';}
 {Not}						{return 'not';}
@@ -259,7 +257,7 @@ Comment			[#＃♯].*(\r|\n|\r\n)
 %left 'and' 
 %right 'not'
 %right 'の中に'
-%left '=' '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in'
+%left '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in' '='
 %right '個の'
 %left '|'
 %left '^'
@@ -296,14 +294,13 @@ e
 	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
 	| e '==' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '!=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '>' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '<' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '>=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e '<=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e 'の中に' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e 'not_in' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
+	| e 'not' 'in' e	{$$ = new Compare($1, 'not in', $4, new Location(@1,@4));}
 	| e 'in' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
 	| e 'and' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'or' e	{$$ = new Or($1, $3, new Location(@1, @3));}
