@@ -1,73 +1,44 @@
-*** dncl.js.orig	2021-05-13 17:00:33.441416998 +0900
---- dncl.js	2021-05-13 17:00:33.453417110 +0900
-***************
-*** 524,532 ****
-                      }
-                  }
-                  if (lexer.showPosition) {
-!                     errStr = 'Parse error on line ' + (yylineno + 1) + ':\n' + lexer.showPosition() + '\nExpecting ' + expected.join(', ') + ', got \'' + (this.terminals_[symbol] || symbol) + '\'';
-                  } else {
-!                     errStr = 'Parse error on line ' + (yylineno + 1) + ': Unexpected ' + (symbol == EOF ? 'end of input' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
-                  }
-                  this.parseError(errStr, {
-                      text: lexer.match,
---- 524,532 ----
-                      }
-                  }
-                  if (lexer.showPosition) {
-!                     errStr = yylineno + 1 + '行目に構文エラー：\n' + lexer.showPosition() + '\n\'' + (this.terminals_[symbol] || symbol) + '\'の近く（★のあたり）がおかしい';
-                  } else {
-!                     errStr = yylineno + 1 + '行目に構文エラー：\n予期しない' + (symbol == EOF ? 'プログラムの終わり' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
-                  }
-                  this.parseError(errStr, {
-                      text: lexer.match,
-***************
-*** 766,774 ****
-  
-  // displays the character position where the lexing error occurred, i.e. for error messages
-  showPosition:function () {
-          var pre = this.pastInput();
-          var c = new Array(pre.length + 1).join("-");
-!         return pre + this.upcomingInput() + "\n" + c + "^";
-      },
-  
-  // test the lexed token: return FALSE when not a match, otherwise return token
---- 766,776 ----
-  
-  // displays the character position where the lexing error occurred, i.e. for error messages
-  showPosition:function () {
-+         var re = /■/g;
-          var pre = this.pastInput();
-          var c = new Array(pre.length + 1).join("-");
-! //        return pre + this.upcomingInput() + "\n" + c + "^";
-!         return pre.replace(re,'') + '★' + this.upcomingInput().replace(re, '') + '...\n';
-      },
-  
-  // test the lexed token: return FALSE when not a match, otherwise return token
-***************
-*** 804,809 ****
---- 806,812 ----
-              }
-          }
-  
-+         if(match[0].match(/^■$/)) this.yylineno--; // added
-          lines = match[0].match(/(?:\r\n?|\n).*/g);
-          if (lines) {
-              this.yylineno += lines.length;
-***************
-*** 893,899 ****
-          if (this._input === "") {
-              return this.EOF;
-          } else {
-!             return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. Unrecognized text.\n' + this.showPosition(), {
-                  text: "",
-                  token: null,
-                  line: this.yylineno
---- 896,902 ----
-          if (this._input === "") {
-              return this.EOF;
-          } else {
-!             return this.parseError((this.yylineno + 1) + '行目にエラー。\n★の近くに不明なテキスト。\n' + this.showPosition(), {
-                  text: "",
-                  token: null,
-                  line: this.yylineno
+--- dncl.js.orig	2025-02-08 18:09:03.545328897 +0900
++++ dncl.js	2025-02-08 18:08:23.041024645 +0900
+@@ -556,9 +556,9 @@
+                     }
+                 }
+                 if (lexer.showPosition) {
+-                    errStr = 'Parse error on line ' + (yylineno + 1) + ':\n' + lexer.showPosition() + '\nExpecting ' + expected.join(', ') + ', got \'' + (this.terminals_[symbol] || symbol) + '\'';
++                    errStr = yylineno + 1 + '行目に構文エラー：\n' + lexer.showPosition() + '\n\'' + (this.terminals_[symbol] || symbol) + '\'の近く（★のあたり）がおかしい';
+                 } else {
+-                    errStr = 'Parse error on line ' + (yylineno + 1) + ': Unexpected ' + (symbol == EOF ? 'end of input' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
++                    errStr = yylineno + 1 + '行目に構文エラー：\n予期しない' + (symbol == EOF ? 'プログラムの終わり' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
+                 }
+                 this.parseError(errStr, {
+                     text: lexer.match,
+@@ -798,9 +798,11 @@
+ 
+ // displays the character position where the lexing error occurred, i.e. for error messages
+ showPosition:function () {
++        var re = /■/g;
+         var pre = this.pastInput();
+         var c = new Array(pre.length + 1).join("-");
+-        return pre + this.upcomingInput() + "\n" + c + "^";
++//        return pre + this.upcomingInput() + "\n" + c + "^";
++        return pre.replace(re,'') + '★' + this.upcomingInput().replace(re, '') + '...\n';
+     },
+ 
+ // test the lexed token: return FALSE when not a match, otherwise return token
+@@ -836,6 +838,7 @@
+             }
+         }
+ 
++        if(match[0].match(/^■$/)) this.yylineno--; // added
+         lines = match[0].match(/(?:\r\n?|\n).*/g);
+         if (lines) {
+             this.yylineno += lines.length;
+@@ -925,7 +928,7 @@
+         if (this._input === "") {
+             return this.EOF;
+         } else {
+-            return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. Unrecognized text.\n' + this.showPosition(), {
++            return this.parseError((this.yylineno + 1) + '行目にエラー。\n★の近くに不明なテキスト。\n' + this.showPosition(), {
+                 text: "",
+                 token: null,
+                 line: this.yylineno

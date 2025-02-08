@@ -14,7 +14,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "uglifyjs run.js -o run.min.js",
-    "jison": "jison dncl.jison; patch < dncl.patch; uglifyjs dncl.js -o dncl.min.js"
+    "jison": "jison dncl.jison; node applyPatch.js; uglifyjs dncl.js -o dncl.min.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/watayan/PyPEN#readme",
   "devDependencies": {
+    "diff": "^7.0.0",
     "jison": "^0.4.18",
     "uglify-es": "^3.3.9"
   },
