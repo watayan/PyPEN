@@ -8191,6 +8191,7 @@ function auto_marking(i)
 	selected_quiz = -1;
 	document.getElementById('runButton').disabled = false;
 	document.getElementById('stepButton').disabled = false;
+	document.getElementById('stepdumpButton').disabled = false;
 	document.getElementById('resetButton').disabled = false;
 	document.getElementById('urlButton').disabled = false;
 	setRunflag(false);
@@ -8263,6 +8264,7 @@ var runButton     = document.getElementById("runButton");
 var flowchartButton = document.getElementById("flowchartButton");
 var resetButton   = document.getElementById("resetButton");
 var stepButton    = document.getElementById("stepButton");
+var stepdumpButton= document.getElementById("stepdumpButton");
 var dumpButton    = document.getElementById("dumpButton");
 var loadButton    = document.getElementById("loadButton");
 var file_prefix   = document.getElementById("file_prefix");
@@ -8325,6 +8327,13 @@ stepButton.onclick = function()
 {
 	step_flag = true;
 	run();
+}
+
+stepdumpButton.onclick = function()
+{
+	step_flag = true;
+	run();
+	if(run_flag) dump();
 }
 newButton.onclick = function(){
 	if(dirty && !window.confirm("プログラムを削除していいですか？")) return;
