@@ -241,9 +241,6 @@ Whitespace		[ 　]
 "何もしない"				{return '何もしない';}
 "一時停止する"				{return '一時停止する';}
 "一時停止"					{return '一時停止する';}
-"putline"					{return 'putline';}
-"putstr"					{return 'putstr';}
-"close"						{return 'close';}
 {Identifier}				{return '識別子';}
 {Comment}					{return '改行';}
 <<EOF>>						{return 'EOF';}
@@ -362,7 +359,6 @@ statement
 	| SleepStatement
 	| DefineFuncStatement
 	| ReturnStatement
-	| FileIOStatement
 	| DumpStatement
 	| BreakStatement
 	| NopStatement
@@ -527,15 +523,6 @@ InputStatement
 		{$$ = new Input($1, typeOfValue.typeString, new Location(@1, @4));}
 	| e 'に' '真偽' 'を' '入力する' '改行'	
 		{$$ = new Input($1, typeOfValue.typeBoolean, new Location(@1, @4));}
-	;
-
-FileIOStatement
-	: 'putline' '(' e COMMA e ')' '改行'
-		{$$ = new FileIOStatement('putline', [$3, $5], new Location(@1, @1));}
-	| 'putstr' '(' e COMMA e ')' '改行'
-		{$$ = new FileIOStatement('putstr', [$3, $5], new Location(@1, @1));}
-	| 'close' '(' e ')' '改行'
-		{$$ = new FileIOStatement('close', [$3], new Location(@1, @1));}
 	;
 
 GraphicStatement

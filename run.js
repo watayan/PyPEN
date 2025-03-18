@@ -3485,6 +3485,110 @@ class SliceValue extends Value
 	}
 }
 
+/**
+ * 定義済み手続きクラス
+ */
+class DefinedStep
+{
+	/**
+	 * @constructor
+	 * @param {number} argc 引数の個数
+	 * @param {function} step 実際の関数
+	 * @param {string} module Pythonで必要となるモジュール。nullならナニもいらない
+	 * @param {function} convert this.argcを受け取ってPythonコードの文字列を返す関数。nullならthis.funcName(this.argc)的なことをする。
+	 */
+	constructor(argc, step, module, convert) { 
+		this.argc = argc; this.step = step; this.module = module; this.convert = convert;
+		this.loc = null;
+	}
+	/**
+	 * 関数の値を返す
+	 * @param {Array<Value>} parameters 
+	 * @param {Location} loc 
+	 * @returns {any}
+	 */
+	run()
+	{
+		if((this.argc instanceof Array && this.argc[0] <= this.parameters.length && this.argc[1] >= this.parameters.length)
+			|| this.parameters.length == this.argc)
+			{
+				code[0].stack[0].index++;
+				this.step(this.parameters, this.loc);
+				code.shift();
+			}
+		else throw new RuntimeError(this.loc.first_line, "引数の個数が違います");
+	}
+	clone()
+	{
+		return new DefinedStep(this.argc, this.step, this.module, this.convert);
+	}
+	setParameter(params)
+	{
+		this.parameters = params;
+	}
+	setLocation(loc)
+	{
+		this.loc = loc;
+	}
+}
+
+/**
+ * 定義済み関数一覧
+ */
+var definedStep = {
+	"putline": new DefinedStep(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if(par1 instanceof IntValue && par2 instanceof StringValue)
+		{
+			var str = array2text(par2);
+			var rtnv = filesystem.write_str(par1.value, str, true);
+			if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
+		}
+		else throw new RuntimeError(this.first_line, "呼び出しが不正です");
+	}, null, function(argc){
+		var str = argc[1].makePython();
+		if(!(argc[1] instanceof StringValue))
+			str = 'str(' + str + ')';
+		return argc[0].makePython() + '.write(' + str + " + '\n')";
+	}),
+	"putstr": new DefinedStep(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if(par1 instanceof IntValue && par2 instanceof StringValue)
+		{
+			var str = array2text(par2);
+			var rtnv = filesystem.write_str(par1.value, str, true);
+			if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
+		}
+		else throw new RuntimeError(this.first_line, "呼び出しが不正です");
+	}, null, function(argc){
+		var str = argc[1].makePython();
+		if(!(argc[1] instanceof StringValue))
+			str = 'str(' + str + ')';
+		return argc[0].makePython() + '.write(' + str + " + '\n')";
+	}),
+	"close": new DefinedStep(1, function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof IntValue)
+		{
+			var rtnv = filesystem.close(par1.value, true);
+			if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
+		}
+		else throw new RuntimeError(this.first_line, "呼び出しが不正です");
+	}, null, function(argc){
+		return argc[0].makePython() + '.close()\n';
+	}),
+	// "push": new DefinedStep(2, function(param, loc){
+	// 	var par1 = param[0].getValue();
+	// 	var par2 = param[1].getValue();
+	// 	if(par1 instanceof ArrayValue && par2 instanceof Value)
+	// 	{
+	// 		par1.value.push(par2.clone());
+	// 	}
+	// 	else throw new RuntimeError(loc.first_line, 'pushは配列にしか使えません');
+	// }, null, null),
+};
 
 /**
  * 命令クラス
@@ -3532,6 +3636,7 @@ class DefineStep extends Statement {
 	constructor(funcName, params, statementlist, loc) {
 		super(loc);
 		if (definedFunction[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の標準関数が存在します');
+		if (definedStep[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の標準手続きが存在します');
 		if (myFuncs[funcName]) throw new RuntimeError(this.first_line, '手続き '+funcName+' と同名の関数、または手続きが既に定義されています');
 		this.params = params;
 		this.statementlist = statementlist;
@@ -3599,7 +3704,15 @@ class CallStep extends Statement {
 			code[0].stack[0].index++;
 			const fn = this.funcName
 			const args = this.args;
-			if(myFuncs[fn])
+			if(definedStep[fn])
+			{
+				let step = definedStep[fn].clone();
+				step.setParameter(args);
+				step.setLocation(this.loc);
+				let statementlist = [step];
+				code.unshift(new parsedStep(statementlist));
+			}
+			else if(myFuncs[fn])
 			{
 				let vt = new varTable();
 				let globalVarTable = varTables[varTables.length - 1];
@@ -4481,75 +4594,6 @@ function array2code(v)
 	else if(v0 instanceof StringValue) return '"' + v0.value + '"';
 	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
-}
-
-class FileIOStatement extends Statement
-{
-	constructor(command, args, loc)
-	{
-		super(loc);
-		this.command = command;
-		this.args = args;
-		this.state = 0;
-	}
-	clone()
-	{
-		var args = [];
-		for(var i = 0; i < this.args.length; i++) args.push(this.args[i].clone());
-		return new FileIOStatement(this.command, args, this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			if(this.args) code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			if(this.command == 'putline')
-			{
-				var str = array2text(this.args[1].getValue());
-				var rtnv = filesystem.write_str(this.args[0].getValue().value, str, true);
-				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
-			}
-			else if(this.command == 'putstr')
-			{
-				var str = array2text(this.args[1].getValue());
-				var rtnv = filesystem.write_str(this.args[0].getValue().value, str, false);
-				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
-			}
-			else if(this.command == 'close')
-			{
-				var rtnv = filesystem.close(this.args[0].getValue().value, true);
-				if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
-			}
-		}
-	}
-	makePython(indent)
-	{
-		var code = Parts.makeIndent(indent);
-		if(this.command == 'putline')
-		{
-			var str = this.args[1].makePython();
-			if(!(this.args[1] instanceof StringValue))
-				str = 'str(' + str + ')';
-			code += this.args[0].makePython() + '.write(' + str + " + '\n')";
-		}
-		else if(this.command == 'putstr')
-		{
-			var str = this.args[1].makePython();
-			if(!(this.value[1] instanceof StringValue))
-				str = 'str(' + str + ')';
-			code += this.args[0].makePython() + '.write(' + str + ")";
-		}
-		else if(this.command == 'close')
-		{
-			code += this.args[0].makePython() + ".close()";
-		}
-		return code + "\n";
-	}
 }
 
 class GraphicStatement extends Statement
