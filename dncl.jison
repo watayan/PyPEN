@@ -241,6 +241,8 @@ Whitespace		[ 　]
 "何もしない"				{return '何もしない';}
 "一時停止する"				{return '一時停止する';}
 "一時停止"					{return '一時停止する';}
+"copy"						{return 'copy';}
+"複製"						{return 'copy';}
 {Identifier}				{return '識別子';}
 {Comment}					{return '改行';}
 <<EOF>>						{return 'EOF';}
@@ -302,6 +304,7 @@ e
 	| e 'and' e	{$$ = new And($1, $3, new Location(@1, @3));}
 	| e 'or' e	{$$ = new Or($1, $3, new Location(@1, @3));}
 	| 'not' e 	{$$ = new Not($2, new Location(@1, @2));}
+	| 'copy' '(' e ')' {$$ = new Copy($3, new Location(@1, @4));}
 	| e 'と' e		{$$ = new Connect($1, $3, new Location(@1, @3));}
 	| '整数' '(' e ')' {$$ = new ConvertInt($3, new Location(@1, @4));}
 	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
