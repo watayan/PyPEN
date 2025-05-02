@@ -1027,7 +1027,7 @@ class Sub extends Value
 	}
 	clone()
 	{
-		return Sub(this.value[0], this.value[1], this.loc);
+		return new Sub(this.value[0], this.value[1], this.loc);
 	}
 	run()
 	{
