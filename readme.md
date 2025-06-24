@@ -7,9 +7,10 @@ Pythonっぽい文法のプログラムが作れるものをWebアプリケー�
 なお，Internet Explorerでは動作しません。
 
 ## 使用方法
-answer.js-distとsample.js-distをそれぞれanswer.jsとsample.jsにコピーしてください。
-その後，適当なプログラムに書き換えてください
-（クォートでくくったり\nを行末に挿入したり面倒ではありますが）。
+answer.js-distとsample.js-distをそれぞれanswer.jsとsample.jsにコピーしてください
+（コピーしなかった場合は自動採点やサンプルプログラムボタンを表示しません）。
+その後，適当なプログラムに書き換えてください。
+といっても手作業でやるのは現実的でないので[WaPEN Tools](https://watayan.net/prog/wapentools.html)を使ってください。
 
 ローカルマシンの適当なフォルダに展開して，
 index.htmlをブラウザで読み込んでもいいし，
