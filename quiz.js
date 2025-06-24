@@ -15,7 +15,7 @@ function Quiz(title,question,inputs,output,timeout)
     this._inputs = inputs;
     this._output = output;
     this._timeout = timeout;
-    if(typeof timeout == 'undefined') this._timeout = 10000;
+    if(typeof timeout == 'undefined') this._timeout = 3000;
 }
 
 Quiz.prototype = {

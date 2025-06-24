@@ -306,7 +306,7 @@ class RuntimeError
 	 */
 	constructor(line, message)
 	{
-		dump('*** 実行時エラー ***');
+		if(selected_quiz < 0) dump('*** 実行時エラー ***');
 		this._line = line;
 		this._message = message;
 		setRunflag(false);
@@ -8738,29 +8738,34 @@ $(window).bind("beforeunload", function(){if(dirty) return "プログラムが�
 reset(true);
 
 let sample_area = document.getElementById('SampleButtons')
-let sample_table = document.createElement('table');
-sample_area.appendChild(sample_table);
-let sample_table_row = null;
-for(let i = 0; i < sample.length; i++)
+if(sample_load)
 {
-	if(!sample_table_row)
+	let sample_table = document.createElement('table');
+	sample_area.appendChild(sample_table);
+	let sample_table_row = null;
+	for(let i = 0; i < sample.length; i++)
 	{
-		sample_table_row = document.createElement('tr');
-		sample_table.appendChild(sample_table_row);
+		if(!sample_table_row)
+		{
+			sample_table_row = document.createElement('tr');
+			sample_table.appendChild(sample_table_row);
+		}
+		let cell = document.createElement('td');
+		let button = document.createElement('button');
+		button.innerText = 'サンプル' + (i + 1);
+		button.setAttribute('type', 'button');
+		button.setAttribute('class', 'sampleButton');
+		button.onclick = function(){sampleButton(i);};
+		cell.appendChild(button);
+		sample_table_row.appendChild(cell);
+		if(i % 8 == 7) sample_table_row = null;
 	}
-	let cell = document.createElement('td');
-	let button = document.createElement('button');
-	button.innerText = 'サンプル' + (i + 1);
-	button.setAttribute('type', 'button');
-	button.setAttribute('class', 'sampleButton');
-	button.onclick = function(){sampleButton(i);};
-	cell.appendChild(button);
-	sample_table_row.appendChild(cell);
-	if(i % 8 == 7) sample_table_row = null;
 }
-if(setting.quiz_mode == 1 && Quizzes.length > 0)
+else sample_area.style.display = 'none';
+
+if(answer_load && setting.quiz_mode == 1 && Quizzes.length > 0)
 {
-	let quiz_select = document.getElementById('quiz_select');
+let quiz_select = document.getElementById('quiz_select');
 	quiz_select.onchange = function ()
 	{
 		let i = quiz_select.selectedIndex;
@@ -8794,6 +8799,7 @@ else
 {
 	document.getElementById('Quiz_area').style.display = 'none';
 }
+
 document.getElementById('urlButton').onclick = function()
 {
 	var code = sourceTextArea.value.trim();
