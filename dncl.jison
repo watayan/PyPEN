@@ -272,7 +272,7 @@ Whitespace		[ 　]
 %%
 
 e
-	: '整数値'		{$$ = new IntValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
+	: '整数値'		{$$ = new IntValue(toHalf(yytext,@1), new Location(@1,@1));}
 	| '実数値'		{$$ = new FloatValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
 	| '文字列値'	{$$ = new StringValue(escape_bracket(yytext), new Location(@1, @1));}
 	| 'True'		{$$ = new BooleanValue(true, new Location(@1,@1));}

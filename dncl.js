@@ -84,7 +84,7 @@ performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* actio
 var $0 = $$.length - 1;
 switch (yystate) {
 case 1:
-this.$ = new IntValue(Number(toHalf(yytext,_$[$0])), new Location(_$[$0],_$[$0]));
+this.$ = new IntValue(toHalf(yytext,_$[$0]), new Location(_$[$0],_$[$0]));
 break;
 case 2:
 this.$ = new FloatValue(Number(toHalf(yytext,_$[$0])), new Location(_$[$0],_$[$0]));
