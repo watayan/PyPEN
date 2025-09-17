@@ -899,8 +899,8 @@ class Pow extends Value
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 			if(v1 instanceof IntValue && v2 instanceof IntValue) // 整数の自然数乗
 			{
-				if(v1.value == 0n && v2.value <= 0n) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				this.rtnv = v2.value >= 0n ? new IntValue(v1.value **  v2.value) : new FloatValue(Number(v1.value) ** Number(v2.value));
+				if(v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+				this.rtnv = v2.value >= 0 ? new IntValue(v1.value **  v2.value) : new FloatValue(Number(v1.value) ** Number(v2.value));
 			}
 			else if((v1 instanceof IntValue || v1 instanceof FloatValue) && (v2 instanceof IntValue || v2 instanceof FloatValue))
 			{
@@ -1205,7 +1205,7 @@ class Div extends Value	// /
 			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if(v2.value == 0n) throw new RuntimeError(this.first_line, "0でわり算をしました");
+			if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
 			let v = Number(v1.value) / Number(v2.value);
 			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			this.rtnv = new FloatValue(v, this.loc);
@@ -1266,7 +1266,7 @@ class DivInt extends Value // //
 			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if(v2.value == 0n) throw new RuntimeError(this.first_line, "0でわり算をしました");
+			if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
 			this.rtnv = new IntValue(v1.value / v2.value, this.loc);
 			this.state = 0;
 		}
@@ -1325,7 +1325,7 @@ class Mod extends Value
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 			if(v1 instanceof IntValue && v2 instanceof IntValue)
 			{
-				if(v2.value == 0n) throw new RuntimeError(this.first_line, "0でわり算をしました");
+				if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
 				this.rtnv = new IntValue(v1.value % v2.value, this.loc);
 			}
 			else
@@ -1626,8 +1626,8 @@ class BitAnd extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット積はできません");
 			else
 			{
-				v1 = v1 instanceof BooleanValue ? (v1.value ? 1n : 0n) : v1.value;
-				v2 = v2 instanceof BooleanValue ? (v2.value ? 1n : 0n) : v2.value;
+				v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+				v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
 				this.rtnv = new IntValue(v1 & v2, this.loc);
 			}
 			this.state = 0;
@@ -1690,8 +1690,8 @@ class BitOr extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット和はできません");
 			else
 			{
-				v1 = v1 instanceof BooleanValue ? (v1.value ? 1n : 0n) : v1.value;
-				v2 = v2 instanceof BooleanValue ? (v2.value ? 1n : 0n) : v2.value;
+				v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+				v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
 				this.rtnv = new IntValue(v1 | v2, this.loc);
 			}
 			this.state = 0;
@@ -1754,8 +1754,8 @@ class BitXor extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数の排他的ビット和はできません");
 			else
 			{
-				v1 = v1 instanceof BooleanValue ? (v1.value ? 1n : 0n) : v1.value;
-				v2 = v2 instanceof BooleanValue ? (v2.value ? 1n : 0n) : v2.value;
+				v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+				v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
 				this.rtnv = new IntValue(v1 ^ v2, this.loc);
 			}
 			this.state = 0;
@@ -1873,8 +1873,8 @@ class BitLShift extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
 			else
 			{
-				v1 = v1 instanceof BooleanValue ? (v1.value ? 1n : 0n) : v1.value;
-				v2 = v2 instanceof BooleanValue ? (v2.value ? 1n : 0n) : v2.value;
+				v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+				v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
 				this.rtnv = new IntValue(v1 << v2, this.loc);
 			}
 			this.state = 0;
@@ -1936,8 +1936,8 @@ class BitRShift extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
 			else
 			{
-				v1 = v1 instanceof BooleanValue ? (v1.value ? 1n : 0n) : v1.value;
-				v2 = v2 instanceof BooleanValue ? (v2.value ? 1n : 0n) : v2.value;
+				v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+				v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
 				this.rtnv = new IntValue(v1 >> v2, this.loc);
 			}
 			this.state = 0;
@@ -3031,8 +3031,8 @@ var definedFunction = {
 		var par2 = param[1].getValue();
 		if(par1 instanceof IntValue && par2 instanceof IntValue)
 		{
-			if(par1.value == 0n && par2.value <= 0n) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
-			return par2.value >= 0n ? new IntValue(par1.value ** par2.value, this.loc) : new FloatValue(par1.value ** par2.value, this.loc);
+			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
+			return par2.value >= 0 ? new IntValue(par1.value ** par2.value, this.loc) : new FloatValue(par1.value ** par2.value, this.loc);
 		}
 		else if((par1 instanceof IntValue || par1 instanceof FloatValue) &&
 			(par2 instanceof IntValue || par2 instanceof FloatValue))
