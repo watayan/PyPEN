@@ -34,9 +34,12 @@
 
 DecimalDigit	[0-9０-９]
 NonZeroDigit	[1-9１-９]
+ZeroOneDigit	[01０１]
+HexDigit		[0-9A-Fa-f０-９Ａ-Ｆａ-ｆ]
+OctDigit		[0-7０-７]
 
-Integer			[0０] | ({NonZeroDigit}{DecimalDigit}*)
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
+Integer			({NonZeroDigit}{DecimalDigit}*) | ("0x"{HexDigit}+) | ("0b"{ZeroOneDigit}+) | ("0o"{OctDigit}+) | [0０]
 String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
 Print			"表示"|"印刷"|"出力"
 Newline			\r\n|\r|\n
@@ -89,11 +92,11 @@ Whitespace		[ 　]
 %%
 
 "真偽"						{return '真偽';}
+{Float}						{return '実数値';}
+{Integer}					{return '整数値';}
 {StringTrue}				{return 'True';}
 {StringFalse}				{return 'False';}
 {String}					{return '文字列値';}
-{Float}						{return '実数値';}
-{Integer}					{return '整数値';}
 {UNDEFINED}					{return 'UNDEFINED';}
 {EQEQ}						{return '=='}
 {Assign}					{return '=';}
