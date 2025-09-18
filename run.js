@@ -4036,7 +4036,7 @@ function argsString(args)
 
 function SameSignBigInt(a, b)
 {
-	return (a >= 0n && b >= 0n) || (a < 0n && b < 0n);
+	return (a >= 0 && b >= 0) || (a < 0 && b < 0);
 }
 
 class Assign extends Statement
@@ -4114,7 +4114,7 @@ class Assign extends Statement
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の掛け算はできません");
 						else if(v1 instanceof StringValue)
 						{
-							if(v2 instanceof IntValue) v3 = new StringValue(v1.value.repeat(v2.value >= 0n ? Number(v2.value) : 0), this.loc);
+							if(v2 instanceof IntValue) v3 = new StringValue(v1.value.repeat(v2.value >= 0 ? Number(v2.value) : 0), this.loc);
 							else throw new RuntimeError(this.first_line, "文字列に掛けられるのは整数だけです")
 						}
 						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value * v2.value, this.loc);
