@@ -3798,8 +3798,10 @@ class CallStep extends Statement {
 	}
 	clone()
 	{
-		return new CallStep(this.funcName, this.args.clone(), this.loc);
-	}  
+		var parms = [];
+		for(var arg of this.args) parms.push(arg);
+		return new CallStep(this.funcName, parms, this.loc);
+	}
 	run() {
 		if(this.state == 0)
 		{
