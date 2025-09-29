@@ -5252,7 +5252,7 @@ class ForIn_step extends Statement
 		code[0].stack[0].index++;
 		if(this.index < this.array.rtnv.length)
 		{
-			let assign = new Assign(this.variable, this.array.rtnv.rtnv.value[this.index++], null, this.loc);
+			let assign = new Assign(this.variable, this.array.rtnv.value[this.index++], null, this.loc);
 			code[0].stack.unshift({statementlist: [assign], index: 0});
 		}
 		else
