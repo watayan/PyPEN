@@ -794,7 +794,7 @@ class BooleanValue extends Value
 	}
 	clone()
 	{
-		return BooleanValue(this.value, this.loc);
+		return new BooleanValue(this.value, this.loc);
 	}
 	getCode()
 	{
