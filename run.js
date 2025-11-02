@@ -166,7 +166,7 @@ function codeChange()
 	{
 		highlightLine(-1);
 		textareaClear();
-		if(e.line && e.line > 0) textareaAppend(e.line + "行目構文エラーです\n");
+		if(e.line && e.line > 0) textareaAppend("***構文エラー***\n" + e.line + "行目\n");
 		textareaAppend(e.message);
 		converting = false;
 	}
@@ -409,7 +409,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			{
 				if(v instanceof ArrayValue || v instanceof StringValue)
 				{
-					var idx = arg.getValue().value;
+					var idx = Number(arg.getValue().value);
 					var l = v.getValue().length;
 					if(idx < 0) idx += l;
 					if(idx >= 0 && idx < l) v = v.getValue().value[idx];
@@ -445,7 +445,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 		var arg = args[args.length - 1].getValue();
 		if(arg instanceof IntValue)
 		{
-			var idx = arg.value;
+			var idx = Number(arg.value);
 			var l = v.getValue().value.length;
 			if(idx < 0) idx += l;
 			if(idx < 0 || idx >= l) throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
@@ -465,8 +465,8 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 		}
 		else if(arg instanceof SliceValue)
 		{
-			var idx1 = arg.getValue1().getValue().value;
-			var idx2 = arg.getValue2().getValue().value;
+			var idx1 = Number(arg.getValue1().getValue().value);
+			var idx2 = Number(arg.getValue2().getValue().value);
 			if(v.getValue() instanceof ArrayValue)
 			{
 				if(!(newval instanceof ArrayValue)) throw new RuntimeError(loc.first_line, "配列に配列でないものを挿入しようとしました");
@@ -529,7 +529,7 @@ function getValueByArgs(v, args, loc)
 			{
 				if(val instanceof ArrayValue)	// 配列のidx番目
 				{
-					var idx = arg.value;
+					var idx = Number(arg.value);
 					var l = val.length;
 					if(idx < 0) idx += l;
 					if(idx >= 0 && idx < l) v = val.value[idx];
@@ -537,7 +537,7 @@ function getValueByArgs(v, args, loc)
 				}
 				else if(v instanceof StringValue)	// 文字列のidx文字目
 				{
-					var idx = arg.value;
+					var idx = Number(arg.value);
 					var l = val.length;
 					if(idx < 0) idx += l;
 					if(idx >= 0 && idx < l) v = new StringValue(val.value[idx], loc);
@@ -552,8 +552,8 @@ function getValueByArgs(v, args, loc)
 			}
 			else if(arg instanceof SliceValue)
 			{
-				var idx1 = arg.getValue1().getValue().value;
-				var idx2 = arg.getValue2().getValue().value;
+				var idx1 = Number(arg.getValue1().getValue().value);
+				var idx2 = Number(arg.getValue2().getValue().value);
 				if(val instanceof ArrayValue)	// 配列のスライス
 				{
 					var l = val.length;
@@ -738,8 +738,22 @@ class IntValue extends Value
 {
 	constructor(v, loc)
 	{
-		super(v, loc);
-		if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
+		if(typeof(v) == "number")
+		{
+			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
+		}
+		else if(typeof(v) == "string")
+		{
+			if(!/-?\d+/.exec(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
+		}
+		try{
+			super(BigInt(v), loc);
+		}
+		catch(e)
+		{
+			if(e instanceof RangeError) throw RuntimeError(this.first_line, "整数で表せない値が使われました");
+			else throw e;
+		}
 	}
 	clone()
 	{
@@ -890,20 +904,33 @@ class Pow extends Value
 		{
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-			if(v1 instanceof IntValue && v2 instanceof IntValue && v2.value >= 0) // 整数の自然数乗
+			if(v1 instanceof IntValue && v2 instanceof IntValue) // 整数の自然数乗
 			{
 				if(v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				let v = Math.pow(v1.value, v2.value);
-				if(isSafeInteger(v)) this.rtnv = new IntValue(v, this.loc);
-				else throw new RuntimeError(this.first_line, "整数で表せる範囲を越えました");
+				try{
+					this.rtnv = v2.value >= 0 ? new IntValue(v1.value **  v2.value) : new FloatValue(Number(v1.value) ** Number(v2.value));
+				}
+				catch(e){
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			else if((v1 instanceof IntValue || v1 instanceof FloatValue) && (v2 instanceof IntValue || v2 instanceof FloatValue))
 			{
-				if(v1.value < 0 && !Number.isSafeInteger(v2.value)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
-				if(v1.value == 0 && v2.value <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				let v = Math.pow(v1.value, v2.value);
-				if(isFinite(v)) this.rtnv = new FloatValue(v, this.loc);
-				else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				v1 = Number(v1.value);
+				v2 = Number(v2.value);
+				if(v1 < 0 && !Number.isSafeInteger(v2)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
+				if(v1 == 0 && v2 <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
+				try{
+					let v = v1 ** v2;
+					if(isFinite(v)) this.rtnv = new FloatValue(v, this.loc);
+					else throw new RuntimeError(this.first_line, "オーバーフローしました");
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			} else throw new RuntimeError('数値でないもののべき乗はできません');
 			this.state = 0;
 		}
@@ -974,16 +1001,22 @@ class Add extends Value
 			}
 			else	// 数値どうし
 			{
-				let v = v1.value + v2.value; 
 				if(v1 instanceof FloatValue || v2 instanceof FloatValue)	// 一方が実数型なら結果は実数型
 				{
+					let v =Number(v1.value) + Number(v2.value);
 					if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 					this.rtnv = new FloatValue(v, this.loc);
 				}
 				else	// 整数型
 				{
-					if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-					this.rtnv = new IntValue(v, this.loc);
+					try{
+						this.rtnv = new IntValue(v1.value + v2.value, this.loc);
+					}
+					catch(e)
+					{
+						if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+						else throw e;
+					}
 				}
 			}
 			this.state = 0;
@@ -1043,16 +1076,22 @@ class Sub extends Value
 			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の引き算はできません");
 			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
-			let v = v1.value - v2.value;
 			if(v1 instanceof FloatValue || v2 instanceof FloatValue)
 			{
+				let v = Number(v1.value) - Number(v2.value);
 				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 				this.rtnv = new FloatValue(v, this.loc);
 			}
 			else
 			{
-				if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				this.rtnv = new IntValue(v, this.loc);
+				try{
+					this.rtnv = new IntValue(v1.value - v2.value, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -1132,16 +1171,22 @@ class Mul extends Value
 			} 
 			else
 			{
-				let v = v1.value * v2.value;
 				if(v1 instanceof FloatValue || v2 instanceof FloatValue)
 				{
+					let v = Number(v1.value) * Number(v2.value);
 					if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 					this.rtnv = new FloatValue(v, this.loc);
 				}
 				else
 				{
-					if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-					this.rtnv = new IntValue(v, this.loc);
+					try{
+						this.rtnv = new IntValue(v1.value * v2.value, this.loc);
+					}
+					catch(e)
+					{
+						if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+						else throw e;
+					}
 				}
 			}
 			this.state = 0;
@@ -1202,7 +1247,14 @@ class Div extends Value	// /
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 			if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			let v = v1.value / v2.value;
+			try{
+				let v = Number(v1.value) / Number(v2.value);
+			}
+			catch(e)
+			{
+				if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+				else throw e;
+			}
 			if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
 			this.rtnv = new FloatValue(v, this.loc);
 			this.state = 0;
@@ -1263,9 +1315,24 @@ class DivInt extends Value // //
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
 			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
 			if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			let v = Math.floor(v1.value / v2.value);
-			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-			this.rtnv = new IntValue(v, this.loc);
+			try{
+				if(v1 instanceof IntValue && v2 instanceof IntValue){
+					let r = v1.value % v2.value;
+					let q = v1.value / v2.value;
+					if(!SameSignBigInt(v1.value, v2.value) && r != 0) q--;
+					this.rtnv = new IntValue(q, this.loc);
+				}
+				else{
+					v1 = Number(v1.value);
+					v2 = Number(v2.value);
+					this.rtnv = new FloatValue(Math.floor(v1 / v2), this.loc);
+				}
+			}
+			catch(e)
+			{
+				if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+				else throw e;
+			}
 			this.state = 0;
 		}
 	}
@@ -1321,15 +1388,18 @@ class Mod extends Value
 		{
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
-			if(v1 instanceof IntValue && v2 instanceof IntValue)
-			{
-				if(v2.value == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-				let v = v1.value - Math.floor(v1.value / v2.value) * v2.value;
-				if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				this.rtnv = new IntValue(v, this.loc);
-			}
-			else
-				throw new RuntimeError(this.first_line, "余りを出す計算は整数でしかできません");
+				if(v1 instanceof IntValue && v2 instanceof IntValue){
+					let r = v1.value % v2.value;
+					let q = v1.value / v2.value;
+					if(!SameSignBigInt(v1.value, v2.value) && r != 0) q--;
+					this.rtnv = new IntValue(v1.value - q * v2.value, this.loc);
+				}
+				else
+				{
+					v1 = Number(v1.value);
+					v2 = Number(v2.value);
+					this.rtnv = new FloatValue(v1 - Math.floor(v1 / v2) * v2, this.loc);
+				}
 			this.state = 0;
 		}
 	}
@@ -1384,12 +1454,22 @@ class Minus extends Value
 		{
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue();
-			if(v1 instanceof IntValue || v1 instanceof FloatValue)
+			if(v1 instanceof IntValue)
+			{
+				try{
+					this.rtnv = new IntValue(-v1.value, this.loc);
+				}
+					catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
+			}
+			else if(v1 instanceof FloatValue)
 			{
 				let v = -v1.value;
-				if(v1 instanceof IntValue && !isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表される範囲を越えました");
-				if(v1 instanceof FloatValue && !isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				this.rtnv = v1 instanceof IntValue ? new IntValue(v, this.loc) : new FloatValue(v, this.loc);
+				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+				this.rtnv = new FloatValue(v, this.loc);
 			}
 			else
 				throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
@@ -1451,7 +1531,7 @@ class And extends Value
 				}
 			}
 			else
-				throw new RuntimeError(this.first_line, "「かつ」は真偽値にしか使えません");
+				throw new RuntimeError(this.first_line, "and は真偽値にしか使えません");
 			this.state = 0;
 		}
 	}
@@ -1514,7 +1594,7 @@ class Or extends Value
 				}
 			}
 			else
-				throw new RuntimeError(this.first_line, "「または」は真偽値にしか使えません");
+				throw new RuntimeError(this.first_line, "or は真偽値にしか使えません");
 			this.state = 0;
 		}
 	}
@@ -1568,7 +1648,7 @@ class Not extends Value
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue();
 			if(v1 instanceof BooleanValue) this.rtnv = new BooleanValue(!v1.value, this.loc);
-			else throw new RuntimeError(this.first_line, "「でない」は真偽値にしか使えません");
+			else throw new RuntimeError(this.first_line, "not は真偽値にしか使えません");
 			this.state = 0;
 		}
 	}
@@ -1623,9 +1703,16 @@ class BitAnd extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット積はできません");
 			else
 			{
-				if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
-				if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-				this.rtnv = new IntValue(v1.value & v2.value, this.loc);
+				try{
+					v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+					v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
+					this.rtnv = new IntValue(v1 & v2, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -1687,9 +1774,16 @@ class BitOr extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット和はできません");
 			else
 			{
-				if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
-				if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-				this.rtnv = new IntValue(v1.value | v2.value, this.loc);
+				try{
+					v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+					v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
+					this.rtnv = new IntValue(v1 | v2, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -1751,9 +1845,16 @@ class BitXor extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数の排他的ビット和はできません");
 			else
 			{
-				if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
-				if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-				this.rtnv = new IntValue(v1.value ^ v2.value, this.loc);
+				try{
+					v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+					v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
+					this.rtnv = new IntValue(v1 ^ v2, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -1815,7 +1916,14 @@ class BitNot extends Value
 			else if(v1 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット反転はできません");
 			else
 			{
-				this.rtnv = new IntValue(~v1.value, this.loc);
+				try{
+					this.rtnv = new IntValue(~v1.value, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -1870,9 +1978,16 @@ class BitLShift extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
 			else
 			{
-				if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
-				if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-				this.rtnv = new IntValue(v1.value << v2.value, this.loc);
+				try{
+					v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+					v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
+					this.rtnv = new IntValue(v1 << v2, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -1933,9 +2048,16 @@ class BitRShift extends Value
 			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
 			else
 			{
-				if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
-				if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-				this.rtnv = new IntValue(v1.value >> v2.value, this.loc);
+				try{
+					v1 = v1 instanceof BooleanValue ? (v1.value ? 1 : 0) : v1.value;
+					v2 = v2 instanceof BooleanValue ? (v2.value ? 1 : 0) : v2.value;
+					this.rtnv = new IntValue(v1 >> v2, this.loc);
+				}
+				catch(e)
+				{
+					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					else throw e;
+				}
 			}
 			this.state = 0;
 		}
@@ -2902,7 +3024,7 @@ var definedFunction = {
 	}, null, null),
 	"abs": new DefinedFunction(1, function (param, loc){
 		var par1 = param[0].getValue();
-		if(par1 instanceof IntValue) return new IntValue(Math.abs(par1.value), loc);
+		if(par1 instanceof IntValue) return new IntValue(Math.abs(Number(par1.value)), loc);
 		else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);
 		else throw new RuntimeError(loc.first_line, "absは数値にしか使えません");
 	}, null, null),
@@ -2910,7 +3032,7 @@ var definedFunction = {
 		if(param.length == 0) return new FloatValue(Math.random(), this.loc);
 		else{
 			var par1 = param[0].getValue();
-			if(par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(par1.value + 1)), this.loc);
+			if(par1 instanceof IntValue) return new IntValue(Math.floor(Math.random() * Math.floor(Number(par1.value) + 1)), this.loc);
 			else throw new RuntimeError(loc.first_line, "randomは整数にしか使えません");
 		} 
 	}, "random", function(argc){
@@ -2938,20 +3060,20 @@ var definedFunction = {
 	"sin": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
-			return new FloatValue(Math.sin(par1.value), this.loc);
+			return new FloatValue(Math.sin(Number(par1.value)), this.loc);
 		else throw new RuntimeError(loc.first_line, "sinは数値にしか使えません");
 	}, "math", null),
 	"cos": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
-			return new FloatValue(Math.cos(par1.value), this.loc);
+			return new FloatValue(Math.cos(Number(par1.value)), this.loc);
 		else throw new RuntimeError(loc.first_line, "cosは数値にしか使えません");
 	}, "math", null),
 	"tan": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			let v = Math.tan(par1.value);
+			let v = Math.tan(Number(par1.value));
 			if(isFinite(v)) return new FloatValue(v, this.loc);
 			else throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		}
@@ -2961,10 +3083,10 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			if(par1.value > 1.0 || par1.value < -1.0)
+			if(Number(par1.value) > 1.0 || Number(par1.value) < -1.0)
 				throw new RuntimeError(loc.first_line, "asinの定義域外の値が使われました");
 			else
-				return new FloatValue(Math.asin(par1.value), this.loc);
+				return new FloatValue(Math.asin(Number(par1.value)), this.loc);
 		}
 		else throw new RuntimeError(loc.first_line, "asinは数値にしか使えません");
 	}, "math", null),
@@ -2972,17 +3094,17 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			if(par1.value > 1.0 || par1.value < -1.0)
+			if(Number(par1.value) > 1.0 || Number(par1.value) < -1.0)
 				throw new RuntimeError(loc.first_line, "acosの定義域外の値が使われました");
 			else
-				return new FloatValue(Math.acos(par1.value), this.loc);
+				return new FloatValue(Math.acos(Number(par1.value)), this.loc);
 		}
 		else throw new RuntimeError(loc.first_line, "acosは数値にしか使えません");
 	}, "math", null),
 	"atan": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
-			return new FloatValue(Math.atan(par1.value), this.loc);
+			return new FloatValue(Math.atan(Number(par1.value)), this.loc);
 		else throw new RuntimeError(loc.first_line, "atanは数値にしか使えません");
 	}, "math", null),
 	"atan2": new DefinedFunction(2, function(param, loc){
@@ -2990,15 +3112,15 @@ var definedFunction = {
 		var par2 = param[1].getValue();
 		if((par1 instanceof IntValue || par1 instanceof FloatValue) && 
 			(par2 instanceof IntValue || par2 instanceof FloatValue))
-			return new FloatValue(Math.atan2(par1.value, par2.value), this.loc);
+			return new FloatValue(Math.atan2(Number(par1.value), Number(par2.value)), this.loc);
 		else throw new RuntimeError(loc.first_line, "atan2は数値にしか使えません");
 	}, "math", null),
 	"sqrt": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			if(par1.value < 0) throw new RuntimeError(loc.first_line, "負の数のルートを求めようとしました");
-			return new FloatValue(Math.sqrt(par1.value), this.loc);
+			if(Number(par1.value) < 0) throw new RuntimeError(loc.first_line, "負の数のルートを求めようとしました");
+			return new FloatValue(Math.sqrt(Number(par1.value)), this.loc);
 		}
 		else throw new RuntimeError(this.first_line, "sqrtは数値にしか使えません");
 	}, "math", null),
@@ -3006,8 +3128,8 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			if(par1.value <= 0) throw new RuntimeError(loc.first_line, "正でない数の対数を求めようとしました");
-			let v = Math.log(par1.value);
+			if(Number(par1.value) <= 0) throw new RuntimeError(loc.first_line, "正でない数の対数を求めようとしました");
+			let v = Math.log(Number(par1.value));
 			if(isFinite(v)) return new FloatValue(v, this.loc);
 			throw new RuntimeError(this.first_line, "オーバーフローしました");
 		}
@@ -3017,7 +3139,7 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
-			let v = Math.exp(par1.value);
+			let v = Math.exp(Number(par1.value));
 			if(isFinite(v)) return new FloatValue(v, this.loc);
 			throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		}
@@ -3026,19 +3148,19 @@ var definedFunction = {
 	"pow": new DefinedFunction(2, function(param, loc){
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
-		if(par1 instanceof IntValue && par2 instanceof IntValue && par2.value >= 0)
+		if(par1 instanceof IntValue && par2 instanceof IntValue)
 		{
 			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
-			let v = Math.pow(par1.value, par2.value);
-			if(isSafeInteger(v)) return new IntValue(v, this.loc);
-			else throw new RuntimeError(loc.first_line, "整数で表せる範囲を越えました");
+			return par2.value >= 0 ? new IntValue(par1.value ** par2.value, this.loc) : new FloatValue(par1.value ** par2.value, this.loc);
 		}
 		else if((par1 instanceof IntValue || par1 instanceof FloatValue) &&
 			(par2 instanceof IntValue || par2 instanceof FloatValue))
 		{
-			if(par1.value < 0 && !Number.isInteger(par2.value)) throw new RuntimeError(loc.first_line, "負の数の非整数乗はできません");
-			if(par1.value == 0 && par2.value <= 0) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
-			let v = Math.pow(par1.value, par2.value);
+			par1 = Number(par1.value);
+			par2 = Number(par2.value);
+			if(par1 < 0 && !Number.isInteger(par2)) throw new RuntimeError(loc.first_line, "負の数の非整数乗はできません");
+			if(par1 == 0 && par2 <= 0) throw new RuntimeError(loc.first_line, "0は正の数乗しかできません");
+			let v = par1 ** par2;
 			if(isFinite(v)) return new FloatValue(v, this.loc);
 			else throw new RuntimeError(loc.first_line, "オーバーフローしました");
 		}
@@ -3061,8 +3183,8 @@ var definedFunction = {
 			(par3 == null || par3 instanceof IntValue))
 		{
 			var v;
-			if(par3 == null) v = par1.value.substr(par2.value);
-			else v = par1.value.substr(par2.value, par3.value);
+			if(par3 == null) v = par1.value.substr(Number(par2.value));
+			else v = par1.value.substr(Number(par2.value), Number(par3.value));
 			return new StringValue(v, this.loc);
 		}
 		else throw new RuntimeError(loc.first_line, "substringの引数の型が違います");
@@ -3122,7 +3244,7 @@ var definedFunction = {
 		if(par1 instanceof StringValue && par2 instanceof IntValue && par3 instanceof StringValue)
 		{
 			var v1 = par1.value;
-			var v2 = par2.value;
+			var v2 = Number(par2.value);
 			var v3 = par3.value;
 			if(v2 < 0 || v2 > v1.length) throw new RuntimeError(loc.first_line, "位置の値が不正です");
 			var s1 = v1.substr(0, v2);
@@ -3141,8 +3263,8 @@ var definedFunction = {
 		if(par1 instanceof StringValue && par2 instanceof IntValue && par3 instanceof IntValue && par4 instanceof StringValue)
 		{
 			var v1 = par1.value;
-			var v2 = par2.value;
-			var v3 = par3.value;
+			var v2 = Number(par2.value);
+			var v3 = Number(par3.value);
 			var v4 = par4.value;
 
 			if(v2 < 0 || v2 > v1.length) throw new RuntimeError(loc.first_line, "位置の値が不正です");
@@ -3676,10 +3798,10 @@ class CallStep extends Statement {
 	}
 	clone()
 	{
-		var params = [];
-		for(param of this.args) params.push(param);
-		return new CallStep(this.funcName, params, this.loc);
-	}  
+		var parms = [];
+		for(var arg of this.args) parms.push(arg);
+		return new CallStep(this.funcName, parms, this.loc);
+	}
 	run() {
 		if(this.state == 0)
 		{
@@ -3914,6 +4036,11 @@ function argsString(args)
 	return '';
 }
 
+function SameSignBigInt(a, b)
+{
+	return (a >= 0 && b >= 0) || (a < 0 && b < 0);
+}
+
 class Assign extends Statement
 {
 	/**
@@ -3971,7 +4098,7 @@ class Assign extends Statement
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の足し算はまだサポートしていません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) v3 = new StringValue(String(v1.value) + String(v2.value), this.loc);
 						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value + v2.value, this.loc);
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(v1.value + v2.value, this.loc);
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(Number(v1.value) + Number(v2.value), this.loc);
 						break;
 					case '-':
 						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
@@ -3980,7 +4107,7 @@ class Assign extends Statement
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の引き算はできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
 						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value - v2.value, this.loc);
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(v1.value - v2.value, this.loc);
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(Number(v1.value) - Number(v2.value), this.loc);
 						break;
 					case '*':
 						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
@@ -3989,11 +4116,11 @@ class Assign extends Statement
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の掛け算はできません");
 						else if(v1 instanceof StringValue)
 						{
-							if(v2 instanceof IntValue) v3 = new StringValue(v1.value.repeat(v2.value >= 0 ? v2.value : 0), this.loc);
+							if(v2 instanceof IntValue) v3 = new StringValue(v1.value.repeat(v2.value >= 0 ? Number(v2.value) : 0), this.loc);
 							else throw new RuntimeError(this.first_line, "文字列に掛けられるのは整数だけです")
 						}
 						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value * v2.value, this.loc);
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(v1.value * v2.value, this.loc);
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(Number(v1.value) * Number(v2.value), this.loc);
 						break;
 					case '/':
 						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
@@ -4004,7 +4131,7 @@ class Assign extends Statement
 						else
 						{
 							if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							else v3 = new FloatValue(v1.value / v2.value, this.loc);
+							else v3 = new FloatValue(Number(v1.value) / Number(v2.value), this.loc);
 						}
 						break;
 					case '//':
@@ -4013,12 +4140,17 @@ class Assign extends Statement
 						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の割り算はできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+						else if(v1 instanceof IntValue && v2 instanceof IntValue)
+						{
+							let q = v1.value / v2.value, r = v1.value % v2.value;
+							if(!SameSignBigInt(v1.value, v2.value) && r != 0) q--;
+							v3 = new IntValue(q, this.loc);
+						}
 						else
 						{
-							if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							let v4 = Math.floor(v1.value / v2.value);
-							if(v1 instanceof IntValue && v2 instanceof IntValue ) v3 = new IntValue(v4, this.loc);
-							else v3 = new FloatValue(v4, this.loc);
+							if(Number(v2.value) == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
+							let v4 = Math.floor(Number(v1.value) / Number(v2.value));
+							v3 = new FloatValue(v4, this.loc);
 						}
 						break;
 					case '%':
@@ -4027,12 +4159,17 @@ class Assign extends Statement
 						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の割り算はできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+						else if(v1 instanceof IntValue && v2 instanceof IntValue)
+						{
+							let q = v1.value / v2.value, r = v1.value % v2.value;
+							if(!SameSignBigInt(v1.value, v2.value) && r != 0) q--;
+							v3 = new IntValue(r - q * v2.value, this.loc);
+						}
 						else
 						{
-							if(v2.value == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							let v4 = v1.value - Math.floor(v1.value / v2.value) * v2.value;
-							if(v1 instanceof IntValue && v2 instanceof IntValue ) v3 = new IntValue(v4, this.loc);
-							else v3 = new FloatValue(v4, this.loc);
+							if(Number(v2.value) == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
+							let v4 = Math.floor(Number(v1.value) / Number(v2.value));
+							v3 = new FloatValue(Number(v1.value) - v4 * Number(v2.value), this.loc);
 						}
 						break;
 					case '&':
@@ -4045,7 +4182,7 @@ class Assign extends Statement
 						{
 							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
 							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-							v3 = new IntValue(v1.value & v2.value, this.loc);
+							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value & v2.value, this.loc);
 						} 
 						break;
 					case '|':
@@ -4058,7 +4195,7 @@ class Assign extends Statement
 						{
 							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
 							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-							v3 = new IntValue(v1.value | v2.value, this.loc);
+							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value | v2.value, this.loc);
 						} 
 						break;
 					case '^':
@@ -4071,7 +4208,7 @@ class Assign extends Statement
 						{
 							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
 							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-							v3 = new IntValue(v1.value ^ v2.value, this.loc);
+							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value ^ v2.value, this.loc);
 						} 
 						break;
 					case '<<':
@@ -4084,7 +4221,7 @@ class Assign extends Statement
 						{
 							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
 							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-							v3 = new IntValue(v1.value << v2.value, this.loc);
+							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value << v2.value, this.loc);
 						} 
 						break;
 					case '>>':
@@ -4097,7 +4234,7 @@ class Assign extends Statement
 						{
 							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
 							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
-							v3 = new IntValue(v1.value >> v2.value, this.loc);
+							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value >> v2.value, this.loc);
 						} 
 						break;
 					}
@@ -5621,8 +5758,9 @@ function run(clear = true)
 		{
 			if(selected_quiz < 0)
 			{
+				textareaAppend("***構文エラー***\n");
 				if(e.line) textareaAppend(e.line + "行目");
-				textareaAppend("構文エラーです\n" + e.message + "\n");
+				textareaAppend(e.message + "\n");
 				reset(false);
 				return;
 			}
@@ -5691,8 +5829,10 @@ function next_line()
 		{
 			if(selected_quiz < 0)
 			{
-				if(e instanceof RuntimeError) textareaAppend("\n" + e.line + "行目:" + e.message + "\n");
-				else textareaAppend("実行時エラーです（おそらくPyPENのバグなので，開発者に連絡してください）\n" + e + "\n");
+				if(e.line) textareaAppend(e.line + "行目:");
+				if(e instanceof RuntimeError) textareaAppend(e.message + "\n");
+				else if(e instanceof RangeError) textareaAppend("計算できない値があります。\n" + e.message + "\n");
+				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n");
 				reset(false);
 			}
 			else throw e;
@@ -8269,7 +8409,7 @@ function makePython()
 	{
 		highlightLine(-1);
 		textareaClear();
-		if(e.line && e.line > 0) textareaAppend(e.line + "行目構文エラーです\n");
+		if(e.line && e.line > 0) textareaAppend("***構文エラー***\n" + e.line + "行目\n");
 		textareaAppend(e.message);
 	}
 }

@@ -18,7 +18,7 @@ function python_to_dncl(code)
     var ignore_spaces = false;
     for(var i = 0; i < python_lines.length; i++)
     {
-        var line = python_lines[i].trimRight();
+        var line = python_lines[i].trimEnd();
         var result = /^([ 　]*)(.*)$/.exec(line);
         if(i < python_lines.length - 1 && result && !result[2])
         {
