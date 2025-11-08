@@ -3002,6 +3002,39 @@ class DefinedFunction
  * 定義済み関数一覧
  */
 var definedFunction = {
+	"range": new DefinedFunction([1,3], function(param, loc){
+		var par1 = BigInt(0), par2, par3 = BigInt(1);
+		if(param.length == 1)
+		{
+			par2 = param[0].getValue().value;
+		}
+		else if(param.length == 2)
+		{
+			par1 = param[0].getValue().value;
+			par2 = param[1].getValue().value;
+		}
+		else
+		{
+			par1 = param[0].getValue().value;
+			par2 = param[1].getValue().value;
+			par3 = param[2].getValue().value;
+		}
+		var args = [];
+		if(par3 ==0) throw new RuntimeError(loc.first_line, "rangeのステップに0は指定できません");
+		if(typeof par1 == 'bigint' && typeof par2 == 'bigint' && typeof par3 == 'bigint')
+		{
+			if(par3 > 0)
+			{
+				for(let i = par1; i < par2; i += par3) args.push(new IntValue(i, loc));
+			}
+			else
+			{
+				for(let i = par1; i > par2; i += par3) args.push(new IntValue(i, loc));
+			}
+			return new ArrayValue(args, this.loc);
+		}
+		else throw new RuntimeError(loc.first_line, "rangeの引数は整数にしてください");
+	},null, null),
 	"keys": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof DictionaryValue)
