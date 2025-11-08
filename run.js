@@ -461,7 +461,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 		else if(arg instanceof StringValue)
 		{
 			if(v.getValue() instanceof DictionaryValue) v.getValue().value[arg.value] = newval.clone();
-			else throw new RuntimeError(loc.first_line, "文字列の添字は辞書にしか使えません");
+			else throw new RuntimeError(loc.first_line, "`文字列の添字は`辞書にしか使えません");
 		}
 		else if(arg instanceof SliceValue)
 		{
@@ -670,7 +670,7 @@ class DictionaryValue extends Value
 				this.value.set(v[i].getValue1().getValue().value, v[i].getValue2());
 			else throw new RuntimeError(loc.first_line, "辞書の初期化が間違っています");
 		}
-		this.rtnv = this.value;
+		this.rtnv = null;
 		this.state = 0;
 	}
 	clone()
@@ -730,7 +730,7 @@ class DictionaryValue extends Value
 	}
 	getValue()
 	{
-		return this.rtnv;
+		return this.rtnv ? this.rtnv : this;
 	}
 }
 
@@ -738,14 +738,6 @@ class IntValue extends Value
 {
 	constructor(v, loc)
 	{
-		if(typeof(v) == "number")
-		{
-			if(!isSafeInteger(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
-		}
-		else if(typeof(v) == "string")
-		{
-			if(!/-?\d+/.exec(v)) throw new RuntimeError(this.first_line, "整数で表せない値です");
-		}
 		try{
 			super(BigInt(v), loc);
 		}
@@ -3652,7 +3644,7 @@ var definedStep = {
 		if(par1 instanceof IntValue && par2 instanceof StringValue)
 		{
 			var str = array2text(par2);
-			var rtnv = filesystem.write_str(par1.value, str, true);
+			var rtnv = filesystem.write_str(par1.value, str, false);
 			if(!rtnv) throw new RuntimeError(this.first_line, "呼び出しが不正です");
 		}
 		else throw new RuntimeError(this.first_line, "呼び出しが不正です");
