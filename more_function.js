@@ -155,61 +155,28 @@ var functions = {
 		}
 		else throw new RuntimeError(loc.first_line, '引数は非負整数です');
 	}, null, null),
+	"swap": new DefinedFunction(2, function(param, loc){
+		var par1 = param[0], par2 = param[1];
+		if(par1 instanceof Variable && par2 instanceof Variable)
+		{
+			var vt1 = findVarTable(par1.varname);
+			var vt2 = findVarTable(par2.varname);
+			var val1 = getValueByArgs(vt1.vars[par1.varname], par1.args ? par1.args.value : null, loc);
+			var val2 = getValueByArgs(vt2.vars[par2.varname], par2.args ? par2.args.value : null, loc);
+			setVariableByArgs(vt1, par1.varname, par1.args ? par1.args.value : null, val2.getValue(), loc);
+			setVariableByArgs(vt2, par2.varname, par2.args ? par2.args.value : null, val1.getValue(), loc);
+			return new NullValue(loc);
+		}
+		else throw new RuntimeError(loc.first_line, "swapの引数は変数にしてください");
+	},null, function(argc){
+		return argc[0] + ", " + argc[1] + " = " + argc[1] + ", " + argc[0];
+	}),
 
 
 };
 
 
-/*
-ascii
-bin
-bool
-float
-format
-hex
-int
-max
-min
-oct
-ord
-reversed
-round
-sorted
-str
-
----math---
-factorial
-gcd
-lcm
-perm
-comb
-ceil
-fabs
-fma
-fmod
-modf
-remainder
-trunc
-cbrt
-sqrt
-exp
-log
-sinh, cosh, tanh
-acosh, asinh, atanh
-erf,gamma
-pi
-e
-tau
-*/
-
 var steps = {
-    "swap": new DefinedStep(2, function(param, loc){
-		var par1 = param[0].getValue();
-		var par2 = param[1].getValue();
-        if(!(par1 instanceof VariableValue) || !(par2 instanceof VariableValue))
-            throw new RuntimeError(loc.first_line, '引数は変数でなければなりません');
-        // 入れ替えを実装する（代入を呼び出す）
-	}, null, null),
 
 };
 

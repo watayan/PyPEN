@@ -3045,21 +3045,51 @@ class DefinedFunction
  * 定義済み関数一覧
  */
 var definedFunction = {
-	"swap": new DefinedFunction(2, function(param, loc){
-		var par1 = param[0], par2 = param[1];
-		if(par1 instanceof Variable && par2 instanceof Variable)
+	"match": new DefinedFunction(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if(!(par1 instanceof StringValue) || !(par2 instanceof StringValue)) throw new RuntimeError(loc.first_line, "matchの引数は文字列にしてください");
+		var re = RegExp(par1.value);
+		var result = re.exec(par2.value);
+		if(result)
 		{
-			var vt1 = findVarTable(par1.varname);
-			var vt2 = findVarTable(par2.varname);
-			var val1 = getValueByArgs(vt1.vars[par1.varname], par1.args ? par1.args.value : null, loc);
-			var val2 = getValueByArgs(vt2.vars[par2.varname], par2.args ? par2.args.value : null, loc);
-			setVariableByArgs(vt1, par1.varname, par1.args ? par1.args.value : null, val2.getValue(), loc);
-			setVariableByArgs(vt2, par2.varname, par2.args ? par2.args.value : null, val1.getValue(), loc);
-			return new NullValue(loc);
+			var a = [];
+			for(let i = 0; i < result.length; i++) a.push(new StringValue(result[i], loc));
+			return new ArrayValue(a, loc);
 		}
-		else throw new RuntimeError(loc.first_line, "swapの引数は変数にしてください");
-	},null, function(argc){
-		return argc[0] + ", " + argc[1] + " = " + argc[1] + ", " + argc[0];
+		return new ArrayValue([], loc);
+	}, null, function(argc){
+		return "re.match(" + argc[0] + ", " + argc[1] + ").groups()";
+	}),
+	"typeis": new DefinedFunction(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		var result = false;
+		if(!(par2 instanceof StringValue)) throw new RuntimeError(loc.first_line, "typeisの第2引数は文字列にしてください");
+		if(par1 instanceof IntValue) result = par2.value.match(/^整数|int|integer$/i);
+		else if(par1 instanceof FloatValue) result = par2.value.match(/^実数|float|double$/i);
+		else if(par1 instanceof StringValue) result = par2.value.match(/^文字列|string$/i);
+		else if(par1 instanceof BooleanValue) result = par2.value.match(/^真偽|bool|boolean$/i);
+		else if(par1 instanceof ArrayValue) result = par2.value.match(/^(リスト|list|array)$/i);
+		else if(par1 instanceof DictionaryValue) result = par2.value.match(/^辞書|dictionary|dict$/i);
+		else if(par1 instanceof NullValue) result = false;
+		else throw new RuntimeError(loc.first_line, "不明な型です");
+		return new BooleanValue(result, loc);
+	}, null, function(argc){
+		return "isinstance(" + argc[0] + ", " + argc[1] + ")";
+	}),
+	"typeof": new DefinedFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof IntValue) return new StringValue("整数", loc);
+		else if(par1 instanceof FloatValue) return new StringValue("実数", loc);
+		else if(par1 instanceof StringValue) return new StringValue("文字列", loc);
+		else if(par1 instanceof BooleanValue) return new StringValue("真偽", loc);
+		else if(par1 instanceof ArrayValue) return new StringValue("リスト", loc);
+		else if(par1 instanceof DictionaryValue) return new StringValue("辞書", loc);
+		else if(par1 instanceof NullValue) return new StringValue("", loc);
+		else throw new RuntimeError(loc.first_line, "不明な型です");
+	}, null, function(argc){
+		return "type(" + argc[0] + ")";
 	}),
 	"range": new DefinedFunction([1,3], function(param, loc){
 		var par1 = BigInt(0), par2, par3 = BigInt(1);
