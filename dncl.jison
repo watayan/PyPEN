@@ -74,6 +74,7 @@ Print			[Pp][Rr][Ii][Nn][Tt]
 Return			[Rr][Ee][Tt][Uu][Rr][Nn]
 Pass			[Pp][Aa][Ss][Ss]
 Break			[Bb][Rr][Ee][Aa][Kk]
+Def				[Dd][Ee][Ff]
 Identifier		{IdentifierStart}{IdentifierPart}*
 Add				[+＋]
 Del				[-ー−‐]
@@ -165,6 +166,7 @@ Whitespace		[ 　]
 {Return}					{return 'return';}
 {Pass}						{return 'pass';}
 {Break}						{return 'break';}
+{Def}						{return 'def';}
 "■"							{return 'ブロック終端'}
 "を"{Output}"する"			{return 'を表示する';}
 "を改行無しで"{Output}"する"	{return 'を改行無しで表示する';}
@@ -448,6 +450,9 @@ DumpStatement
 DefineFuncStatement
 	: '関数' '識別子' '(' args ')' ':' '改行' statementlist
 		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @8));}
+	| 'def' '識別子' '(' args ')' ':' '改行' statementlist
+		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @8));}
+
 	;
 
 ReturnStatement
