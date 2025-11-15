@@ -271,7 +271,7 @@ Whitespace		[ 　]
 "copy"						{return 'copy';}
 "複製"						{return 'copy';}
 {Identifier}				{return '識別子';}
-{Comment}					{return '改行';}
+{Comment}					{}
 <<EOF>>						{return 'EOF';}
 {Newline}					{return '改行';}
 {Whitespace}				/* skip whitespace */
