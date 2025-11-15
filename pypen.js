@@ -42,11 +42,11 @@ function python_to_dncl(code)
             while(!ignore_spaces && spaces < pre_spaces[0])
             {
                 var indent = pre_spaces.shift();
-                if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです2"};
+                if(indent == null) throw {"message":(i+1) + "行目行頭の空白の数がおかしいです"};
                 if(spaces <=indent)
                 {
-                    if(spaces < indent && (deindent || !/^(そうでなければ|そうでなくもし.*)[：:]$/.exec(result[2])))
-                    {
+                    // if(spaces < indent && (deindent || !/^(そうでなければ|そうでなくもし.*)[：:]$/.exec(result[2]))){
+                    if(spaces < indent){
                         dncl_lines.push('■');
                     }
                     deindent = true;

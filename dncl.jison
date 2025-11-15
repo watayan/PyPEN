@@ -41,14 +41,13 @@ OctDigit		[0-7０-７]
 Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]{DecimalDigit}+)
 Integer			({NonZeroDigit}{DecimalDigit}*) | ("0x"{HexDigit}+) | ("0b"{ZeroOneDigit}+) | ("0o"{OctDigit}+) | [0０]
 String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
-Print			"表示"|"印刷"|"出力"
-Newline			\r\n|\r|\n
+Output			"表示"|"印刷"|"出力"
+Newline			(\r\n|\r|\n)+
 UNDEFINED		"《"[^》]*"》"
 IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ]
 IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
-Identifier		{IdentifierStart}{IdentifierPart}*
-StringTrue		\b("真"|[Tt][Rr][Uu][Ee])\b
-StringFalse		\b("偽"|[Ff][Aa][Ll][Ss][Ee])\b
+StringTrue		"真"|[Tt][Rr][Uu][Ee]
+StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 EQEQ			[\=＝][\=＝]
 Assign			[\=＝]
 AssignAdd		[\+＋][\=＝]
@@ -66,6 +65,16 @@ In				\b[Ii][Nn]\b
 And				\b[Aa][Nn][Dd]\b
 Or				\b[Oo][Rr]\b
 Not				\b[Nn][Oo][Tt]\b
+If				\b"if"\b
+Elif			\b"elif"\b
+Else			"else"
+While			\b"while"\b
+For				\b"for"\b
+Print			\b[Pp][Rr][Ii][Nn][Tt]\b
+Return			\b"return"\b
+Pass			\b"pass"\b
+Break			\b"break"\b
+Identifier		{IdentifierStart}{IdentifierPart}*
 Add				[+＋]
 Del				[-ー−‐]
 Pow				[\*＊×][\*＊×]
@@ -147,13 +156,22 @@ Whitespace		[ 　]
 {Or}						{return 'or';}
 {Not}						{return 'not';}
 {In}						{return 'in';}
+{If}						{return 'if';}
+{Elif}						{return 'elif';}
+{Else}						{return 'else';}
+{While}						{return 'while';}
+{For}						{return 'for';}
+{Print}						{return 'print';}
+{Return}					{return 'return';}
+{Pass}						{return 'pass';}
+{Break}						{return 'break';}
 "■"							{return 'ブロック終端'}
-"を"{Print}"する"			{return 'を表示する';}
-"を改行無しで"{Print}"する"	{return 'を改行無しで表示する';}
-"を改行なしで"{Print}"する"	{return 'を改行無しで表示する';}
-{Print}"する"				{return '表示する';}
-"改行無しで"{Print}"する"	{return '改行無しで表示する';}
-"改行なしで"{Print}"する"	{return '改行無しで表示する';}
+"を"{Output}"する"			{return 'を表示する';}
+"を改行無しで"{Output}"する"	{return 'を改行無しで表示する';}
+"を改行なしで"{Output}"する"	{return 'を改行無しで表示する';}
+{Output}"する"				{return '表示する';}
+"改行無しで"{Output}"する"	{return '改行無しで表示する';}
+"改行なしで"{Output}"する"	{return '改行無しで表示する';}
 "入力する"					{return '入力する';}
 "もし"						{return 'もし';}
 "ならば"					{return 'ならば';}
@@ -163,8 +181,14 @@ Whitespace		[ 　]
 "繰り返しを抜ける"			{return '繰り返しを抜ける';}
 "繰返しを抜ける"			{return '繰り返しを抜ける';}
 "くりかえしを抜ける"		{return '繰り返しを抜ける';}
-"手続きを抜ける"			{return '手続きを抜ける';}
-"手続き"					{return '手続き';}
+"繰り返しをぬける"			{return '繰り返しを抜ける';}
+"繰返しをぬける"			{return '繰り返しを抜ける';}
+"くりかえしをぬける"		{return '繰り返しを抜ける';}
+"手続きを抜ける"			{return '関数を抜ける';}
+"関数を抜ける"				{return '関数を抜ける';}
+"手続きをぬける"			{return '関数を抜ける';}
+"関数をぬける"				{return '関数を抜ける';}
+"手続き"					{return '関数';}
 "関数"						{return '関数';}
 "を返す"					{return 'を返す';}
 "の中に"					{return 'の中に';}
@@ -254,12 +278,13 @@ Whitespace		[ 　]
 
 /lex
 
+%right '=' '+=' '-=' '*=' '/=' '//=' '%=' '&=' '|=' '^=' '<<=' '>>='
 %left 'と'
 %left 'or'
 %left 'and' 
 %right 'not'
 %right 'の中に'
-%left '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in' '='
+%left '==' '!=' '>' '<' '>=' '<=' 'in'  'not_in'
 %right '個の'
 %left '|'
 %left '^'
@@ -269,6 +294,8 @@ Whitespace		[ 　]
 %left '*' '/' '//' '%'
 %left UMINUS '~'
 %right '**'
+%right ELSE_PREC
+%nonassoc 'else' 'そうでなければ' 'elif' 'そうでなくもし'
 %
 %start Program
 
@@ -313,13 +340,37 @@ e
 	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
 	| '文字列' '(' e ')' {$$ = new ConvertString($3, new Location(@1, @4));}
 	| '真偽' '(' e ')' {$$ = new ConvertBool($3, new Location(@1, @4));}
-	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@1));}
+	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@4));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
 	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1, @4));}
 	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
 	| '{' '改行' args '}'	{$$ = new DictionaryValue($3, new Location(@1, @4));}
 	| e '個の' e	{$$ = new NumberOf($1, $3, new Location(@1, @3));}
+	| e '=' e
+		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
+	| e '+=' e
+		{$$ = new Assign($1, $3, '+', new Location(@1,@3));}
+	| e '-=' e
+		{$$ = new Assign($1, $3, '-', new Location(@1,@3));}
+	| e '*=' e
+		{$$ = new Assign($1, $3, '*', new Location(@1,@3));}
+	| e '/=' e
+		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
+	| e '//=' e
+		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
+	| e '%=' e
+		{$$ = new Assign($1, $3, '%', new Location(@1,@3));}
+	| e '&=' e
+		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
+	| e '|=' e
+		{$$ = new Assign($1, $3, '|', new Location(@1,@3));}
+	| e '^=' e
+		{$$ = new Assign($1, $3, '^', new Location(@1,@3));}
+	| e '<<=' e
+		{$$ = new Assign($1, $3, '<<', new Location(@1,@3));}
+	| e '>>=' e
+		{$$ = new Assign($1, $3, '>>', new Location(@1,@3));}
 	;
 
 variable
@@ -347,14 +398,18 @@ args
 	|   { $$ = [];}
 	;
 
+statements
+	: statements statement { if($2 != null) $$ = $1.concat($2);}
+	| statements '改行' { $$ = $1;}
+	| statement {$$ = [$1];}
+	;
+
 statementlist
-	: statementlist statement	{ if($2 != null) $$ = $1.concat($2);}
-	| statement	{$$ = [$1];}
+	: statements 'ブロック終端' '改行' { $$ = $1;}
 	;
 
 statement
-	: EmptyStatement
-	| CallStatement
+	: ExpressionStatement
 	| AssignStatement
 	| PrintStatement
 	| InputStatement
@@ -373,13 +428,15 @@ statement
 NopStatement
 	: '何もしない' '改行'
 		{$$ = new NopStatement(new Location(@1,@1));}
+	| 'pass' '改行'
+		{$$ = new NopStatement(new Location(@1, @1));}
 	| '一時停止する' '改行'
 		{$$ = new PauseStatement(new Location(@1, @1));}
 	;
 
- EmptyStatement
- 	: '改行' {$$ = null;}
- 	;
+ExpressionStatement
+	: e '改行' {$$ = $1;}
+	;
 
 DumpStatement
 	: '変数を確認する' '改行'
@@ -389,139 +446,130 @@ DumpStatement
 	;
 
 DefineFuncStatement
-	: '手続き' '識別子' '(' args ')' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new DefineStep($2, $4, $8, new Location(@1, @9));}
-	| '関数' '識別子' '(' args ')' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @9));}
+	: '関数' '識別子' '(' args ')' ':' '改行' statementlist
+		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @8));}
 	;
 
 ReturnStatement
 	: '手続きを抜ける' '改行' {$$ = new ExitStatement(new Location(@1,@1));}
-	| e 'を返す' '改行' 
-		{$$ = new ReturnStatement($1, new Location(@1, @2));}
-	;
-
-CallStatement
-	: '識別子' '(' args ')' '改行' 
-		{$$ = new CallStep($1, $3, new Location(@1,@4));}
-	;
-
-If_If
-	: 'もし' e 'ならば' ':' '改行' statementlist
-		{$$ = [$2, $6];}
-	| 'もし' e 'ならば' ':' statement
-		{$$ = [$2, [$5]];}
-	;
-
-If_EndIf
-	: 'ブロック終端' '改行'
-	  {$$ = null;}
-	;
-
-If_Else
-	: 'そうでなければ' ':' '改行' statementlist
-		{$$ = [null, $4];}
-	;
-
-If_ElseIf
-	: 'そうでなくもし' e 'ならば' ':' '改行' statementlist
-		{$$ = [$2, $6];}
-	;
-
-If_ElseIfs
-	: If_ElseIfs If_ElseIf
-		{$1.push($2); $$ = $1;}
-	| If_ElseIf
-		{$$ = [$1];}
+	| '関数を抜ける' '改行'   {$$ = new ExitStatement(new Location(@1,@1));}
+	| 'return' '改行'		  {$$ = new ExitStatement(new Location(@1,@1));}
+	| e 'を返す' '改行'       {$$ = new ReturnStatement($1, new Location(@1, @2));}
+	| 'return' e '改行'		  {$$ = new ReturnStatement($2, new Location(@1, @2));}
 	;
 
 IfStatement
-	: If_If If_ElseIfs If_Else If_EndIf
-		{ tmp = [$1]; tmp = tmp.concat($2); tmp.push($3); $$ = new If(tmp, new Location(@1, @3))}
-	| If_If If_ElseIfs If_EndIf
-		{ tmp = [$1]; tmp = tmp.concat($2); $$ = new If(tmp, new Location(@1, @3))}
-	| If_If If_Else If_EndIf
-		{ tmp = [$1]; tmp.push($2); $$ = new If(tmp, new Location(@1, @3))}
-	| If_If If_EndIf
-		{ tmp = [$1]; $$ = new If(tmp, new Location(@1, @1))}
+	: If ElseIfList ElsePart
+		{var tmp = [$1]; 
+		tmp = tmp.concat($2); 
+		tmp.push($3); 
+		$$ = new If(tmp, new Location(@1, @3));}
+	| If ElsePart %prec ELSE_PREC
+		{var tmp = [$1]; 
+		tmp.push($2); 
+		$$ = new If(tmp, new Location(@1, @2));}
+	| If %prec ELSE_PREC
+		{var tmp = [$1]; 
+		$$ = new If(tmp, new Location(@1, @1));}
+	;
+
+If
+	: 'もし' e 'ならば' ':' '改行' statementlist
+		{$$ = [$2, $6];}
+	| 'if' e ':' '改行' statementlist
+		{$$ = [$2, $5];}
+	| 'もし' e 'ならば' ':' statement
+		{$$ = [$2, [$5]];}
+	| 'if' e ':' statement
+		{$$ = [$2, [$4]];}
+	;
+
+ElsePart
+	: 'そうでなければ' ':' '改行' statementlist
+		{$$ = [null, $4];}
+	| 'else' ':' '改行' statementlist
+		{$$ = [null, $4];}
+	| 'そうでなければ' ':' statement
+		{$$ = [null, [$3]];}
+	| 'else' ':' statement
+		{$$ = [null, [$3]];}
+	;
+
+Elif
+	: 'そうでなくもし' e 'ならば' ':' '改行' statementlist
+		{$$ = [$2, $6];}
+	| 'elif' e ':' '改行' statementlist
+		{$$ = [$2, $5];}
+	| 'そうでなくもし' e 'ならば' ':' statement
+		{$$ = [$2, [$5]];}
+	| 'elif' e ':' statement
+		{$$ = [$2, [$4]];}
+	;
+
+ElseIfList
+	: ElseIfList Elif {$1.push($2); $$ = $1;}
+	| Elif
+		{$$ = [$1];}
 	;
 
 ForStatement
-	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@14));}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@14));}
-	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ =  new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
-	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@12));}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForInc($1, $3, $5, $7,$12, new Location(@1,@13));}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForDec($1, $3, $5, $7,$12, new Location(@1,@13));}
-	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
-	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@11));}
-	| e 'の要素' e 'について' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForIn($1, $3, $8, new Location(@1,@10));}
-	| e 'の要素' e 'について' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new ForIn($1, $3, $7, new Location(@1,@9));}
+	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist
+		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@13));}
+	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist
+		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@13));}
+	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist
+		{$$ =  new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@10));}
+	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@10));}
+	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForInc($1, $3, $5, $7,$12, new Location(@1,@11));}
+	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForDec($1, $3, $5, $7,$12, new Location(@1,@11));}
+	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@9));}
+	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@9));}
+	| e 'の要素' e 'について' '繰り返す' ':' '改行' statementlist
+		{$$ = new ForIn($1, $3, $8, new Location(@1,@8));}
+	| e 'の要素' e 'について' ':' '改行' statementlist
+		{$$ = new ForIn($1, $3, $7, new Location(@1,@7));}
+	| 'for' e 'in' e ':' '改行' statementlist
+		{$$ = new ForIn($4, $2, $7, new Location(@1,@7));}
 	;
 
 WhileStatement
-	: e 'の間' '繰り返す' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new While($1, $6, new Location(@1, @7));}
-	| e 'の間' ':' '改行' statementlist 'ブロック終端' '改行'
-		{$$ = new While($1, $5, new Location(@1, @6));}
+	: e 'の間' '繰り返す' ':' '改行' statementlist
+		{$$ = new While($1, $6, new Location(@1, @6));}
+	| e 'の間' ':' '改行' statementlist
+		{$$ = new While($1, $5, new Location(@1, @5));}
+	| 'while' e ':' '改行' statementlist
+		{$$ = new While($2, $5, new Location(@1, @5));}
 	;
 
 AssignStatement
-	: e '=' e '改行'
-		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
-	| e '+=' e '改行'
-		{$$ = new Assign($1, $3, '+', new Location(@1,@3));}
-	| e '-=' e '改行'
-		{$$ = new Assign($1, $3, '-', new Location(@1,@3));}
-	| e '*=' e '改行'
-		{$$ = new Assign($1, $3, '*', new Location(@1,@3));}
-	| e '/=' e '改行'
-		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
-	| e '//=' e '改行'
-		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
-	| e '%=' e '改行'
-		{$$ = new Assign($1, $3, '%', new Location(@1,@3));}
-	| e '&=' e '改行'
-		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
-	| e '|=' e '改行'
-		{$$ = new Assign($1, $3, '|', new Location(@1,@3));}
-	| e '^=' e '改行'
-		{$$ = new Assign($1, $3, '^', new Location(@1,@3));}
-	| e '<<=' e '改行'
-		{$$ = new Assign($1, $3, '<<', new Location(@1,@3));}
-	| e '>>=' e '改行'
-		{$$ = new Assign($1, $3, '>>', new Location(@1,@3));}
-	| e 'に' e 'を' '追加する' '改行'
+	: e 'に' e 'を' '追加する' '改行'
 		{$$ = new Append($1, $3, new Location(@1,@5));}
 	| e 'に' e 'を' '連結する' '改行'
 		{$$ = new Extend($1, $3, new Location(@1,@5));}
 	;
 
 PrintStatement
-	: args 'を改行無しで表示する' '改行' 
+	: args 'を改行無しで表示する' '改行'
 		{$$ = new Output($1, false, new Location(@1,@2));}
-	| args 'を表示する' '改行' 
+	| args 'を表示する' '改行'
 		{$$ = new Output($1, true, new Location(@1,@2));}
-	| '改行無しで表示する' '(' args ')' '改行' 
-		{$$ = new Output($3, false, new Location(@1,@2));}
-	| '表示する' '(' args ')' '改行' 
-		{$$ = new Output($3, true, new Location(@1,@2));}
+	| '改行無しで表示する' '(' args ')' '改行'
+		{$$ = new Output($3, false, new Location(@1,@4));}
+	| '表示する' '(' args ')' '改行'
+		{$$ = new Output($3, true, new Location(@1,@4));}
 	| '改行する' '改行'
 		{$$ = new Newline(new Location(@1, @1));}
+	| 'print' '(' args ')' '改行'
+		{$$ = new Output($3, true, new Location(@1,@4));}
 	;
 
 InputStatement
-	: e 'に' '整数' 'を' '入力する' '改行'	
+	: e 'に' '整数' 'を' '入力する' '改行'
 		{$$ = new Input($1, typeOfValue.typeInt, new Location(@1, @4));}
 	| e 'に' '実数' 'を' '入力する' '改行'	
 		{$$ = new Input($1, typeOfValue.typeFloat, new Location(@1, @4));}
@@ -588,18 +636,11 @@ SleepStatement
 BreakStatement
 	: '繰り返しを抜ける' '改行'
 		{$$ = new BreakStatement(new Location(@1,@1));}
+	| 'break' '改行'
+		{$$ = new BreakStatement(new Location(@1,@1));}
 	;
 
 Program
-	: SourceElements 'EOF'
+	: statements 'EOF'
 	{ return $1;}
-	;
-
-SourceElements
-	: SourceElements SourceElement	{ $$ = $1.concat($2);}
-	|	{ $$ = [];}
-	;
-
-SourceElement
-	: statement
 	;
