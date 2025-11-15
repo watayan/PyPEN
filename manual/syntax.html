@@ -119,16 +119,16 @@ c[2] = 30   # aは[10,20,3]，bは[10,20,3]，cは[1,2,30]
                 追加の関数を有効にしている場合は以下のものも使える。
             <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
             <tr><td>max(《複数の値》)</td><td>最大値</td><td>max(1,5,3)→5<br>max([1,5,3])→5（他の関数も同様）</td></tr>
-            <tr><td>min(《複数の値》)</td><td>最小値</td><td>min(1,5,3)→1<br>min([1,5,3])→1（他の関数も同様）</td></tr>
-            <tr><td>median(《複数の値》)</td><td>中央値</td><td></td></tr>
-            <tr><td>sum(《複数の値》)</td><td>総和</td><td></td></tr>
-            <tr><td>prod(《複数の値》)</td><td>総積</td><td></td></tr>
-            <tr><td>sumprod(《複数の値》,《複数の値》)</td><td>積の和</td><td></td></tr>
-            <tr><td>factorial(《非負整数》)</td><td>階乗</td><td></td></tr>
-            <tr><td>comb(《非負整数》,《非負整数》)</td><td>組み合わせ</td><td></td></tr>
-            <tr><td>perm(《非負整数》,《非負整数》)</td><td>順列</td><td></td></tr>
-            <tr><td>mean(《複数の値》)</td><td>平均値</td><td></td></tr>
-            <tr><td>average(《複数の値》)</td><td>平均値</td><td></td></tr>
+            <tr><td>min(《複数の値》)</td><td>最小値</td><td>min(1,5,3)→1</td></tr>
+            <tr><td>median(《複数の値》)</td><td>中央値</td><td>median(1,5,3)→3</td></tr>
+            <tr><td>sum(《複数の値》)</td><td>総和</td><td>sum(1,5,3)→9</td></tr>
+            <tr><td>prod(《複数の値》)</td><td>総積</td><td>prod(1,5,3)→15</td></tr>
+            <tr><td>sumprod(《複数の値》,《複数の値》)</td><td>積の和</td><td></td>sumprod([1,2,3],[4,5,6])→32</td></tr>
+            <tr><td>factorial(《非負整数》)</td><td>階乗</td><td>factorial(5)→120</td></tr>
+            <tr><td>comb(《非負整数》,《非負整数》)</td><td>組み合わせ</td><td>comb(6, 2)→15</td></tr>
+            <tr><td>perm(《非負整数》,《非負整数》)</td><td>順列</td><td>perm(6, 2)→30</td></tr>
+            <tr><td>mean(《複数の値》)</td><td>平均値</td><td>mean(1,5,3)→3.0</td></tr>
+            <tr><td>average(《複数の値》)</td><td>平均値</td><td>average(1,5,3)→3.0</td></tr>
             <tr><td>pvariance(《複数の値》)</td><td>分散（nでわる）</td><td></td></tr>
             <tr><td>variance(《複数の値》)</td><td>分散（n-1でわる）</td><td></td></tr>
             <tr><td>pstdev(《複数の値》)</td><td>標準偏差（nでわる）</td><td></td></tr>
@@ -140,17 +140,17 @@ c[2] = 30   # aは[10,20,3]，bは[10,20,3]，cは[1,2,30]
             <tr><td>pnorm(《実数値》)</td><td>標準正規分布の累積分布関数の値</td><td></td></tr>
             <tr><td>qnorm(《実数値》)</td><td>pnormの逆関数</td><td></td></tr>
             <tr><td>correl(《複数の値》,《複数の値》)</td><td>相関係数</td><td></td></tr>
-            <tr><td>sorted(《リスト》)</td><td>ソートしたリストを返す</td><td></td></tr>
-            <tr><td>shuffled(《リスト》)</td><td>シャッフルしたリストを返す</td><td></td></tr>
-            <tr><td>reversed(《リスト》)</td><td>逆順のリストを返す</td><td></td></tr>
-            <tr><td>next_permutation(《リスト》)</td><td>辞書順で次の順番の順列</td><td></td></tr>
+            <tr><td>sorted(《リスト》)</td><td>ソートしたリストを返す（元のリストはそのまま）</td><td></td></tr>
+            <tr><td>shuffled(《リスト》)</td><td>シャッフルしたリストを返す（元のリストはそのまま）</td><td></td></tr>
+            <tr><td>reversed(《リスト》)</td><td>逆順のリストを返す（元のリストはそのまま）</td><td></td></tr>
+            <tr><td>next_permutation(《リスト》)</td><td>辞書順で次の順番の順列（元のリストはそのまま）</td><td></td></tr>
             <tr><td>ord(《文字》)</td><td>文字に対応する文字コード</td><td></td></tr>
             <tr><td>chr(《整数》)</td><td>文字コードに対応する文字</td><td></td></tr>
             <tr><td>gcd(《非負整数》,《非負整数》)</td><td>最大公約数</td><td></td></tr>
             <tr><td>lcm(《非負整数》,《非負整数》)</td><td>最小公倍数</td><td></td></tr>
-            <tr><td>all(《リスト》)</td><td>複数のAND</td><td></td></tr>
-            <tr><td>any(《リスト》)</td><td>複数のOR</td><td></td></tr>
-            <tr><td>swap(《変数》,《変数》)</td><td>値を入れ替える</td><td></td></tr>
+            <tr><td>all(《リスト》)</td><td>複数のAND</td><td>all(True, True, False)→False</td></tr>
+            <tr><td>any(《リスト》)</td><td>複数のOR</td><td>all(True, True, False)→True</td></tr>
+            <tr><td>swap(《変数》,《変数》)</td><td>値を入れ替える</td><td>swap(a, b)</td></tr>
             <tr><td>sort(《リスト》)</td><td>ソートする</td><td></td></tr>
             <tr><td>shuffle(《リスト》)</td><td>シャッフルする</td><td></td></tr>
             <tr><td>reverse(《リスト》)</td><td>逆順にする</td><td></td></tr>

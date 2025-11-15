@@ -2727,7 +2727,7 @@ class ConvertInt extends Value
 	}
 	clone()
 	{
-		return new ConvertInt(this.value[0], this.loc);
+		return new ConvertInt(this.value[0][0], this.loc);
 	}
 	run()
 	{
@@ -2774,7 +2774,7 @@ class ConvertFloat extends Value
 	}
 	clone()
 	{
-		return new ConvertFloat(this.value[0], this.loc);
+		return new ConvertFloat(this.value[0][0], this.loc);
 	}
 	run()
 	{
@@ -2820,7 +2820,7 @@ class ConvertString extends Value
 	}
 	clone()
 	{
-		return ConvertString(this.value[0], this.loc);
+		return ConvertString(this.value[0][0], this.loc);
 	}
 	run()
 	{
@@ -2855,6 +2855,17 @@ class ConvertString extends Value
 	}
 }
 
+function toBool(v)
+{
+	let re = /^(0+|false|偽|)$/i;
+	if(v instanceof IntValue || v instanceof FloatValue) return r = v.value != 0;
+	else if(v instanceof StringValue) return re.exec(v.value) ? false : true;
+	else if(v instanceof BooleanValue) return v.value;
+	else if(v instanceof ArrayValue) return v.value.length != 0;
+	else if(v instanceof DictionaryValue) return v.value.size != 0;
+	return false;
+}
+
 class ConvertBool extends Value
 {
 	constructor(x, loc)
@@ -2865,7 +2876,7 @@ class ConvertBool extends Value
 	}
 	clone()
 	{
-		return new ConvertBool(this.value[0], this.loc);
+		return new ConvertBool(this.value[0][0], this.loc);
 	}
 	run()
 	{
@@ -2878,14 +2889,7 @@ class ConvertBool extends Value
 		{
 			code[0].stack[0].index++;
 			let v = this.value[0].getValue();
-			let r = '';
-			let re = /^(0+|false|偽|)$/i;
-			if(v instanceof IntValue || v instanceof FloatValue) r = v.value != 0;
-			else if(v instanceof StringValue) r = re.exec(v.value) ? false : true;
-			else if(v instanceof BooleanValue) r = v.value;
-			else if(v instanceof ArrayValue) r = v.value.length != 0;
-			else if(v instanceof DictionaryValue) r = v.value.size != 0;
-			this.rtnv = new BooleanValue(r, this.loc);
+			this.rtnv = new BooleanValue(toBool(v), this.loc);
 			this.state = 0;
 		}
 	}
