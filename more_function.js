@@ -245,7 +245,7 @@ var functions = {
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
         else par = param;
         var nums = [];
-        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].value));
+        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getValue().value));
         nums.sort(function(a, b){return a - b;});
         if(nums.length == 0) return new NullValue(loc);
         else if(nums.length % 2 == 1){
@@ -287,6 +287,98 @@ var functions = {
         }
         else throw new RuntimeError(loc.first_line, '引数は非負整数で、1つ目の引数は2つ目の引数以上でなければなりません');
     }, null, null),
+    "pvariance": new DefinedFunction(-1, function(param, loc){
+        var par;    // 引数のArray
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
+        else par = param;
+        var mean = functions["average"].func([param], loc).getValue().value;
+        var sum = 0.0;
+        if(par.length == 0) throw new RuntimeError(loc.first_line, "空のリストでは分散は計算できません");
+        for(let i = 0; i < par.length; i++)
+            if(par[i] instanceof IntValue || par[i] instanceof FloatValue)
+                sum += (Number(par[i].getValue().value) - mean) ** 2;
+            else throw new RuntimeError(loc.first_line, "引数は数値のリストでなくてはいけません");
+        return new FloatValue(sum / par.length, loc);
+    }, null, null),
+    "variance": new DefinedFunction(-1, function(param, loc){
+        var par;    // 引数のArray
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
+        else par = param;
+        var mean = functions["average"].func([param], loc).getValue().value;
+        var sum = 0.0;
+        if(par.length < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは分散は計算できません");
+        for(let i = 0; i < par.length; i++)
+            if(par[i] instanceof IntValue || par[i] instanceof FloatValue)
+                sum += (Number(par[i].value) - mean) ** 2;
+            else throw new RuntimeError(loc.first_line, "引数は数値のリストでなくてはいけません");
+        return new FloatValue(sum / (par.length - 1), loc);
+    }, null, null),
+    "pstdev": new DefinedFunction(-1, function(param, loc){
+        var s = functions["pvariance"].func([param], loc).getValue().value;
+        return new FloatValue(Math.sqrt(s), loc);
+    }, null, null),
+    "stdev": new DefinedFunction(-1, function(param, loc){
+        var s = functions["variance"].func([param], loc).getValue().value;
+        return new FloatValue(Math.sqrt(s), loc);
+    }, null, null),
+    "pcovariance": new DefinedFunction(2, function(param, loc){
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        {
+            var n = par1.value.length;
+            if(n == 0) throw new RuntimeError(loc.first_line, "空のリストでは共分散が計算できません");
+            var s = 0.0;
+            var m1 = functions["average"].func([par1], loc).getValue().value,
+                m2 = functions["average"].func([par2], loc).getValue().value;
+            for(let i = 0; i < n; i++)
+            {
+                var val1, val2;
+                if(par1.value[i] instanceof IntValue || par1.value[i] instanceof FloatValue)
+                    val1 = Number(par1.value[i].getValue().value);
+                else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
+                if(par2.value[i] instanceof IntValue || par2.value[i] instanceof FloatValue)
+                    val2 = Number(par2.value[i].getValue().value);
+                else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
+                s += (val1 - m1) * (val2 - m2);
+            }
+            return new FloatValue(s / n, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
+    }, null, null),
+    "covariance": new DefinedFunction(2, function(param, loc){
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        {
+            var n = par1.value.length;
+            if(n < 1) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは共分散が計算できません");
+            var s = 0.0;
+            var m1 = functions["average"].func([par1], loc).getValue().value,
+                m2 = functions["average"].func([par2], loc).getValue().value;
+            for(let i = 0; i < n; i++)
+            {
+                var val1, val2;
+                if(par1.value[i] instanceof IntValue || par1.value[i] instanceof FloatValue)
+                    val1 = Number(par1.value[i].getValue().value);
+                else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
+                if(par2.value[i] instanceof IntValue || par2.value[i] instanceof FloatValue)
+                    val2 = Number(par2.value[i].getValue().value);
+                else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
+                s += (val1 - m1) * (val2 - m2);
+            }
+            return new FloatValue(s / (n - 1), loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
+    }, null, null),
+    "correl": new DefinedFunction(2, function(param, loc){
+        var c = functions["pcovariance"].func(param, loc);
+        var s1 = functions["pstdevp"].func([param[0].getValue()], loc);
+        var s2 = functions["pstdevp"].func([param[1].getValue()], loc);
+        if(s1 == 0.0 || s2 == 0.0) throw new RuntimeError(loc.first_line, "標準偏差が0なので相関係数が計算できません");
+        return new FloatValue(c / s1 / s2, loc);
+    }, null, null),
+
 };
 
 for(var f in functions){
