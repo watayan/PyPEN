@@ -388,7 +388,7 @@ class NullValue extends Value
 function setVariableByArgs(vt,vn, args, newval, loc)
 {
 	var v = vt.vars[vn];
-	if(args)
+	if(args && args.length > 0)
 	{
 		for(var i = 0; i < args.length - 1; i++)
 		{
@@ -511,7 +511,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
  */
 function getValueByArgs(v, args, loc)
 {
-	if(args)
+	if(args && args.length > 0)
 	{
 		for(var i = 0; i < args.length; i++)
 		{
@@ -642,6 +642,11 @@ class ArrayValue extends Value
 	{
 		this.value.push(a);
 		// for(var i of a) this.value.push(i);
+		this.rtnv = null;
+	}
+	extend(a)
+	{
+		for(var i of a) this.value.push(i);
 		this.rtnv = null;
 	}
 	getValue()
@@ -2984,7 +2989,15 @@ class Variable extends Value
 	}
 	append(a)
 	{
-		if(this.args) this.args.append(a);
+		if(this.args)
+		{
+			for(let i = 0; i < a.length; i++) this.args.value.push(a[i]);
+		}
+		else this.value[1] = new ArrayValue(a, this.loc);
+	}
+	extend(a)
+	{
+		if(this.args) this.args.extend(a);
 		else this.value[1] = new ArrayValue(a, this.loc);
 	}
 }
