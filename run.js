@@ -406,23 +406,22 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 				}
 				else if(v instanceof StringValue)
 					throw new RuntimeError(loc.first_line, "部分文字列の部分文字列への代入はできません");
-				else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列でないと使えません");
+				else if(v instanceof DictionaryValue)
+				{
+					var key0 = arg.getValue().value;
+					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0)) v = v.value.get(key0);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+				}
+				else throw new RuntimeError(loc.first_line, "添字が使える型ではありません");
 			}
-			else if(arg instanceof StringValue)
+			else if(arg instanceof StringValue || arg instanceof FloatValue)
 			{
 				var key0 = arg.getValue().value;
 				if(v instanceof DictionaryValue)
 				{
-					for(var key of v.getValue().value.keys())
-					{
-						if(key == key0)
-						{
-							v = v.value.get(key0);
-							key0 = null;
-							break;
-						}
-					}
-					if(key0) throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0))
+						v = v.value.get(key0);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
 				} 
 				else throw new RuntimeError(loc.first_line, "文字列の添字は辞書でないと使えません");
 			}
@@ -535,9 +534,13 @@ function getValueByArgs(v, args, loc)
 					if(idx >= 0 && idx < l) v = new StringValue(val.value[idx], loc);
 					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えてアクセスしました");
 				}
+				else if(v instanceof DictionaryValue)
+				{
+					return val.getElement(arg.getValue().value);
+				}
 				else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列でないと使えません");
 			}
-			else if(arg instanceof StringValue)
+			else if(arg instanceof StringValue || arg instanceof FloatValue)
 			{
 				if(val instanceof DictionaryValue)
 				{
@@ -545,7 +548,7 @@ function getValueByArgs(v, args, loc)
 						v = val.value.get(arg.getValue().value);
 					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
 				} 
-				else throw new RuntimeError(loc.first_line, "文字列の添字は辞書でないと使えません");
+				else throw new RuntimeError(loc.first_line, "整数でない添字は辞書でないと使えません");
 			}
 			else if(arg instanceof SliceValue)
 			{
@@ -696,8 +699,8 @@ class DictionaryValue extends Value
 				var key = v[i].getValue1();
 				var val = v[i].getValue2();
 				if(val instanceof Variable) val = getValueByArgs(val, null, loc);
-				if(!(key instanceof StringValue)) throw new RuntimeError(loc.first_line, "辞書の初期化が間違っています");
-				this.value.set(key.value, val);
+				if(isPrimitive(key)) this.value.set(key.value, val);
+				else throw new RuntimeError(loc.first_line, "辞書のキーには単純型しか使えません");
 			}
 			else throw new RuntimeError(loc.first_line, "辞書の初期化が間違っています");
 		}
@@ -763,7 +766,7 @@ class DictionaryValue extends Value
 	getElement(key)
 	{
 		if(this.value.has(key)) return this.value.get(key);
-		else throw new RuntimeError(this.first_line, key + "が定義されていません");	
+		else throw new RuntimeError(this.first_line, "キーに" + key + "がありません");	
 	}
 	setElement(key, val)
 	{
@@ -2949,7 +2952,7 @@ class Variable extends Value
 				let v = vt.vars[vn];
 				this.rtnv = getValueByArgs(v, this.args ? this.args.value : null, this.loc);
 			}
-			else throw new RuntimeError(this.first_line, "変数" + this.varname + "が定義されていません");
+			else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
 			this.state = 0;
 		}
 	}
@@ -4655,6 +4658,7 @@ function array2text(v)
 			for(let key of keys) 
 			{
 				var val = v0.value.get(key);
+				if(key instanceof String) key = "'" + key + "'";
 				v1.push(key + ':' + array2text(val));
 			}
 			return '{' + v1.join(',') + '}';
@@ -4681,7 +4685,11 @@ function array2code(v)
 		let v1 = [];
 		let keys = v0.value.keys();
 		for(let key of keys) 
-			v1.push(key + ':' + array2text(v0.value.get(key)));
+		{
+			var val = v0.value.get(key);
+			if(typeof key === "string") key = "'" + key + "'";
+			v1.push(key + ':' + array2text(val));
+		}
 		return '{' + v1.join(',') + '}';
 	}
 	else if(v0 instanceof StringValue) return '"' + v0.value + '"';
