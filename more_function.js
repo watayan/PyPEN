@@ -291,8 +291,8 @@ var functions = {
         var par;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
         else par = param;
-        var mean = functions["average"].func([param], loc).getValue().value;
-        var sum = 0.0;
+        var mean = functions["average"].func(par, loc).getValue().value;
+        var sum = 0.0; 
         if(par.length == 0) throw new RuntimeError(loc.first_line, "空のリストでは分散は計算できません");
         for(let i = 0; i < par.length; i++)
             if(par[i] instanceof IntValue || par[i] instanceof FloatValue)
@@ -304,7 +304,7 @@ var functions = {
         var par;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
         else par = param;
-        var mean = functions["average"].func([param], loc).getValue().value;
+        var mean = functions["average"].func(par, loc).getValue().value;
         var sum = 0.0;
         if(par.length < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは分散は計算できません");
         for(let i = 0; i < par.length; i++)
@@ -314,11 +314,11 @@ var functions = {
         return new FloatValue(sum / (par.length - 1), loc);
     }, null, null),
     "pstdev": new DefinedFunction(-1, function(param, loc){
-        var s = functions["pvariance"].func([param], loc).getValue().value;
+        var s = functions["pvariance"].func(param, loc).getValue().value;
         return new FloatValue(Math.sqrt(s), loc);
     }, null, null),
     "stdev": new DefinedFunction(-1, function(param, loc){
-        var s = functions["variance"].func([param], loc).getValue().value;
+        var s = functions["variance"].func(param, loc).getValue().value;
         return new FloatValue(Math.sqrt(s), loc);
     }, null, null),
     "pcovariance": new DefinedFunction(2, function(param, loc){
@@ -329,8 +329,8 @@ var functions = {
             var n = par1.value.length;
             if(n == 0) throw new RuntimeError(loc.first_line, "空のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func([par1], loc).getValue().value,
-                m2 = functions["average"].func([par2], loc).getValue().value;
+            var m1 = functions["average"].func(par1.value, loc).getValue().value,
+                m2 = functions["average"].func(par2.value, loc).getValue().value;
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
@@ -354,8 +354,8 @@ var functions = {
             var n = par1.value.length;
             if(n < 1) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func([par1], loc).getValue().value,
-                m2 = functions["average"].func([par2], loc).getValue().value;
+            var m1 = functions["average"].func(par1.value, loc).getValue().value,
+                m2 = functions["average"].func(par2.value, loc).getValue().value;
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
@@ -372,17 +372,77 @@ var functions = {
         else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
     }, null, null),
     "correl": new DefinedFunction(2, function(param, loc){
-        var c = functions["pcovariance"].func(param, loc);
-        var s1 = functions["pstdevp"].func([param[0].getValue()], loc);
-        var s2 = functions["pstdevp"].func([param[1].getValue()], loc);
-        if(s1 == 0.0 || s2 == 0.0) throw new RuntimeError(loc.first_line, "標準偏差が0なので相関係数が計算できません");
-        return new FloatValue(c / s1 / s2, loc);
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        {
+            var c = functions["pcovariance"].func([par1, par2], loc).getValue().value;
+            var s1 = functions["pstdev"].func(par1.value, loc).getValue().value;
+            var s2 = functions["pstdev"].func(par2.value, loc).getValue().value;
+            if(s1 == 0.0 || s2 == 0.0) throw new RuntimeError(loc.first_line, "標準偏差が0なので相関係数が計算できません");
+            return new FloatValue(c / s1 / s2, loc);
+            }
+        else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
     }, null, null),
-
+    "gcd": new DefinedFunction(2, function(param, loc){
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
+        if(par1 instanceof IntValue && par2 instanceof IntValue)
+        {
+            var a = par1.value >= BigInt(0) ? par1.value : -par1.value;
+            var b = par2.value >= BigInt(0) ? par2.value : -par2.value;
+            var g = gcd(a, b);
+            return new IntValue(g, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は整数でなくてはいけません");
+    }, null, null),
+    "lcm": new DefinedFunction(2, function(param, loc){
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
+        if(par1 instanceof IntValue && par2 instanceof IntValue)
+        {
+            var a = par1.value >= BigInt(0) ? par1.value : -par1.value;
+            var b = par2.value >= BigInt(0) ? par2.value : -par2.value;
+            if(a == BigInt(0) || b == BigInt(0)) return new IntValue(BigInt(0), loc);
+            var g = gcd(a, b);
+            var l = (a / g) * b;
+            return new IntValue(l, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は整数でなくてはいけません");
+    }, null, null),
+    "chr": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof IntValue)
+        {
+            var code = Number(par1.value);
+            if(code < 0 || code > 0x10FFFF)
+                throw new RuntimeError(loc.first_line, "引数の値が不正です");
+            return new StringValue(String.fromCodePoint(code), loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は整数でなくてはいけません");
+    }, null, null),
+    "ord": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof StringValue)
+        {
+            var s = par1.value;
+            if(s.length == 0)
+                throw new RuntimeError(loc.first_line, "空文字列のordは定義されていません");
+            var code = s.codePointAt(0);
+            return new IntValue(BigInt(code), loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は文字列でなくてはいけません");
+    }, null, null),
 };
 
 for(var f in functions){
     definedFunction[f] = functions[f];
+}
+
+function gcd(a, b)
+{
+    if(b == BigInt(0)) return a;
+    else return gcd(b, a % b);
 }
 
 definedFunction["mean"] = definedFunction["average"];
