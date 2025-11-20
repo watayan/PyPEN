@@ -475,7 +475,7 @@ var functions = {
             }
             return par1;
         }
-        else throw new RuntimeError(loc.first_line, "引数は配列か文字列でなくてはいけません");
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
     "reversed": new DefinedFunction(1, function(param, loc){
         var par1 = param[0].getValue();
@@ -485,7 +485,7 @@ var functions = {
             for(let i = par1.value.length - 1; i >= 0; i--) arr.push(par1.value[i]);
             return new ArrayValue(arr, loc);
         }
-        else throw new RuntimeError(loc.first_line, "引数は配列か文字列でなくてはいけません");
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
     "sorted": new DefinedFunction(1, function(param, loc){
         var par1 = param[0].getValue();
@@ -509,6 +509,92 @@ var functions = {
                     }
                 }
             });
+            return new ArrayValue(arr, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
+    }, null, null),
+    "sort": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            par1.value.sort(function(a, b){
+                if(a instanceof IntValue && b instanceof IntValue)
+                    return (a.value < b.value) ? -1 : (a.value > b.value) ? 1 : 0;
+                else
+                {
+                    var va = (a instanceof IntValue || a instanceof FloatValue) ? Number(a.value) : NaN;
+                    var vb = (b instanceof IntValue || b instanceof FloatValue) ? Number(b.value) : NaN;
+                    if(!isNaN(va) && !isNaN(vb))
+                        return (va < vb) ? -1 : (va > vb) ? 1 : 0;
+                    else
+                    {
+                        var sa = a.toString();
+                        var sb = b.toString();
+                        return (sa < sb) ? -1 : (sa > sb) ? 1 : 0;
+                    }
+                }
+            });
+            return par1;
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
+    }, null, null),
+    "shuffled": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            var arr = [].concat(par1.value);
+            for(let i = arr.length - 1; i > 0; i--)
+            {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+            return new ArrayValue(arr, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
+    }, null, null),
+    "shuffle": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            for(let i = par1.value.length - 1; i > 0; i--)
+            {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = par1.value[i];
+                par1.value[i] = par1.value[j];
+                par1.value[j] = temp;
+            }
+            return par1;
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
+    }, null, null),
+    "next_permutation": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            var arr = [].concat(par1.value);
+            var i = arr.length - 2;
+            while(i >= 0 && arr[i].value >= arr[i + 1].value) i--;
+            if(i < 0) {
+                return new ArrayValue([], loc);
+            }
+            var j = arr.length - 1;
+            while(i < j && arr[i].value >= arr[j].value) j--;
+            // arr[i]とarr[j]を交換
+            var temp = arr[i].value;
+            arr[i].value = arr[j].value;
+            arr[j].value = temp;
+            // arr[i+1]以降を反転
+            var left = i + 1, right = arr.length - 1;
+            while(left < right)
+            {
+                var temp2 = arr[left].value;
+                arr[left].value = arr[right].value;
+                arr[right].value = temp2;
+                left++;
+                right--;
+            }
             return new ArrayValue(arr, loc);
         }
         else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");

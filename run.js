@@ -2867,7 +2867,7 @@ class ConvertString extends Value
 function toBool(v)
 {
 	let re = /^(0+|false|偽|)$/i;
-	if(v instanceof IntValue || v instanceof FloatValue) return r = v.value != 0;
+	if(v instanceof IntValue || v instanceof FloatValue) return v.value != 0;
 	else if(v instanceof StringValue) return re.exec(v.value) ? false : true;
 	else if(v instanceof BooleanValue) return v.value;
 	else if(v instanceof ArrayValue) return v.value.length != 0;
@@ -4666,6 +4666,7 @@ function array2text(v)
 		}
 		else if(v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';
 		else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
+		else if(v0 instanceof StringValue) return new String("'" + v0.value + "'");
 		else return new String(v0.value);
 	}
 	else return new String(v);
@@ -5191,22 +5192,18 @@ class If extends Statement
 		}
 		else if(this.state == 2)
 		{
-			var flag = this.blocks[this.running][0] ? this.blocks[this.running][0].getValue() : new BooleanValue(true, this.loc);
-			if(flag instanceof BooleanValue)
+			var flag = this.blocks[this.running][0] ? toBool(this.blocks[this.running][0].getValue()) : true;
+			if(flag)
 			{
-				if(flag.value)
-				{
-					code[0].stack[0].index++;
-					this.state = 0;
-					code[0].stack.unshift({statementlist: this.blocks[this.running][1], index: 0});
-				}
-				else
-				{
-					this.running++;
-					this.state = 1;
-				}
+				code[0].stack[0].index++;
+				this.state = 0;
+				code[0].stack.unshift({statementlist: this.blocks[this.running][1], index: 0});
 			}
-			else throw new RuntimeError(this.first_line, "条件式が使われるべき場所なのに，条件式が使われていません");
+			else
+			{
+				this.running++;
+				this.state = 1;
+			}
 		}
 	}
 	makePython(indent)
@@ -5256,7 +5253,7 @@ class LoopBegin extends Statement
 		}
 		else
 		{
-			if(!this.condition || this.condition.getValue().value == this.continuous) code[0].stack[0].index++;
+			if(!this.condition || toBool(this.condition.getValue()) == this.continuous) code[0].stack[0].index++;
 			else code[0].stack[0].index = -1;
 			this.state = 0;
 		}
@@ -5291,7 +5288,7 @@ class LoopEnd extends Statement
 		}
 		else
 		{
-			if(!this.condition || this.condition.getValue.value == this.continuous) code[0].stack[0].index = 0;
+			if(!this.condition || toBool(this.condition.getValue()) == this.continuous) code[0].stack[0].index = 0;
 			else code[0].stack[0].index = -1;
 			this.state = 0;
 		}
