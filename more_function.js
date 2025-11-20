@@ -433,7 +433,87 @@ var functions = {
         }
         else throw new RuntimeError(loc.first_line, "引数は文字列でなくてはいけません");
     }, null, null),
-};
+    "linear_regression": new DefinedFunction(2, function(param, loc){
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        {
+            var n = par1.value.length;
+            if(n < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは線形回帰は計算できません");
+            var sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x2 = 0.0;
+            for(let i = 0; i < n; i++)
+            {
+                var x, y;
+                if(par1.value[i] instanceof IntValue || par1.value[i] instanceof FloatValue)
+                    x = Number(par1.value[i].getValue().value);
+                else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
+                if(par2.value[i] instanceof IntValue || par2.value[i] instanceof FloatValue)
+                    y = Number(par2.value[i].getValue().value);
+                else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
+                sum_x += x;
+                sum_y += y;
+                sum_xy += x * y;
+                sum_x2 += x * x;
+            }
+            if(n * sum_x2 - sum_x * sum_x == 0)
+                throw new RuntimeError(loc.first_line, "線形回帰が計算できません");
+            var slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
+            var intercept = (sum_y - slope * sum_x) / n;
+            return new ArrayValue([new FloatValue(slope, loc), new FloatValue(intercept, loc)], loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
+    }, null, null),
+    "reverse": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            for(let i = 0, j = par1.value.length - 1; i < j; i++, j--)
+            {
+                var temp = par1.value[i];
+                par1.value[i] = par1.value[j];
+                par1.value[j] = temp;
+            }
+            return par1;
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列か文字列でなくてはいけません");
+    }, null, null),
+    "reversed": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            var arr = [];
+            for(let i = par1.value.length - 1; i >= 0; i--) arr.push(par1.value[i]);
+            return new ArrayValue(arr, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列か文字列でなくてはいけません");
+    }, null, null),
+    "sorted": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof ArrayValue)
+        {
+            var arr = [].concat(par1.value);
+            arr.sort(function(a, b){
+                if(a instanceof IntValue && b instanceof IntValue)
+                    return (a.value < b.value) ? -1 : (a.value > b.value) ? 1 : 0;
+                else
+                {
+                    var va = (a instanceof IntValue || a instanceof FloatValue) ? Number(a.value) : NaN;
+                    var vb = (b instanceof IntValue || b instanceof FloatValue) ? Number(b.value) : NaN;
+                    if(!isNaN(va) && !isNaN(vb))
+                        return (va < vb) ? -1 : (va > vb) ? 1 : 0;
+                    else
+                    {
+                        var sa = a.toString();
+                        var sb = b.toString();
+                        return (sa < sb) ? -1 : (sa > sb) ? 1 : 0;
+                    }
+                }
+            });
+            return new ArrayValue(arr, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
+    }, null, null),
+};  
 
 for(var f in functions){
     definedFunction[f] = functions[f];

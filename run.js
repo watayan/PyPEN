@@ -515,7 +515,8 @@ function getValueByArgs(v, args, loc)
 		for(var i = 0; i < args.length; i++)
 		{
 			var arg = args[i].getValue();
-			var val = v.getValue();
+			// var val = v.getValue();
+			var val = v;
 			if(arg instanceof IntValue)
 			{
 				if(v instanceof ArrayValue)	// 配列のidx番目
