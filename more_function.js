@@ -599,7 +599,38 @@ var functions = {
         }
         else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
-};  
+    "dnorm": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof IntValue || par1 instanceof FloatValue)
+        {
+            var x = Number(par1.value);
+            var res = dnorm(x);
+            return new FloatValue(res, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は数値でなくてはいけません");
+    }, null, null),
+    "pnorm": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof IntValue || par1 instanceof FloatValue)
+        {
+            var x = Number(par1.value);
+            var res = pnorm(x);
+            return new FloatValue(res, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は数値でなくてはいけません");
+    }, null, null),
+    "qnorm": new DefinedFunction(1, function(param, loc){
+        var par1 = param[0].getValue();
+        if(par1 instanceof IntValue || par1 instanceof FloatValue)
+        {
+            var p = Number(par1.value);
+            if(p < 0 || p > 1) throw new RuntimeError(loc.first_line, "確率は0から1の間でなくてはいけません");
+            var res = qnorm(p);
+            return new FloatValue(res, loc);
+        }
+        else throw new RuntimeError(loc.first_line, "引数は数値でなくてはいけません");
+    }, null, null),
+}
 
 for(var f in functions){
     definedFunction[f] = functions[f];
@@ -609,6 +640,51 @@ function gcd(a, b)
 {
     if(b == BigInt(0)) return a;
     else return gcd(b, a % b);
+}
+
+function dnorm(x)
+{
+    return Math.exp(-0.5 * x * x) / (Math.sqrt(2 * Math.PI));
+}
+
+function pnorm(x) {
+    // Abramowitz and Stegun approximation
+    // 26.2.17 of ''Handbook of Mathematical Functions With Formulas, Graphs, and Mathematical Tables''
+    const b = [1.330274429, -1.821255978, 1.781477937, -0.356563782, 0.319381530];
+    const p = 0.2316419;
+    const t = 1 / (1 + p * Math.abs(x));
+    var v = 0;
+    for(let bi of b) v = (bi + v) * t;
+    const prob = dnorm(x) * v;
+    return x > 0 ? 1 - prob : prob;
+}
+
+function qnorm(p) {
+    if (p === 0) return -Infinity;
+    if (p === 1) return Infinity;
+    if (p === 0.5) return 0;
+    // Acklam's algorithm
+    // from ''An algorithm for computing the inverse normal cumulative distribution function''
+    if(p < 0.02425 || p > 0.97575){
+        const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+        const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00, 1.0];
+        var p1 = p > 0.5 ? 1 - p : p;
+        const q = Math.sqrt(-2 * Math.log(p1));
+        var v1 = 0, v2 = 0;
+        for(let ci of c) v1 = v1 * q + ci;
+        for(let di of d) v2 = v2 * q + di;
+        return p > 0.5 ? -v1 / v2 : v1 / v2;
+    }
+    else{
+        const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+        const b = [ -5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01, 1.0];
+    const q = p - 0.5;
+    const r = q * q;
+    var v1 = 0, v2 = 0;
+    for(let ai of a) v1 = v1 * r + ai;
+    for(let bi of b) v2 = v2 * r + bi;
+    return v1 * q / v2;
+    }
 }
 
 definedFunction["mean"] = definedFunction["average"];
