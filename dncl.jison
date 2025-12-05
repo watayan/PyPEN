@@ -469,6 +469,10 @@ IfStatement
 		tmp = tmp.concat($2); 
 		tmp.push($3); 
 		$$ = new If(tmp, new Location(@1, @3));}
+	| If ElseIfList %prec ELSE_PREC
+		{var tmp = [$1]; 
+		tmp = tmp.concat($2); 
+		$$ = new If(tmp, new Location(@1, @2));}
 	| If ElsePart %prec ELSE_PREC
 		{var tmp = [$1]; 
 		tmp.push($2); 

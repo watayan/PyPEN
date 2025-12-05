@@ -3951,7 +3951,7 @@ function dump(message = null)
 		if(vars[i][0] == '!') continue;
 		let vartable = findVarTable(vars[i]);
 		let v = vartable.vars[vars[i]];
-		textareaAppend(vars[i] + ":" + array2code(v) + "\n");
+		textareaAppend(vars[i] + ":" + array2code(v, true) + "\n");
 	}
 }
 
@@ -4637,7 +4637,7 @@ class Output extends Statement
 	}
 }
 
-function array2text(v)
+function array2text(v, flag = false)	// flag: 文字列に''をつける
 {
 	if(!v) return '';
 	if(v instanceof Value)
@@ -4648,7 +4648,7 @@ function array2text(v)
 			let v1 = [];
 			for(let i = 0; i < v0.value.length; i++)
 			{
-				v1.push(array2text(v0.value[i]));
+				v1.push(array2text(v0.value[i], flag));
 			}
 			return '[' + v1.join(',') + ']';
 		}
@@ -4659,27 +4659,27 @@ function array2text(v)
 			for(let key of keys) 
 			{
 				var val = v0.value.get(key);
-				if(key instanceof String) key = "'" + key + "'";
-				v1.push(key + ':' + array2text(val));
+				if(typeof key === "string") key = "'" + key + "'";
+				v1.push(key + ':' + array2text(val, flag));
 			}
 			return '{' + v1.join(',') + '}';
 		}
 		else if(v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';
 		else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
-		else if(v0 instanceof StringValue) return new String("'" + v0.value + "'");
+		else if(flag && v0 instanceof StringValue) return new String("'" + v0.value + "'");
 		else return new String(v0.value);
 	}
 	else return new String(v);
 }
 
-function array2code(v)
+function array2code(v, flag = false)	// flag: 文字列に''をつける
 {
 	if(!v) return '';
 	let v0 = v;
 	if(v0 instanceof ArrayValue)
 	{
 		let v1 = [];
-		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.value[i]));
+		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.value[i], flag));
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof DictionaryValue)
@@ -4690,11 +4690,11 @@ function array2code(v)
 		{
 			var val = v0.value.get(key);
 			if(typeof key === "string") key = "'" + key + "'";
-			v1.push(key + ':' + array2text(val));
+			v1.push(key + ':' + array2text(val, flag));
 		}
 		return '{' + v1.join(',') + '}';
 	}
-	else if(v0 instanceof StringValue) return '"' + v0.value + '"';
+	else if(flag && v0 instanceof StringValue) return "'" + v0.value + "'";
 	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
 	return v0.value;
 }
