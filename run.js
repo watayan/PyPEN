@@ -1178,15 +1178,11 @@ class Mul extends Value
 	{
 		if(this.state == 0)
 		{
-			// console.log("Mul code[0] ", code[0]);
 			code[0].stack.unshift({statementlist: this.value, index: 0});
-			// console.log("Mul code[0] ", code[0]);
-			// console.log("Mul run state 0", this.value);
 			this.state = 1;
 		}
 		else
 		{
-			// console.log("Mul run state 1", this.value);
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
@@ -3631,7 +3627,7 @@ class CallFunction extends Value
 			if(definedFunction[func])
 			{
 				let fn = definedFunction[func].clone();
-				fn.setCaller(this);
+				fn.setCaller(this, false);
 				fn.setParameter(param);
 				fn.setLocation(this.loc);
 				let statementlist = [fn];
@@ -3929,11 +3925,9 @@ class ReturnStatement extends Statement {
 		else
 		{
 			code[0].stack[0].index++;
-			console.log("ReturnStatement");
 			if(code[0] instanceof parsedFunction)
 			{
 				this.caller.setValue(this.value.getValue());
-				console.log("ReturnStatement return value", this.value.getValue(), this.caller);
 				code.shift();
 				if(this.flag) varTables.shift();
 			}
@@ -4029,8 +4023,13 @@ class Assign extends Value
 	}
 	clone()
 	{
-		let rtnv =new Assign(this.variable, this.value,this.operator, this.loc);
-		rtnv.state = this.state;
+		let rtnv = new Assign(
+			this.variable ? this.variable.clone() : this.variable,
+			this.value ? this.value.clone() : this.value,
+			this.operator,
+			this.loc
+		);
+		rtnv.state = 0; // stateは必ず0でリセット
 		return rtnv;
 	}
 	run()
@@ -4043,12 +4042,10 @@ class Assign extends Value
 			else if(this.variable.args) a = a.concat(this.variable.args.value);
 			a.push(this.value);
 			code[0].stack.unshift({statementlist: a, index: 0});
-			// console.log("Assign run state 0", this.value);
 			this.state = 1;
 		}
 		else if(this.state == 1)
 		{
-			// console.log("Assign run state 1", this.value);
 			let vn = this.variable.varname;
 			let ag = this.variable.args;
 			let vl = this.value.getValue();
