@@ -1178,11 +1178,15 @@ class Mul extends Value
 	{
 		if(this.state == 0)
 		{
+			// console.log("Mul code[0] ", code[0]);
 			code[0].stack.unshift({statementlist: this.value, index: 0});
+			// console.log("Mul code[0] ", code[0]);
+			// console.log("Mul run state 0", this.value);
 			this.state = 1;
 		}
 		else
 		{
+			// console.log("Mul run state 1", this.value);
 			code[0].stack[0].index++;
 			let v1 = this.value[0].getValue(), v2 = this.value[1].getValue();
 			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
@@ -2989,7 +2993,15 @@ class Variable extends Value
 	}
 	getValue()
 	{
-		return this.rtnv;
+		// キャッシュではなく、常に最新の値を取得
+		let vn = this.varname;
+		let vt = findVarTable(vn);
+		if(vt)
+		{
+			let v = vt.vars[vn];
+			return getValueByArgs(v, this.args ? this.args.value : null, this.loc);
+		}
+		else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
 	}
 	append(a)
 	{
@@ -3917,9 +3929,11 @@ class ReturnStatement extends Statement {
 		else
 		{
 			code[0].stack[0].index++;
+			console.log("ReturnStatement");
 			if(code[0] instanceof parsedFunction)
 			{
 				this.caller.setValue(this.value.getValue());
+				console.log("ReturnStatement return value", this.value.getValue(), this.caller);
 				code.shift();
 				if(this.flag) varTables.shift();
 			}
@@ -4015,7 +4029,9 @@ class Assign extends Value
 	}
 	clone()
 	{
-		return new Assign(this.variable, this.value,this.operator, this.loc);
+		let rtnv =new Assign(this.variable, this.value,this.operator, this.loc);
+		rtnv.state = this.state;
+		return rtnv;
 	}
 	run()
 	{
@@ -4027,10 +4043,12 @@ class Assign extends Value
 			else if(this.variable.args) a = a.concat(this.variable.args.value);
 			a.push(this.value);
 			code[0].stack.unshift({statementlist: a, index: 0});
+			// console.log("Assign run state 0", this.value);
 			this.state = 1;
 		}
 		else if(this.state == 1)
 		{
+			// console.log("Assign run state 1", this.value);
 			let vn = this.variable.varname;
 			let ag = this.variable.args;
 			let vl = this.value.getValue();
@@ -4209,13 +4227,8 @@ class Assign extends Value
 				setVariableByArgs(vt, vn, ag ? ag.value : null, vl, this.loc);
 				this.rtnv = vl;
 			}
-			this.state = 2;
-		}
-		else
-		{
 			this.state = 0;
 			code[0].stack[0].index++;
-			// code[0].stack.unshift({statementlist: this, index: 0});
 		}
 	}
 	getValue()
@@ -5800,7 +5813,9 @@ function next_line()
 	if(statement)
 	{
 		try{
+			// console.log("run line 0" , statement);
 			statement.run();
+			// console.log("run line 1" , statement);
 		}
 		catch(e)
 		{
