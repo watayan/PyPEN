@@ -2829,7 +2829,7 @@ class ConvertString extends Value
 	}
 	clone()
 	{
-		return ConvertString(this.value[0][0], this.loc);
+		return new ConvertString(this.value[0][0], this.loc);
 	}
 	run()
 	{
