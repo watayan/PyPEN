@@ -2736,7 +2736,7 @@ class ConvertInt extends Value
 	}
 	clone()
 	{
-		return new ConvertInt(this.value[0][0], this.loc);
+		return new ConvertInt(this.value[0], this.loc);
 	}
 	run()
 	{
@@ -2783,7 +2783,7 @@ class ConvertFloat extends Value
 	}
 	clone()
 	{
-		return new ConvertFloat(this.value[0][0], this.loc);
+		return new ConvertFloat(this.value[0], this.loc);
 	}
 	run()
 	{
@@ -2829,7 +2829,7 @@ class ConvertString extends Value
 	}
 	clone()
 	{
-		return new ConvertString(this.value[0][0], this.loc);
+		return new ConvertString(this.value[0], this.loc);
 	}
 	run()
 	{
@@ -2885,7 +2885,7 @@ class ConvertBool extends Value
 	}
 	clone()
 	{
-		return new ConvertBool(this.value[0][0], this.loc);
+		return new ConvertBool(this.value[0], this.loc);
 	}
 	run()
 	{
@@ -2938,24 +2938,25 @@ class Variable extends Value
 	get args(){return this.value[1];}
 	run()
 	{
-		if(this.state == 0)
-		{
-			if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let vn = this.varname;		// 変数名
-			let vt = findVarTable(vn);	// 変数は定義されてるか
-			if(vt)
-			{
-				let v = vt.vars[vn];
-				this.rtnv = getValueByArgs(v, this.args ? this.args.value : null, this.loc);
-			}
-			else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
-			this.state = 0;
-		}
+		code[0].stack[0].index++;
+		// if(this.state == 0)
+		// {
+		// 	if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
+		// 	this.state = 1;
+		// }
+		// else
+		// {
+		// 	code[0].stack[0].index++;
+		// 	let vn = this.varname;		// 変数名
+		// 	let vt = findVarTable(vn);	// 変数は定義されてるか
+		// 	if(vt)
+		// 	{
+		// 		let v = vt.vars[vn];
+		// 		this.rtnv = getValueByArgs(v, this.args ? this.args.value : null, this.loc);
+		// 	}
+		// 	else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
+		// 	this.state = 0;
+		// }
 	}
 	getCode()
 	{
@@ -2995,7 +2996,7 @@ class Variable extends Value
 		if(vt)
 		{
 			let v = vt.vars[vn];
-			return getValueByArgs(v, this.args ? this.args.value : null, this.loc);
+			return this.rtnv = getValueByArgs(v, this.args ? this.args.value : null, this.loc);
 		}
 		else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
 	}
@@ -5821,7 +5822,7 @@ function next_line()
 				if(e.line) textareaAppend(e.line + "行目:");
 				if(e instanceof RuntimeError) textareaAppend(e.message + "\n");
 				else if(e instanceof RangeError) textareaAppend("計算できない値があります。\n" + e.message + "\n");
-				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n");
+				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n" + e.stack + "\n");
 				reset(false);
 			}
 			else throw e;
