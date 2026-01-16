@@ -2939,6 +2939,7 @@ class Variable extends Value
 	run()
 	{
 		code[0].stack[0].index++;
+		if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
 		// if(this.state == 0)
 		// {
 		// 	if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
@@ -5822,7 +5823,7 @@ function next_line()
 				if(e.line) textareaAppend(e.line + "行目:");
 				if(e instanceof RuntimeError) textareaAppend(e.message + "\n");
 				else if(e instanceof RangeError) textareaAppend("計算できない値があります。\n" + e.message + "\n");
-				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n"); // + e.stack + "\n");
+				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n" + e.stack + "\n");
 				reset(false);
 			}
 			else throw e;
