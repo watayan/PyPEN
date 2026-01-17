@@ -1,5 +1,7 @@
 "use strict";
 
+var debug_mode = false; // デバッグモードかどうか
+
 const typeOfValue=
 {
 	typeInt:1,
@@ -156,6 +158,7 @@ function codeChange()
 		textareaClear();
 		if(e.line && e.line > 0) textareaAppend("***構文エラー***\n" + e.line + "行目\n");
 		textareaAppend(e.message);
+		if(debug_mode) textareaAppend(e.stack);
 		converting = false;
 	}
 }
@@ -5750,6 +5753,7 @@ function run(clear = true)
 				textareaAppend("***構文エラー***\n");
 				if(e.line) textareaAppend(e.line + "行目");
 				textareaAppend(e.message + "\n");
+				if(debug_mode) textareaAppend(e.stack);
 				reset(false);
 				return;
 			}
@@ -8402,6 +8406,7 @@ function makePython()
 		textareaClear();
 		if(e.line && e.line > 0) textareaAppend("***構文エラー***\n" + e.line + "行目\n");
 		textareaAppend(e.message);
+		if(debug_mode) textareaAppend(e.stack);
 	}
 }
 
