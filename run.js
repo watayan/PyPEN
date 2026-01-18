@@ -1,6 +1,6 @@
 "use strict";
 
-var debug_mode = false; // デバッグモードかどうか
+var debug_mode = true; // デバッグモードかどうか
 
 const typeOfValue=
 {
@@ -395,15 +395,16 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 	{
 		for(var i = 0; i < args.length - 1; i++)
 		{
-			var arg = args[i].getValue();
+			// var arg = args[i].getValue();
+			var arg = args.getElement(i).getValue();
 			if(arg instanceof IntValue)
 			{
 				if(v instanceof ArrayValue || v instanceof StringValue)
 				{
 					var idx = Number(arg.getValue().value);
-					var l = v.getValue().length;
+					var l = v.value.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.getValue().value[idx];
+					if(idx >= 0 && idx < l) v = v.value[idx];
 					// if(idx >= 0 && idx < l) v = v.value[idx];
 					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
 				}
@@ -433,7 +434,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			else throw new RuntimeError(loc.first_line, "添字が正しくありません");
 		}
 		//代入
-		var arg = args[args.length - 1].getValue();
+		var arg = args.getElement(args.length - 1).getValue();
 		if(arg instanceof IntValue)
 		{
 			var idx = Number(arg.value);
@@ -527,7 +528,7 @@ function getValueByArgs(v, args, loc)
 					var idx = Number(arg.value);
 					var l = v.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.value[idx];
+					if(idx >= 0 && idx < l) v = v.value[idx].getValue();
 					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
 				}
 				else if(v instanceof StringValue)	// 文字列のidx文字目
@@ -610,26 +611,33 @@ class ArrayValue extends Value
 	clone()
 	{
 		var a = [];
-		for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue());
+		for(var i = 0; i < this.value.length; i++) a.push(this.value[i]);
 		return new ArrayValue(a, this.loc);
 	}
 	run()
 	{
 		if(this.state == 0)
 		{
+			this.copy_value_to_rtnv();
 			code[0].stack.unshift({statementlist: this.value, index: 0});
 			this.state = 1;
 		}
 		else
 		{
 			code[0].stack[0].index++;
-			var a = [];
-			for(var i = 0; i < this.value.length; i++) 
-			{
-				a.push(this.value[i].getValue());
-			}
-			this.rtnv = new ArrayValue(a, this.loc);
 			this.state = 0;
+		}
+	}
+	copy_value_to_rtnv()
+	{
+		if(this.rtnv){
+			for(var i = 0; i < this.value.length; i++) this.rtnv.value[i] = this.value[i];
+		}
+		else
+		{
+			var a = [];
+			for(var i = 0; i < this.value.length; i++) a.push(this.value[i]);
+			this.rtnv = new ArrayValue(a, this.loc);
 		}
 	}
 	getCode()
@@ -648,34 +656,33 @@ class ArrayValue extends Value
 	append(a)
 	{
 		this.value.push(a);
-		// for(var i of a) this.value.push(i);
-		this.rtnv = null;
+		this.copy_value_to_rtnv();
 	}
 	extend(a)
 	{
 		for(var i of a) this.value.push(i);
-		this.rtnv = null;
+		this.copy_value_to_rtnv();
 	}
 	getValue()
 	{
-		if(!this.rtnv)
-		{
-			var a = []
-			for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue());
-			this.rtnv = new ArrayValue(a, this.loc);
-		}
+		// if(!this.rtnv)
+		// {
+		// 	var a = []
+		// 	for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue());
+		// 	this.rtnv = new ArrayValue(a, this.loc);
+		// }
 		return this.rtnv;
-		// return this.rtnv;
 	}
 	setElement(idx, val)
 	{
 		this.value[idx] = val;
-		this.rtnv = null;
+		this.rtnv.value[idx] = val;
+		// this.copy_value_to_rtnv();
 	}
 	setValue(v)
 	{
 		this.value = v;
-		this.rtnv = null;
+		this.copy_value_to_rtnv();
 	}
 	getElement(idx)
 	{
@@ -4051,19 +4058,15 @@ class Assign extends Value
 		}
 		else if(this.state == 1)
 		{
-			let vn = this.variable.varname;
-			let ag = this.variable.args;
-			let vl = this.value.getValue();
-			let vt = findVarTable(vn);
-			if(vt) // 変数が定義されている
+			var vt1 = findVarTable(this.variable.varname);
+			var v2  = this.value.getValue();
+			if(this.operator)
 			{
-				let va = vt.vars[vn];
-				if(this.operator)
+				if(!vt1) throw new RuntimeError(this.first_line, '変数 '+this.variable.varname+' は定義されていません');
+				var v1 = getValueByArgs(vt1.vars[this.variable.varname], this.variable.args ? this.variable.args.value : null, this.loc);
+				var v3 = null;
+				switch(this.operator)
 				{
-					va = getValueByArgs(va, ag ? ag.value : null, this.loc);
-					let v1 = va.getValue(), v2 = vl, v3 = null;
-					switch(this.operator)
-					{
 					case '+':
 						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.value ? 1 : 0, this.loc);
 						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.value ? 1 : 0, this.loc);
@@ -4210,24 +4213,20 @@ class Assign extends Value
 							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.value >> v2.value, this.loc);
 						} 
 						break;
-					}
-					if(!v3) throw new RuntimeError(this.first_line, '複合代入演算子の使い方が間違っています');
-					setVariableByArgs(vt,vn, ag ? ag.value : null, v3, this.loc);
-					this.rtnv = v3;
 				}
-				else 
-				{
-					setVariableByArgs(vt, vn, ag ? ag.value : null, vl, this.loc);
-					this.rtnv = vl;
-				}
+				if(!v3) throw new RuntimeError(this.first_line, '複合代入演算子の使い方が間違っています');
+				setVariableByArgs(vt1,this.variable.value[0], this.variable.value[1] ? this.variable.value[1] : null, v3, this.loc);
+				this.rtnv = v3;
 			}
-			else // 変数が定義されていない
+			else
 			{
-				if(this.operator) throw new RuntimeError(this.first_line, '宣言されていない変数に複合代入演算子が使われました');
-				vt = varTables[0];
-				vt.vars[vn] = new NullValue(this.loc);
-				setVariableByArgs(vt, vn, ag ? ag.value : null, vl, this.loc);
-				this.rtnv = vl;
+				if(!vt1)	// 変数が定義されていないので，ダミーを代入
+				{
+					vt1 = varTables[0];
+					vt1.vars[this.variable.varname] = new NullValue(this.loc);
+				}
+				setVariableByArgs(vt1, this.variable.varname, this.variable.args ? this.variable.args : null, v2, this.loc);
+				this.rtnv = v2.getValue();
 			}
 			this.state = 0;
 			code[0].stack[0].index++;
@@ -5827,7 +5826,8 @@ function next_line()
 				if(e.line) textareaAppend(e.line + "行目:");
 				if(e instanceof RuntimeError) textareaAppend(e.message + "\n");
 				else if(e instanceof RangeError) textareaAppend("計算できない値があります。\n" + e.message + "\n");
-				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n" + e.stack + "\n");
+				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n");
+				if(debug_mode) textareaAppend(e.stack);
 				reset(false);
 			}
 			else throw e;
