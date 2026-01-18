@@ -4025,7 +4025,7 @@ class Assign extends Value
 	 */
 	constructor(variable,value, operator, loc)
 	{
-		super(loc);
+		super(null,loc);
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
 		this.variable = variable;
 		this.value = value;
@@ -4256,7 +4256,7 @@ class Append extends Statement
 	 */
 	constructor(variable,value,loc)
 	{
-		super(loc);
+		super(null, loc);
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
@@ -4327,7 +4327,7 @@ class Extend extends Statement
 	 */
 	constructor(variable,value,loc)
 	{
-		super(loc);
+		super(null, loc);
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
