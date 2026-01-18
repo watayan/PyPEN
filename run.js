@@ -1,6 +1,6 @@
 "use strict";
 
-var debug_mode = true; // デバッグモードかどうか
+var debug_mode = false; // デバッグモードかどうか
 
 const typeOfValue=
 {
