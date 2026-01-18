@@ -1,6 +1,6 @@
 "use strict";
 
-var debug_mode = false; // デバッグモードかどうか
+var debug_mode = true; // デバッグモードかどうか
 
 const typeOfValue=
 {
@@ -676,8 +676,8 @@ class ArrayValue extends Value
 	setElement(idx, val)
 	{
 		this.value[idx] = val;
-		this.rtnv.value[idx] = val;
-		// this.copy_value_to_rtnv();
+		// this.rtnv.value[idx] = val;
+		this.copy_value_to_rtnv();
 	}
 	setValue(v)
 	{
