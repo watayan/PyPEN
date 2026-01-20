@@ -33,6 +33,11 @@ function load_js(js)
     });
 }
 
+/**
+ * 本来ならファイルの有無を確認してから読み込みたいが，CORS制限のためfileスキームでは不可能。
+ * 仕方ないのでエラーハンドリングで代用する。
+ * 開発者ツールにはエラー表示が残るが，我慢する。
+ */
 function load_js_witherror(js)
 {
     return new Promise(resolve =>{
