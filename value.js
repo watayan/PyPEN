@@ -1,10 +1,10 @@
 /************************************************************ Value classes */
 
-/**
- * 値クラスの親クラス
- */
 class Value
 {
+    /* this.value は初期化時の値を保持する。
+       this.rtnv は実行時に返す値を保持する。
+    */
 	/**
 	 * @constructor
 	 * @param {number|string|boolean|string|hash} v 
@@ -20,9 +20,6 @@ class Value
 	{
 		throw new RuntimeError(this.first_line, constructor_name(this) + "はcloneが作られていません");
 	}
-
-	get first_line() {return this.loc.first_line;}
-
 	/**
 	 * @returns {Value} 値がほしいときはこれを使う（Variableなど）。
 	 * 					オブジェクトがほしいときはValue本体を使う。
@@ -49,6 +46,7 @@ class Value
 	{
 		code[0].stack[0].index++;
 	}
+	get first_line() {return this.loc.first_line;}
 }
 
 /**
@@ -75,217 +73,110 @@ class NullValue extends Value
 	}
 }
 
-/**
- * vtにあるvn[args]にnewvalをセットする
- * @param {VarTable} vt 
- * @param {String} vn 
- * @param {Array<Value>} args 
- * @param {Value} newval 
- * @param {Location} loc 
- */
-function setVariableByArgs(vt,vn, args, newval, loc)
+class UNDEFINED extends Value
 {
-	var v = vt.vars[vn];
-	if(args && args.length > 0)
+	constructor(v, loc)
 	{
-		for(var i = 0; i < args.length - 1; i++)
-		{
-			// var arg = args[i].getValue();
-			var arg = args.getElement(i).getValue();
-			if(arg instanceof IntValue)
-			{
-				if(v instanceof ArrayValue || v instanceof StringValue)
-				{
-					var idx = Number(arg.getValue().value);
-					var l = v.value.length;
-					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.value[idx];
-					// if(idx >= 0 && idx < l) v = v.value[idx];
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
-				}
-				else if(v instanceof StringValue)
-					throw new RuntimeError(loc.first_line, "部分文字列の部分文字列への代入はできません");
-				else if(v instanceof DictionaryValue)
-				{
-					var key0 = arg.getValue().value;
-					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0)) v = v.value.get(key0);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
-				}
-				else throw new RuntimeError(loc.first_line, "添字が使える型ではありません");
-			}
-			else if(arg instanceof StringValue || arg instanceof FloatValue)
-			{
-				var key0 = arg.getValue().value;
-				if(v instanceof DictionaryValue)
-				{
-					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0))
-						v = v.value.get(key0);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
-				} 
-				else throw new RuntimeError(loc.first_line, "文字列の添字は辞書でないと使えません");
-			}
-			else if(arg instanceof SliceValue)
-				throw new RuntimeError(loc.first_line, "スライスの使い方が正しくありません");
-			else throw new RuntimeError(loc.first_line, "添字が正しくありません");
-		}
-		//代入
-		var arg = args.getElement(args.length - 1).getValue();
-		if(arg instanceof IntValue)
-		{
-			var idx = Number(arg.value);
-			var l = v.value.length;
-			if(idx < 0) idx += l;
-			if(idx < 0 || idx >= l) throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
-			if(v instanceof ArrayValue) 
-			{
-				v.setElement(idx, newval);
-			}
-			else if(v instanceof StringValue)
-			{
-				if(!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
-				var str = v.value;
-				v.rtnv = str.substr(0, idx) + newval.value + str.substr(idx + 1);
-			}
-			else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列にしか使えません");
-		}
-		else if(arg instanceof StringValue)
-		{
-			if(v instanceof DictionaryValue) 
-				v.value.set(arg.value, newval.clone().getValue());
-			else throw new RuntimeError(loc.first_line, "`文字列の添字は`辞書にしか使えません");
-		}
-		else if(arg instanceof SliceValue)
-		{
-			var idx1 = Number(arg.getValue1().getValue().value);
-			var idx2 = Number(arg.getValue2().getValue().value);
-			if(v instanceof ArrayValue)
-			{
-				if(!(newval instanceof ArrayValue)) throw new RuntimeError(loc.first_line, "配列に配列でないものを挿入しようとしました");
-				var l = v.length;
-				if(!idx1) idx1 = 0;
-				if(!idx2) idx2 = l;
-				if(idx1 < 0) idx1 += l;
-				if(idx2 < 0) idx2 += l;
-				if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 < l)
-				{
-					var a = [];
-					for(var i = 0; i < idx1; i++) a.push(v.value[i].clone());
-					for(var i = 0; i < newval.getValue().length; i++) a.push(newval.getValue().value[i].clone());
-					for(var i = idx2; i <  l; i++) a.push(v.value[i].clone());
-					v.rtnv = a;
-				}
-				else throw new RuntimeError(loc.first_line, "配列の範囲外に挿入しようとしました");
-			}
-			else if(v instanceof StringValue)
-			{
-				if(!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
-				var l = v.length;
-				if(!idx1) idx1 = 0;
-				if(!idx2) idx2 = l;
-				if(idx1 < 0) idx1 += l;
-				if(idx2 < 0) idx2 += l;
-				if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 < l) 
-				{
-					var str = v.value.substr(0, idx1) + newval.getValue().value + v.value.substr(idx2);
-					v.rtnv = str;
-				}
-			}
-			else throw new RuntimeError("スライスの添字は配列か文字列でないと使えません");
-		}
-		else throw new RuntimeError(loc.first_line, "添字が正しくありません");
+		super(v, loc);
 	}
-	else
+	clone()
 	{
-		vt.vars[vn] = newval;
+		return new UNDEFINED(this.value, this.loc);
+	}
+	get varname()
+	{
+		return this.value;
+	}
+	getValue()
+	{
+		throw new RuntimeError(this.first_line, "未完成のプログラムです");
 	}
 }
 
-/**
- * v[args]の値を取得する
- * @param {Variable} v 
- * @param {Array<Value>} args 
- * @param {Location} loc 
- * @returns Value
- */
-function getValueByArgs(v, args, loc)
+/*********************************** Primitive Value classes */
+
+class IntValue extends Value
 {
-	if(args && args.length > 0)
+	constructor(v, loc)
 	{
-		for(var i = 0; i < args.length; i++)
+		try{
+			super(BigInt(v), loc);
+		}
+		catch(e)
 		{
-			var arg = args[i].getValue();
-			// var val = v.getValue();
-			var val = v;
-			if(arg instanceof IntValue)
-			{
-				if(v instanceof ArrayValue)	// 配列のidx番目
-				{
-					var idx = Number(arg.value);
-					var l = v.length;
-					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.value[idx].getValue();
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
-				}
-				else if(v instanceof StringValue)	// 文字列のidx文字目
-				{
-					var idx = Number(arg.value);
-					var l = val.length;
-					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = new StringValue(val.value[idx], loc);
-					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えてアクセスしました");
-				}
-				else if(v instanceof DictionaryValue)
-				{
-					return val.getElement(arg.getValue().value);
-				}
-				else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列でないと使えません");
-			}
-			else if(arg instanceof StringValue || arg instanceof FloatValue)
-			{
-				if(val instanceof DictionaryValue)
-				{
-					if(val.value.has(arg.getValue().value))
-						v = val.value.get(arg.getValue().value);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
-				} 
-				else throw new RuntimeError(loc.first_line, "整数でない添字は辞書でないと使えません");
-			}
-			else if(arg instanceof SliceValue)
-			{
-				var idx1 = Number(arg.getValue1().getValue().value);
-				var idx2 = Number(arg.getValue2().getValue().value);
-				if(val instanceof ArrayValue)	// 配列のスライス
-				{
-					var l = val.length;
-					if(!idx1) idx1 = 0;
-					if(!idx2) idx2 = l;
-					if(idx1 < 0) idx1 += l;
-					if(idx2 < 0) idx2 += l;
-					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l)
-					{
-						var a = [];
-						for(var j = idx1; j < idx2; j++) a.push(val.value[j].clone());
-						v = new ArrayValue(a, loc);
-					}
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて読み出そうとしました");
-				}
-				else if(val instanceof StringValue)	// 文字列のスライス
-				{
-					var l = val.length;
-					if(!idx1) idx1 = 0;
-					if(!idx2) idx2 = l;
-					if(idx1 < 0) idx1 += l;
-					if(idx2 < 0) idx2 += l;
-					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l) v = new StringValue(val.value.substr(idx1, idx2 - idx1), loc);
-					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えて読み出そうとしました");
-				}
-				else throw new RuntimeError(loc.first_line, "スライスの添字は配列か文字列でないと使えません");
-			}
-			else throw new RuntimeError(loc.first_line, "添字が正しくありません");
+			if(e instanceof RangeError) 
+                throw RuntimeError(this.first_line, "整数で表せない値が使われました");
+			else throw e;
 		}
 	}
-	return v;
+	clone()
+	{
+		return new IntValue(this.value, this.loc);
+	}
 }
+class FloatValue extends Value
+{
+	constructor(v, loc)
+	{
+		super(v, loc);
+		if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
+	}
+	clone()
+	{
+		return new FloatValue(this.value, this.loc);
+	}
+	getCode()
+	{
+		let str = this.value.toString();
+		if(str.match(/[Ee]/) != undefined)  return str;
+		else if(isSafeInteger(this.value)) return this.value + '.0';
+		else return this.value;
+	}
+}
+
+class StringValue extends Value 
+{
+	constructor(v, loc)
+	{
+		super(v, loc);
+	}
+	clone()
+	{
+		return  new StringValue(this.value, this.loc);
+	}
+	getCode()
+	{
+		return '"' + this.value.replace(/"/g,'\\"') + '"';
+	}
+	makePython()
+	{
+		return '\'' + this.value.replace('\'','\\\'') + '\'';
+	}
+	get length(){return this.value.length;}
+}
+
+class BooleanValue extends Value 
+{
+	constructor(v, loc)
+	{
+		super(v ? true : false, loc);
+	}
+	clone()
+	{
+		return new BooleanValue(this.value, this.loc);
+	}
+	getCode()
+	{
+		return this.value ? 'True' : 'False';
+	}
+	makePython()
+	{
+		return this.value ? "True" : "False";
+	}
+}
+
+
+/*********************************** Complex Value classes */
 
 /**
  * 配列
@@ -313,28 +204,22 @@ class ArrayValue extends Value
 	{
 		if(this.state == 0)
 		{
-			this.copy_value_to_rtnv();
 			code[0].stack.unshift({statementlist: this.value, index: 0});
 			this.state = 1;
 		}
 		else
 		{
+			this.copy_value_to_rtnv();
 			code[0].stack[0].index++;
 			this.state = 0;
 		}
 	}
-	copy_value_to_rtnv()
-	{
-		if(this.rtnv){
-			for(var i = 0; i < this.value.length; i++) this.rtnv.value[i] = this.value[i];
-		}
-		else
-		{
-			var a = [];
-			for(var i = 0; i < this.value.length; i++) a.push(this.value[i]);
-			this.rtnv = new ArrayValue(a, this.loc);
-		}
-	}
+    make_rtnv()
+    {
+        var a = [];
+        for(var i = 0; i < this.value.length; i++) a.push(this.value[i].clone());
+        this.rtnv = new ArrayValue(a, this.loc);
+    }
 	getCode()
 	{
 		var ag = [];
@@ -347,42 +232,40 @@ class ArrayValue extends Value
 		for(var i = 0; i < this.value.length; i++) ag.push(this.value[i].makePython());
 		return '[' + ag.join(', ') + ']';
 	}
-	get length() {return this.value.length;}
 	append(a)
 	{
-		this.value.push(a);
-		this.copy_value_to_rtnv();
+        if(!this.rtnv) this.make_rtnv();
+		this.rtnv.value.push(a);
 	}
 	extend(a)
 	{
-		for(var i of a) this.value.push(i);
-		this.copy_value_to_rtnv();
+        if(!this.rtnv) this.make_rtnv();
+		for(var i of a) this.rtnv.value.push(i);
 	}
 	getValue()
 	{
-		// if(!this.rtnv)
-		// {
-		// 	var a = []
-		// 	for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue());
-		// 	this.rtnv = new ArrayValue(a, this.loc);
-		// }
+        if(!this.rtnv) this.make_rtnv();
 		return this.rtnv;
 	}
 	setElement(idx, val)
 	{
-		this.value[idx] = val;
-		// this.rtnv.value[idx] = val;
-		this.copy_value_to_rtnv();
-	}
-	setValue(v)
+        if(!this.rtnv) this.make_rtnv();
+        this.rtnv.value[idx] = val;
+    }
+    setValue(v)
 	{
-		this.value = v;
-		this.copy_value_to_rtnv();
+		this.rtnv = v;
 	}
 	getElement(idx)
 	{
-		return this.value[idx];
+        if(!this.rtnv) this.make_rtnv();
+		return this.rtnv.value[idx];
 	}
+	get length() 
+    {
+        if(!this.rtnv) this.make_rtnv();
+        return this.rtnv.value.length;
+    }
 }
 
 /**
@@ -483,104 +366,6 @@ class DictionaryValue extends Value
 	{
 		this.value = v;
 		this.rtnv = null;
-	}
-}
-
-class IntValue extends Value
-{
-	constructor(v, loc)
-	{
-		try{
-			super(BigInt(v), loc);
-		}
-		catch(e)
-		{
-			if(e instanceof RangeError) throw RuntimeError(this.first_line, "整数で表せない値が使われました");
-			else throw e;
-		}
-	}
-	clone()
-	{
-		return new IntValue(this.value, this.loc);
-	}
-}
-class FloatValue extends Value
-{
-	constructor(v, loc)
-	{
-		super(v, loc);
-		if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-	}
-	clone()
-	{
-		return new FloatValue(this.value, this.loc);
-	}
-	getCode()
-	{
-		let str = this.value.toString();
-		if(str.match(/[Ee]/) != undefined)  return str;
-		else if(isSafeInteger(this.value)) return this.value + '.0';
-		else return this.value;
-	}
-}
-
-class StringValue extends Value 
-{
-	constructor(v, loc)
-	{
-		super(v, loc);
-	}
-	clone()
-	{
-		return  new StringValue(this.value, this.loc);
-	}
-	getCode()
-	{
-		return '"' + this.value.replace(/"/g,'\\"') + '"';
-	}
-	get length(){return this.value.length;}
-	makePython()
-	{
-		return '\'' + this.value.replace('\'','\\\'') + '\'';
-	}
-}
-class BooleanValue extends Value 
-{
-	constructor(v, loc)
-	{
-		super(v ? true : false, loc);
-	}
-	clone()
-	{
-		return new BooleanValue(this.value, this.loc);
-	}
-	getCode()
-	{
-		return this.value ? 'True' : 'False';
-	}
-	makePython()
-	{
-		return this.value ? "True" : "False";
-	}
-}
-
-class UNDEFINED extends Value
-{
-	constructor(v, loc)
-	{
-		super(v, loc);
-	}
-	clone()
-	{
-		return new UNDEFINED(this.value, this.loc);
-	}
-	get varname()
-	{
-		return this.value;
-	}
-	getValue()
-	{
-		throw new RuntimeError(this.first_line, "未完成のプログラムです");
 	}
 }
 
@@ -3165,3 +2950,214 @@ class Assign extends Value
 	}
 }
 
+/**
+ * vtにあるvn[args]にnewvalをセットする
+ * @param {VarTable} vt 
+ * @param {String} vn 
+ * @param {Array<Value>} args 
+ * @param {Value} newval 
+ * @param {Location} loc 
+ */
+function setVariableByArgs(vt,vn, args, newval, loc)
+{
+	var v = vt.vars[vn];
+	if(args && args.length > 0)
+	{
+		for(var i = 0; i < args.length - 1; i++)
+		{
+			// var arg = args[i].getValue();
+			var arg = args.getElement(i).getValue();
+			if(arg instanceof IntValue)
+			{
+				if(v instanceof ArrayValue || v instanceof StringValue)
+				{
+					var idx = Number(arg.getValue().value);
+					var l = v.value.length;
+					if(idx < 0) idx += l;
+					if(idx >= 0 && idx < l) v = v.value[idx];
+					// if(idx >= 0 && idx < l) v = v.value[idx];
+					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
+				}
+				else if(v instanceof StringValue)
+					throw new RuntimeError(loc.first_line, "部分文字列の部分文字列への代入はできません");
+				else if(v instanceof DictionaryValue)
+				{
+					var key0 = arg.getValue().value;
+					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0)) v = v.value.get(key0);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+				}
+				else throw new RuntimeError(loc.first_line, "添字が使える型ではありません");
+			}
+			else if(arg instanceof StringValue || arg instanceof FloatValue)
+			{
+				var key0 = arg.getValue().value;
+				if(v instanceof DictionaryValue)
+				{
+					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0))
+						v = v.value.get(key0);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+				} 
+				else throw new RuntimeError(loc.first_line, "文字列の添字は辞書でないと使えません");
+			}
+			else if(arg instanceof SliceValue)
+				throw new RuntimeError(loc.first_line, "スライスの使い方が正しくありません");
+			else throw new RuntimeError(loc.first_line, "添字が正しくありません");
+		}
+		//代入
+		var arg = args.getElement(args.length - 1).getValue();
+		if(arg instanceof IntValue)
+		{
+			var idx = Number(arg.value);
+			var l = v.value.length;
+			if(idx < 0) idx += l;
+			if(idx < 0 || idx >= l) throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
+			if(v instanceof ArrayValue) 
+			{
+				v.setElement(idx, newval);
+			}
+			else if(v instanceof StringValue)
+			{
+				if(!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
+				var str = v.value;
+				v.rtnv = str.substr(0, idx) + newval.value + str.substr(idx + 1);
+			}
+			else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列にしか使えません");
+		}
+		else if(arg instanceof StringValue)
+		{
+			if(v instanceof DictionaryValue) 
+				v.value.set(arg.value, newval.clone().getValue());
+			else throw new RuntimeError(loc.first_line, "`文字列の添字は`辞書にしか使えません");
+		}
+		else if(arg instanceof SliceValue)
+		{
+			var idx1 = Number(arg.getValue1().getValue().value);
+			var idx2 = Number(arg.getValue2().getValue().value);
+			if(v instanceof ArrayValue)
+			{
+				if(!(newval instanceof ArrayValue)) throw new RuntimeError(loc.first_line, "配列に配列でないものを挿入しようとしました");
+				var l = v.length;
+				if(!idx1) idx1 = 0;
+				if(!idx2) idx2 = l;
+				if(idx1 < 0) idx1 += l;
+				if(idx2 < 0) idx2 += l;
+				if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 < l)
+				{
+					var a = [];
+					for(var i = 0; i < idx1; i++) a.push(v.value[i].clone());
+					for(var i = 0; i < newval.getValue().length; i++) a.push(newval.getValue().value[i].clone());
+					for(var i = idx2; i <  l; i++) a.push(v.value[i].clone());
+					v.rtnv = a;
+				}
+				else throw new RuntimeError(loc.first_line, "配列の範囲外に挿入しようとしました");
+			}
+			else if(v instanceof StringValue)
+			{
+				if(!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
+				var l = v.length;
+				if(!idx1) idx1 = 0;
+				if(!idx2) idx2 = l;
+				if(idx1 < 0) idx1 += l;
+				if(idx2 < 0) idx2 += l;
+				if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 < l) 
+				{
+					var str = v.value.substr(0, idx1) + newval.getValue().value + v.value.substr(idx2);
+					v.rtnv = str;
+				}
+			}
+			else throw new RuntimeError("スライスの添字は配列か文字列でないと使えません");
+		}
+		else throw new RuntimeError(loc.first_line, "添字が正しくありません");
+	}
+	else
+	{
+		vt.vars[vn] = newval;
+	}
+}
+
+/**
+ * v[args]の値を取得する
+ * @param {Variable} v 
+ * @param {Array<Value>} args 
+ * @param {Location} loc 
+ * @returns Value
+ */
+function getValueByArgs(v, args, loc)
+{
+	if(args && args.length > 0)
+	{
+		for(var i = 0; i < args.length; i++)
+		{
+			var arg = args[i].getValue();
+			// var val = v.getValue();
+			var val = v;
+			if(arg instanceof IntValue)
+			{
+				if(v instanceof ArrayValue)	// 配列のidx番目
+				{
+					var idx = Number(arg.value);
+					var l = v.length;
+					if(idx < 0) idx += l;
+					if(idx >= 0 && idx < l) v = v.value[idx].getValue();
+					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
+				}
+				else if(v instanceof StringValue)	// 文字列のidx文字目
+				{
+					var idx = Number(arg.value);
+					var l = val.length;
+					if(idx < 0) idx += l;
+					if(idx >= 0 && idx < l) v = new StringValue(val.value[idx], loc);
+					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えてアクセスしました");
+				}
+				else if(v instanceof DictionaryValue)
+				{
+					return val.getElement(arg.getValue().value);
+				}
+				else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列でないと使えません");
+			}
+			else if(arg instanceof StringValue || arg instanceof FloatValue)
+			{
+				if(val instanceof DictionaryValue)
+				{
+					if(val.value.has(arg.getValue().value))
+						v = val.value.get(arg.getValue().value);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+				} 
+				else throw new RuntimeError(loc.first_line, "整数でない添字は辞書でないと使えません");
+			}
+			else if(arg instanceof SliceValue)
+			{
+				var idx1 = Number(arg.getValue1().getValue().value);
+				var idx2 = Number(arg.getValue2().getValue().value);
+				if(val instanceof ArrayValue)	// 配列のスライス
+				{
+					var l = val.length;
+					if(!idx1) idx1 = 0;
+					if(!idx2) idx2 = l;
+					if(idx1 < 0) idx1 += l;
+					if(idx2 < 0) idx2 += l;
+					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l)
+					{
+						var a = [];
+						for(var j = idx1; j < idx2; j++) a.push(val.value[j].clone());
+						v = new ArrayValue(a, loc);
+					}
+					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて読み出そうとしました");
+				}
+				else if(val instanceof StringValue)	// 文字列のスライス
+				{
+					var l = val.length;
+					if(!idx1) idx1 = 0;
+					if(!idx2) idx2 = l;
+					if(idx1 < 0) idx1 += l;
+					if(idx2 < 0) idx2 += l;
+					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l) v = new StringValue(val.value.substr(idx1, idx2 - idx1), loc);
+					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えて読み出そうとしました");
+				}
+				else throw new RuntimeError(loc.first_line, "スライスの添字は配列か文字列でないと使えません");
+			}
+			else throw new RuntimeError(loc.first_line, "添字が正しくありません");
+		}
+	}
+	return v;
+}

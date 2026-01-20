@@ -13,8 +13,8 @@
   "main": "run1.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "uglifyjs run.js -o run.min.js",
-    "jison": "jison dncl.jison; node applyPatch.js; uglifyjs dncl.js -o dncl.min.js"
+    "build": "uglifyjs value.js statement.js defined_function.js fileio.js graphics.js flowchart.js run.js -o run.min.js",
+    "jison": "jison dncl.jison && node applyPatch.js && uglifyjs dncl.js -o dncl.min.js"
   },
   "repository": {
     "type": "git",
