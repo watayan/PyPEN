@@ -16,6 +16,7 @@ var scripts = [
     "./defined_function.js",
     "./fileio.js",
     "./flowchart.js",
+    "./graphics.js",
 ];
 
 function load_js(js)
