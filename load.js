@@ -13,7 +13,9 @@ var scripts = [
     "./pypen.js",
     "./quiz.js",
     "./base64.js",
+    "./defined_function.js",
     "./fileio.js",
+    "./flowchart.js",
 ];
 
 function load_js(js)
