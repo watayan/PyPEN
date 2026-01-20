@@ -121,4 +121,99 @@ class FileIO {
     }
 };
 
+document.getElementById("storage_download").onclick = function(ev)
+{
+	var element = document.getElementById("storage_download");
+	var list = document.getElementById("storage_list");
+	var n = list.options.selectedIndex;
+	if(n >= 0 && n < storage.length)
+	{
+		var filename = list.options[n].value;
+		var str = storage.getItem(filename);
+		var blob = new Blob([str], {type:"text/plain"});
+		if(window.navigator.msSaveBlob)
+		{
+			window.navigator.msSaveBlob(blob, filename);
+		}
+		else
+		{
+			window.URL = window.URL || window.webkitURL;
+			element.setAttribute("href", window.URL.createObjectURL(blob));
+			element.setAttribute("download", filename);
+		}
+	}
+	else
+	{
+		element.removeAttribute("href");
+	}
+};
+
+
+document.getElementById("storage_upload1").onclick = function(ev){
+	document.getElementById("storage_upload").click();
+	return false;
+}
+
+document.getElementById("storage_upload").addEventListener("change", function(ev){
+	var file = ev.target.files;
+	var reader = new FileReader();
+	reader.readAsText(file[0], "UTF-8");
+	reader.onload = function(ev)
+	{
+		var data = reader.result;
+		try{
+			storage.setItem(file[0].name,data);
+			storage_list_update();
+		}
+		catch(e)
+		{
+			window.alert("ストレージに保存できませんでした");
+		}
+	}
+});
+
+document.getElementById("storage_remove").onclick = function(ev)
+{
+	var list = document.getElementById("storage_list");
+	var n = list.options.selectedIndex;
+	if(n >= 0)
+	{
+		var key = list.options[n].value;
+		storage.removeItem(key);
+		storage_list_update();	
+	}
+};
+
+document.getElementById("storage_clear").onclick = function(ev)
+{
+	if(window.confirm("ストレージを空にしていいですか？"))
+	{
+		storage.clear();
+		storage_list_update();	
+	}
+};
+
+function storage_list_update()
+{
+	var list = document.getElementById("storage_list");
+	while(list.options.length) list.options.remove(0);
+	var n = storage.length;
+	if(n > 0)
+	{
+		for(var i = 0; i < n; i++)
+		{
+			var option = document.createElement("option");
+			option.text = option.value = storage.key(i);
+			list.appendChild(option);
+		}
+	}
+	else
+	{
+		var option = document.createElement("option");
+		option.text = "--空--";
+		// option.attributes.add("disabled");
+		list.appendChild(option);
+	}
+}
+
 var filesystem = new FileIO();
