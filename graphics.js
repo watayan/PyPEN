@@ -1,3 +1,7 @@
+var graphColor = [
+	'#c00000','#00c000','#0000c0','#007070','#700070','#707000'
+];
+
 class GraphicStatement extends Statement
 {
 	constructor(command, args, loc)

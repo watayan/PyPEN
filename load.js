@@ -13,6 +13,8 @@ var scripts = [
     "./pypen.js",
     "./quiz.js",
     "./base64.js",
+    "./value.js",
+    "./statement.js",
     "./defined_function.js",
     "./fileio.js",
     "./flowchart.js",
@@ -38,9 +40,14 @@ function load_js_witherror(js)
         script.defer = 1;
         script.src = js;
         script.type = "text/javascript";
-        script.addEventListener('load', () => resolve('ok'));
-        script.addEventListener('error', () => resolve('error'));
-        document.body.appendChild(script);    
+        script.addEventListener('load', () => {
+            resolve('ok')
+        });
+        script.addEventListener('error', () => {
+            document.body.removeChild(script);
+            resolve('error')
+        });
+        document.body.appendChild(script);
     });
 }
 
