@@ -62,8 +62,8 @@ var definedFunction = {
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
 		if(!(par1 instanceof StringValue) || !(par2 instanceof StringValue)) throw new RuntimeError(loc.first_line, "matchの引数は文字列にしてください");
-		var re = RegExp(par1.value);
-		var result = re.exec(par2.value);
+		var re = RegExp(par1.rtnv.value);
+		var result = re.exec(par2.rtnv.value);
 		if(result)
 		{
 			var a = [];
@@ -79,12 +79,12 @@ var definedFunction = {
 		var par2 = param[1].getValue();
 		var result = false;
 		if(!(par2 instanceof StringValue)) throw new RuntimeError(loc.first_line, "typeisの第2引数は文字列にしてください");
-		if(par1 instanceof IntValue) result = par2.value.match(/^整数|int|integer$/i);
-		else if(par1 instanceof FloatValue) result = par2.value.match(/^実数|float|double$/i);
-		else if(par1 instanceof StringValue) result = par2.value.match(/^文字列|string$/i);
-		else if(par1 instanceof BooleanValue) result = par2.value.match(/^真偽|bool|boolean$/i);
-		else if(par1 instanceof ArrayValue) result = par2.value.match(/^(リスト|list|array)$/i);
-		else if(par1 instanceof DictionaryValue) result = par2.value.match(/^辞書|dictionary|dict$/i);
+		if(par1 instanceof IntValue) result = par2.rtnv.value.match(/^整数|int|integer$/i);
+		else if(par1 instanceof FloatValue) result = par2.rtnv.value.match(/^実数|float|double$/i);
+		else if(par1 instanceof StringValue) result = par2.rtnv.value.match(/^文字列|string$/i);
+		else if(par1 instanceof BooleanValue) result = par2.rtnv.value.match(/^真偽|bool|boolean$/i);
+		else if(par1 instanceof ArrayValue) result = par2.rtnv.value.match(/^(リスト|list|array)$/i);
+		else if(par1 instanceof DictionaryValue) result = par2.rtnv.value.match(/^辞書|dictionary|dict$/i);
 		else if(par1 instanceof NullValue) result = false;
 		else throw new RuntimeError(loc.first_line, "不明な型です");
 		return new BooleanValue(result, loc);

@@ -612,8 +612,7 @@ class Output extends Statement
 			let s = '';
 			for(var i = 0; i < this.value.length; i++)
 			{
-				let v = this.value[i];
-				s += (i > 0 ? ' ' : '') + array2text(v);
+				s += (i > 0 ? ' ' : '') + array2text(this.value[i].rtnv);
 			}
 			if(this.ln)	s += '\n';
 			if(selected_quiz < 0) textareaAppend(s);

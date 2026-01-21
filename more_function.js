@@ -11,28 +11,40 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof IntValue)
         {
-            if(par1.value >= BigInt(0)) return new IntValue(par1.value, loc);
-            else return new IntValue(-par1.value, loc);
+            if(par1.rtnv.value >= BigInt(0)) return new IntValue(par1.rtnv.value, loc);
+            else return new IntValue(-par1.rtnv.value, loc);
         }
-        else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.value), loc);
+        else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.rtnv.value), loc);
         else throw new RuntimeError(loc.first_line, '引数は数値でなければなりません');
     }, null, null),
-    "all": new DefinedFunction(1, function(param, loc){
+    "all": new DefinedFunction(-1, function(param, loc){
         var par1 = param[0].getValue();
-        if(par1 instanceof ArrayValue)
+        if(param.length ==1 && par1.rtnv instanceof ArrayValue)
         {
-            for(let i = 0; i < par1.value.length; i++)
-                if(!toBool(par1.value[i], loc)) return new BooleanValue(false, loc);
+            for(let i = 0; i < par1.rtnv.value.length; i++)
+                if(!toBool(par1.rtnv.value[i], loc)) return new BooleanValue(false, loc);
+            return new BooleanValue(true, loc);
+        }
+        else if(param.length >= 1)
+        {
+            for(let i = 0; i < param.length; i++)
+                if(!toBool(param[i].rtnv.value, loc)) return new BooleanValue(false, loc);
             return new BooleanValue(true, loc);
         }
         else throw new RuntimeError(loc.first_line, '引数は数値の配列です');
     }, null, null),
-    "any": new DefinedFunction(1, function(param, loc){
+    "any": new DefinedFunction(-1, function(param, loc){
         var par1 = param[0].getValue();
-        if(par1 instanceof ArrayValue)
+        if(param.length == 1 && par1.rtnv instanceof ArrayValue)
         {
-            for(let i = 0; i < par1.value.length; i++)
-                if(toBool(par1.value[i], loc)) return new BooleanValue(true, loc);
+            for(let i = 0; i < par1.rtnv.value.length; i++)
+                if(toBool(par1.rtnv.value[i], loc)) return new BooleanValue(true, loc);
+            return new BooleanValue(false, loc);
+        }
+        else if(param.length >= 1)
+        {
+            for(let i = 0; i < param.length; i++)
+                if(toBool(param[i].rtnv.value, loc)) return new BooleanValue(true, loc);
             return new BooleanValue(false, loc);
         }
         else throw new RuntimeError(loc.first_line, '引数は数値の配列です');
@@ -40,7 +52,7 @@ var functions = {
     "sum": new DefinedFunction(-1, function(param, loc){
         var par;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getValue().value;
+            par = param[0].getValue().rtnv;
         else
             par = param;
         var sum = BigInt(0);
@@ -163,13 +175,13 @@ var functions = {
     "max": new DefinedFunction(-1, function(param, loc){
         var par;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getValue().value;
+            par = param[0].getValue().rtnv.value;
         else
             par = param;
         var max_val = null, val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
-            var val = par[i];
+            var val = par[i].rtnv;
             if(val instanceof IntValue)
             {
                 if(val_type == 0) 
@@ -208,7 +220,7 @@ var functions = {
         var min_val = null, val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
-            var val = par[i];
+            var val = par[i].rtnv;
             if(val instanceof IntValue)
             {
                 if(val_type == 0) 
@@ -245,7 +257,7 @@ var functions = {
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
         else par = param;
         var nums = [];
-        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getValue().value));
+        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getValue().rtnv.value));
         nums.sort(function(a, b){return a - b;});
         if(nums.length == 0) return new NullValue(loc);
         else if(nums.length % 2 == 1){
@@ -258,13 +270,13 @@ var functions = {
         }
     }, null, null),
     "comb": new DefinedFunction(2, function(param, loc){
-        var par1 = param[0].getValue();
-        var par2 = param[1].getValue(); 
+        var par1 = param[0].getValue().rtnv;
+        var par2 = param[1].getValue().rtnv; 
         if(par1 instanceof IntValue && par2 instanceof IntValue &&
            par1.value >= BigInt(0) && par2.value >= BigInt(0) && par1.value >= par2.value)
         {
-            var n = par1.value;
-            var r = par2.value;
+            var n = par1.rtnv.value;
+            var r = par2.rtnv.value;
             if(r > n - r) r = n - r;
             var p = BigInt(1);
             for(let i = BigInt(0); i < r; i++) p *= (n - i);
@@ -274,13 +286,13 @@ var functions = {
         else throw new RuntimeError(loc.first_line, '引数は非負整数で、1つ目の引数は2つ目の引数以上でなければなりません');
     }, null, null),
     "perm": new DefinedFunction(2, function(param, loc){
-        var par1 = param[0].getValue();
-        var par2 = param[1].getValue(); 
+        var par1 = param[0].getValue().rtnv;
+        var par2 = param[1].getValue().rtnv; 
         if(par1 instanceof IntValue && par2 instanceof IntValue &&
            par1.value >= BigInt(0) && par2.value >= BigInt(0) && par1.value >= par2.value)
         {
-            var n = par1.value;
-            var r = par2.value;
+            var n = par1.rtnv.value;
+            var r = par2.rtnv.value;
             var p = BigInt(1);
             for(let i = BigInt(0); i < r; i++) p *= (n - i);
             return new IntValue(p, loc);

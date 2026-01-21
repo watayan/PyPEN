@@ -2,8 +2,8 @@
 
 class Value
 {
-    /* this.value は初期化時の値を保持する。
-       this.rtnv は実行時に返す値を保持する。
+    /* this.value は初期化時の値を保持する。型はvalue
+       this.rtnv は実行時に返す値を保持する。型はValueのサブクラス
     */
 	/**
 	 * @constructor
@@ -114,6 +114,7 @@ class IntValue extends Value
 		return new IntValue(this.value, this.loc);
 	}
 }
+
 class FloatValue extends Value
 {
 	constructor(v, loc)
@@ -196,9 +197,9 @@ class ArrayValue extends Value
 	}
 	clone()
 	{
-		var a = [];
-		for(var i = 0; i < this.value.length; i++) a.push(this.value[i]);
-		return new ArrayValue(a, this.loc);
+		// var a = [];
+		// for(var i = 0; i < this.value.length; i++) a.push(this.value[i]);
+		return new ArrayValue(this.value, this.loc);
 	}
 	run()
 	{
@@ -209,7 +210,7 @@ class ArrayValue extends Value
 		}
 		else
 		{
-			this.copy_value_to_rtnv();
+			this.make_rtnv();
 			code[0].stack[0].index++;
 			this.state = 0;
 		}
@@ -217,8 +218,10 @@ class ArrayValue extends Value
     make_rtnv()
     {
         var a = [];
-        for(var i = 0; i < this.value.length; i++) a.push(this.value[i].clone());
+		if(this.rtnv) throw new RuntimeError(this.first_line, "配列の実体が既にあります");
+        for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue());
         this.rtnv = new ArrayValue(a, this.loc);
+		this.rtnv.rtnv = this.rtnv;
     }
 	getCode()
 	{
@@ -285,8 +288,8 @@ class DictionaryValue extends Value
 		{
 			if(v[i] instanceof SliceValue)
 			{
-				var key = v[i].getValue1();
-				var val = v[i].getValue2();
+				var key = v[i].getValue1().rtnv;
+				var val = v[i].getValue2().rtnv;
 				if(val instanceof Variable) val = getValueByArgs(val, null, loc);
 				if(isPrimitive(key)) this.value.set(key.value, val);
 				else throw new RuntimeError(loc.first_line, "辞書のキーには単純型しか使えません");
@@ -299,12 +302,20 @@ class DictionaryValue extends Value
 	clone()
 	{
 		var rtnv = new DictionaryValue([], this.loc);
-		for(var key of this.value.keys())
+		for(var key of this.rtnv.keys())
 		{
-			var val = this.value.get(key);
-			rtnv.value.set(key, val.clone());
+			var val = this.rtnv.get(key);
+			rtnv.value.set(key, val.getValue());
 		}
 		return rtnv;
+	}
+	make_rtnv()
+	{
+		if(this.rtnv) throw new RuntimeError(this.first_line, "辞書の実体が既にあります");
+		this.rtnv = new Map();
+		var keys = this.value.keys();
+		for(var i = 0; i < keys.length; i++)
+			this.rtnv.set(keys[i], this.value.get(keys[i]).getValue());
 	}
 	getCode()
 	{
@@ -338,6 +349,7 @@ class DictionaryValue extends Value
 		}
 		else
 		{
+			this.make_rtnv();
 			code[0].stack[0].index++;
 			var a = [];
 			for(let key of this.value.keys())
@@ -350,16 +362,16 @@ class DictionaryValue extends Value
 	}
 	getValue()
 	{
-		return this.rtnv ? this.rtnv : this;
+		return this.rtnv;
 	}
 	getElement(key)
 	{
-		if(this.value.has(key)) return this.value.get(key);
+		if(this.rtnv.has(key)) return this.rtnv.get(key);
 		else throw new RuntimeError(this.first_line, "キーに" + key + "がありません");	
 	}
 	setElement(key, val)
 	{
-		this.value.set(key, val);
+		this.rtnv.set(key, val);
 		this.rtnv = null;
 	}
 	setValue(v)
@@ -2431,26 +2443,26 @@ class Variable extends Value
 	get args(){return this.value[1];}
 	run()
 	{
-		code[0].stack[0].index++;
-		if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
-		// if(this.state == 0)
-		// {
-		// 	if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
-		// 	this.state = 1;
-		// }
-		// else
-		// {
-		// 	code[0].stack[0].index++;
-		// 	let vn = this.varname;		// 変数名
-		// 	let vt = findVarTable(vn);	// 変数は定義されてるか
-		// 	if(vt)
-		// 	{
-		// 		let v = vt.vars[vn];
-		// 		this.rtnv = getValueByArgs(v, this.args ? this.args.value : null, this.loc);
-		// 	}
-		// 	else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
-		// 	this.state = 0;
-		// }
+		// code[0].stack[0].index++;
+		// if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
+		if(this.state == 0)
+		{
+			if(this.args) code[0].stack.unshift({statementlist: this.args.value, index: 0});
+			this.state = 1;
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			let vn = this.varname;		// 変数名
+			let vt = findVarTable(vn);	// 変数は定義されてるか
+			if(vt)
+			{
+				let v = vt.vars[vn];
+				this.rtnv = getValueByArgs(v, this.args ? this.args.value : null, this.loc);
+			}
+			else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
+			this.state = 0;
+		}
 	}
 	getCode()
 	{
@@ -3013,7 +3025,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			if(idx < 0 || idx >= l) throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
 			if(v instanceof ArrayValue) 
 			{
-				v.setElement(idx, newval);
+				v.setElement(idx, newval.getValue());
 			}
 			else if(v instanceof StringValue)
 			{
@@ -3071,7 +3083,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 	}
 	else
 	{
-		vt.vars[vn] = newval;
+		vt.vars[vn] = newval.getValue();
 	}
 }
 
@@ -3088,7 +3100,7 @@ function getValueByArgs(v, args, loc)
 	{
 		for(var i = 0; i < args.length; i++)
 		{
-			var arg = args[i].getValue();
+			var arg = args[i].getValue().rtnv;
 			// var val = v.getValue();
 			var val = v;
 			if(arg instanceof IntValue)
@@ -3098,7 +3110,7 @@ function getValueByArgs(v, args, loc)
 					var idx = Number(arg.value);
 					var l = v.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.value[idx].getValue();
+					if(idx >= 0 && idx < l) v = v.value[idx].getValue().getValue();
 					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
 				}
 				else if(v instanceof StringValue)	// 文字列のidx文字目
@@ -3111,7 +3123,7 @@ function getValueByArgs(v, args, loc)
 				}
 				else if(v instanceof DictionaryValue)
 				{
-					return val.getElement(arg.getValue().value);
+					return val.getElement(arg.getValue().rtnv);
 				}
 				else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列でないと使えません");
 			}
@@ -3119,9 +3131,9 @@ function getValueByArgs(v, args, loc)
 			{
 				if(val instanceof DictionaryValue)
 				{
-					if(val.value.has(arg.getValue().value))
-						v = val.value.get(arg.getValue().value);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+					if(val.rtnv.has(arg.getValue().rtnv))
+						v = val.rtnv.get(arg.getValue().rtnv);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().rtnv+"がありません");
 				} 
 				else throw new RuntimeError(loc.first_line, "整数でない添字は辞書でないと使えません");
 			}

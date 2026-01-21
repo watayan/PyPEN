@@ -300,37 +300,43 @@ class RuntimeError
 	get message() {return this._message;}
 }
 
+/**
+ * 
+ * @param {*} v 
+ * @param {*} flag 
+ * @returns 
+ */
 function array2text(v, flag = false)	// flag: 文字列に''をつける
 {
 	if(!v) return '';
 	if(v instanceof Value)
 	{
-		let v0 = v.getValue();
-		if(v0 instanceof ArrayValue)
+		let v0 = v;
+		if(v0.getValue() instanceof ArrayValue)
 		{
 			let v1 = [];
-			for(let i = 0; i < v0.value.length; i++)
+			for(let i = 0; i < v0.rtnv.value.length; i++)
 			{
-				v1.push(array2text(v0.value[i], flag));
+				v1.push(array2text(v0.rtnv.value[i].getValue(), flag));
 			}
 			return '[' + v1.join(',') + ']';
 		}
 		else if(v0 instanceof DictionaryValue)
 		{
 			let v1 = [];
-			let keys = v0.value.keys();
+			let keys = v0.rtnv.keys();
 			for(let key of keys) 
 			{
-				var val = v0.value.get(key);
+				var val = v0.rtnv.get(key);
 				if(typeof key === "string") key = "'" + key + "'";
 				v1.push(key + ':' + array2text(val, flag));
 			}
 			return '{' + v1.join(',') + '}';
 		}
-		else if(v0 instanceof BooleanValue) return v0.value ? 'True' : 'False';
-		else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
-		else if(flag && v0 instanceof StringValue) return new String("'" + v0.value + "'");
-		else return new String(v0.value);
+		else if(v0 instanceof BooleanValue) return v0.rtnv.value ? 'True' : 'False';
+		else if(v0 instanceof FloatValue && isInteger(v0.rtnv) && !v0.rtnv.value.toString().match(/[Ee]/)) return v0.rtnv.value + '.0';
+		else if(flag && v0 instanceof StringValue) return new String("'" + v0.rtnv.value + "'");
+		else return new String(v0.rtnv.value);
 	}
 	else return new String(v);
 }
@@ -342,16 +348,16 @@ function array2code(v, flag = false)	// flag: 文字列に''をつける
 	if(v0 instanceof ArrayValue)
 	{
 		let v1 = [];
-		for(let i = 0; i < v0.value.length; i++) v1.push(array2text(v0.value[i], flag));
+		for(let i = 0; i < v0.getValue().value.length; i++) v1.push(array2text(v0.getValue().value[i], flag));
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof DictionaryValue)
 	{
 		let v1 = [];
-		let keys = v0.value.keys();
+		let keys = v0.getValue().value.keys();
 		for(let key of keys) 
 		{
-			var val = v0.value.get(key);
+			var val = v0.getValue().rtnv.get(key);
 			if(typeof key === "string") key = "'" + key + "'";
 			v1.push(key + ':' + array2text(val, flag));
 		}
@@ -367,19 +373,19 @@ function val2obj(val)
 	if(val instanceof ArrayValue)
 	{
 		var rtnv = [];
-		var l = val.value.length;
-		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.value[i]));
+		var l = val.getValue().value.length;
+		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.getValue().value[i]));
 		return rtnv;
 	}
 	else if(val instanceof DictionaryValue)
 	{
 		var rtnv = {};
-		for(var key of val.value.keys())
-			rtnv[key] = val2obj(val.value.get(key).getValue());
+		for(var key of val.getValue().value.keys())
+			rtnv[key] = val2obj(val.getValue().value.get(key).getValue());
 		return rtnv;
 	}
-	else if(val instanceof IntValue)return Number(val.value);
-	else return val.value;
+	else if(val instanceof IntValue)return Number(val.rtnv);
+	else return val.rtnv;
 }
 
 /**
@@ -587,9 +593,7 @@ function next_line()
 	if(statement)
 	{
 		try{
-			// console.log("run line 0" , statement);
 			statement.run();
-			// console.log("run line 1" , statement);
 		}
 		catch(e)
 		{
