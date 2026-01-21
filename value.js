@@ -3,7 +3,7 @@
 class Value
 {
     /* this.value は初期化時の値を保持する。型はvalue
-       this.rtnv は実行時に返す値を保持する。型はValueのサブクラス
+       this.rtnv は実行時に返す値を保持する。型はValueのサブクラス または Array または Map
     */
 	/**
 	 * @constructor
@@ -13,7 +13,7 @@ class Value
 	constructor(v, loc)
 	{
 		this.value = v;		// value must be value(include array, hash), not Value
-		this.rtnv = this;	// rtnv must be Value, not value
+		this.rtnv = this;	// rtnv must be Value
 		this.loc = loc;
 	}
 	clone()
@@ -192,13 +192,11 @@ class ArrayValue extends Value
 	constructor(v,loc)
 	{
 		super(v, loc);
-		this.rtnv = null;
+		this.rtnv = null;	// Array Object (not ArrayValue)
 		this.state = 0;
 	}
 	clone()
 	{
-		// var a = [];
-		// for(var i = 0; i < this.value.length; i++) a.push(this.value[i]);
 		return new ArrayValue(this.value, this.loc);
 	}
 	run()
@@ -217,11 +215,10 @@ class ArrayValue extends Value
 	}
     make_rtnv()
     {
-        var a = [];
 		if(this.rtnv) throw new RuntimeError(this.first_line, "配列の実体が既にあります");
-        for(var i = 0; i < this.value.length; i++) a.push(this.value[i].getValue());
-        this.rtnv = new ArrayValue(a, this.loc);
+		this.rtnv = new ArrayValue([], this.loc);
 		this.rtnv.rtnv = this.rtnv;
+        for(var i = 0; i < this.value.length; i++) this.rtnv.value.push(this.value[i]);
     }
 	getCode()
 	{
@@ -255,10 +252,10 @@ class ArrayValue extends Value
         if(!this.rtnv) this.make_rtnv();
         this.rtnv.value[idx] = val;
     }
-    setValue(v)
-	{
-		this.rtnv = v;
-	}
+    // setValue(v)
+	// {
+	// 	this.rtnv = v;
+	// }
 	getElement(idx)
 	{
         if(!this.rtnv) this.make_rtnv();
@@ -302,21 +299,21 @@ class DictionaryValue extends Value
 	clone()
 	{
 		var rtnv = new DictionaryValue([], this.loc);
-		for(var key of this.rtnv.keys())
+		for(var key of this.value.keys())
 		{
-			var val = this.rtnv.get(key);
+			var val = this.value.get(key);
 			rtnv.value.set(key, val.getValue());
 		}
 		return rtnv;
 	}
-	make_rtnv()
-	{
-		if(this.rtnv) throw new RuntimeError(this.first_line, "辞書の実体が既にあります");
+    make_rtnv()
+    {
+		if(this.rtnv) throw new RuntimeError(this.first_line, "配列の実体が既にあります");
 		this.rtnv = new Map();
 		var keys = this.value.keys();
-		for(var i = 0; i < keys.length; i++)
-			this.rtnv.set(keys[i], this.value.get(keys[i]).getValue());
-	}
+		for(var key of keys)
+			this.rtnv.set(key, this.value.get(key).getValue());
+    }
 	getCode()
 	{
 		var ag = [];
@@ -341,9 +338,7 @@ class DictionaryValue extends Value
 		{
 			var a = [];
 			for(let key of this.value.keys())
-			{
 				a.push(this.value.get(key));
-			}
 			code[0].stack.unshift({statementlist: a, index: 0});
 			this.state = 1;
 		}
@@ -354,7 +349,7 @@ class DictionaryValue extends Value
 			var a = [];
 			for(let key of this.value.keys())
 			{
-				a.push(new SliceValue(new StringValue(key, this.loc), this.value.get(key), this.loc));
+				a.push(new SliceValue(new StringValue(key.rtnv, this.loc), this.value.get(key), this.loc));
 			}
 			this.rtnv = new DictionaryValue(a, this.loc);
 			this.state = 0;
@@ -362,6 +357,7 @@ class DictionaryValue extends Value
 	}
 	getValue()
 	{
+		if(!this.rtnv) this.make_rtnv();
 		return this.rtnv;
 	}
 	getElement(key)
@@ -2981,33 +2977,32 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			var arg = args.getElement(i).getValue();
 			if(arg instanceof IntValue)
 			{
-				if(v instanceof ArrayValue || v instanceof StringValue)
+				if(v instanceof ArrayValue)
 				{
 					var idx = Number(arg.getValue().value);
-					var l = v.value.length;
+					var l = v.rtnv.value.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.value[idx];
-					// if(idx >= 0 && idx < l) v = v.value[idx];
+					if(idx >= 0 && idx < l) v = v.rtnv.value[idx].rtnv;
 					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
 				}
 				else if(v instanceof StringValue)
 					throw new RuntimeError(loc.first_line, "部分文字列の部分文字列への代入はできません");
 				else if(v instanceof DictionaryValue)
 				{
-					var key0 = arg.getValue().value;
-					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0)) v = v.value.get(key0);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+					var key0 = arg.getValue().rtnv;
+					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0)) v = v.rtnv.get(key0);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().rtnv+"がありません");
 				}
 				else throw new RuntimeError(loc.first_line, "添字が使える型ではありません");
 			}
 			else if(arg instanceof StringValue || arg instanceof FloatValue)
 			{
-				var key0 = arg.getValue().value;
+				var key0 = arg.getValue().rtnv;
 				if(v instanceof DictionaryValue)
 				{
 					if(isPrimitive(arg.getValue()) && v.getValue().value.has(key0))
-						v = v.value.get(key0);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().value+"がありません");
+						v = v.rtnv.get(key0);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+arg.getValue().rtnv+"がありません");
 				} 
 				else throw new RuntimeError(loc.first_line, "文字列の添字は辞書でないと使えません");
 			}
@@ -3020,7 +3015,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 		if(arg instanceof IntValue)
 		{
 			var idx = Number(arg.value);
-			var l = v.value.length;
+			var l = v.rtnv.value.length;
 			if(idx < 0) idx += l;
 			if(idx < 0 || idx >= l) throw new RuntimeError(loc.first_line, "配列の範囲を超えて代入しようとしました");
 			if(v instanceof ArrayValue) 
@@ -3030,8 +3025,8 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			else if(v instanceof StringValue)
 			{
 				if(!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
-				var str = v.value;
-				v.rtnv = str.substr(0, idx) + newval.value + str.substr(idx + 1);
+				var str = v.rtnv;
+				v.rtnv = str.substr(0, idx) + newval.rtnv + str.substr(idx + 1);
 			}
 			else throw new RuntimeError(loc.first_line, "整数の添字は配列か文字列にしか使えません");
 		}
@@ -3048,7 +3043,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			if(v instanceof ArrayValue)
 			{
 				if(!(newval instanceof ArrayValue)) throw new RuntimeError(loc.first_line, "配列に配列でないものを挿入しようとしました");
-				var l = v.length;
+				var l = v.rtnv.length;
 				if(!idx1) idx1 = 0;
 				if(!idx2) idx2 = l;
 				if(idx1 < 0) idx1 += l;
@@ -3056,9 +3051,9 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 				if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 < l)
 				{
 					var a = [];
-					for(var i = 0; i < idx1; i++) a.push(v.value[i].clone());
-					for(var i = 0; i < newval.getValue().length; i++) a.push(newval.getValue().value[i].clone());
-					for(var i = idx2; i <  l; i++) a.push(v.value[i].clone());
+					for(var i = 0; i < idx1; i++) a.push(v.rtnv[i].clone());
+					for(var i = 0; i < newval.getValue().length; i++) a.push(newval.getValue().rtnv[i].clone());
+					for(var i = idx2; i <  l; i++) a.push(v.rtnv[i].clone());
 					v.rtnv = a;
 				}
 				else throw new RuntimeError(loc.first_line, "配列の範囲外に挿入しようとしました");
@@ -3066,14 +3061,14 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			else if(v instanceof StringValue)
 			{
 				if(!(newval.getValue() instanceof StringValue)) throw new RuntimeError(loc.first_line, "文字列の途中に文字列でないものを挿入しようとしました");
-				var l = v.length;
+				var l = v.rtnv.length;
 				if(!idx1) idx1 = 0;
 				if(!idx2) idx2 = l;
 				if(idx1 < 0) idx1 += l;
 				if(idx2 < 0) idx2 += l;
 				if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 < l) 
 				{
-					var str = v.value.substr(0, idx1) + newval.getValue().value + v.value.substr(idx2);
+					var str = v.rtnv.substr(0, idx1) + newval.getValue().rtnv + v.rtnv.substr(idx2);
 					v.rtnv = str;
 				}
 			}
@@ -3110,7 +3105,7 @@ function getValueByArgs(v, args, loc)
 					var idx = Number(arg.value);
 					var l = v.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = v.value[idx].getValue().getValue();
+					if(idx >= 0 && idx < l) v = v.rtnv.value[idx].getValue();
 					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
 				}
 				else if(v instanceof StringValue)	// 文字列のidx文字目
@@ -3151,7 +3146,7 @@ function getValueByArgs(v, args, loc)
 					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l)
 					{
 						var a = [];
-						for(var j = idx1; j < idx2; j++) a.push(val.value[j].clone());
+						for(var j = idx1; j < idx2; j++) a.push(val.rtnv[j]);
 						v = new ArrayValue(a, loc);
 					}
 					else throw new RuntimeError(loc.first_line, "配列の範囲を超えて読み出そうとしました");
@@ -3163,7 +3158,7 @@ function getValueByArgs(v, args, loc)
 					if(!idx2) idx2 = l;
 					if(idx1 < 0) idx1 += l;
 					if(idx2 < 0) idx2 += l;
-					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l) v = new StringValue(val.value.substr(idx1, idx2 - idx1), loc);
+					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l) v = new StringValue(val.rtnv.substr(idx1, idx2 - idx1), loc);
 					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えて読み出そうとしました");
 				}
 				else throw new RuntimeError(loc.first_line, "スライスの添字は配列か文字列でないと使えません");

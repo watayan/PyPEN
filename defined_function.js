@@ -142,9 +142,9 @@ var definedFunction = {
 		if(par1 instanceof DictionaryValue)
 		{
 			var args = [];
-			var keys = par1.getValue().value.keys();
+			var keys = par1.getValue().rtnv.keys();
 			for(let key of keys) args.push(new StringValue(key, loc));
-			args.sort();
+			// args.sort();
 			return new ArrayValue(args, this.loc);
 		}
 		else throw new RuntimeError(loc.first_line, 'keysは辞書にしか使えません');
