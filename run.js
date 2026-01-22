@@ -317,17 +317,17 @@ function array2text(v, flag = false)	// flag: 文字列に''をつける
 			let v1 = [];
 			for(let i = 0; i < v0.rtnv.value.length; i++)
 			{
-				v1.push(array2text(v0.rtnv.value[i].getValue(), flag));
+				v1.push(array2text(v0.rtnv.value[i], flag));
 			}
 			return '[' + v1.join(',') + ']';
 		}
 		else if(v0 instanceof DictionaryValue)
 		{
 			let v1 = [];
-			let keys = v0.rtnv.keys();
+			let keys = v0.rtnv.value.keys();
 			for(let key of keys) 
 			{
-				var val = v0.rtnv.get(key);
+				var val = v0.rtnv.value.get(key);
 				if(typeof key === "string") key = "'" + key + "'";
 				v1.push(key + ':' + array2text(val, flag));
 			}
@@ -348,24 +348,27 @@ function array2code(v, flag = false)	// flag: 文字列に''をつける
 	if(v0 instanceof ArrayValue)
 	{
 		let v1 = [];
-		for(let i = 0; i < v0.getValue().value.length; i++) v1.push(array2text(v0.getValue().value[i], flag));
+		for(let i = 0; i < v0.getValue().rtnv.length; i++) 
+			v1.push(array2text(v0.getValue().rtnv.value[i].getCode(), flag));
 		return '[' + v1.join(',') + ']';
 	}
 	else if(v0 instanceof DictionaryValue)
 	{
 		let v1 = [];
-		let keys = v0.getValue().value.keys();
+		let keys = v0.getValue().rtnv.value.keys();
 		for(let key of keys) 
 		{
-			var val = v0.getValue().rtnv.get(key);
+			var val = v0.getValue().rtnv.value.get(key);
+			key = key.rtnv;
+			while(key instanceof Value) key = key.value;
 			if(typeof key === "string") key = "'" + key + "'";
 			v1.push(key + ':' + array2text(val, flag));
 		}
 		return '{' + v1.join(',') + '}';
 	}
 	else if(flag && v0 instanceof StringValue) return "'" + v0.value + "'";
-	else if(v0 instanceof FloatValue && isInteger(v0.value) && !v0.value.toString().match(/[Ee]/)) return v0.value + '.0';
-	return v0.value;
+	else if(v0 instanceof FloatValue && isInteger(v0.rtnv.value) && !v0.rtnv.value.toString().match(/[Ee]/)) return v0.rtnv + '.0';
+	return v0.rtnv.value.toString();
 }
 
 function val2obj(val)

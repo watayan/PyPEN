@@ -184,7 +184,7 @@ function dump(message = null)
 		if(vars[i][0] == '!') continue;
 		let vartable = findVarTable(vars[i]);
 		let v = vartable.vars[vars[i]];
-		textareaAppend(vars[i] + ":" + array2code(v, true) + "\n");
+		textareaAppend(vars[i] + ":" + array2code(v.rtnv, true) + "\n");
 	}
 }
 
