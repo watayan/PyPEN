@@ -324,10 +324,10 @@ function array2text(v, flag = false)	// flag: 文字列に''をつける
 		else if(v0 instanceof DictionaryValue)
 		{
 			let v1 = [];
-			let keys = v0.rtnv.value.keys();
+			let keys = v0.getValue().rtnv.value.keys();
 			for(let key of keys) 
 			{
-				var val = v0.rtnv.value.get(key);
+				var val = v0.getValue().rtnv.value.get(key);
 				if(typeof key === "string") key = "'" + key + "'";
 				v1.push(key + ':' + array2text(val, flag));
 			}
@@ -359,8 +359,8 @@ function array2code(v, flag = false)	// flag: 文字列に''をつける
 		for(let key of keys) 
 		{
 			var val = v0.getValue().rtnv.value.get(key);
-			key = key.rtnv;
-			while(key instanceof Value) key = key.value;
+			// key = key.rtnv;
+			// while(key instanceof Value) key = key.value;
 			if(typeof key === "string") key = "'" + key + "'";
 			v1.push(key + ':' + array2text(val, flag));
 		}
@@ -597,6 +597,10 @@ function next_line()
 	{
 		try{
 			statement.run();
+			if(!varTables[0].vars['a'] === null)
+			{
+				debugger;
+			}
 		}
 		catch(e)
 		{
@@ -1424,4 +1428,26 @@ document.getElementById('urlButton').onclick = function()
 		highlightLine(-1);
 		textareaAppend(url.protocol + '//' + url.hostname + url.pathname + '?code=' + code);
 	} 
+}
+
+
+function watch()
+{
+
+let originalVars = varTables[0].vars;
+let _a = originalVars['a'];
+
+Object.defineProperty(originalVars, 'a', {
+  get() {
+    return _a;
+  },
+  set(newVal) {
+    console.log(`a に代入:`, newVal);
+    if (newVal === null) {
+      debugger; // ここで一時停止！
+    }
+    _a = newVal;
+  },
+  configurable: true
+});
 }

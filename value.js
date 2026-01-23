@@ -285,19 +285,7 @@ class DictionaryValue extends Value
 	 */
 	constructor(v, loc)
 	{
-		super(new Map(), loc);
-		for(var i = 0; i < v.length; i++)
-		{
-			if(v[i] instanceof SliceValue)
-			{
-				var key = v[i].getValue1().getValue().value;
-				var val = v[i].getValue2().getValue();
-				if(val instanceof Variable) val = getValueByArgs(val, null, loc);
-				if(isPrimitive(key)) this.value.set(key, val.rtnv);
-				else throw new RuntimeError(loc.first_line, "辞書のキーには単純型しか使えません");
-			}
-			else throw new RuntimeError(loc.first_line, "辞書の初期化が間違っています");
-		}
+		super(v, loc);
 		this.rtnv = null;
 		this.state = 0;
 	}
@@ -316,19 +304,28 @@ class DictionaryValue extends Value
 		if(!this.rtnv)
 		{
 			this.rtnv = new DictionaryValue([], this.loc);
+			this.rtnv.value = new Map();
 			this.rtnv.rtnv = this.rtnv;
-			var keys = this.value.keys();
-			for(var key of keys)
-				this.rtnv.value.set(key, this.value.get(key));
+			for(var i = 0; i < this.value.length; i++)
+			{
+				if(this.value[i] instanceof SliceValue)
+				{
+					var key = this.value[i].getValue1();
+					var val = this.value[i].getValue2();
+					if(isPrimitive(key)) this.rtnv.value.set(key.getValue().value, val.rtnv);
+					else throw new RuntimeError(loc.first_line, "辞書のキーには単純型しか使えません");
+				}
+				else throw new RuntimeError(loc.first_line, "辞書の初期化が間違っています");
+			}
 		}
     }
 	getCode()
 	{
 		var ag = [];
-		var keys = this.rtnv.keys();
+		var keys = this.rtnv.value.keys();
 		// keys.sort();
 		for(var i = 0; i < keys.length; i++) 
-			ag.push(keys[i].rtnv.value + ':' + this.rtnv.get(keys[i]).rtnv.getCode());
+			ag.push(keys[i].rtnv.value + ':' + this.rtnv.value.get(keys[i]).rtnv.getCode());
 		return '{' + ag.join(',') + '}';
 	}
 	makePython()
@@ -344,20 +341,19 @@ class DictionaryValue extends Value
 	{
 		if(this.state == 0)
 		{
+			this.make_rtnv();
 			var a = [];
-			for(let key of this.value.keys())
-				a.push(this.value.get(key));
+			for(let key of this.rtnv.value.keys()) a.push(this.rtnv.value.get(key));
 			code[0].stack.unshift({statementlist: a, index: 0});
 			this.state = 1;
 		}
 		else
 		{
-			this.make_rtnv();
 			code[0].stack[0].index++;
 			var a = [];
-			for(let key of this.value.keys())
+			for(let key of this.rtnv.value.keys())
 			{
-				a.push(new SliceValue(new StringValue(key, this.loc), this.value.get(key), this.loc));
+				a.push(new SliceValue	(new StringValue(key, this.loc), this.rtnv.value.get(key), this.loc));
 			}
 			this.rtnv = new DictionaryValue(a, this.loc);
 			this.state = 0;
@@ -376,7 +372,7 @@ class DictionaryValue extends Value
 	setElement(key, val)
 	{
 		this.make_rtnv();
-		this.rtnv.value.set(key, val);
+		this.rtnv.value.set(key.value, val);
 	}
 	setValue(v)
 	{
@@ -2724,7 +2720,7 @@ class SliceValue extends Value
 	clone()
 	{
 		var rtnv = new SliceValue(this.value[0], this.value[1], this.loc);
-		rtnv.rtnv = this.rtnv;
+		// rtnv.rtnv = this.rtnv;
 		return rtnv;
 	}
 	run()
@@ -2756,6 +2752,7 @@ class SliceValue extends Value
 	}
 	getValue()
 	{
+		this.make_rtnv();
 		return this;
 	}
 	getValue1()
@@ -3015,9 +3012,9 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 	var v = vt.vars[vn];
 	if(args && args.length > 0)
 	{
-		v.make_rtnv();
 		for(var i = 0; i < args.length - 1; i++)
 		{
+			v.make_rtnv();
 			// var arg = args[i].getValue();
 			var arg = args.getElement(i).getValue();
 			if(arg instanceof IntValue)
@@ -3079,7 +3076,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 		else if(arg instanceof StringValue)
 		{
 			if(v instanceof DictionaryValue) 
-				v.value.set(arg.rtnv.value, newval.clone().getValue().rtnv);
+				v.rtnv.value.set(arg.rtnv.value, newval);
 			else throw new RuntimeError(loc.first_line, "文字列の添字は辞書にしか使えません");
 		}
 		else if(arg instanceof SliceValue)
@@ -3124,8 +3121,7 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 	}
 	else
 	{
-		vt.vars[vn].make_rtnv();
-		vt.vars[vn] = newval.getValue().rtnv;
+		vt.vars[vn] = newval;
 	}
 }
 

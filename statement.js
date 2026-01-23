@@ -184,7 +184,7 @@ function dump(message = null)
 		if(vars[i][0] == '!') continue;
 		let vartable = findVarTable(vars[i]);
 		let v = vartable.vars[vars[i]];
-		textareaAppend(vars[i] + ":" + array2code(v.rtnv, true) + "\n");
+		textareaAppend(vars[i] + ":" + array2code(v.getValue(), true) + "\n");
 	}
 }
 
@@ -283,7 +283,7 @@ class Append extends Statement
 						else throw new RuntimeError(this.first_line, '添字に使えないデータ型です');
 					}
 				}
-				if(va instanceof ArrayValue) va.append(vl.clone());
+				if(va instanceof ArrayValue) va.append(vl);
 				else throw new RuntimeError(this.first_line, '配列でない変数に追加はできません');
 			}
 			else // 変数が定義されていない
