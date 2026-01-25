@@ -300,129 +300,6 @@ class RuntimeError
 	get message() {return this._message;}
 }
 
-/**
- * 
- * @param {*} v 
- * @param {*} flag 
- * @returns 
- */
-function array2text(v, flag = false)	// flag: 文字列に''をつける
-{
-	if(!v) return '';
-	if(v instanceof Value)
-	{
-		let v0 = v;
-		if(v0.getValue() instanceof ArrayValue)
-		{
-			let v1 = [];
-			for(let i = 0; i < v0.rtnv.value.length; i++)
-			{
-				v1.push(array2text(v0.rtnv.value[i], flag));
-			}
-			return '[' + v1.join(',') + ']';
-		}
-		else if(v0 instanceof DictionaryValue)
-		{
-			let v1 = [];
-			let keys = v0.getValue().rtnv.value.keys();
-			for(let key of keys) 
-			{
-				var val = v0.getValue().rtnv.value.get(key);
-				if(typeof key === "string") key = "'" + key + "'";
-				v1.push(key + ':' + array2text(val, flag));
-			}
-			return '{' + v1.join(',') + '}';
-		}
-		else if(v0 instanceof BooleanValue) return v0.rtnv.value ? 'True' : 'False';
-		else if(v0 instanceof FloatValue && isInteger(v0.rtnv) && !v0.rtnv.value.toString().match(/[Ee]/)) return v0.rtnv.value + '.0';
-		else if(flag && v0 instanceof StringValue) return new String("'" + v0.rtnv.value + "'");
-		else return new String(v0.rtnv.value);
-	}
-	else return new String(v);
-}
-
-function array2code(v, flag = false)	// flag: 文字列に''をつける
-{
-	if(!v) return '';
-	let v0 = v;
-	if(v0 instanceof ArrayValue)
-	{
-		let v1 = [];
-		for(let i = 0; i < v0.getValue().rtnv.length; i++) 
-			v1.push(array2text(v0.getValue().rtnv.value[i].getCode(), flag));
-		return '[' + v1.join(',') + ']';
-	}
-	else if(v0 instanceof DictionaryValue)
-	{
-		let v1 = [];
-		let keys = v0.getValue().rtnv.value.keys();
-		for(let key of keys) 
-		{
-			var val = v0.getValue().rtnv.value.get(key);
-			// key = key.rtnv;
-			// while(key instanceof Value) key = key.value;
-			if(typeof key === "string") key = "'" + key + "'";
-			v1.push(key + ':' + array2text(val, flag));
-		}
-		return '{' + v1.join(',') + '}';
-	}
-	else if(flag && v0 instanceof StringValue) return "'" + v0.value + "'";
-	else if(v0 instanceof FloatValue && isInteger(v0.rtnv.value) && !v0.rtnv.value.toString().match(/[Ee]/)) return v0.rtnv + '.0';
-	return v0.rtnv.value.toString();
-}
-
-function val2obj(val)
-{
-	if(val instanceof ArrayValue)
-	{
-		var rtnv = [];
-		var l = val.getValue().value.length;
-		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.getValue().value[i]));
-		return rtnv;
-	}
-	else if(val instanceof DictionaryValue)
-	{
-		var rtnv = {};
-		for(var key of val.getValue().value.keys())
-			rtnv[key] = val2obj(val.getValue().value.get(key).getValue());
-		return rtnv;
-	}
-	else if(val instanceof IntValue)return Number(val.rtnv);
-	else return val.rtnv;
-}
-
-/**
- * 
- * @param {ArrayValue} a 
- * @param {Location} loc 
- */
-function array2values(a, loc)
-{
-	var rtnv = [];
-	var array = null;
-	if(a.rtnv instanceof ArrayValue)
-	{
-		if(a.rtnv.value[0] instanceof ArrayValue) array = a.rtnv;
-		else if(a.rtnv.value instanceof Array) array = new ArrayValue([a.rtnv.value], loc);
-		else throw new RuntimeError(loc.first_line, "グラフに誤った型が使われています");
-	}
-	else if(a.rtnv instanceof Array) array = new ArrayValue(a.rtnv, loc);
-	else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
-
-	for(var i = 0; i < array.length; i++)
-	{
-		var rtnv1 = [];
-		for(var j = 0; j < array.value[i].length; j++)
-		{
-			var val = array.value[i] instanceof ArrayValue ? array.value[i].value[j] : array.value[i][j];
-			if(val instanceof IntValue) rtnv1.push(Number(val.value));
-			else rtnv1.push(val.value);
-		}
-		rtnv.push(rtnv1);
-	}
-	return rtnv;
-}
-
 
 /**
  * 
@@ -593,14 +470,10 @@ function next_line()
 {
 	var index = code[0].stack[0].index;
 	var statement = code[0].stack[0].statementlist[index];
-	if(statement)
+	if(statement && typeof statement.run === 'function')
 	{
 		try{
 			statement.run();
-			if(!varTables[0].vars['a'] === null)
-			{
-				debugger;
-			}
 		}
 		catch(e)
 		{
@@ -610,13 +483,22 @@ function next_line()
 				if(e instanceof RuntimeError) textareaAppend(e.message + "\n");
 				else if(e instanceof RangeError) textareaAppend("計算できない値があります。\n" + e.message + "\n");
 				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n");
-				if(debug_mode) textareaAppend(e.stack);
+				if(debug_mode){
+					textareaAppend(e.stack);
+					debugger;
+				}
 				reset(false);
 			}
 			else throw e;
 		}
 	}
-	else code[0].stack[0].index++;
+	else
+	{
+		textareaAppend('内部エラー: 実行できない文があります。\n' + constructor_name(statement) + '\n'
+	+ constructor_name(code[0].stack[1].statementlist[code[0].stack[1].index]) + '\n');
+		debugger;
+		code[0].stack[0].index++;
+	} 
 	if(!code || !code[0]) return;
 	// 不要になったコードをstackから捨てる
 	index = code[0].stack[0] ? code[0].stack[0].index : -1;
@@ -994,11 +876,36 @@ function code_dump()
 		{
 			let statement = [];
 			for(let k = 0; k < code[i].stack[j].statementlist.length; k++) 
-				if(code[i].stack[j].statementlist[k]) statement.push(constructor_name(code[i].stack[j].statementlist[k]) + '(' + code[i].stack[j].statementlist[k].state + ')');
-			str += ' stack['+j+'][' + code[i].stack[j].index + ']' + statement.join(' ') + '\n';
+			{
+				if(code[i].stack[j].statementlist[k]) statement.push('  ' + constructor_name(code[i].stack[j].statementlist[k]) + '(' + code[i].stack[j].statementlist[k].state + ')');
+				if(constructor_name(code[i].stack[j].statementlist[k]) == 'Assign')
+				{
+					statement.push('   varname: ' + code[i].stack[j].statementlist[k].variable.varname);
+					statement.push('   value: ' + array2code(code[i].stack[j].statementlist[k].value, true));
+				}
+			}
+			str += ' stack['+j+'][' + code[i].stack[j].index + ']' + statement.join('\n') + '\n';
 		}
 	}
-	console.log(str);
+	// console.log(str);
+	textareaAppend(str);
+}
+
+function var_dump(vn)
+{
+	let str = '';
+	let vt = varTables[0];
+	let varobj = vt.vars[vn];
+	if(!varobj)
+	{
+		textareaAppend('変数 ' + vn + ' は見つかりません\n');
+		return;
+	}
+	str += '変数 ' + vn + '\n';
+	str += ' type: ' + constructor_name(varobj) + '\n';
+	str += ' value: ' + varobj.value + '\n';
+	str += ' rtnv: ' + varobj.rtnv.value + '\n';
+	textareaAppend(str);
 }
 
 var sourceTextArea = document.getElementById("sourceTextarea");
@@ -1431,23 +1338,3 @@ document.getElementById('urlButton').onclick = function()
 }
 
 
-function watch()
-{
-
-let originalVars = varTables[0].vars;
-let _a = originalVars['a'];
-
-Object.defineProperty(originalVars, 'a', {
-  get() {
-    return _a;
-  },
-  set(newVal) {
-    console.log(`a に代入:`, newVal);
-    if (newVal === null) {
-      debugger; // ここで一時停止！
-    }
-    _a = newVal;
-  },
-  configurable: true
-});
-}

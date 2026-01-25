@@ -84,100 +84,100 @@ performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* actio
 var $0 = $$.length - 1;
 switch (yystate) {
 case 1:
-this.$ = new IntValue(toHalf(yytext,_$[$0]), new Location(_$[$0],_$[$0]));
+this.$ = new IntValue([toHalf(yytext,_$[$0])], new Location(_$[$0],_$[$0]));
 break;
 case 2:
-this.$ = new FloatValue(Number(toHalf(yytext,_$[$0])), new Location(_$[$0],_$[$0]));
+this.$ = new FloatValue([Number(toHalf(yytext,_$[$0]))], new Location(_$[$0],_$[$0]));
 break;
 case 3:
-this.$ = new StringValue(escape_bracket(yytext), new Location(_$[$0], _$[$0]));
+this.$ = new StringValue([escape_bracket(yytext)], new Location(_$[$0], _$[$0]));
 break;
 case 4:
-this.$ = new BooleanValue(true, new Location(_$[$0],_$[$0]));
+this.$ = new BooleanValue([true], new Location(_$[$0],_$[$0]));
 break;
 case 5:
-this.$ = new BooleanValue(false, new Location(_$[$0],_$[$0]));
+this.$ = new BooleanValue([false], new Location(_$[$0],_$[$0]));
 break;
 case 6:
-this.$ = new Pow($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Pow([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 7:
-this.$ = new Add($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Add([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 8:
-this.$ = new Sub($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Sub([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 9:
-this.$ = new Mul($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Mul([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 10:
-this.$ = new Div($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Div([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 11:
-this.$ = new DivInt($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new DivInt([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 12:
-this.$ = new Mod($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Mod([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 13:
- this.$ = new Minus($$[$0], new Location(_$[$0], _$[$0]));
+ this.$ = new Minus([$$[$0]], new Location(_$[$0], _$[$0]));
 break;
 case 14:
-this.$ = new BitAnd($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new BitAnd([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 15:
-this.$ = new BitOr($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new BitOr([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 16:
-this.$ = new BitXor($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new BitXor([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 17:
-this.$ = new BitNot($$[$0], new Location(_$[$0-1], _$[$0]));
+this.$ = new BitNot([$$[$0]], new Location(_$[$0-1], _$[$0]));
 break;
 case 18:
-this.$ = new BitLShift($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new BitLShift([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 19:
-this.$ = new BitRShift($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new BitRShift([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 20: case 70: case 95:
 this.$ = $$[$0-1];
 break;
 case 21: case 22: case 23: case 24: case 25: case 26: case 27: case 29:
-this.$ = new Compare($$[$0-2], $$[$0-1], $$[$0], new Location(_$[$0-2],_$[$0]));
+this.$ = new Compare([$$[$0-2], $$[$0-1], $$[$0]], new Location(_$[$0-2],_$[$0]));
 break;
 case 28:
-this.$ = new Compare($$[$0-3], 'not in', $$[$0], new Location(_$[$0-3],_$[$0]));
+this.$ = new Compare([$$[$0-3], 'not in', $$[$0]], new Location(_$[$0-3],_$[$0]));
 break;
 case 30:
-this.$ = new And($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new And([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 31:
-this.$ = new Or($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Or([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 32:
-this.$ = new Not($$[$0], new Location(_$[$0-1], _$[$0]));
+this.$ = new Not([$$[$0]], new Location(_$[$0-1], _$[$0]));
 break;
 case 33:
-this.$ = new Copy($$[$0-1], new Location(_$[$0-3], _$[$0]));
+this.$ = new Copy([$$[$0-1]], new Location(_$[$0-3], _$[$0]));
 break;
 case 34:
-this.$ = new Connect($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new Connect([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 35:
-this.$ = new ConvertInt($$[$0-1], new Location(_$[$0-3], _$[$0]));
+this.$ = new ConvertInt([$$[$0-1]], new Location(_$[$0-3], _$[$0]));
 break;
 case 36:
-this.$ = new ConvertFloat($$[$0-1], new Location(_$[$0-3], _$[$0]));
+this.$ = new ConvertFloat([$$[$0-1]], new Location(_$[$0-3], _$[$0]));
 break;
 case 37:
-this.$ = new ConvertString($$[$0-1], new Location(_$[$0-3], _$[$0]));
+this.$ = new ConvertString([$$[$0-1]], new Location(_$[$0-3], _$[$0]));
 break;
 case 38:
-this.$ = new ConvertBool($$[$0-1], new Location(_$[$0-3], _$[$0]));
+this.$ = new ConvertBool([$$[$0-1]], new Location(_$[$0-3], _$[$0]));
 break;
 case 39:
-this.$ = new CallFunction($$[$0-3], $$[$0-1], new Location(_$[$0-3],_$[$0]));
+this.$ = new CallFunction([$$[$0-3], $$[$0-1]], new Location(_$[$0-3],_$[$0]));
 break;
 case 40:
 this.$ = $$[$0];
@@ -195,64 +195,64 @@ case 44:
 this.$ = new DictionaryValue($$[$0-1], new Location(_$[$0-3], _$[$0]));
 break;
 case 45:
-this.$ = new NumberOf($$[$0-2], $$[$0], new Location(_$[$0-2], _$[$0]));
+this.$ = new NumberOf([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 46:
-this.$ = new Assign($$[$0-2], $$[$0], null, new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], null], new Location(_$[$0-2],_$[$0]));
 break;
 case 47:
-this.$ = new Assign($$[$0-2], $$[$0], '+', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '+'], new Location(_$[$0-2],_$[$0]));
 break;
 case 48:
-this.$ = new Assign($$[$0-2], $$[$0], '-', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '-'], new Location(_$[$0-2],_$[$0]));
 break;
 case 49:
-this.$ = new Assign($$[$0-2], $$[$0], '*', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '*'], new Location(_$[$0-2],_$[$0]));
 break;
 case 50:
-this.$ = new Assign($$[$0-2], $$[$0], '/', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '/'], new Location(_$[$0-2],_$[$0]));
 break;
 case 51:
-this.$ = new Assign($$[$0-2], $$[$0], '//', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '//'], new Location(_$[$0-2],_$[$0]));
 break;
 case 52:
-this.$ = new Assign($$[$0-2], $$[$0], '%', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '%'], new Location(_$[$0-2],_$[$0]));
 break;
 case 53:
-this.$ = new Assign($$[$0-2], $$[$0], '&', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '&'], new Location(_$[$0-2],_$[$0]));
 break;
 case 54:
-this.$ = new Assign($$[$0-2], $$[$0], '|', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '|'], new Location(_$[$0-2],_$[$0]));
 break;
 case 55:
-this.$ = new Assign($$[$0-2], $$[$0], '^', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '^'], new Location(_$[$0-2],_$[$0]));
 break;
 case 56:
-this.$ = new Assign($$[$0-2], $$[$0], '<<', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '<<'], new Location(_$[$0-2],_$[$0]));
 break;
 case 57:
-this.$ = new Assign($$[$0-2], $$[$0], '>>', new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign([$$[$0-2], $$[$0], '>>'], new Location(_$[$0-2],_$[$0]));
 break;
 case 58:
-$$[$0-3].append($$[$0-1]); this.$ = $$[$0-3];
+$$[$0-3].extend($$[$0-1]); this.$ = $$[$0-3];
 break;
 case 59:
-this.$ = new Variable(toHalf($$[$0], _$[$0]), null, new Location(_$[$0], _$[$0]));
+this.$ = new Variable([toHalf($$[$0], _$[$0])], new Location(_$[$0], _$[$0]));
 break;
 case 60:
-this.$ = new UNDEFINED(yytext, new Location(_$[$0],_$[$0]));
+this.$ = new UNDEFINED([yytext], new Location(_$[$0],_$[$0]));
 break;
 case 61:
-this.$ = new SliceValue(new NullValue(_$[$0]), new NullValue(_$[$0]), new Location(_$[$0],_$[$0]));
+this.$ = new SliceValue([new NullValue(_$[$0]), new NullValue(_$[$0])], new Location(_$[$0],_$[$0]));
 break;
 case 62:
-this.$ = new SliceValue(new NullValue(_$[$0-1]), $$[$0], new Location(_$[$0-1],_$[$0-1]));
+this.$ = new SliceValue([new NullValue(_$[$0-1]), $$[$0]], new Location(_$[$0-1],_$[$0-1]));
 break;
 case 63:
-this.$ = new SliceValue($$[$0-1], new NullValue(_$[$0-1]), new Location(_$[$0-1],_$[$0-1]));
+this.$ = new SliceValue([$$[$0-1], new NullValue(_$[$0-1])], new Location(_$[$0-1],_$[$0-1]));
 break;
 case 64:
-this.$ = new SliceValue($$[$0-2], $$[$0], new Location(_$[$0-2],_$[$0]));
+this.$ = new SliceValue([$$[$0-2], $$[$0]], new Location(_$[$0-2],_$[$0]));
 break;
 case 65: case 66:
 this.$ = $$[$0-2].concat($$[$0]);

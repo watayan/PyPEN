@@ -184,7 +184,7 @@ function dump(message = null)
 		if(vars[i][0] == '!') continue;
 		let vartable = findVarTable(vars[i]);
 		let v = vartable.vars[vars[i]];
-		textareaAppend(vars[i] + ":" + array2code(v.getValue(), true) + "\n");
+		textareaAppend(vars[i] + ":" + v.toString() + "\n");
 	}
 }
 
@@ -578,6 +578,130 @@ class Newline extends Statement
 	}
 }
 
+/**
+ * 
+ * @param {*} v 
+ * @param {*} flag 
+ * @returns 
+ */
+function array2text(v, flag = false)	// flag: 文字列に''をつける
+{
+	if(!v) return '';
+	if(v instanceof Value)
+	{
+		if(v instanceof ArrayValue)
+		{
+			let v1 = [];
+			for(let i = 0; i < v.length; i++)
+			{
+				var tmp = v._value[i];
+				v1.push(array2text(tmp, flag));
+
+			}
+			return '[' + v1.join(',') + ']';
+		}
+		else if(v instanceof DictionaryValue)
+		{
+			let v1 = [];
+			let keys = v.getValue().keys();
+			for(let key of keys) 
+			{
+				var val = v.getValue(key);
+				if(typeof key === "string") key = "'" + key + "'";
+				v1.push(key + ':' + array2text(val, flag));
+			}
+			return '{' + v1.join(',') + '}';
+		}
+		else if(v instanceof BooleanValue) return v.getValue() ? 'True' : 'False';
+		else if(v instanceof FloatValue && isInteger(v.getValue()) && !v.getValue().toString().match(/[Ee]/)) return v.getValue() + '.0';
+		else if(flag && v instanceof StringValue) return new String("'" + v.getValue() + "'");
+		else return v.getValue();
+	}
+	else return new String(v);
+}
+
+function array2code(v, flag = false)	// flag: 文字列に''をつける
+{
+	if(!v) return '';
+	if(v instanceof ArrayValue)
+	{
+		let v1 = [];
+		for(let i = 0; i < v.length; i++) 
+			v1.push(array2text(v.getValue(i).getCode(), flag));
+		return '[' + v1.join(',') + ']';
+	}
+	else if(v instanceof DictionaryValue)
+	{
+		let v1 = [];
+		let keys = v.getValue().keys();
+		for(let key of keys) 
+		{
+			var val = v.getValue().get(key);
+			// key = key.rtnv;
+			// while(key instanceof Value) key = key.value;
+			if(typeof key === "string") key = "'" + key + "'";
+			v1.push(key + ':' + array2text(val.value, flag));
+		}
+		return '{' + v1.join(',') + '}';
+	}
+	else if(flag && v instanceof StringValue) return "'" + v.getValue() + "'";
+	else if(v instanceof FloatValue && isInteger(v.getValue()) && !v.getValue().toString().match(/[Ee]/)) return v.getValue() + '.0';
+	return v.getValue().toString();
+}
+
+function val2obj(val)
+{
+	if(val instanceof ArrayValue)
+	{
+		var rtnv = [];
+		var l = val.getValue().value.length;
+		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.getValue().value[i]));
+		return rtnv;
+	}
+	else if(val instanceof DictionaryValue)
+	{
+		var rtnv = {};
+		for(var key of val.getValue().value.keys())
+			rtnv[key] = val2obj(val.getValue().value.get(key).getValue());
+		return rtnv;
+	}
+	else if(val instanceof IntValue)return Number(val.rtnv);
+	else return val.rtnv;
+}
+
+/**
+ * 
+ * @param {ArrayValue} a 
+ * @param {Location} loc 
+ */
+function array2values(a, loc)
+{
+	var rtnv = [];
+	var array = null;
+	if(a.rtnv instanceof ArrayValue)
+	{
+		if(a.rtnv.value[0] instanceof ArrayValue) array = a.rtnv;
+		else if(a.rtnv.value instanceof Array) array = new ArrayValue([a.rtnv.value], loc);
+		else throw new RuntimeError(loc.first_line, "グラフに誤った型が使われています");
+	}
+	else if(a.rtnv instanceof Array) array = new ArrayValue(a.rtnv, loc);
+	else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
+
+	for(var i = 0; i < array.length; i++)
+	{
+		var rtnv1 = [];
+		for(var j = 0; j < array.value[i].length; j++)
+		{
+			var val = array.value[i] instanceof ArrayValue ? array.value[i].value[j] : array.value[i][j];
+			if(val instanceof IntValue) rtnv1.push(Number(val.getValue()));
+			else rtnv1.push(val.getValue());
+		}
+		rtnv.push(rtnv1);
+	}
+	return rtnv;
+}
+
+
 class Output extends Statement
 {
 	/**
@@ -612,7 +736,7 @@ class Output extends Statement
 			let s = '';
 			for(var i = 0; i < this.value.length; i++)
 			{
-				s += (i > 0 ? ' ' : '') + array2text(this.value[i].rtnv);
+				s += (i > 0 ? ' ' : '') + this.value[i].toString();
 			}
 			if(this.ln)	s += '\n';
 			if(selected_quiz < 0) textareaAppend(s);
@@ -788,7 +912,8 @@ class ForIn extends Statement
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
 		this.array = array;
 		this.variable = variable;
-		this.statementlist = statementlist;
+		this.statementlist = [];
+		for(var statement of statementlist) this.statementlist.push(statement.clone());
 	}
 	clone()
 	{

@@ -304,88 +304,76 @@ Whitespace		[ 　]
 %%
 
 e
-	: '整数値'		{$$ = new IntValue(toHalf(yytext,@1), new Location(@1,@1));}
-	| '実数値'		{$$ = new FloatValue(Number(toHalf(yytext,@1)), new Location(@1,@1));}
-	| '文字列値'	{$$ = new StringValue(escape_bracket(yytext), new Location(@1, @1));}
-	| 'True'		{$$ = new BooleanValue(true, new Location(@1,@1));}
-	| 'False'		{$$ = new BooleanValue(false, new Location(@1,@1));}
-	| e '**' e		{$$ = new Pow($1, $3, new Location(@1, @3));}
-	| e '+' e		{$$ = new Add($1, $3, new Location(@1, @3));}
-	| e '-' e		{$$ = new Sub($1, $3, new Location(@1, @3));}
-	| e '*' e		{$$ = new Mul($1, $3, new Location(@1, @3));}
-	| e '/' e		{$$ = new Div($1, $3, new Location(@1, @3));}
-	| e '//' e		{$$ = new DivInt($1, $3, new Location(@1, @3));}
-	| e '%' e		{$$ = new Mod($1, $3, new Location(@1, @3));}
-	| '-' e			%prec UMINUS { $$ = new Minus($2, new Location(@2, @2));}
-	| e '&' e		{$$ = new BitAnd($1, $3, new Location(@1, @3));}
-	| e '|' e		{$$ = new BitOr($1, $3, new Location(@1, @3));}
-	| e '^' e		{$$ = new BitXor($1, $3, new Location(@1, @3));}
-	| '~' e			{$$ = new BitNot($2, new Location(@1, @2));}
-	| e '<<' e		{$$ = new BitLShift($1, $3, new Location(@1, @3));}
-	| e '>>' e		{$$ = new BitRShift($1, $3, new Location(@1, @3));}
+	: '整数値'		{$$ = new IntValue([toHalf(yytext,@1)], new Location(@1,@1));}
+	| '実数値'		{$$ = new FloatValue([Number(toHalf(yytext,@1))], new Location(@1,@1));}
+	| '文字列値'	{$$ = new StringValue([escape_bracket(yytext)], new Location(@1, @1));}
+	| 'True'		{$$ = new BooleanValue([true], new Location(@1,@1));}
+	| 'False'		{$$ = new BooleanValue([false], new Location(@1,@1));}
+	| e '**' e		{$$ = new Pow([$1, $3], new Location(@1, @3));}
+	| e '+' e		{$$ = new Add([$1, $3], new Location(@1, @3));}
+	| e '-' e		{$$ = new Sub([$1, $3], new Location(@1, @3));}
+	| e '*' e		{$$ = new Mul([$1, $3], new Location(@1, @3));}
+	| e '/' e		{$$ = new Div([$1, $3], new Location(@1, @3));}
+	| e '//' e		{$$ = new DivInt([$1, $3], new Location(@1, @3));}
+	| e '%' e		{$$ = new Mod([$1, $3], new Location(@1, @3));}
+	| '-' e			%prec UMINUS { $$ = new Minus([$2], new Location(@2, @2));}
+	| e '&' e		{$$ = new BitAnd([$1, $3], new Location(@1, @3));}
+	| e '|' e		{$$ = new BitOr([$1, $3], new Location(@1, @3));}
+	| e '^' e		{$$ = new BitXor([$1, $3], new Location(@1, @3));}
+	| '~' e			{$$ = new BitNot([$2], new Location(@1, @2));}
+	| e '<<' e		{$$ = new BitLShift([$1, $3], new Location(@1, @3));}
+	| e '>>' e		{$$ = new BitRShift([$1, $3], new Location(@1, @3));}
 	| '(' e ')'		{$$ = $2;}
-	| e '==' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '!=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '>' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '<' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '>=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e '<=' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e 'の中に' e	{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e 'not' 'in' e	{$$ = new Compare($1, 'not in', $4, new Location(@1,@4));}
-	| e 'in' e		{$$ = new Compare($1, $2, $3, new Location(@1,@3));}
-	| e 'and' e	{$$ = new And($1, $3, new Location(@1, @3));}
-	| e 'or' e	{$$ = new Or($1, $3, new Location(@1, @3));}
-	| 'not' e 	{$$ = new Not($2, new Location(@1, @2));}
-	| 'copy' '(' e ')' {$$ = new Copy($3, new Location(@1, @4));}
-	| e 'と' e		{$$ = new Connect($1, $3, new Location(@1, @3));}
-	| '整数' '(' e ')' {$$ = new ConvertInt($3, new Location(@1, @4));}
-	| '実数' '(' e ')' {$$ = new ConvertFloat($3, new Location(@1, @4));}
-	| '文字列' '(' e ')' {$$ = new ConvertString($3, new Location(@1, @4));}
-	| '真偽' '(' e ')' {$$ = new ConvertBool($3, new Location(@1, @4));}
-	| '識別子' '(' args ')' {$$ = new CallFunction($1, $3, new Location(@1,@4));}
+	| e '==' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e '!=' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e '>' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e '<' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e '>=' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e '<=' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e 'の中に' e	{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e 'not' 'in' e	{$$ = new Compare([$1, 'not in', $4], new Location(@1,@4));}
+	| e 'in' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
+	| e 'and' e	{$$ = new And([$1, $3], new Location(@1, @3));}
+	| e 'or' e	{$$ = new Or([$1, $3], new Location(@1, @3));}
+	| 'not' e 	{$$ = new Not([$2], new Location(@1, @2));}
+	| 'copy' '(' e ')' {$$ = new Copy([$3], new Location(@1, @4));}
+	| e 'と' e		{$$ = new Connect([$1, $3], new Location(@1, @3));}
+	| '整数' '(' e ')' {$$ = new ConvertInt([$3], new Location(@1, @4));}
+	| '実数' '(' e ')' {$$ = new ConvertFloat([$3], new Location(@1, @4));}
+	| '文字列' '(' e ')' {$$ = new ConvertString([$3], new Location(@1, @4));}
+	| '真偽' '(' e ')' {$$ = new ConvertBool([$3], new Location(@1, @4));}
+	| '識別子' '(' args ')' {$$ = new CallFunction([$1, $3], new Location(@1,@4));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
 	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1, @4));}
 	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
 	| '{' '改行' args '}'	{$$ = new DictionaryValue($3, new Location(@1, @4));}
-	| e '個の' e	{$$ = new NumberOf($1, $3, new Location(@1, @3));}
-	| e '=' e
-		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
-	| e '+=' e
-		{$$ = new Assign($1, $3, '+', new Location(@1,@3));}
-	| e '-=' e
-		{$$ = new Assign($1, $3, '-', new Location(@1,@3));}
-	| e '*=' e
-		{$$ = new Assign($1, $3, '*', new Location(@1,@3));}
-	| e '/=' e
-		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
-	| e '//=' e
-		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
-	| e '%=' e
-		{$$ = new Assign($1, $3, '%', new Location(@1,@3));}
-	| e '&=' e
-		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
-	| e '|=' e
-		{$$ = new Assign($1, $3, '|', new Location(@1,@3));}
-	| e '^=' e
-		{$$ = new Assign($1, $3, '^', new Location(@1,@3));}
-	| e '<<=' e
-		{$$ = new Assign($1, $3, '<<', new Location(@1,@3));}
-	| e '>>=' e
-		{$$ = new Assign($1, $3, '>>', new Location(@1,@3));}
+	| e '個の' e	{$$ = new NumberOf([$1, $3], new Location(@1, @3));}
+	| e '=' e		{$$ = new Assign([$1, $3, null], new Location(@1,@3));}
+	| e '+=' e		{$$ = new Assign([$1, $3, '+'], new Location(@1,@3));}
+	| e '-=' e		{$$ = new Assign([$1, $3, '-'], new Location(@1,@3));}
+	| e '*=' e		{$$ = new Assign([$1, $3, '*'], new Location(@1,@3));}
+	| e '/=' e		{$$ = new Assign([$1, $3, '/'], new Location(@1,@3));}
+	| e '//=' e		{$$ = new Assign([$1, $3, '//'], new Location(@1,@3));}
+	| e '%=' e		{$$ = new Assign([$1, $3, '%'], new Location(@1,@3));}
+	| e '&=' e		{$$ = new Assign([$1, $3, '&'], new Location(@1,@3));}
+	| e '|=' e		{$$ = new Assign([$1, $3, '|'], new Location(@1,@3));}
+	| e '^=' e		{$$ = new Assign([$1, $3, '^'], new Location(@1,@3));}
+	| e '<<=' e		{$$ = new Assign([$1, $3, '<<'], new Location(@1,@3));}
+	| e '>>=' e		{$$ = new Assign([$1, $3, '>>'], new Location(@1,@3));}
 	;
 
 variable
-	: variable '[' args ']' {$1.append($3); $$ = $1;}
-	| '識別子' {$$ = new Variable(toHalf($1, @1), null, new Location(@1, @1));}
-	| UNDEFINED	{$$ = new UNDEFINED(yytext, new Location(@1,@1));}
+	: variable '[' args ']' {$1.extend($3); $$ = $1;}
+	| '識別子' {$$ = new Variable([toHalf($1, @1)], new Location(@1, @1));}
+	| UNDEFINED	{$$ = new UNDEFINED([yytext], new Location(@1,@1));}
 	;
 
 slice
-	: ':' {$$ = new SliceValue(new NullValue(@1), new NullValue(@1), new Location(@1,@1));}
-	| ':' e {$$ = new SliceValue(new NullValue(@1), $2, new Location(@1,@1));}
-	| e ':' {$$ = new SliceValue($1, new NullValue(@1), new Location(@1,@1));}
-	| e ':' e {$$ = new SliceValue($1, $3, new Location(@1,@3));}
+	: ':' {$$ = new SliceValue([new NullValue(@1), new NullValue(@1)], new Location(@1,@1));}
+	| ':' e {$$ = new SliceValue([new NullValue(@1), $2], new Location(@1,@1));}
+	| e ':' {$$ = new SliceValue([$1, new NullValue(@1)], new Location(@1,@1));}
+	| e ':' e {$$ = new SliceValue([$1, $3], new Location(@1,@3));}
 	;
 
 args
