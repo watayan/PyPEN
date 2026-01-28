@@ -1,11 +1,14 @@
 /************************************************************ Value classes */
 
+/**
+ * @abstract
+ */
 class Value
 {
-	/** @type {Array<Value>} */
+	/** @type {Array<value of JS|Value>} */
 	_args;
 
-	/** @type {ArrayValue|DictionaryValue|bigint|number|string|boolean} */
+	/** @type {bigint|number|string|boolean|Array|Map|Value} */
 	_value;
 
 	/** @type {Location} */
@@ -14,40 +17,44 @@ class Value
 	/** @type {number} */
 	_state;
 
-    /* this._args は初期化時の値を保持する。型はArrayにする（値が0個や1個でも）
-       this._value は実行時に返す値を保持する。型はvalue or ArrayValue or DictionaryValue(not Array)
-	   それ自身： this
-	   _args    ： getArgs()
-	   _value   ： getValue()
-	   _valueの中身： getJSValue()
+    /* this._args は初期化時の値を保持する。型はArray<value of JS|Value>
+	       argsPyPEN，argsPython，run，_makeValue だけで使う
+       this._value は実行時に返す値を保持する。
+	   ・PrimitiveValueならvalue of JS
+	   ・SimpleValueならValue
+	   ・CollectionValueならArrayやMap
+	   getArgs()  -> Array<value of JS|Value>
+	       this._argsを返す
+	   getValue() -> Value|Array<Value>|Map<value of JS,Value>
+	       PrimitiveValueならthis，SimpleValueやCollectionValueならthis._value
+	   getJSValue() -> value of JS(bigint|number|string|boolean|Array|Map)
+	       PrimitiveValueならthis._value，SimpleValueならthis._value.getJSValue()，CollectionValueならthis._value
     */
 
 	/**
 	 * @constructor
-	 * @param {Array<Value>} v 
+	 * @param {Array<value of JS|Value>} v 
 	 * @param {Location} loc 
 	 */
 	constructor(v, loc)
 	{
-		if(v instanceof Array)
-		{
-			this._args = v;			// 初期化用のValueのArray
-			this._value = null;		// 実際の値のvalue or ArrayValue(not Array) or DictionaryValue
-			this._loc = loc;		// Location
-			this._state = 0;		// 実行状態管理用
-			Object.seal(this);		// 
-		}
-		else this._throwRuntimeError("Valueの引数が配列ではありません");
+		this._args = v;			// 初期化用のArray
+		this._value = null;		// 実際の値
+		this._loc = loc;		// ソース中の位置情報
+		this._state = 0;		// 実行状態管理 run()で使う
+		// Object.seal(this);	実体を作るときにはコンストラクタの末尾で有効にする
 	}
+
 	/**
-	 * 
+	 * Throw RuntimeError with message
 	 * @param {string} msg 
 	 * @throws {RuntimeError}
 	 */
 	_throwRuntimeError(msg)	// Value（およびサブクラス）の外から呼ばないこと
 	{
-		throw new RuntimeError(this._loc.first_line, msg);
+		throw new RuntimeError(this._loc.first_line, constructor_name(this) + ": " + msg);
 	}
+
 	/**
 	 * Locationを返す
 	 * @returns {Location}
@@ -56,19 +63,217 @@ class Value
 	{
 		return this._loc;
 	}
+
+	/**
+	 * this._argsを返す
+	 */
+	getArgs()	// return Array<value of JS|Value>
+	{
+		return this._args;
+	}
+
+	/* newpage */
+	/* サブクラスで実装するメソッド
+	   clone()		: Value		複製を作る
+	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	   run()		: void		this._argsを実行する
+	   getValue()	: Value		PrimitiveValueならthis，SimpleValueやCollectionValueならthis._value
+	   getJSValue() : value of JS(bigint|number|string|boolean|Array|Map)	
+	                  PrimitiveValueならthis._value，SimpleValueならthis._value.getJSValue()，CollectionValueならthis._value
+	   setValue()	: void		this._valueを設定する
+	   argsPyPEN()	: string	PyPENの文法で表した文字列
+	   argsPython() : string	Pythonの文法で表した文字列
+	   valueString(): string	this._valueを文字列で表したもの
+	   valueCode()	: string	this._valueをコードで表したもの
+	----------------------------*/
+
 	/**
 	 * @abstract
 	 * @returns {Value}
 	 * @throws {RuntimeError}
 	 */
-	clone()		// すべてのサブクラスで実体を実装する
+	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
 		this._throwRuntimeError("cloneが作られていません");
 	}
+
+	/**
+	 * this._valueを作る。実体のあるサブクラスでは必ずオーバーライドする
+	 * @abstract
+	 */
+	_makeValue()
+	{
+		this._throwRuntimeError("_makeValueが作られていません");
+	}
+
 	/**
 	 * this._argsを実行する
-	 * this._valueは#makeValueで作る
+	 * this._valueは_makeValueで作る
 	 */
+	run()
+	{
+		this._throwRuntimeError("runが作られていません");
+	}
+
+	/**
+	 * @abstract
+	 * @returns {Value}
+	 */
+	getValue() //Valueを返す。
+	{
+		this._throwRuntimeError("getValueが作られていません");
+	}
+
+	/**
+	 * @returns {bigint|number|string|boolean|Array|Map}
+	 */
+	getJSValue()	// 実際のJSの値を返す
+	{
+		this._throwRuntimeError("getJSValueが作られていません");
+	}
+
+		/**
+	 * @abstract
+	 */
+	setValue()
+	{
+		this._throwRuntimeError("setValueが作られていません");
+	}
+
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPyPEN()	// PyPENの文法で表した文字列
+	{
+		this._throwRuntimeError("argsPyPENが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPython()	// Pythonの文法で表した文字列
+	{
+		this._throwRuntimeError("argsPythonが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	valueString()
+	{
+		this._throwRuntimeError("valueStringが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	valueCode()
+	{
+		this._throwRuntimeError("valueCodeが作られていません");
+	}
+}
+
+/**
+ * @abstract
+ * this._valueはvalue of JS
+ */
+class PrimitiveValue extends Value
+{
+	/**
+	 * 
+	 * @param {bigint|number|string|boolean} v
+	 * @param {Location} loc
+	 */
+	constructor(v, loc)
+	{
+		super(v, loc);
+	}
+
+	/**
+	 * 
+	 * @returns {Value}
+	 */
+	getValue()
+	{
+		return this;
+	}
+	/**
+	 * @param {bigint|number|string|boolean} v
+	 */
+	setValue(v)
+	{
+		this._value = v;
+	}
+	_makeValue()
+	{
+		this._value = this._args[0].getValue();
+	}
+	argsPyPEN()
+	{
+		return (this._args[0]).toString();
+	}
+	argsPython()
+	{
+		return (this._args[0]).toString();
+	}
+	valueString()
+	{
+		return (this._value).toString();
+	}
+	valueCode()
+	{
+		return (this._value).toString();
+	}
+	clone()
+	{
+		return new IntValue(this._args, this._loc);
+	}
+	// argsPyPEN() はStringValueで実装する
+	// argsPython() はStringValueで実装する
+	// valueCode() は各StringValueで実装する
+	// run() はValue.run()そのまま
+}
+
+/**
+ * @abstract
+ * this._valueはArray<Value>またはMap<value of JS,Value>
+ */
+class CollectionValue extends Value
+{
+	/**
+	 * 
+	 * @param {Array<Value>} v
+	 * @param {Location} loc
+	 */
+	constructor(v, loc)
+	{
+		super(v, loc);
+	}
+
+	/**
+	 * 
+	 * @returns {Value}
+	 */
+	getValue()
+	{
+		return this._value;
+	}
+	/**
+	 * @abstract
+	 */
+	setValue(v, idx)
+	{
+		this._throwRuntimeError("setValueが作られていません");
+	}
+
+	/**
+	 * @abstract
+	 */
+	_makeValue()
+	{
+		this._throwRuntimeError("_makeValueが作られていません");
+	}
 	run()
 	{
 		if(this._state == 0)
@@ -79,107 +284,178 @@ class Value
 		else
 		{
 			code[0].stack[0].index++;
-			this.#makeValue();
+			this._makeValue();
 			this._state = 0;
 		}
 	}
 	/**
-	 * this._valueを作る（違う処理をするならサブクラスでオーバーライドする）
-	 */
-	#makeValue()
-	{
-		if(this._value === null) this.setValue(this._args[0].getValue());	// primitive valueの場合
-	}
-	/**
 	 * 
-	 * @param {IntValue|FloatValue|StringValue|BooleanValue} idx 
-	 * @returns {Array<Value>|Value}
+	 * @param {*} idx 
+	 * idx があるときはValue，ないときはArray<Value>またはMapを返す
+	 * @returns 
 	 */
-	getArgs(idx = null)	// return Array of Value or Value
+	getValue(idx = null)
 	{
-		if(idx === null) return this._args;
-		else if(isPrimitive(idx)) return this._args[idx.getValue()];
-		else this._throwRuntimeError("argsのインデックスが単純型ではありません");
-	}
-	/**
-	 * 
-	 * @param {IntValue|FloatValue|StringValue|BooleanValue} idx 
-	 * @returns {Value|Array<Value>}
-	 */
-	getValue(idx = null) //valueを返す。
-	{
-		if(debug_mode && this._value === null)
-			this._throwRuntimeError("makeValueが呼ばれていません");
 		if(idx === null) return this._value;
-		else if(isPrimitive(idx)) return this._value[idx.getValue()];
-		else this._throwRuntimeError("valueのインデックスが単純型ではありません");
+		return this._value[idx];
 	}
+
+	// clone() は各サブクラスで実装する
+	// argsPyPEN() は各サブクラスで実装する
+	// argsPython() は各サブクラスで実装する
+	// valueString() は各サブクラスで実装する
+	// valueCode() は各サブクラスで実装する
+	// setValue() は各サブクラスで実装する
+	// _makeValue() は各サブクラスで実装する
+	// run() はValue.run()そのまま(Variableを除く）
+}
+
+class IntValue extends PrimitiveValue
+{
 	/**
 	 * 
-	 * @param {IntValue|FloatValue|StringValue|BooleanValue} idx 
-	 * @returns {bigint|number|string|boolean|Array<bigint|number|string|boolean>}
+	 * @param {Array<string|number>} v 
+	 * @param {Location} loc 
 	 */
-	getJSValue(idx = null)	// 実際のJSの値を返す
+	constructor(v, loc)
 	{
-		if(debug_mode && this._value === null)
-			this._throwRuntimeError("makeValueが呼ばれていません");
-		if(idx === null) 
-			return this._value instanceof Value && !isPrimitive(this._value) 
-				? this._value.getJSValue() : this._value;
-		else if(isPrimitive(idx)) 
-			return this._value[idx.getValue()] instanceof Value && !isPrimitive(this._value[idx.getValue()]) 
-				? this._value[idx.getValue()].getJSValue() : this._value[idx.getValue()];
-		else this._throwRuntimeError("valueのインデックスが単純型ではありません");
+		super(v, loc);
+		Object.seal(this);
 	}
-	/**
-	 * @param {bigint|number|string|boolean|ArrayValue|DictionaryValue} v
-	 * @param {IntValue|FloatValue|StringValue|BooleanValue} idx 
-	 */
-	setValue(v, idx = null)		// v はvalue or ArrayValue or DictionaryValue
+	_makeValue()
 	{
-		if(v instanceof Array)
-			this._throwRuntimeError("ValueのsetValueに配列は渡せません");
-		if(idx === null) this._value = v;
-		else if(isPrimitive(idx))
-			if(!isPrimitive(this._value)) this._value[idx.getValue()] = v;
-			else this._throwRuntimeError("valueが単純型なのでインデックスでの代入はできません");
-		else this._throwRuntimeError("valueのインデックスが単純型ではありません");
-	}
-	/**
-	 * @abstract
-	 * @returns {string}
-	 */
-	argsPyPEN()	// PyPENの文法で表した文字列
-	{
-		return '';
-	}
-	/**
-	 * @abstract
-	 * @returns {string}
-	 */
-	argsPython()	// Pythonの文法で表した文字列
-	{
-		return '';
-	}
-	/**
-	 * @abstract
-	 * @returns {string}
-	 */
-	valueString()
-	{
-		return '';
-	}
-	/**
-	 * @abstract
-	 * @returns {string}
-	 */
-	valueCode()
-	{
-		return '';
+		try{
+			this._value = BigInt(this._args[0]);
+		}
+		catch(e)
+		{
+			if(e instanceof RangeError)
+				this._throwRuntimeError("整数で表せない値が使われました");
+			else throw e;
+		}
 	}
 }
 
-class NullValue extends Value
+class FloatValue extends PrimitiveValue
+{
+	/**
+	 * 
+	 * @param {Array<number>} v 
+	 * @param {Location} loc 
+	 */
+	constructor(v, loc)
+	{
+		super(v, loc);
+		Object.seal(this);
+	}
+	/**
+	 * @param {number} v 
+	 * @returns {string}
+	 */
+	#toString(v)
+	{
+		if(isSafeInteger(v)) return (v).toFixed(1);
+		else return (v).toString();
+	}
+	argsPyPEN()
+	{
+		return this.#toString(this._args.argsPyPEN());
+	}
+	argsPython()
+	{
+		return this.#toString(this._args.argsPython());
+	}
+	valueString()
+	{
+		return this.#toString(this._value);
+	}
+	valueCode()
+	{
+		return this.#toString(this._value);
+	}
+	_makeValue()
+	{
+		this._value = Number(this._args[0]);
+		if(!isFinite(this._value))
+			this._throwRuntimeError("実数型で表せない値が使われました");
+	}
+}
+
+class StringValue extends PrimitiveValue
+{
+	/**
+	 * 
+	 * @param {string} v 
+	 * @param {Location} loc 
+	 */
+	constructor(v, loc)
+	{
+		super(v, loc);
+		Object.seal(this);
+	}
+	argsPyPEN()
+	{
+		return "'" + this._args[0].replace(/'/g, "\\'") + "'";
+	}
+	argsPython()
+	{
+		return "'" + this._args[0].replace(/'/g, "\\'") + "'";
+	}
+	valueString()
+	{
+		return this._value.replace(/'/g, "\\'");
+	}
+	valueCode()
+	{
+		return "'" + this._value.replace(/'/g, "\\'") + "'";
+	}
+	valueLength()
+	{
+		return this._value.length;
+	}
+	_makeValue()
+	{
+		this._value = this._args[0];
+	}
+}
+
+class BooleanValue extends PrimitiveValue
+{
+	/**
+	 * 
+	 * @param {boolean} v 
+	 * @param {Location} loc 
+	 */
+	constructor(v, loc)
+	{
+		super(v, loc);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new BooleanValue(this._args, this._loc);
+	}
+	valueString()
+	{
+		return (this._value ? 'true' : 'false');
+	}
+	valueCode()
+	{
+		return  (this._value ? 'true' : 'false');
+	}
+	_makeValue()
+	{
+		try{
+			this._value = this._args[0];
+		}
+		catch(e)
+		{
+			this._throwRuntimeError("真偽型に変換できない値が使われました");
+		}
+	}
+}
+
+class NullValue extends PrimitiveValue
 {
 	/**
 	 * @param {Location} loc 
@@ -189,6 +465,7 @@ class NullValue extends Value
 		super([], loc);
 		Object.seal(this);
 	}
+
 	/**
 	 * 
 	 * @returns {NullValue}
@@ -197,9 +474,21 @@ class NullValue extends Value
 	{
 		return new NullValue(this._loc);
 	}
+	argsPyPEN()
+	{
+		return '';
+	}
+	argsPython()
+	{
+		return '';
+	}
+	valueCode()
+	{
+		return '';
+	}
 }
 
-class UNDEFINED extends Value	// 未完成のプログラム用
+class UNDEFINED extends PrimitiveValue	// 未完成のプログラム用
 {
 	/**
 	 * 
@@ -215,155 +504,36 @@ class UNDEFINED extends Value	// 未完成のプログラム用
 	{
 		return new UNDEFINED(this._args, this._loc);
 	}
-	getValue(idx = null)
+	argsPyPEN()
+	{
+		return this._args.argsPyPEN();
+	}
+	argsPython()
+	{
+		return this._args.argsPython();
+	}
+	valueCode()
 	{
 		this._throwRuntimeError("未完成のプログラムです");
 	}
 }
 
-/*********************************** Primitive Value classes */
-
-
-/* イメージ
- * args: 初期化するvalue
- * value: 参照されるべきvalue
- * e.g.
- * args = 3, x, ...
- * value = 3n
- */
-class IntValue extends Value
-{
-	/**
-	 * 
-	 * @param {Number} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
-	{
-		try{
-			super(BigInt(v), loc);
-		}
-		catch(e)
-		{
-			if(e instanceof RangeError)
-				this._throwRuntimeError("整数で表せない値が使われました");
-			else throw e;
-		}
-		Object.seal(this);
-	}
-	clone()
-	{
-		return new IntValue(this._args, this._loc);
-	}
-}
-
-class FloatValue extends Value
-{
-	/**
-	 * 
-	 * @param {Number} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
-	{
-		super(v, loc);
-		if(!isFinite(v))
-			this.throwRuntimeError("実数型で表せない値が使われました");
-		Object.seal(this);
-	}
-	clone()
-	{
-		return new FloatValue(this._args, this._loc);
-	}
-	makeCode()
-	{
-		return this._args.toString();
-	}
-	toString()
-	{
-		return this._value.toString();
-	}
-}
-
-class StringValue extends Value 
-{
-	/**
-	 * 
-	 * @param {string} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
-	{
-		super(v, loc);
-		Object.seal(this);
-	}
-	clone()
-	{
-		return  new StringValue(this._args, this._loc);
-	}
-	makeCode()
-	{
-		return '"' + this._args.replace(/"/g,'\\"') + '"';
-	}
-	makePython()
-	{
-		return '\'' + this._args.replace('\'','\\\'') + '\'';
-	}
-	length()
-	{
-		return this._value.length;
-	}
-}
-
-class BooleanValue extends Value 
-{
-	/**
-	 * 
-	 * @param {boolean|Number|string} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
-	{
-		try{
-			super(v ? true : false, loc);
-		}
-		catch(e)
-		{
-			this.throwRuntimeError("真偽型に変換できない値が使われました");
-		}
-		Object.seal(this);
-	}
-	clone()
-	{
-		return new BooleanValue(this._args, this._loc);
-	}
-	makeCode()
-	{
-		return this._args ? 'True' : 'False';
-	}
-	makePython()
-	{
-		return this._args ? "True" : "False";
-	}
-	setValue(v, idx = null)
-	{
-		this._makeValue();
-		if(idx === null) this._value = v ? true : false;
-		else this._value[idx] = v ? true : false;
-	}
-}
-
 /*********************************** Complex Value classes */
 
-class SliceValue extends Value
+class SliceValue extends CollectionValue
 {
-	constructor(x,y,loc)
+	constructor(v, loc)
 	{
-		super([x,y],loc);
-		this._value = null;
-		this._state = 0;
+		super(v, loc);
 		Object.seal(this);
 	}
+	// argsPyPEN() は各サブクラスで実装する
+	// argsPython() は各サブクラスで実装する
+	// valueString() は各サブクラスで実装する
+	// valueCode() は各サブクラスで実装する
+	// setValue() は各サブクラスで実装する
+	// _makeValue() は各サブクラスで実装する
+	// run() はValue.run()そのまま(Variableを除く）
 	clone()
 	{
 		var rtnv = new SliceValue(this._args[0].clone(), this._args[1].clone(), this._loc);
@@ -385,22 +555,33 @@ class SliceValue extends Value
 	}
 	#makeValue()
 	{
-		if(this._value === null) 
-			this._value = [this._args[0], this._args[1]];
+		if(!this._value) 
+			this._value = [
+			this._args[0] instanceof PrimitiveValue ? this._args[0].getValue() : this._args[0],
+			this._args[1] instanceof PrimitiveValue ? this._args[1].getValue() : this._args[1]
+		];
 	}
-	makeCode()
+	argsPyPEN()
 	{
-		return this._args[0].makeCode() + ":" + this._args[1].makeCode();
+		return this._args[0].argsPyPEN() + ":" + this._args[1].argsPyPEN();
 	}
-	makePython()
+	argsPython()
 	{
-		var p1 = this._args[0].makePython();
-		var p2 = this._args[1].makePython();
+		var p1 = this._args[0].argsPython();
+		var p2 = this._args[1].argsPython();
 		return  p1 + ":" + p2;
 	}
-	toString()
+	valueString()
 	{
-		return this._value[0].toString() + ":" + this._value[1].toString();
+		return this._value[0].valueString() + ":" + this._value[1].valueString();
+	}
+	valueCode()
+	{
+		return this._value[0].valueCode() + ":" + this._value[1].valueCode();
+	}
+	getValue(idx)
+	{
+		return this._value[idx];
 	}
 	getValue1()
 	{
@@ -410,12 +591,16 @@ class SliceValue extends Value
 	{
 		return this._value[1];
 	}
+	valueLength()
+	{
+		return 2;
+	}
 }
 
 /**
  * リスト
  */
-class ArrayValue extends Value
+class ArrayValue extends CollectionValue
 {
 	/**
 	 * @constructor
@@ -425,72 +610,85 @@ class ArrayValue extends Value
 	constructor(v,loc)
 	{
 		super(v, loc);
-		this._value = null;
-		this._state = 0;
 		Object.seal(this);
 	}
+
 	clone()
 	{
 		var a = [];
-		for(var i = 0; i < this._args.length; i++) a.push(this._args[i].clone());
+		for(var i = 0; i < this._args._args.length; i++) a.push(this._args._args[i].clone());
 		var rtnv = new ArrayValue(a, this._loc);
 		return rtnv;
 	}
-	run()
+	argsPyPEN()
 	{
-		if(this._state == 0)
-		{
-			code[0].stack.unshift({statementlist: this._args, index: 0});
-			this._state = 1;
-		}
-		else
-		{
-			this.#makeValue();
-			code[0].stack[0].index++;
-			this._state = 0;
-		}
+		var v = [];
+		for(var i = 0; i < this._args._args.length; i++) v.push(this._args._args[i].argsPyPEN());
+		return '[' + v.join(',') + ']';
 	}
-    #makeValue()
-    {
+	argsPython()
+	{
+		var v = [];
+		for(var i = 0; i < this._args._args.length; i++) v.push(this._args._args[i].argsPython());
+		return '[' + v.join(', ') + ']';
+	}
+	valueString()
+	{
+		var v = [];
+		for(var i = 0; i < this._value.length; i++)
+			{
+				v.push(this._value[i].valueString());
+			} 
+		return '[' + v.join(',') + ']';
+	}
+	valueCode()
+	{
+		var v = [];
+		for(var i = 0; i < this._value.length; i++) v.push(this._value[i].valueCode());
+		return '[' + v.join(',') + ']';
+	}
+
+	/**
+	 * @override
+	 * @param {Value} v
+	 * @param {number} idx
+	 * @returns {void}
+	 */
+	setValue(v, idx)
+	{
+		if(idx < 0) idx += this._value.length;
+		if(idx >= 0 && idx < this._value.length) this._value[idx] = v;
+		else this._throwRuntimeError("配列の範囲外に値を設定しようとしました");
+	}
+	_makeValue()
+	{
 		if(!this._value)
 		{
 			this._value = [];
-			for(var i = 0; i < this._args.length; i++) this._value.push(this._args[i]);
+			for(var i = 0; i < this._args.length; i++) this._value.push(
+				this._args[i] instanceof PrimitiveValue ?
+				this._args[i].getValue() : this._args[i]);
 		}
-    }
-	makeCode()
-	{
-		var ag = [];
-		for(var i = 0; i < this._args.length; i++) ag.push(this._args[i].makeCode());
-		return '[' + ag.join(',') + ']';
 	}
-	makePython()
-	{
-		var ag = [];
-		for(var i = 0; i < this._args.length; i++) ag.push(this._args[i].makePython());
-		return '[' + ag.join(', ') + ']';
-	}
-	toString()
-	{
-		var ag = [];
-		for(var i = 0; i < this._value.length; i++) ag.push(this._value[i].toString());
-		return '[' + ag.join(',') + ']';
-	}
-	getValue()
-	{
-		return this;
-	}
-	get length() 
-    {
-        return this._value.length;
-    }
+	/**
+	 * 
+	 * @param {Value} a 
+	 */
 	append(a)
 	{
-		this._args._args.push(a);
+		this._args.push(a);
 	}
+	/**
+	 * 
+	 * @param {Array<Value>} a 
+	 */
 	extend(a)
 	{
-		for(var i of a) this._args._args.push(i);
+		for(var i of a) this._args.push(i);
+	}
+	valueLength()
+	{
+		return this._value.length;
 	}
 }
 
@@ -507,8 +705,6 @@ class DictionaryValue extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
-		this._value = null;
-		this._state = 0;
 		Object.seal(this);
 	}
 	clone()
@@ -528,36 +724,44 @@ class DictionaryValue extends Value
 				{
 					var key = this._args[i].getValue1();
 					var val = this._args[i].getValue2();
-					if(isPrimitive(key)) this._value.set(key.getValue(), val);
+					if(isPrimitive(key)) this._value.set(key.getJSValue(), val);
 					else this._throwRuntimeError("辞書のキーには単純型しか使えません");
 				}
 				else this._throwRuntimeError("辞書の初期化が間違っています");
 			}
 		}
     }
-	makeCode()
+	argsPyPEN()
 	{
 		var ag = [];
 		for(var arg of this._args) 
-			ag.push(arg.makeCode());
+			ag.push(arg.argsPyPEN());
 		return '{' + ag.join(',') + '}';
 	}
-	makePython()
+	argsPython()
 	{
 		var ag = [];
 		for(var arg of this._args) 
-			ag.push(arg.makePython());
+			ag.push(arg.argsPython());
 		return '{' + ag.join(', ') + '}';
 	}
-	toString()
+	valueString()
 	{
 		var ag = [];
-		for(var key of this._value.keys())
+		for(var [k,v] of this._value.entries())	
 		{
-			var val = this._value.get(key);
-			if(typeof key === "string") { key = "'" + key + "'";}
-			if(typeof val === "string") { val = "'" + val + "'";}
-			ag.push(key.toString() + ':' + val.toString());
+			if(typeof(k) === "string") k = "'" + k + "'";
+			ag.push(k + ':' + v.valueCode());
+		}
+		return '{' + ag.join(',') + '}';
+	}
+	valueCode()
+	{
+		var ag = [];
+		for(var [k,v] of this._value.entries())
+		{
+			if(typeof(k) === "string") k = "'" + k.replace(/'/g, "\\'") + "'";
+			ag.push(k + ':' + v.valueCode());
 		}
 		return '{' + ag.join(',') + '}';
 	}
@@ -565,14 +769,7 @@ class DictionaryValue extends Value
 	{
 		if(this._state == 0)
 		{
-			var a = [];
-			for(var arg of this._args)
-			{
-				a.push(arg);
-				// a.push(arg.getValue1());
-				// a.push(arg.getValue2());
-			}
-			code[0].stack.unshift({statementlist: a, index: 0});
+			code[0].stack.unshift({statementlist: this._args, index: 0});
 			this._state = 1;
 		}
 		else
@@ -597,8 +794,6 @@ class Copy extends Value
 	constructor(v, loc)
 	{
 		super(v, loc);
-		this._value = null;
-		this._state = 0;
 		Object.seal(this);
 	}
 	clone()
@@ -2583,11 +2778,11 @@ class ConvertString extends Value
 function toBool(v)
 {
 	let re = /^(0+|false|偽|)$/i;
-	if(v instanceof IntValue || v instanceof FloatValue) return v.args != 0;
-	else if(v instanceof StringValue) return re.exec(v.args) ? false : true;
-	else if(v instanceof BooleanValue) return v.args;
-	else if(v instanceof ArrayValue) return v.args.length != 0;
-	else if(v instanceof DictionaryValue) return v.args.size != 0;
+	if(v instanceof IntValue || v instanceof FloatValue) return v.getValue() != 0;
+	else if(v instanceof StringValue) return re.exec(v.getValue()) ? false : true;
+	else if(v instanceof BooleanValue) return v.getValue();
+	else if(v instanceof ArrayValue) return v.getValue().valueLength() != 0;
+	else if(v instanceof DictionaryValue) return v.getValue().size() != 0;
 	return false;
 }
 
@@ -2642,22 +2837,19 @@ class Variable extends Value
 	 */
 	constructor(x, y, loc)
 	{
-		super([x,y],loc); 
-		this._value = null;
-		this._state = 0;
+		super(y,loc); 
+		this.varname = x;
 		Object.seal(this);
 	}
 	clone()
 	{
-		return new Variable(this._args[0], this._args[1] ? this._args[1].clone() : null, this.loc);
+		return new Variable(this.varname, this.args ? this.args.clone() : null, this.loc);
 	}
-	get varname(){return this._args[0];}
-	get args(){return this._args[1];}
 	run()
 	{
 		if(this._state == 0)
 		{
-			if(this._args[1]) code[0].stack.unshift({statementlist: [this._args[1]], index: 0});
+			if(this.args) code[0].stack.unshift({statementlist: this.args, index: 0});
 			this._state = 1;
 		}
 		else
@@ -2669,11 +2861,11 @@ class Variable extends Value
 	}
 	#makeValue()
 	{
-		var vt = findVarTable(this._args[0]);
+		var vt = findVarTable(this.varname);
 		if(vt)
 		{
-			var v = vt.vars[this._args[0]];
-			this._value = getValueByArgs(v, this._args[1] ? this._args[1] : null, this._loc);
+			var v = vt.vars[this.varname];
+			this._value = getValueByArgs(v, this.args ? this.args : null, this.loc);
 		}
 		else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
 	}
@@ -2904,43 +3096,41 @@ class Assign extends Value
 	 */
 	constructor(variable,value, operator, loc)
 	{
-		super(null,loc);
+		super([variable, value, operator],loc);
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) 
 			throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
-		this._variable = variable;
-		this._args = value;
-		this._value = null;
-		this._operator = operator;
-		this._state = 0;
-		Object.seal(this);
 	}
 	clone()
 	{
-		return new Assign(this._variable.clone(), this._args.clone(), this._operator, this.loc);
+		return new Assign(this._args, this.loc);
 	}
 	run()
 	{
-		if(this._variable instanceof UNDEFINED) 
+		var variable = this._args[0];
+		var value    = this._args[1];
+		var operator = this._args[2];
+
+		if(varianle instanceof UNDEFINED) 
 			throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this._state == 0)
 		{
 			let a=[];
-			if(this._operator) a.push(this._variable);
-			a.push(this._args);
+			if(operator) a.push(variable);
+			a.push(value);
 			code[0].stack.unshift({statementlist: a, index: 0});
 			this._state = 1;
 		}
 		else if(this._state == 1)
 		{
-			if(!this._operator && this._variable._args[1]._args.length > 0)
-				code[0].stack.unshift({statementlist: this._variable._args[1]._args, index: 0});
+			if(!this._operator && variable._args[1]._args.length > 0)
+				code[0].stack.unshift({statementlist: variable._args[1]._args, index: 0});
 			this._state = 2;
 		}
 		else if(this._state == 2)
 		{
-			var vt1 = findVarTable(this._variable.varname);
-			var v2  = this._args;
-			if(this._operator)
+			var vt1 = findVarTable(variable.varname);
+			var v2  = value;
+			if(operator)
 			{
 				if(!vt1) throw new RuntimeError(this.first_line, '変数 '+this.variable.varname+' は定義されていません');
 				var v1 = getValueByArgs(vt1.vars[this.variable.varname], this.variable.args ? this.variable.args.args : null, this.loc);
@@ -3103,9 +3293,9 @@ class Assign extends Value
 				if(!vt1)	// 変数が定義されていないので，ダミーを代入
 				{
 					vt1 = varTables[0];
-					vt1.vars[this._variable.varname] = new NullValue(this.loc);
+					vt1.vars[variable.varname] = new NullValue(this.loc);
 				}
-				setVariableByArgs(vt1, this._variable.varname, this._variable._args[1]._args.length > 0 ? this._variable._args[1] : null, v2, this.loc);
+				setVariableByArgs(vt1, variable.varname, variable._args[1]._args.length > 0 ? variable._args[1] : null, v2, this.loc);
 				this._value = v2;
 			}
 			this._state = 0;
@@ -3119,9 +3309,9 @@ class Assign extends Value
 	makePython(indent)
 	{
 		var code = Parts.makeIndent(indent);
-		code += this._variable.makePython() + " ";
-		if(this.operator) code += this.operator;
-		code += "= " + this._args.makePython() + "\n";
+		code += this._args[0].makePython() + " ";
+		if(this._args[2]) code += this._args[2];
+		code += "= " + this._args[1].makePython() + "\n";
 		return code;
 	}
 }
