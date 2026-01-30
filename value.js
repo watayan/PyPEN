@@ -6,16 +6,16 @@
 class Value
 {
 	/** @type {Array<value of JS|Value>} */
-	_args;
+	// _args;
 
 	/** @type {bigint|number|string|boolean|Array|Map|Value} */
-	_value;
+	// _value;
 
 	/** @type {Location} */
-	_loc;
+	// _loc;
 
 	/** @type {number} */
-	_state;
+	// _state;
 
     /* this._args は初期化時の値を保持する。型はArray<value of JS|Value>
 	       argsPyPEN，argsPython，run，_makeValue だけで使う
@@ -440,7 +440,7 @@ class FloatValue extends PrimitiveValue
 	 * @param {number} v 
 	 * @returns {string}
 	 */
-	#toString(v)
+	_toString(v)
 	{
 		// textareaAppend("FloatValue#toString: " + constructor_name(v) + "\n");
 		if(isSafeInteger(v)) return (v).toFixed(1);
@@ -448,19 +448,19 @@ class FloatValue extends PrimitiveValue
 	}
 	argsPyPEN()
 	{
-		return this.#toString(this.getArgs(0));
+		return this._toString(this.getArgs(0));
 	}
 	argsPython()
 	{
-		return this.#toString(this.getArgs(0));
+		return this._toString(this.getArgs(0));
 	}
 	valueString()
 	{
-		return this.#toString(this.getJSValue());
+		return this._toString(this.getJSValue());
 	}
 	valueCode()
 	{
-		return this.#toString(this.getJSValue());
+		return this._toString(this.getJSValue());
 	}
 }
 
