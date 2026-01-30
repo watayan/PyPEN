@@ -1,27 +1,3 @@
-
-function setCaller(statementlist, caller)
-{
-	for(let i = 0; i < statementlist.length; i++)
-	{
-		if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
-		if(statementlist[i].state) setCaller(statementlist[i].state, caller);
-		if(statementlist[i].blocks)
-		{
-			for(var j = 0; j < statementlist[i].blocks.length; j++)
-				setCaller(statementlist[i].blocks[j][1], caller);
-		}
-		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
-	}
-}
-
-function cloneStatementlist(statementlist)
-{
-	var rtnv = [];
-	for(let i = 0; i < statementlist.length; i++) if(statementlist[i]) rtnv.push(statementlist[i].clone());
-	return rtnv;
-}
-
-
 /**
  * 命令クラス
  */
@@ -152,7 +128,7 @@ class ReturnStatement extends Statement {
 			code[0].stack[0].index++;
 			if(code[0] instanceof parsedFunction)
 			{
-				this.caller.setValue(this.value.getValue());
+				this.caller.setValue(this.value);
 				code.shift();
 				if(this.flag) varTables.shift();
 			}
@@ -184,7 +160,7 @@ function dump(message = null)
 		if(vars[i][0] == '!') continue;
 		let vartable = findVarTable(vars[i]);
 		let v = vartable.vars[vars[i]];
-		textareaAppend(vars[i] + ":" + v.toString() + "\n");
+		textareaAppend(vars[i] + ":" + valueString(v) + "\n");
 	}
 }
 
@@ -706,7 +682,7 @@ class Output extends Statement
 {
 	/**
 	 * 
-	 * @param {Array<Value>} x 
+	 * @param {ArrayValue<Value>} x 
 	 * @param {boolean} ln 
 	 * @param {Location} loc 
 	 */
@@ -728,6 +704,7 @@ class Output extends Statement
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: this.value, index: 0});
+			// code[0].stack.unshift({statementlist: [this.value], index: 0});
 			this.state = 1;
 		}
 		else
@@ -736,7 +713,7 @@ class Output extends Statement
 			let s = '';
 			for(var i = 0; i < this.value.length; i++)
 			{
-				s += (i > 0 ? ' ' : '') + this.value[i].toString();
+				s += (i > 0 ? ' ' : '') + valueString(this.value[i]);
 			}
 			if(this.ln)	s += '\n';
 			if(selected_quiz < 0) textareaAppend(s);

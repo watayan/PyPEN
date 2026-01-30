@@ -7,62 +7,31 @@
 	 */
 
 var functions = {
-    "abs": new DefinedFunction(1, function(param, loc){
-        var par1 = param[0].getValue();
-        if(par1 instanceof IntValue)
-        {
-            if(par1.rtnv.value >= BigInt(0)) return new IntValue(par1.rtnv.value, loc);
-            else return new IntValue(-par1.rtnv.value, loc);
-        }
-        else if(par1 instanceof FloatValue) return new FloatValue(Math.abs(par1.rtnv.value), loc);
-        else throw new RuntimeError(loc.first_line, '引数は数値でなければなりません');
-    }, null, null),
     "all": new DefinedFunction(-1, function(param, loc){
-        var par1 = param[0].getValue();
-        if(param.length ==1 && par1.rtnv instanceof ArrayValue)
-        {
-            for(let i = 0; i < par1.rtnv.value.length; i++)
-                if(!toBool(par1.rtnv.value[i], loc)) return new BooleanValue(false, loc);
-            return new BooleanValue(true, loc);
-        }
-        else if(param.length >= 1)
-        {
-            for(let i = 0; i < param.length; i++)
-                if(!toBool(param[i].rtnv.value, loc)) return new BooleanValue(false, loc);
-            return new BooleanValue(true, loc);
-        }
-        else throw new RuntimeError(loc.first_line, '引数は数値の配列です');
+        var par = param;
+        if(param.length == 1 && par[0] instanceof ArrayValue) par = par[0].getValue();
+        for(let i = 0; i < param.length; i++)
+            if(!toBool(param[i].getJSValue(), loc)) return new BooleanValue([false], loc, false);
+        return new BooleanValue([true], loc, true);
     }, null, null),
     "any": new DefinedFunction(-1, function(param, loc){
-        var par1 = param[0].getValue();
-        if(param.length == 1 && par1.rtnv instanceof ArrayValue)
-        {
-            for(let i = 0; i < par1.rtnv.value.length; i++)
-                if(toBool(par1.rtnv.value[i], loc)) return new BooleanValue(true, loc);
-            return new BooleanValue(false, loc);
-        }
-        else if(param.length >= 1)
-        {
-            for(let i = 0; i < param.length; i++)
-                if(toBool(param[i].rtnv.value, loc)) return new BooleanValue(true, loc);
-            return new BooleanValue(false, loc);
-        }
-        else throw new RuntimeError(loc.first_line, '引数は数値の配列です');
+        var par = param;
+        if(param.length == 1 && param[0] instanceof ArrayValue) par = param[0].getValue();
+        for(let i = 0; i < par.length; i++)
+            if(toBool(par[i], loc)) return new BooleanValue([true], loc, true);
+        return new BooleanValue([false], loc, false);
     }, null, null),
     "sum": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getValue().rtnv;
-        else
-            par = param;
+        var par = param;    // 引数のArray
+        if(param.length == 1 && param[0] instanceof ArrayValue) par = param[0].getValue();
         var sum = BigInt(0);
         var int_flag = true;
         for(let i = 0; i < par.length; i++)
         {
             if(par[i] instanceof IntValue)
             {
-                if(int_flag) sum += par[i].value;
-                else sum += Number(par[i].value);
+                if(int_flag) sum += par[i].getJSValue();
+                else sum += Number(par[i].getJSValue());
             }
             else if(par[i] instanceof FloatValue)
             {
@@ -71,17 +40,17 @@ var functions = {
                     sum = Number(sum);
                     int_flag = false;
                 }
-                sum += par[i].value;
+                sum += par[i].getJSValue();
             }
-            else throw new RuntimeError(loc.first_line, '引数は数値のリストです');
+            else this.throwRuntimeError("sum", "引数は数値のリストです");
         }
-        if(int_flag) return new IntValue(sum, this.loc);
-        else return new FloatValue(sum, this.loc);
+        if(int_flag) return new IntValue([sum], this.loc, sum);
+        else return new FloatValue([sum], this.loc, sum);
 	}, null, null),
     "prod": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
+        var par;    // 引数のArrayValue
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getValue().value;
+            par = param[0].getJSValue();
         else
             par = param;
         var prod = BigInt(1);
@@ -102,17 +71,17 @@ var functions = {
                 }
                 prod *= par[i].value;
             }
-            else throw new RuntimeError(loc.first_line, '引数は数値のリストです');
+            else this.throwRuntimeError("prod", "引数は数値のリストです");
         }
-        if(int_flag) return new IntValue(prod, this.loc);
-        else return new FloatValue(prod, this.loc);
+        if(int_flag) return new IntValue([prod], this.loc, prod);
+        else return new FloatValue([prod], this.loc, prod);
     	}, null, null),
     "sumprod": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
         if(!(par1 instanceof ArrayValue) || !(par2 instanceof ArrayValue))
-            throw new RuntimeError(loc.first_line, '引数は数値の配列です');
-        if(par1.value.length != par2.value.length)
+            throw new RuntimeError(loc.first_line, '引数は2つの数値の配列です');
+        if(par1.getValue().length != par2.getValue().length)
             throw new RuntimeError(loc.first_line, '引数の配列の長さが違います');
         var sumprod = BigInt(0);
         var int_flag = true;
@@ -122,29 +91,30 @@ var functions = {
             var v2 = par2.getElement(i);
             if(v1 instanceof IntValue && v2 instanceof IntValue)
             {
-                if(int_flag) sumprod += v1.value * v2.value;
-                else sumprod += Number(v1.value) * Number(v2.value);
+                if(int_flag) sumprod += v1.getJSValue() * v2.getJSValue();
+                else sumprod += Number(v1.getJSValue()) * Number(v2.getJSValue());
             }
             else if((v1 instanceof IntValue || v1 instanceof FloatValue) &&
                     (v2 instanceof IntValue || v2 instanceof FloatValue))
             {
                 int_flag = false;
-                sumprod += Number(v1.value) * Number(v2.value);
+                sumprod += Number(v1.getJSValue()) * Number(v2.getJSValue());
             }
-            else throw new RuntimeError(loc.first_line, '引数は数値の配列です');
+            else this.throwRuntimeError("sumprod", "引数は2つの数値の配列です");
         }
-        if(int_flag) return new IntValue(sumprod, this.loc);
-        else return new FloatValue(sumprod, this.loc);
+        if(int_flag) return new IntValue([sumprod], this.loc, sumprod);
+        else return new FloatValue([sumprod], this.loc, sumprod);
 	}, null, null),
     "average": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
+        var par;    // 引数のArrayValue
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getValue().value;
+            par = param[0];
         else
             par = param;
             var sum = functions["sum"].func(param, loc).getValue().value;
-            if(par.length == 0) throw new RuntimeError(loc.first_line, '引数の配列は空であってはいけません');
-            return new FloatValue(Number(sum) / par.length, this.loc);
+            if(par.length == 0) this.throwRuntimeError("average", "引数の配列は空であってはいけません");
+            var v = Number(sum) / par.length;
+            return new FloatValue([v], this.loc, v);
 	}, null, null),
     "factorial": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();

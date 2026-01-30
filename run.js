@@ -485,7 +485,6 @@ function next_line()
 				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n");
 				if(debug_mode){
 					textareaAppend(e.stack);
-					debugger;
 				}
 				reset(false);
 			}

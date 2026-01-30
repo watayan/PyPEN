@@ -19,7 +19,7 @@ class Value
 
     /* this._args は初期化時の値を保持する。型はArray<value of JS|Value>
 	       argsPyPEN，argsPython，run，_makeValue だけで使う
-       this._value は実行時に返す値を保持する。
+       this._value は実行時に値を返すための値を保持する。getValue経由で読み出す
 	   ・PrimitiveValueならvalue of JS
 	   ・SimpleValueならValue
 	   ・CollectionValueならArrayやMap
@@ -36,10 +36,10 @@ class Value
 	 * @param {Array<value of JS|Value>} v 
 	 * @param {Location} loc 
 	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
 		this._args = v;			// 初期化用のArray
-		this._value = null;		// 実際の値
+		this._value = value;	// 実際の値
 		this._loc = loc;		// ソース中の位置情報
 		this._state = 0;		// 実行状態管理 run()で使う
 		// Object.seal(this);	実体を作るときにはコンストラクタの末尾で有効にする
@@ -50,7 +50,7 @@ class Value
 	 * @param {string} msg 
 	 * @throws {RuntimeError}
 	 */
-	_throwRuntimeError(msg)	// Value（およびサブクラス）の外から呼ばないこと
+	throwRuntimeError(msg)	// Value（およびサブクラス）の外から呼ばないこと
 	{
 		throw new RuntimeError(this._loc.first_line, constructor_name(this) + ": " + msg);
 	}
@@ -64,19 +64,29 @@ class Value
 		return this._loc;
 	}
 
+	getState()
+	{
+		return this._state;
+	}
+
+	setState(i)
+	{
+		this._state = i;
+	}
+
 	/**
 	 * this._argsを返す
 	 */
-	getArgs()	// return Array<value of JS|Value>
+	getArgs(idx = null)	// return Array<value of JS|Value>
 	{
-		return this._args;
+		if(idx === null) return this._args;
+		else return this._args[idx];
 	}
 
 	/* newpage */
 	/* サブクラスで実装するメソッド
-	   clone()		: Value		複製を作る
+	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
 	   _makeValue() : void		this._valueを作る。runから呼ばれる
-	   run()		: void		this._argsを実行する
 	   getValue()	: Value		PrimitiveValueならthis，SimpleValueやCollectionValueならthis._value
 	   getJSValue() : value of JS(bigint|number|string|boolean|Array|Map)	
 	                  PrimitiveValueならthis._value，SimpleValueならthis._value.getJSValue()，CollectionValueならthis._value
@@ -94,7 +104,7 @@ class Value
 	 */
 	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
-		this._throwRuntimeError("cloneが作られていません");
+		this.throwRuntimeError("cloneが作られていません");
 	}
 
 	/**
@@ -103,7 +113,7 @@ class Value
 	 */
 	_makeValue()
 	{
-		this._throwRuntimeError("_makeValueが作られていません");
+		this.throwRuntimeError("_makeValueが作られていません");
 	}
 
 	/**
@@ -112,8 +122,19 @@ class Value
 	 */
 	run()
 	{
-		this._throwRuntimeError("runが作られていません");
+		if(this.getState() == 0)
+		{
+			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
 	}
+
 
 	/**
 	 * @abstract
@@ -121,7 +142,7 @@ class Value
 	 */
 	getValue() //Valueを返す。
 	{
-		this._throwRuntimeError("getValueが作られていません");
+		this.throwRuntimeError("getValueが作られていません");
 	}
 
 	/**
@@ -129,15 +150,15 @@ class Value
 	 */
 	getJSValue()	// 実際のJSの値を返す
 	{
-		this._throwRuntimeError("getJSValueが作られていません");
+		this.throwRuntimeError("getJSValueが作られていません");
 	}
 
-		/**
+	/**
 	 * @abstract
 	 */
 	setValue()
 	{
-		this._throwRuntimeError("setValueが作られていません");
+		this.throwRuntimeError("setValueが作られていません");
 	}
 
 	/**
@@ -146,7 +167,7 @@ class Value
 	 */
 	argsPyPEN()	// PyPENの文法で表した文字列
 	{
-		this._throwRuntimeError("argsPyPENが作られていません");
+		this.throwRuntimeError("argsPyPENが作られていません");
 	}
 	/**
 	 * @abstract
@@ -154,7 +175,7 @@ class Value
 	 */
 	argsPython()	// Pythonの文法で表した文字列
 	{
-		this._throwRuntimeError("argsPythonが作られていません");
+		this.throwRuntimeError("argsPythonが作られていません");
 	}
 	/**
 	 * @abstract
@@ -162,7 +183,7 @@ class Value
 	 */
 	valueString()
 	{
-		this._throwRuntimeError("valueStringが作られていません");
+		this.throwRuntimeError("valueStringが作られていません");
 	}
 	/**
 	 * @abstract
@@ -170,26 +191,44 @@ class Value
 	 */
 	valueCode()
 	{
-		this._throwRuntimeError("valueCodeが作られていません");
+		this.throwRuntimeError("valueCodeが作られていません");
 	}
 }
 
 /**
  * @abstract
+ * IntValue, FloatValue, StringValue, BooleanValue, NullValue，UNDEFINED
  * this._valueはvalue of JS
  */
 class PrimitiveValue extends Value
 {
 	/**
 	 * 
-	 * @param {bigint|number|string|boolean} v
+	 * @param {Array<bigint|number|string|boolean>} v
 	 * @param {Location} loc
 	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
+	}
+	run()
+	{
+		code[0].stack[0].index++;
+		this._makeValue();
 	}
 
+	/* サブクラスで実装するメソッド
+	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
+	----------------------------
+	   _makeValue() : void		IntValue, FloatValueではオーバーライド
+	   argsPyPEN(), argsPython(), valueString(), valueCode() : FloatValue, StringValueではオーバーライド
+	----------------------------*/
+
+	_makeValue()
+	{
+		// this.throwRuntimeError("_makeValueが作られていません");
+		this._value = this.getArgs()[0];
+	}
 	/**
 	 * 
 	 * @returns {Value}
@@ -199,40 +238,98 @@ class PrimitiveValue extends Value
 		return this;
 	}
 	/**
-	 * @param {bigint|number|string|boolean} v
+	 * 
+	 * @returns {value of JS}
+	 */
+	getJSValue()
+	{
+		return this._value;
+	}
+	/**
+	 * @param {Value} v
+	 */
+	setValue(v)
+	{
+		this._value = v.getJSValue();
+	}
+	argsPyPEN()
+	{
+		return this.getArgs(0).toString();
+	}
+	argsPython()
+	{
+		return this.getArgs(0).toString();
+	}
+	valueString()
+	{
+		return this._value.toString();
+	}
+	valueCode()
+	{
+		return this._value.toString();
+	}
+}
+
+/**
+ * @abstract
+ * CallFunction, Variable，Assignなど
+ * this._valueはValue
+ */
+class SimpleValue extends Value
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+	}
+	/* サブクラスで実装するメソッド
+	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
+	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	----------------------------*/
+	run()
+	{
+		if(this.getState() == 0)
+		{
+			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
+	}
+	getValue()
+	{
+		return this._value;
+	}	
+	getJSValue()
+	{
+		return this._value.getJSValue();
+	}
+	/**
+	 * 
 	 */
 	setValue(v)
 	{
 		this._value = v;
 	}
-	_makeValue()
-	{
-		this._value = this._args[0].getValue();
-	}
 	argsPyPEN()
 	{
-		return (this._args[0]).toString();
+		return this.getArgs(0).argsPyPEN();
 	}
 	argsPython()
 	{
-		return (this._args[0]).toString();
+		return this.getArgs(0).argsPython();
 	}
 	valueString()
 	{
-		return (this._value).toString();
+		return this.getValue().valueString();
 	}
 	valueCode()
 	{
-		return (this._value).toString();
+		return this.getValue().valueCode();
 	}
-	clone()
-	{
-		return new IntValue(this._args, this._loc);
-	}
-	// argsPyPEN() はStringValueで実装する
-	// argsPython() はStringValueで実装する
-	// valueCode() は各StringValueで実装する
-	// run() はValue.run()そのまま
 }
 
 /**
@@ -245,26 +342,36 @@ class CollectionValue extends Value
 	 * 
 	 * @param {Array<Value>} v
 	 * @param {Location} loc
+	 * @param {value of JS} value
 	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 	}
+
+	/* サブクラスで実装するメソッド
+	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
+	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	   setValue()	: void		this._valueを設定する
+	   argsPyPEN()	: string	PyPENの文法で表した文字列
+	   argsPython() : string	Pythonの文法で表した文字列
+	   valueString(): string	this._valueを文字列で表したもの
+	   valueCode()	: string	this._valueをコードで表したもの
+	----------------------------*/
 
 	/**
 	 * 
-	 * @returns {Value}
+	 * @returns {Value|Array<Value>|Map<value of JS,Value>}
 	 */
-	getValue()
+	getValue(idx = null)
 	{
-		return this._value;
+		if(idx === null) return this;
+		return this._value[idx];
 	}
-	/**
-	 * @abstract
-	 */
-	setValue(v, idx)
+	getJSValue(idx = null)
 	{
-		this._throwRuntimeError("setValueが作られていません");
+		if(idx === null) this.throwRuntimeError("引数なしのgetJSValueは使えません");
+		return this._value[idx].getJSValue();
 	}
 
 	/**
@@ -272,7 +379,7 @@ class CollectionValue extends Value
 	 */
 	_makeValue()
 	{
-		this._throwRuntimeError("_makeValueが作られていません");
+		this.throwRuntimeError("_makeValueが作られていません");
 	}
 	run()
 	{
@@ -288,49 +395,30 @@ class CollectionValue extends Value
 			this._state = 0;
 		}
 	}
-	/**
-	 * 
-	 * @param {*} idx 
-	 * idx があるときはValue，ないときはArray<Value>またはMapを返す
-	 * @returns 
-	 */
-	getValue(idx = null)
-	{
-		if(idx === null) return this._value;
-		return this._value[idx];
-	}
-
-	// clone() は各サブクラスで実装する
-	// argsPyPEN() は各サブクラスで実装する
-	// argsPython() は各サブクラスで実装する
-	// valueString() は各サブクラスで実装する
-	// valueCode() は各サブクラスで実装する
-	// setValue() は各サブクラスで実装する
-	// _makeValue() は各サブクラスで実装する
-	// run() はValue.run()そのまま(Variableを除く）
 }
 
 class IntValue extends PrimitiveValue
 {
-	/**
-	 * 
-	 * @param {Array<string|number>} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
+
+	clone()
+	{
+		return new IntValue(this.getArgs(), this.getLoc(), this._value);
+	}
+
 	_makeValue()
 	{
 		try{
-			this._value = BigInt(this._args[0]);
+			this._value = BigInt(this.getArgs()[0]);
 		}
 		catch(e)
 		{
 			if(e instanceof RangeError)
-				this._throwRuntimeError("整数で表せない値が使われました");
+				this.throwRuntimeError("整数で表せない値が使われました");
 			else throw e;
 		}
 	}
@@ -338,15 +426,15 @@ class IntValue extends PrimitiveValue
 
 class FloatValue extends PrimitiveValue
 {
-	/**
-	 * 
-	 * @param {Array<number>} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
+	}
+
+	clone()
+	{
+		return new FloatValue(this.getArgs(), this.getLoc(), this._value);
 	}
 	/**
 	 * @param {number} v 
@@ -354,56 +442,52 @@ class FloatValue extends PrimitiveValue
 	 */
 	#toString(v)
 	{
+		// textareaAppend("FloatValue#toString: " + constructor_name(v) + "\n");
 		if(isSafeInteger(v)) return (v).toFixed(1);
 		else return (v).toString();
 	}
 	argsPyPEN()
 	{
-		return this.#toString(this._args.argsPyPEN());
+		return this.#toString(this.getArgs(0));
 	}
 	argsPython()
 	{
-		return this.#toString(this._args.argsPython());
+		return this.#toString(this.getArgs(0));
 	}
 	valueString()
 	{
-		return this.#toString(this._value);
+		return this.#toString(this.getJSValue());
 	}
 	valueCode()
 	{
-		return this.#toString(this._value);
-	}
-	_makeValue()
-	{
-		this._value = Number(this._args[0]);
-		if(!isFinite(this._value))
-			this._throwRuntimeError("実数型で表せない値が使われました");
+		return this.#toString(this.getJSValue());
 	}
 }
 
 class StringValue extends PrimitiveValue
 {
-	/**
-	 * 
-	 * @param {string} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
+
+	clone()
+	{
+		return new StringValue(this._args, this._loc, this._value);
+	}
+
 	argsPyPEN()
 	{
-		return "'" + this._args[0].replace(/'/g, "\\'") + "'";
+		return "'" + this.getArgs(0).replace(/'/g, "\\'") + "'";
 	}
 	argsPython()
 	{
-		return "'" + this._args[0].replace(/'/g, "\\'") + "'";
+		return "'" + this.getArgs(0).replace(/'/g, "\\'") + "'";
 	}
 	valueString()
 	{
-		return this._value.replace(/'/g, "\\'");
+		return this._value;
 	}
 	valueCode()
 	{
@@ -412,10 +496,6 @@ class StringValue extends PrimitiveValue
 	valueLength()
 	{
 		return this._value.length;
-	}
-	_makeValue()
-	{
-		this._value = this._args[0];
 	}
 }
 
@@ -426,14 +506,14 @@ class BooleanValue extends PrimitiveValue
 	 * @param {boolean} v 
 	 * @param {Location} loc 
 	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
 	clone()
 	{
-		return new BooleanValue(this._args, this._loc);
+		return new BooleanValue(this._args, this._loc, this._value);
 	}
 	valueString()
 	{
@@ -443,37 +523,21 @@ class BooleanValue extends PrimitiveValue
 	{
 		return  (this._value ? 'true' : 'false');
 	}
-	_makeValue()
-	{
-		try{
-			this._value = this._args[0];
-		}
-		catch(e)
-		{
-			this._throwRuntimeError("真偽型に変換できない値が使われました");
-		}
-	}
 }
 
 class NullValue extends PrimitiveValue
 {
-	/**
-	 * @param {Location} loc 
-	 */
 	constructor(loc)
 	{
 		super([], loc);
 		Object.seal(this);
 	}
 
-	/**
-	 * 
-	 * @returns {NullValue}
-	 */
 	clone()
 	{
 		return new NullValue(this._loc);
 	}
+
 	argsPyPEN()
 	{
 		return '';
@@ -486,23 +550,22 @@ class NullValue extends PrimitiveValue
 	{
 		return '';
 	}
+	valueString()
+	{
+		return '';
+	}
 }
 
 class UNDEFINED extends PrimitiveValue	// 未完成のプログラム用
 {
-	/**
-	 * 
-	 * @param {Array<Value>} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
 	clone()
 	{
-		return new UNDEFINED(this._args, this._loc);
+		return new UNDEFINED(this._args, this._loc, this._value);
 	}
 	argsPyPEN()
 	{
@@ -514,7 +577,11 @@ class UNDEFINED extends PrimitiveValue	// 未完成のプログラム用
 	}
 	valueCode()
 	{
-		this._throwRuntimeError("未完成のプログラムです");
+		this.throwRuntimeError("未完成のプログラムです");
+	}
+	valueString()
+	{
+		this.throwRuntimeError("未完成のプログラムです");
 	}
 }
 
@@ -522,66 +589,44 @@ class UNDEFINED extends PrimitiveValue	// 未完成のプログラム用
 
 class SliceValue extends CollectionValue
 {
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
-	// argsPyPEN() は各サブクラスで実装する
-	// argsPython() は各サブクラスで実装する
-	// valueString() は各サブクラスで実装する
-	// valueCode() は各サブクラスで実装する
-	// setValue() は各サブクラスで実装する
-	// _makeValue() は各サブクラスで実装する
-	// run() はValue.run()そのまま(Variableを除く）
+
 	clone()
 	{
-		var rtnv = new SliceValue(this._args[0].clone(), this._args[1].clone(), this._loc);
-		return rtnv;
+		return new SliceValue(this.getArgs(0).clone(), this.getArgs(1).clone(), this._loc, this._value.slice());
 	}
-	run()
+	_makeValue()
 	{
-		if(this._state == 0)
+		if(!this._value)
 		{
-			code[0].stack.unshift({statementlist: this._args, index: 0});
-			this._state = 1;
-		}
-		else
-		{
-			this.#makeValue();
-			code[0].stack[0].index++;
-			this._state = 0;
-		}
-	}
-	#makeValue()
-	{
-		if(!this._value) 
 			this._value = [
-			this._args[0] instanceof PrimitiveValue ? this._args[0].getValue() : this._args[0],
-			this._args[1] instanceof PrimitiveValue ? this._args[1].getValue() : this._args[1]
-		];
+			this.getArgs(0) instanceof PrimitiveValue ? this.getArgs(0).getValue() : this.getArgs(0),
+			this.getArgs(1) instanceof PrimitiveValue ? this.getArgs(1).getValue() : this.getArgs(1)
+			];
+		}
 	}
+
 	argsPyPEN()
 	{
-		return this._args[0].argsPyPEN() + ":" + this._args[1].argsPyPEN();
+		return this.getArgs(0).argsPyPEN() + ":" + this.getArgs(1).argsPyPEN();
 	}
 	argsPython()
 	{
-		var p1 = this._args[0].argsPython();
-		var p2 = this._args[1].argsPython();
+		var p1 = this.getArgs(0).argsPython();
+		var p2 = this.getArgs(1).argsPython();
 		return  p1 + ":" + p2;
 	}
 	valueString()
 	{
-		return this._value[0].valueString() + ":" + this._value[1].valueString();
+		return this.getArgs(0).valueString() + ":" + this.getArgs(1).valueString();
 	}
 	valueCode()
 	{
-		return this._value[0].valueCode() + ":" + this._value[1].valueCode();
-	}
-	getValue(idx)
-	{
-		return this._value[idx];
+		return this.getArgs(0).valueCode() + ":" + this.getArgs(1).valueCode();
 	}
 	getValue1()
 	{
@@ -602,74 +647,83 @@ class SliceValue extends CollectionValue
  */
 class ArrayValue extends CollectionValue
 {
-	/**
-	 * @constructor
-	 * @param {Array<Value>} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v,loc)
+	constructor(v,loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
+	/* サブクラスで実装するメソッド
+	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	   argsPyPEN()	: string	PyPENの文法で表した文字列
+	   argsPython() : string	Pythonの文法で表した文字列
+	   valueString(): string	this._valueを文字列で表したもの
+	   valueCode()	: string	this._valueをコードで表したもの
+	----------------------------*/
 
 	clone()
 	{
 		var a = [];
-		for(var i = 0; i < this._args._args.length; i++) a.push(this._args._args[i].clone());
-		var rtnv = new ArrayValue(a, this._loc);
-		return rtnv;
-	}
-	argsPyPEN()
-	{
-		var v = [];
-		for(var i = 0; i < this._args._args.length; i++) v.push(this._args._args[i].argsPyPEN());
-		return '[' + v.join(',') + ']';
-	}
-	argsPython()
-	{
-		var v = [];
-		for(var i = 0; i < this._args._args.length; i++) v.push(this._args._args[i].argsPython());
-		return '[' + v.join(', ') + ']';
-	}
-	valueString()
-	{
-		var v = [];
-		for(var i = 0; i < this._value.length; i++)
-			{
-				v.push(this._value[i].valueString());
-			} 
-		return '[' + v.join(',') + ']';
-	}
-	valueCode()
-	{
-		var v = [];
-		for(var i = 0; i < this._value.length; i++) v.push(this._value[i].valueCode());
-		return '[' + v.join(',') + ']';
+		for(var i = 0; i < this.getArgs().length; i++) a.push(this.getArgs(i).clone());
+		return new ArrayValue(a, this._loc, this._value ? this.getValue().slice() : null);
 	}
 
-	/**
-	 * @override
-	 * @param {Value} v
-	 * @param {number} idx
-	 * @returns {void}
-	 */
-	setValue(v, idx)
-	{
-		if(idx < 0) idx += this._value.length;
-		if(idx >= 0 && idx < this._value.length) this._value[idx] = v;
-		else this._throwRuntimeError("配列の範囲外に値を設定しようとしました");
-	}
 	_makeValue()
 	{
 		if(!this._value)
 		{
 			this._value = [];
-			for(var i = 0; i < this._args.length; i++) this._value.push(
-				this._args[i] instanceof PrimitiveValue ?
-				this._args[i].getValue() : this._args[i]);
+			for(var i = 0; i < this.getArgs().length; i++) 
+				this._value.push(
+				this.getArgs(i) instanceof PrimitiveValue ? 
+					this.getArgs(i).getValue() : 
+					this.getArgs(i));
 		}
 	}
+	getValue(idx = null)
+	{
+		if(idx === null) return this;
+		if(idx < 0) idx += this._value.length;
+		if(idx >= 0 && idx < this._value.length) return this._value[idx];
+		else this.throwRuntimeError("リストの範囲外の値を取得しようとしました");
+	}
+	getJSValue(idx = null)
+	{
+		if(idx === null) this.throwRuntimeError("引数なしのgetJSValueは使えません");
+		if(idx < 0) idx += this._value.length;
+		if(idx >= 0 && idx < this._value.length) return this._value[idx].getJSValue();
+		else this.throwRuntimeError("リストの範囲外の値を取得しようとしました");
+	}
+	setValue(v, idx)
+	{
+		if(idx < 0) idx += this._value.length;
+		if(idx >= 0 && idx < this._value.length) this._value[idx] = v;
+		else this.throwRuntimeError("リストの範囲外に値を設定しようとしました");
+	}
+	argsPyPEN()
+	{
+		var v = [];
+		for(var i = 0; i < this.getArgs().length; i++) v.push(this.getArgs(i).argsPyPEN());
+		return '[' + v.join(', ') + ']';
+	}
+	argsPython()
+	{
+		var v = [];
+		for(var i = 0; i < this.getArgs().length; i++) v.push(this.getArgs(i).argsPython());
+		return '[' + v.join(', ') + ']';
+	}
+	valueString()
+	{
+		var v = [];
+		for(var i = 0; i < this._value.length; i++) v.push(this._value[i].valueCode());
+		return '[' + v.join(', ') + ']';
+	}
+	valueCode()
+	{
+		var v = [];
+		for(var i = 0; i < this._value.length; i++) v.push(this._value[i].valueCode());
+		return '[' + v.join(', ') + ']';
+	}
+
 	/**
 	 * 
 	 * @param {Value} a 
@@ -695,54 +749,86 @@ class ArrayValue extends CollectionValue
 /**
  * 辞書
  */
-class DictionaryValue extends Value
+class DictionaryValue extends CollectionValue
 {
 	/**
 	 * @constructor
 	 * @param {Array<SliceValue>} v
 	 * @param {Location} loc
 	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
 		Object.seal(this);
 	}
+	/* サブクラスで実装するメソッド
+	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
+	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	   argsPyPEN()	: string	PyPENの文法で表した文字列
+	   argsPython() : string	Pythonの文法で表した文字列
+	   valueString(): string	this._valueを文字列で表したもの
+	   valueCode()	: string	this._valueをコードで表したもの
+	----------------------------*/
 	clone()
 	{
-		var a =[];
-		for(var arg of this._args)a.push(arg.clone());
-		return new DictionaryValue(a, this._loc);
+		var a =[], m = new Map();
+		for(var arg of this._args)
+		{
+			a.push(arg.clone());
+			var key = arg.getValue1();
+			var val = arg.getValue2();
+			m.set(key.getJSValue(), val.clone());
+		}
+		return new DictionaryValue(a, this._loc, m);
 	}
-    #makeValue()
+
+    _makeValue()
 	{
 		if(!this._value)
 		{
 			this._value = new Map();
-			for(var i = 0; i < this._args.length; i++)
+			for(var i = 0; i < this.getArgs().length; i++)
 			{
 				if(this._args[i] instanceof SliceValue)
 				{
 					var key = this._args[i].getValue1();
 					var val = this._args[i].getValue2();
 					if(isPrimitive(key)) this._value.set(key.getJSValue(), val);
-					else this._throwRuntimeError("辞書のキーには単純型しか使えません");
+					else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 				}
-				else this._throwRuntimeError("辞書の初期化が間違っています");
+				else this.throwRuntimeError("辞書の初期化が間違っています");
 			}
 		}
     }
+
+	getValue(key = null)
+	{
+		if(key === null) return this;
+		if(isPrimitive(key)) return this._value.get(key.getJSValue());
+		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
+	}
+	getJSValue(key = null)
+	{
+		if(key === null) this.throwRuntimeError("引数なしのgetJSValueは使えません");
+		if(isPrimitive(key)) return this._value.get(key.getJSValue()).getJSValue();
+		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
+	}
+	setValue(v, key)
+	{
+		if(isPrimitive(key)) this._value.set(key.getJSValue(), v);
+		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
+	}
+
 	argsPyPEN()
 	{
 		var ag = [];
-		for(var arg of this._args) 
-			ag.push(arg.argsPyPEN());
-		return '{' + ag.join(',') + '}';
+		for(var arg of this.getArgs()) ag.push(arg.argsPyPEN());
+		return '{' + ag.join(', ') + '}';
 	}
 	argsPython()
 	{
 		var ag = [];
-		for(var arg of this._args) 
-			ag.push(arg.argsPython());
+		for(var arg of this._args) ag.push(arg.argsPython());
 		return '{' + ag.join(', ') + '}';
 	}
 	valueString()
@@ -753,7 +839,7 @@ class DictionaryValue extends Value
 			if(typeof(k) === "string") k = "'" + k + "'";
 			ag.push(k + ':' + v.valueCode());
 		}
-		return '{' + ag.join(',') + '}';
+		return '{' + ag.join(', ') + '}';
 	}
 	valueCode()
 	{
@@ -763,120 +849,218 @@ class DictionaryValue extends Value
 			if(typeof(k) === "string") k = "'" + k.replace(/'/g, "\\'") + "'";
 			ag.push(k + ':' + v.valueCode());
 		}
-		return '{' + ag.join(',') + '}';
-	}
-	run()
-	{
-		if(this._state == 0)
-		{
-			code[0].stack.unshift({statementlist: this._args, index: 0});
-			this._state = 1;
-		}
-		else
-		{
-			this.#makeValue();
-			code[0].stack[0].index++;
-			this._state = 0;
-		}
+		return '{' + ag.join(', ') + '}';
 	}
 }
 
 /**
  * 値渡しをする
  */
-class Copy extends Value
+class Copy extends SimpleValue
 {
 	/**
 	 * 
 	 * @param {Value} v 
 	 * @param {Location} loc 
 	 */
-	constructor(v, loc)
+	constructor(v, loc, value = null)
 	{
-		super(v, loc);
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	/* サブクラスで実装するメソッド
+	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
+	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	----------------------------*/
+	clone()
+	{
+		return new Copy([this.getArgs(0).clone()], this._loc, this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		var v = this.getArgs(0).getValue();
+		this.setValue(v.clone());
+	}
+	argsPyPEN()
+	{
+		return "copy(" + this.getArgs(0).getPyPEN() + ")";
+	}
+	argsPython()
+	{
+		return  this.getArgs(0).argsPython() + ".copy()";
+	}
+	valueString()
+	{
+		return this.getValue().valueString();
+	}
+	valueCode()
+	{
+		return this.getValue().valueCode();
+	}
+}
+
+class Variable extends SimpleValue
+{
+	/**
+	 * 
+	 * @param {string} x 
+	 * @param {Array<Value>} y 
+	 * @param {Location} loc 
+	 */
+	constructor(x, loc, value = null)
+	{
+		super([],loc, value);
+		this.varname = x;
 		Object.seal(this);
 	}
 	clone()
 	{
-		var rtnv = new Copy(this._args.clone(), this._loc);
-		return rtnv;
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Variable(this.varname, a.length > 0 ? a : null, this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	getCode()
+	// run()
+	// {
+	// 	if(this._state == 0)
+	// 	{
+	// 		if(this.getArgs()) code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+	// 		this._state = 1;
+	// 	}
+	// 	else
+	// 	{
+	// 		this._makeValue();
+	// 		code[0].stack[0].index++;
+	// 		this._state = 0;
+	// 	}
+	// }
+	_makeValue()
 	{
-		return "copy(" + this._args.getCode() + ")";
+		var vt = findVarTable(this.varname);
+		if(vt)
+		{
+			var v = vt.vars[this.varname];
+			this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
+			if(!(this._value instanceof Value)) 
+				this.throwRuntimeError("代入する値が不明です(_makeValue): " 
+				+ constructor_name(this._value));
+		}
+		else this.throwRuntimeError("変数に" + this.varname + "がありません");
 	}
-	makePython()
+
+	setValue(v)
 	{
-		return  this._args.makePython() + ".copy()";
+		textareaAppend("Variable#setValue: " + this.varname + 
+			" :" + constructor_name(v) + "\n");
+		this._value = v;
 	}
-	getCode()
+	argsPyPEN()
 	{
-		return "copy(" + this._args.getCode() + ")";
+		if(this.getArgs().length > 0)
+		{
+			let ag = [];
+			for(var i of this.getArgs()) ag.push(i.argsPyPEN());
+			return this.varname + '['+ag.join(', ')+']';
+		}
+		return this.varname;
+	}
+	argsPython()
+	{
+		if(this.getArgs().length > 0)
+		{
+			let ag = [];
+			for(var i of this.getArgs()) ag.push(i.argsPython());
+			return this.varname + '['+ag.join(', ')+']';
+		}
+		return this.varname;
+	}
+	valueString()
+	{
+		return valueString(this.getValue());
+	}
+	valueCode()
+	{
+		return valueCode(this.getValue());
+	}
+
+	/**
+	 * @param {Value} a 
+	 */
+	append(a)
+	{
+		this._args.push(a);
+		// if(!this._args[1]) this._args[1] = new ArrayValue([a], this.getLoc(),[a]);
+		// else this._args[1]._args.push(a);
+	}
+	/**
+	 * 
+	 * @param {Array<Value>} a 
+	 */
+	extend(a)
+	{
+		for(var i of a) this._args.push(i);
 	}
 }
 
 /*********************************** Valueの演算 */
 
-class Pow extends Value
+class Pow extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this._value = null;
-		this._state = 0;
+		super(v, loc, value);
 		Object.seal(this);
 	}
 	clone()
 	{
-		return  new Pow(this._args[0].clone(), this._args[1].clone(), this._loc);
+		return new Pow(this.getArgs(), this._loc, this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this._state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof IntValue && v2 instanceof IntValue) // 整数の自然数乗
 		{
-			code[0].stack.unshift({statementlist: this._args, index:0});
-			this._state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this._args[0].getValue().value, v2 = this._args[1].getValue().value;
-			if(v1 instanceof IntValue && v2 instanceof IntValue) // 整数の自然数乗
-			{
-				v1 = v1.args;
-				v2 = v2.args;
-				if(v1 == 0 && v2 <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				try{
-					this.value = v2 >= 0 ? new IntValue(v1 **  v2) : new FloatValue(Number(v1) ** Number(v2));
+			v1 = v1.getJSValue()
+			v2 = v2.getJSValue()
+			if(v1 == 0 && v2 <= 0) this.throwRuntimeError("0は正の数乗しかできません");
+			try{
+				if(v2 >= 0)
+				{
+					var v = v1 ** v2;
+					this._value = new IntValue([v], this.getLoc(), v);
 				}
-				catch(e){
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
+				else
+				{
+					var v = Number(v1) ** Number(v2);
+					this._value = new FloatValue([v], this.getLoc(), v);
 				}
 			}
-			else if((v1 instanceof IntValue || v1 instanceof FloatValue) && (v2 instanceof IntValue || v2 instanceof FloatValue))
-			{
-				v1 = Number(v1.args);
-				v2 = Number(v2.args);
-				if(v1 < 0 && !Number.isSafeInteger(v2)) throw new RuntimeError(this.first_line, "負の数の非整数乗はできません");
-				if(v1 == 0 && v2 <= 0) throw new RuntimeError(this.first_line, "0は正の数乗しかできません");
-				try{
-					let v = v1 ** v2;
-					if(isFinite(v)) this.value = new FloatValue(v, this.loc);
-					else throw new RuntimeError(this.first_line, "オーバーフローしました");
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
-			} else throw new RuntimeError('数値でないもののべき乗はできません');
-			this.state = 0;
+			catch(e){
+				if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
+		else if((v1 instanceof IntValue || v1 instanceof FloatValue) && (v2 instanceof IntValue || v2 instanceof FloatValue))
+		{
+			v1 = Number(v1.getJSValue());
+			v2 = Number(v2.getJSValue());
+			if(v1 < 0 && !Number.isSafeInteger(v2)) 
+				this.throwRuntimeError("負の数の非整数乗はできません");
+			if(v1 == 0 && v2 <= 0) this.throwRuntimeError("0は正の数乗しかできません");
+			try{
+				let v = v1 ** v2;
+				if(isFinite(v)) this._value = new FloatValue([v], this.getLoc(), v);
+				else this.throwRuntimeError("オーバーフローしました");
+			}
+			catch(e)
+			{
+				if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
+		} else this.throwRuntimeError('数値でないもののべき乗はできません');
 	}
 	getCode()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
@@ -887,7 +1071,7 @@ class Pow extends Value
 	}
 	makePython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
@@ -896,1151 +1080,977 @@ class Pow extends Value
 			+ ' ** '
 			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
 	}
-	getValue()
-	{
-		return this.value;
-	}
 }
 
-class Add extends Value
+class Add extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new Add(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new Add(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof Array && v2 instanceof Array)
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			let v = [];
+			for(let i = 0; i < v1.length; i++) v.push(v1[i]);
+			for(let i = 0; i < v2.length; i++) v.push(v2[i]);
+			this._value = new ArrayValue([v], this.getLoc(), v);
 		}
-		else
+		else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストと足し算ができるのはリストどうしだけです");
+		else if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) this.throwRuntimeError("真偽型の足し算はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) // 一方でも文字列なら文字列結合
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue().value, v2 = this.args[1].getValue().value;
-			if(v1 instanceof ArrayValue && v2 instanceof ArrayValue)
-			{
-				v1 = v1.args;
-				v2 = v2.args;
-				let v = [];
-				for(let i = 0; i < v1.length; i++) v.push(v1[i])
-				for(let i = 0; i < v2.length; i++) v.push(v2[i])
-				this.value = new ArrayValue(v, this.loc);
-			}
-			else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はできません");
-			else if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の足し算はできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue) // 一方でも文字列なら文字列結合
-			{
-				v1 = v1.args;
-				v2 = v2.args;
-				this.value = new StringValue(v1 + v2, this.loc);
-			}
-			else	// 数値どうし
-			{
-				if(v1 instanceof FloatValue || v2 instanceof FloatValue)	// 一方が実数型なら結果は実数型
-				{
-					v1 = v1.args;
-					v2 = v2.args;
-					let v =Number(v1) + Number(v2);
-					if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					this.value = new FloatValue(v, this.loc);
-				}
-				else	// 整数型
-				{
-					try{
-						v1 = v1.args;
-						v2 = v2.args;
-						this.value = new IntValue(v1 + v2, this.loc);
-					}
-					catch(e)
-					{
-						if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-						else throw e;
-					}
-				}
-			}
-			this.state = 0;
+			var s = v1.getJSValue() + v2.getJSValue();
+			this._value = new StringValue(s, this.getLoc(), s);
 		}
-	}
-	getCode()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus") brace1 = true;
-		if(c2 == "Minus") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '+'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-	makePython()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus") brace1 = true;
-		if(c2 == "Minus") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' + '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-class Sub extends Value
-{
-	constructor(x, y, loc)
-	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new Sub(this.args[0].clone(), this.args[1].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
+		else	// 数値どうし
 		{
-			code[0].stack.unshift({statementlist: this.args, index:0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue().value, v2 = this.args[1].getValue().value;
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
-			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型の引き算はできません");
-			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
-			if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+			if(v1 instanceof FloatValue || v2 instanceof FloatValue)	// 一方が実数型なら結果は実数型
 			{
-				v1 = v1.args;
-				v2 = v2.args;
-				let v = Number(v1) - Number(v2);
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				this.value = new FloatValue(v, this.loc);
+				let v =Number(v1.getJSValue()) + Number(v2.getJSValue());
+				if(!isFinite(v)) this.throwRuntimeError("オーバーフローしました");
+				this._value = new FloatValue([v], this.getLoc(), v);
 			}
-			else
+			else	// 整数型
 			{
 				try{
-					v1 = v1.args;
-					v2 = v2.args;
-					this.value = new IntValue(v1 - v2, this.loc);
+					var v = v1.getJSValue() + v2.getJSValue();
+					this._value = new IntValue([v], this.getLoc(), v);
 				}
 				catch(e)
 				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
 					else throw e;
 				}
 			}
-			this.state = 0;
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus") brace1 = true;
 		if(c2 == "Minus") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ '+'
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus") brace1 = true;
+		if(c2 == "Minus") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' + '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
+	}
+}
+
+class Sub extends SimpleValue
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new Sub(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストの引き算はできません");
+		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) this.throwRuntimeError("真偽型の引き算はできません");
+		if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の引き算はできません");
+		if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+		{
+			v1 = v1.getJSValue();
+			v2 = v2.getJSValue();
+			let v = Number(v1) - Number(v2);
+			if(!isFinite(v)) this.throwRuntimeError("オーバーフローしました");
+			this._value = new FloatValue([v], this.getLoc(), v);
+		}
+		else
+		{
+			try{
+				v1 = v1.getJSValue();
+				v2 = v2.getJSValue();
+				let v = v1 - v2;
+				this._value = new IntValue([v], this.getLoc(), v);
+			}
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
+		}
+	}
+	argsPyPEN()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus") brace1 = true;
+		if(c2 == "Minus") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '-'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus") brace1 = true;
 		if(c2 == "Minus") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' - '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class Mul extends Value
+class Mul extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new Mul(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new Mul(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽型のかけ算はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue)
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			let va = null, vn = null;
+			if(v1 instanceof IntValue){va = v2.getJSValue(); vn = Number(v1.getJSValue());}
+			else if(v2 instanceof IntValue){va = v1.getJSValue(); vn = Number(v2.getJSValue());}
+			else this.throwRuntimeError("文字列には整数しか掛けられません");
+			let v = '';
+			for(let i = 0; i < vn; i++) v += va;
+			this._value = new StringValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof Array || v2 instanceof Array)
+		{
+			let va = null, vn = null;
+			if(v1 instanceof IntValue){va = v2; vn = v1.getJSValue();}
+			else if(v2 instanceof IntValue){va = v1; vn = v2.getJSValue();}
+			else this.throwRuntimeError("リストには整数しか掛けられません");
+			let v = []
+			for(let i = 0; i < vn; i++)
+				for(let j = 0; j < va.length; j++) v.push(va[j]);
+			this._value = new ArrayValue([v], this.getLoc(), v);
+		} 
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue().value, v2 = this.args[1].getValue().value;
-			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のかけ算はできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue)
+			if(v1 instanceof FloatValue || v2 instanceof FloatValue)
 			{
-				let va = null, vn = null;
-				if(v1 instanceof IntValue){va = v2.value.args; vn = Number(v1.value.args);}
-				else if(v2 instanceof IntValue){va = v1.value.args; vn = Number(v2.value.args);}
-				else throw new RuntimeError(this.first_line, "文字列には整数しか掛けられません");
-				let v = '';
-				for(let i = 0; i < vn; i++)
-					v += va;
-				this.value = new StringValue(v, this.loc);
+				let v = Number(v1.getJSValue()) * Number(v2.getJSValue());
+				if(!isFinite(v)) this.throwRuntimeError("オーバーフローしました");
+				this._value = new FloatValue([v], this.getLoc(), v);
 			}
-			else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
-			{
-				let va = null, vn = null;
-				if(v1 instanceof IntValue){va = v2.value; vn = v1.value;}
-				else if(v2 instanceof IntValue){va = v1.value; vn = v2.value;}
-				else throw new RuntimeError(this.first_line, "配列には整数しか掛けられません");
-				let v = []
-				for(let i = 0; i < vn.args; i++)
-					for(let j = 0; j < va.length; j++) v.push(va.args[j]);
-				this.value = new ArrayValue(v, this.loc);
-			} 
 			else
-			{
-				if(v1 instanceof FloatValue || v2 instanceof FloatValue)
-				{
-					let v = Number(v1.value) * Number(v2.value);
-					if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-					this.value = new FloatValue(v, this.loc);
-				}
-				else
-				{
-					try{
-						this.value = new IntValue(v1.value * v2.value, this.loc);
-					}
-					catch(e)
-					{
-						if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-						else throw e;
-					}
-				}
-			}
-			this.state = 0;
-		}
-	}
-	getCode()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '*'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-	makePython()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' * '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-class Div extends Value	// /
-{
-	constructor(x, y, loc)
-	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new Div(this.args[0].clone(), this.args[1].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
-			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
-			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if(v2.args == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			try{
-				let v = Number(v1.args) / Number(v2.args);
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				this.value = new FloatValue(v, this.loc);
-			}
-			catch(e)
-			{
-				if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-				else throw e;
-			}
-			this.state = 0;
-		}
-	}
-	getCode()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '/'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-	makePython()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' / '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-class DivInt extends Value // //
-{
-	constructor(x, y, loc)
-	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new DivInt(this.args[0].clone(), this.args[1].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のわり算はできません");
-			if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽型のわり算はできません");
-			if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のわり算はできません");
-			if(v2.args == 0) throw new RuntimeError(this.first_line, "0でわり算をしました");
-			try{
-				if(v1 instanceof IntValue && v2 instanceof IntValue){
-					let r = v1.args % v2.args;
-					let q = v1.args / v2.args;
-					if(!SameSignBigInt(v1.args, v2.args) && r != 0) q--;
-					this.value = new IntValue(q, this.loc);
-				}
-				else{
-					v1 = Number(v1.args);
-					v2 = Number(v2.args);
-					this.value = new FloatValue(Math.floor(v1 / v2), this.loc);
-				}
-			}
-			catch(e)
-			{
-				if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-				else throw e;
-			}
-			this.state = 0;
-		}
-	}
-	getCode()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '//'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-	makePython()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-			return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' // '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-
-class Mod extends Value
-{
-	constructor(x, y, loc)
-	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new Mod(this.args[0].clone(), this.args[1].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-				if(v1 instanceof IntValue && v2 instanceof IntValue){
-					let r = v1.args % v2.args;
-					let q = v1.args / v2.args;
-					if(!SameSignBigInt(v1.args, v2.args) && r != 0) q--;
-					this.value = new IntValue(v1.args - q * v2.args, this.loc);
-				}
-				else
-				{
-					v1 = Number(v1.args);
-					v2 = Number(v2.args);
-					this.value = new FloatValue(v1 - Math.floor(v1 / v2) * v2, this.loc);
-				}
-			this.state = 0;
-		}
-	}
-	getCode()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '%'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-	makePython()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' % '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-class Minus extends Value
-{
-	constructor(x, loc)
-	{
-		super([x], loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new Minus(this.args[0].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue();
-			if(v1 instanceof IntValue)
 			{
 				try{
-					this.value = new IntValue(-v1.args, this.loc);
+					var v = v1.getJSValue() * v2.getJSValue();
+					this._value = new IntValue([v], this.getLoc(), v);
 				}
-					catch(e)
+				catch(e)
 				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
+					if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
 					else throw e;
 				}
 			}
-			else if(v1 instanceof FloatValue)
-			{
-				let v = -v1.args;
-				if(!isFinite(v)) throw new RuntimeError(this.first_line, "オーバーフローしました");
-				this.value = new FloatValue(v, this.loc);
-			}
-			else
-				throw new RuntimeError(this.first_line, "マイナスは数値にしかつけられません");
-			this.state = 0;
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ '*'
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' * '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
+	}
+}
+
+class Div extends SimpleValue	// /
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new Div(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのわり算はできません");
+		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽型のわり算はできません");
+		if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列のわり算はできません");
+		if(v2.getJSValue() == 0) this.throwRuntimeError("0でわり算をしました");
+		try{
+			let v = Number(v1.getJSValue()) / Number(v2.getJSValue());
+			if(!isFinite(v)) this.throwRuntimeError("オーバーフローしました");
+			this._value = new FloatValue([v], this.getLoc(), v);
+		}
+		catch(e)
+		{
+			if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
+			else throw e;
+		}
+	}
+	argsPyPEN()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ '/'
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' / '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
+	}
+}
+
+class DivInt extends SimpleValue // //
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new DivInt(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのわり算はできません");
+		if(v1 instanceof BooleanValue || v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽型のわり算はできません");
+		if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列のわり算はできません");
+		if(v2.getJSValue() == 0) this.throwRuntimeError("0でわり算をしました");
+		try{
+			if(v1 instanceof IntValue && v2 instanceof IntValue){
+				let r = v1.getJSValue() % v2.getJSValue();
+				let q = v1.getJSValue() / v2.getJSValue();
+				if(!SameSignBigInt(v1.getJSValue(), v2.getJSValue()) && r != 0) q--;
+				this._value = new IntValue([q], this.getLoc(), q);
+			}
+			else{
+				v1 = Number(v1.getJSValue());
+				v2 = Number(v2.getJSValue());
+				let v = Math.floor(v1 / v2);
+				this._value = new FloatValue([v], this.getLoc(), v);
+			}
+		}
+		catch(e)
+		{
+			if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
+			else throw e;
+		}
+	}
+	argsPyPEN()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ '//'
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+			return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' // '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
+	}
+}
+
+
+class Mod extends SimpleValue
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new Mod(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof IntValue && v2 instanceof IntValue){
+			let r = v1.getJSValue() % v2.getJSValue();
+			let q = (v1.getJSValue() - r) / v2.getJSValue();
+			if(!SameSignBigInt(v1.getJSValue(), v2.getJSValue()) && r != 0) q--;
+			var v = v1.getJSValue() - q * v2.getJSValue();
+			// textareaAppend("Mod: " + v + " " + (typeof v) + "\n");
+			this._value = new IntValue([v], this.getLoc(), v);
+		}
+		else
+		{
+			v1 = Number(v1.getJSValue());
+			v2 = Number(v2.getJSValue());
+			var v = v1 - Math.floor(v1 / v2) * v2;
+			this._value = new FloatValue([v], this.getLoc(), v);
+		}
+	}
+	argsPyPEN()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ '%'
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
+		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' % '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
+	}
+}
+
+class Minus extends SimpleValue
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new Minus(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		let v1 = this.getArgs()[0].getValue();
+		if(v1 instanceof IntValue)
+		{
+			try{
+				var v = -v1.getJSValue();
+				this._value = new IntValue([v], this.getLoc(), v);
+			}
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
+		}
+		else if(v1 instanceof FloatValue)
+		{
+			let v = -v1.getJSValue();
+			if(!isFinite(v)) this.throwRuntimeError("オーバーフローしました");
+			this._value = new FloatValue([v], this.getLoc(), v);
+		}
+		else
+			this.throwRuntimeError("マイナスは数値にしかつけられません");
+	}
+	argsPyPEN()
+	{
+		let v1 = this.getArgs()[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		return '-' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+		return '-' + (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '');
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0];
+		let v1 = this.getArgs()[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub") brace1 = true;
-		return '-' + (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '');
-	}
-	getValue()
-	{
-		return this.value;
+		return '-' + (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '');
 	}
 }
 
-class And extends Value
+class And extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y],loc);
-		this.value = null;
-		this.state = 0;
+		super(v,loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new And(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new And(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue();
+		if(v1 instanceof BooleanValue)
 		{
-			code[0].stack.unshift({statementlist: this.args, index:0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue();
-			if(v1 instanceof BooleanValue)
+			if(!v1.getJSValue()) 
 			{
-				if(!v1.args) this.value = new BooleanValue(false, this.loc);
-				else
-				{
-					let v2 = this.args[1].getValue();
-					if(v2 instanceof BooleanValue) this.value = new BooleanValue(v2.args, this.loc);
-				}
+				this._value = new BooleanValue([false], this.getLoc(), false);
 			}
 			else
-				throw new RuntimeError(this.first_line, "and は真偽値にしか使えません");
-			this.state = 0;
-		}
-	}
-	getCode()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' and '
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
-	}
-	makePython()
-	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let c1 = constructor_name(v1), c2 = constructor_name(v2);
-		let brace1 = false, brace2 = false;
-		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' and '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-class Or extends Value
-{
-	constructor(x, y, loc)
-	{
-		super([x,y],loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new Or(this.args[0].clone(), this.args[1].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index:0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue();
-			if(v1 instanceof BooleanValue)
 			{
-				if(v1.args) this.value = new BooleanValue(true, this.loc);
-				else
+				let v2 = this.getArgs()[1].getValue();
+				if(v2 instanceof BooleanValue) 
 				{
-					let v2 = this.args[1].getValue();
-					if(v2 instanceof BooleanValue) this.value = new BooleanValue(v2.args, this.loc);
+					var v = v2.getJSValue();
+					this._value = new BooleanValue([v], this.getLoc(), v);
 				}
 			}
-			else
-				throw new RuntimeError(this.first_line, "or は真偽値にしか使えません");
-			this.state = 0;
 		}
+		else
+			this.throwRuntimeError("and は真偽値にしか使えません");
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ ' or '
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ ' and '
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
-			+ ' or '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' and '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class Not extends Value
+class Or extends SimpleValue
 {
-	constructor(x, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x],loc);
-		this.value = null;
-		this.state = 0;
+		super(v,loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new Not(this.args[0].clone(), this.loc);
+		return new Or(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.args[0].getValue();
+		if(v1 instanceof BooleanValue)
 		{
-			code[0].stack.unshift({statementlist: this.args, index:0});
-			this.state = 1;
+			if(v1.getJSValue()) 
+			{
+				this._value = new BooleanValue([true], this.getLoc(), true);
+			}
+			else
+			{
+				let v2 = this.args[1].getValue();
+				if(v2 instanceof BooleanValue)
+				{
+					var v = v2.getJSValue();
+					this._value = new BooleanValue([v], this.getLoc(), v);
+				}
+			}
 		}
 		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue();
-			if(v1 instanceof BooleanValue) this.value = new BooleanValue(!v1.args, this.loc);
-			else throw new RuntimeError(this.first_line, "not は真偽値にしか使えません");
-			this.state = 0;
-		}
+			this.throwRuntimeError("or は真偽値にしか使えません");
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ ' or '
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let c1 = constructor_name(v1), c2 = constructor_name(v2);
+		let brace1 = false, brace2 = false;
+		if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
+			+ ' or '
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
+	}
+}
+
+class Not extends SimpleValue
+{
+	constructor(v, loc, value = null)
+	{
+		super([v],loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new Not(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+	}
+	_makeValue()
+	{
+		let v1 = this.getArgs()[0].getValue();
+		if(v1 instanceof BooleanValue){
+			var v = !v1.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
+		}
+		else this.throwRuntimeError("not は真偽値にしか使えません");
+	}
+	argsPyPEN()
+	{
+		let v1 = this.getArgs()[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 	//	if(c2 == "And" || c2 == "Or" || c2 == "Not") brace2 = true;
-		return 'not ' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+		return 'not ' + (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '');
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0];
+		let v1 = this.getArgs()[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "And" || c1 == "Or" || c1 == "Not") brace2 = true;
-		return 'not ' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
-	}
-	getValue()
-	{
-		return this.value;
+		return 'not ' + (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '');
 	}
 }
 
-class BitAnd extends Value
+class BitAnd extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new BitAnd(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new BitAnd(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのビット積はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列のビット積はできません");
+		else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) 
 		{
-			code[0].stack.unshift({statementlist: this.args, index:0});
-			this.state = 1;
+			var v = v1.getJSValue() & v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) 
+			this.throwRuntimeError("実数のビット積はできません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット積はできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット積はできません");
-			else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) this.value = new BooleanValue(v1.args & v2.args, this.loc);
-			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット積はできません");
-			else
-			{
-				try{
-					v1 = v1 instanceof BooleanValue ? (v1.args ? 1 : 0) : v1.args;
-					v2 = v2 instanceof BooleanValue ? (v2.args ? 1 : 0) : v2.args;
-					this.value = new IntValue(v1 & v2, this.loc);
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
+			try{
+				v1 = v1 instanceof BooleanValue ? (v1.getJSValue() ? 1 : 0) : v1.getJSValue();
+				v2 = v2 instanceof BooleanValue ? (v2.getJSValue() ? 1 : 0) : v2.getJSValue();
+				this._value = new IntValue([v1 & v2], this.getLoc(), v1 & v2);
 			}
-			this.state = 0;
+			catch(e)
+			{
+				if(e instanceof RangeError) this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '&'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' & '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class BitOr extends Value
+class BitOr extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new BitOr(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new BitOr(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのビット和はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列のビット和はできません");
+		else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue)
 		{
-			code[0].stack.unshift({statementlist: this.args, index:0});
-			this.state = 1;
+			var v = v1.getJSValue() | v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) 
+			this.throwRuntimeError("実数のビット和はできません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット和はできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット和はできません");
-			else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) this.value = new BooleanValue(v1.args | v2.args, this.loc);
-			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット和はできません");
-			else
-			{
-				try{
-					v1 = v1 instanceof BooleanValue ? (v1.args ? 1 : 0) : v1.args;
-					v2 = v2 instanceof BooleanValue ? (v2.args ? 1 : 0) : v2.args;
-					this.value = new IntValue(v1 | v2, this.loc);
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
+			try{
+				v1 = v1 instanceof BooleanValue ? (v1.getJSValue() ? 1 : 0) : v1.getJSValue();
+				v2 = v2 instanceof BooleanValue ? (v2.getJSValue() ? 1 : 0) : v2.getJSValue();
+				var v = v1 | v2;
+				this._value = new IntValue([v], this.getLoc(), v);
 			}
-			this.state = 0;
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '|'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' | '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class BitXor extends Value
+class BitXor extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new BitXor(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new BitXor(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストの排他的ビット和はできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列の排他的ビット和はできません");
+		else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue)
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			var v = v1.getJSValue() ^ v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) 
+			this.throwRuntimeError("実数の排他的ビット和はできません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の排他的ビット和はできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の排他的ビット和はできません");
-			else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) this.value = new BooleanValue(v1.args ^ v2.args, this.loc);
-			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数の排他的ビット和はできません");
-			else
-			{
-				try{
-					v1 = v1 instanceof BooleanValue ? (v1.args ? 1 : 0) : v1.args;
-					v2 = v2 instanceof BooleanValue ? (v2.args ? 1 : 0) : v2.args;
-					this.value = new IntValue(v1 ^ v2, this.loc);
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
+			try{
+				v1 = v1 instanceof BooleanValue ? (v1.getJSValue() ? 1 : 0) : v1.getJSValue();
+				v2 = v2 instanceof BooleanValue ? (v2.getJSValue() ? 1 : 0) : v2.getJSValue();
+				var v = v1 ^ v2;
+				this._value = new IntValue([v], this.getLoc(), v);
 			}
-			this.state = 0;
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '^'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitRShift" || c2 == "BitLShift" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' ^ '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class BitNot extends Value
+class BitNot extends SimpleValue
 {
-	constructor(x, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new BitNot(this.args[0].clone(), this.loc);
+		return new BitNot(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.args[0].getValue()
+		if(v1 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのビット反転はできません");
+		else if(v1 instanceof StringValue) 
+			this.throwRuntimeError("文字列のビット反転はできません");
+		else if(v1 instanceof BooleanValue)
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			var v = !v1.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof FloatValue) 
+			this.throwRuntimeError("実数のビット反転はできません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue()
-			if(v1 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット反転はできません");
-			else if(v1 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット反転はできません");
-			else if(v1 instanceof BooleanValue) this.value = new BooleanValue(!v1.args, this.loc);
-			else if(v1 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット反転はできません");
-			else
-			{
-				try{
-					this.value = new IntValue(~v1.args, this.loc);
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
+			try{
+				var v = v1 instanceof BooleanValue ? (v1.getJSValue() ? 0 : 1) : ~v1.getJSValue();
+				this._value = new IntValue([v], this.getLoc(), v);
 			}
-			this.state = 0;
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0];
+		let v1 = this.getArgs()[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
-		return '~' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
+		return '~' + (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '');
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0];
+		let v1 = this.getArgs()[0];
 		let c1 = constructor_name(v1);
 		let brace1 = false;
 		if(c1 == "Minus" || c1 == "BitRShift" || c1 == "BitLShift") brace1 = true;
-		return '~' + (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '');
-	}
-	getValue()
-	{
-		return this.value;
+		return '~' + (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '');
 	}
 }
 
-class BitLShift extends Value
+class BitLShift extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new BitLShift(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new BitLShift(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのビットシフトはできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列のビットシフトはできません");
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) 
+			this.throwRuntimeError("実数のビットシフトはできません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
-			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
-			else
-			{
-				try{
-					v1 = v1 instanceof BooleanValue ? (v1.args ? 1 : 0) : v1.args;
-					v2 = v2 instanceof BooleanValue ? (v2.args ? 1 : 0) : v2.args;
-					this.value = new IntValue(v1 << v2, this.loc);
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
+			try{
+				v1 = v1 instanceof BooleanValue ? (v1.getJSValue() ? 1 : 0) : v1.getJSValue();
+				v2 = v2 instanceof BooleanValue ? (v2.getJSValue() ? 1 : 0) : v2.getJSValue();
+				var v = v1 << v2;
+				this._value = new IntValue([v], this.getLoc(), v);
 			}
-			this.state = 0;
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '<<'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' << '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class BitRShift extends Value
+class BitRShift extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new BitRShift(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new BitRShift(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストのビットシフトはできません");
+		else if(v1 instanceof StringValue || v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列のビットシフトはできません");
+		else if(v1 instanceof FloatValue || v2 instanceof FloatValue) 
+			this.throwRuntimeError("実数のビットシフトはできません");
 		else
 		{
-			code[0].state[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
-			else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
-			else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
-			else
-			{
-				try{
-					v1 = v1 instanceof BooleanValue ? (v1.args ? 1 : 0) : v1.args;
-					v2 = v2 instanceof BooleanValue ? (v2.args ? 1 : 0) : v2.args;
-					this.value = new IntValue(v1 >> v2, this.loc);
-				}
-				catch(e)
-				{
-					if(e instanceof RangeError) throw new RuntimeError(this.first_line, "計算できない値です");
-					else throw e;
-				}
+			try{
+				v1 = v1 instanceof BooleanValue ? (v1.getJSValue() ? 1 : 0) : v1.getJSValue();
+				v2 = v2 instanceof BooleanValue ? (v2.getJSValue() ? 1 : 0) : v2.getJSValue();
+				var v = v1 >> v2;
+				this._value = new IntValue([v], this.getLoc(), v);
 			}
-			this.state = 0;
+			catch(e)
+			{
+				if(e instanceof RangeError) 
+					this.throwRuntimeError("計算できない値です");
+				else throw e;
+			}
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '>>'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "BitNot") brace1 = true;
 		if(c2 == "Minus" || c2 == "BitNot") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' >> '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
-
 
 /**
  * @returns boolean
@@ -2052,128 +2062,165 @@ function ArrayCompare(v1, v2)
 	var rtnv = true;
 	if(v1 instanceof ArrayValue && v2 instanceof ArrayValue)
 	{
-		if(v1.length != v2.length) return false;
-		for(let i = 0; i < v1.length; i++) rtnv = rtnv && ArrayCompare(v1.getValue().args[i], v2.getValue().args[i]);
+		if(v1.valueLength != v2.valueLength) return false;
+		for(let i = 0; i < v1.valueLength; i++) 
+			rtnv = rtnv && ArrayCompare(v1.getValue().getArgs()[i], v2.getValue().getArgs()[i]);
 	}
-	else rtnv = rtnv && typeof v1 == typeof v2 && v1.args == v2.args;
+	else rtnv = rtnv && typeof v1 == typeof v2 && v1.getJSValue() == v2.getJSValue();
 	return rtnv;
 }
 
-class Compare extends Value
+class Compare extends SimpleValue
 {
-	constructor(x,y,z,loc)
+	constructor(v,loc, value = null)
 	{
-		super([x,y,z],loc);
-		this.value = null;
-		this.state = 0;
+		super(v,loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new Compare(this.args[0].clone(), this.args[1], this.args[2].clone(), this.loc);
+		return new Compare(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
 	run()
 	{
-		if(this.state == 0)
+		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: [this.args[0]], index: 0});
-			this.state = 1;
+			code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
+			this.setState(1);
 		}
-		else if(this.state == 1)
+		else if(this.getState() == 1)
 		{
-			if(this.args[0] instanceof Compare && !this.args[0].getValue().args)
+			if(this.getArgs()[0] instanceof Compare && !this.getArgs()[0].getJSValue())
 			{
 				code[0].stack[0].index++;
-				this.state = 0;
-				this.value = new BooleanValue(false, this.loc);
+				this.setState(0);
+				this._value = new BooleanValue([false], this.getLoc(), false);
 			}
 			else
 			{
-				code[0].stack.unshift({statementlist:[this.args[2]], index: 0});
-				this.state = 2;
+				code[0].stack.unshift({statementlist:[this.getArgs()[2]], index: 0});
+				this.setState(2);
 			}
 		}
 		else
 		{
 			code[0].stack[0].index++;
-			this.state = 0;
-			var v1, v2 = this.args[2].getValue();
-			if(this.args[0] instanceof Compare) v1 = this.args[0].args[2].getValue();
-			else v1 = this.args[0].getValue();
-			switch(this.args[1])
-			{
-			case '==':
-				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.value = new BooleanValue(ArrayCompare(v1, v2), this.loc);
-				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-				else this.value = new BooleanValue(v1.args == v2.args, this.loc);
-				break;
-			case '!=':
-				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.value = new BooleanValue(!ArrayCompare(v1, v2), this.loc);
-				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-				else this.value = new BooleanValue(v1.args != v2.args, this.loc);
-				break;
-			case '>':
-				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-				this.value = new BooleanValue(v1.args > v2.args, this.loc);
-				break;
-			case '<':
-				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-				this.value = new BooleanValue(v1.args < v2.args, this.loc);
-				break;
-			case '>=':
-				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-				this.value = new BooleanValue(v1.args >= v2.args, this.loc);
-				break;
-			case '<=':
-				if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-				else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-				else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-				this.value = new BooleanValue(v1.args <= v2.args, this.loc);
-				break;
-			case 'の中に':
-				var flag = false;
-				if(v1 instanceof ArrayValue)
-					for(let i = 0; i < v1.args.length; i++) flag |= ArrayCompare(v1.args[i], v2);
-				else throw new RuntimeError(this.first_line, "\"の中に\"の前には配列が必要です");
-				this.value = new BooleanValue(flag, this.loc);
-				break;
-			case 'in':
-				var flag = false;
-				if(v2 instanceof ArrayValue)
-					for(let i = 0; i < v2.args.length; i++) flag |= ArrayCompare(v2.args[i], v1);
-				else throw new RuntimeError(this.first_line, "\"in\"の後には配列が必要です");
-				this.value = new BooleanValue(flag, this.loc);
-				break;
-			case 'not in':
-				var flag = false;
-				if(v2 instanceof ArrayValue)
-					for(let i = 0; i < v2.args.length; i++) flag |= ArrayCompare(v2.args[i], v1);
-				else throw new RuntimeError(this.first_line, "\"not in\"の後には配列が必要です");
-				this.value = new BooleanValue(!flag, this.loc);
-			}
+			this.setState(0);
+			this._makeValue();
 		}
 	}
-	getCode()
+	_makeValue()
 	{
-		let v1 = this.args[0], v2 = this.args[2];
-		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+  this.args[1]
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+		var v1, v2 = this.getArgs()[2];
+		if(this.getArgs()[0] instanceof Compare) 
+			v1 = this.getArgs()[0].getArgs()[2].getValue();
+		else v1 = this.getArgs()[0].getValue();
+		switch(this.getArgs()[1])
+		{
+		case '==':
+			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
+			{
+				var v = ArrayCompare(v1, v2);
+				this._value = new BooleanValue([v], this.getLoc(), v);
+			}
+			else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue)
+				this.throwRuntimeError("辞書は比較できません");
+			else if(v1 instanceof StringValue != v2 instanceof StringValue)
+				this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue)
+				this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
+			else
+			{
+				var v = v1.getJSValue() == v2.getJSValue();
+				this._value = new BooleanValue([v], this.getLoc(), v);
+			}
+			break;
+		case '!=':
+			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
+			{
+				var v = !ArrayCompare(v1, v2);
+				this._value = new BooleanValue([v], this.getLoc(), v);
+			}
+			else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue)
+				this.throwRuntimeError("辞書は比較できません");
+			else if(v1 instanceof StringValue != v2 instanceof StringValue)
+				this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue)
+				this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
+			else
+			{
+				var v = v1.getJSValue() != v2.getJSValue();
+				this._value = new BooleanValue([v], this.getLoc(), v);
+			}
+			break;
+		case '>':
+		case '<':
+		case '>=':
+		case '<=':
+			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+				this.throwRuntimeError("リストを比べることはできません")
+			else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue)
+				this.throwRuntimeError("辞書は比較できません");
+			else if(v1 instanceof StringValue != v2 instanceof StringValue) 
+				this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) 
+				this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
+			else{
+				switch(this.getArgs()[1])
+				{
+					case '>': var v = v1.getJSValue() > v2.getJSValue(); break;
+					case '<': var v = v1.getJSValue() < v2.getJSValue(); break;
+					case '>=': var v = v1.getJSValue() >= v2.getJSValue(); break;
+					case '<=': var v = v1.getJSValue() <= v2.getJSValue(); break;
+				}
+				this._value = new BooleanValue([v], this.getLoc(), v);
+			}
+			break;
+		case 'の中に':
+			if(v1 instanceof ArrayValue)
+			{
+				var flag = false;
+				for(let i = 0; i < v1._value.length; i++) 
+					flag |= ArrayCompare(v1._value[i], v2);
+				this._value = new BooleanValue([flag], this.getLoc(), flag);
+			}
+			else this.throwRuntimeError("\"の中に\"の前にはリストが必要です");
+			break;
+		case 'in':
+			if(v2 instanceof ArrayValue)
+			{
+				var flag = false;
+				for(let i = 0; i < v2.getArgs().length; i++) 
+					flag |= ArrayCompare(v2.getArgs()[i], v1);
+				this._value = new BooleanValue([flag], this.getLoc(), flag);
+			}
+			else this.throwRuntimeError("\"in\"の後にはリストが必要です");
+			break;
+		case 'not in':
+			if(v2 instanceof ArrayValue)
+			{
+				var flag = false;
+				for(let i = 0; i < v2.getArgs().length; i++) 
+					flag |= ArrayCompare(v2.getArgs()[i], v1);
+				this._value = new BooleanValue([!flag], this.getLoc(), !flag);
+			}
+			else this.throwRuntimeError("\"not in\"の後にはリストが必要です");
+		}
 	}
-	makePython()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[2];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[2];
 		let brace1 = false, brace2 = false;
-		var op = this.args[1];
-		switch(this.args[1])
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+  this.getArgs()[1]
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[2];
+		let brace1 = false, brace2 = false;
+		var op = this.getArgs()[1];
+		switch(op)
 		{
 		case 'not in':
 			op = ' not in '; 
@@ -2191,590 +2238,478 @@ class Compare extends Value
 		default:
 			op = ' ' + op + ' ';
 		}
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+  op
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class EQ extends Value
+class EQ extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new EQ(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new EQ(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			var v = ArrayCompare(v1, v2);
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof StringValue != v2 instanceof StringValue)
+			this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue)
+			this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.value = new BooleanValue(ArrayCompare(v1, v2), this.loc);
-			else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-			else this.value = new BooleanValue(v1.args == v2.args, this.loc);
-			this.state = 0;
+			var v = v1.getJSValue() == v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '=='
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' == '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class NE extends Value
+class NE extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new NE(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new NE(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			var v = !ArrayCompare(v1, v2);
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.value = new BooleanValue(!ArrayCompare(v1, v2), this.loc);
-			else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-			else this.value = new BooleanValue(v1.args != v2.args, this.loc);
-			this.state = 0;
+			var v = v1.getJSValue() != v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '!='
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' != '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class GT extends Value
+class GT extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state  = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new GT(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new GT(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストの大小を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-			else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-			this.value = new BooleanValue(v1.args > v2.args, this.loc);
-			this.state = 0;
+			var v = v1.getJSValue() > v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '>'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' > '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class GE extends Value
+class GE extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new GE(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new GE(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストの大小を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-			else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-			this.value = new BooleanValue(v1.args >= v2.args, this.loc);
-			this.state = 0;
+			var v = v1.getJSValue() >= v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '>='
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' >= '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class LT extends Value
+class LT extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new LT(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new LT(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストの大小を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) 
+			this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-			else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-			this.value = new BooleanValue(v1.args < v2.args, this.loc);
-			this.state = 0;
+			var v = v1.getJSValue() < v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '<'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' < '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class LE extends Value
+class LE extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+
 	}
 	clone()
 	{
-		return new LE(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new LE(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+			this.throwRuntimeError("リストの大小を比べることはできません")
+		else if(v1 instanceof StringValue != v2 instanceof StringValue) 
+			this.throwRuntimeError("文字列とそれ以外の値は比べられません");
+		else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue)
+			this.throwRuntimeError("真偽値とそれ以外の値は比べられません");
 		else
 		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列を比べることはできません")
-			else if(v1 instanceof StringValue != v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列とそれ以外の値は比べられません");
-			else if(v1 instanceof BooleanValue != v2 instanceof BooleanValue) throw new RuntimeError(this.first_line, "真偽値とそれ以外の値は比べられません");
-			this.value = new BooleanValue(v1.args <= v2.args, this.loc);
-			this.state = 0;
+			var v = v1.getJSValue() <= v2.getJSValue();
+			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ '<='
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' <= '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class IN extends Value
+class IN extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new IN(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new IN(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = this.args[0].getValue(), v2 = this.args[1].getValue();
-			var flag = false;
-			if(v1 instanceof ArrayValue)
-				for(let i = 0; i < v1.args.length; i++) flag |= ArrayCompare(v1.args[i], v2);
-			else throw new RuntimeError(this.first_line, "\"の中に\"の前には配列が必要です");
-			this.value = new BooleanValue(flag, this.loc);
-			this.state = 0;
-		}
+		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
+		var flag = false;
+		if(v1 instanceof Array)
+			for(let i = 0; i < v1.length; i++) flag |= ArrayCompare(v1[i], v2);
+		else this.throwRuntimeError("\"の中に\"の前にはリストが必要です");
+		this._value = new BooleanValue([flag], this.getLoc(), flag);
 	}
-	getCode()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
 			+ 'の中に'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
 	}
-	makePython()	// 逆順になることに注意
+	argsPython()	// 逆順になることに注意
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v2.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v2.argsPython() + (brace1 ? ')' : '')
 			+ ' in '
-			+ (brace2 ? '(' : '') + v1.makePython() + (brace2 ? ')' : '')
-	}
-	getValue()
-	{
-		return this.value;
+			+ (brace2 ? '(' : '') + v1.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
-class NumberOf extends Value
+class NumberOf extends SimpleValue
 {
-	constructor(x, y, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x,y], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		this.statementlist = null;
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new NumberOf(this.args[0].clone(), this.args[1].clone(), this.loc);
+		return new NumberOf(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
 	run()
 	{
-		if(this.state == 0)
+		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
+			code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
+			this.getState(1);
+		}
+		else if(this.getState() == 1)
+		{
+			for(var i = 0; i < this.getArgs()[0].getJSValue(); i++) 
+				statementlist.push(this.getArgs()[1].clone());
+			code[0].stack.unshift({statementlist: statementlist, index: 0});
+			this.setState(2);
 		}
 		else
 		{
 			code[0].stack[0].index++;
-			let vt = new varTable();
-			let statementlist = [];
-			let globalvarTable = varTables[varTables.length - 1];
-			for(let v of Object.keys(globalvarTable.vars)) vt.vars[v] = globalvarTable.vars[v].getValue().clone();
-			for(let v of Object.keys(varTables[0].vars)) vt.vars[v] = varTables[0].vars[v].getValue().clone();
-			// 空リストを'!'という変数に代入する。カウンタは'!!'
-			let var1 = new Variable('!', null, this.loc);
-			let var2 = new Variable('!!', null, this.loc);
-			statementlist.push(new Assign(var1, new ArrayValue([], this.loc), null, this.loc));
-			statementlist.push(new ForInc(var2, new IntValue(1, this.loc),this.args[0].getValue(), new IntValue(1, this.loc),
-				[this.args[1], new Append(var1, this.args[1], this.loc)], this.loc));
-			// statementlist.push(new runBeforeGetValue([var1], this.loc));
-			statementlist.push(var1);
-			statementlist.push(new ReturnStatement(var1, this.loc));
-	
-			setCaller(statementlist, this);
-			code.unshift(new parsedFunction(statementlist));
-			varTables.unshift(vt);
-			this.state = 0;
+			this.setState(0);
+			this._makeValue();
 		}
 	}
-	getCode()
+	_makeValue()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
-		let brace1 = false, brace2 = false;
-		return (brace1 ? '(' : '') + v1.getCode() + (brace1 ? ')' : '')
-			+ '個の'
-			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
+		var a = [];
+		for(var i of this.statementlist) a.push(i.getValue());
+		this._value = new ArrayValue(a, this.getLoc(), a);
 	}
-	makePython()
+	argsPyPEN()
 	{
-		let v1 = this.args[0], v2 = this.args[1];
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let brace1 = false, brace2 = false;
-		return '[' + (brace1 ? '(' : '') + v2.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPyPEN() + (brace1 ? ')' : '')
+			+ '個の'
+			+ (brace2 ? '(' : '') + v2.argsPyPEN() + (brace2 ? ')' : '')
+	}
+	argsPython()
+	{
+		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
+		let brace1 = false, brace2 = false;
+		return '[' + (brace1 ? '(' : '') + v2.argsPython() + (brace1 ? ')' : '')
 			+ ' for _ in range('
-			+ (brace2 ? '(' : '') + v1.makePython() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v1.argsPython() + (brace2 ? ')' : '')
 			+ ')]';
 	}
-	getValue()
-	{
-		return this.value;
-	}
-	setValue(v)
-	{
-		this.value = v.clone();
-	}
 }
 
-
-class ConvertInt extends Value
+class ConvertInt extends SimpleValue
 {
-	constructor(x, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new ConvertInt(this.args[0].clone(), this.loc);
+		return new ConvertInt(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v = this.args[0].getValue();
-			let r = Number.NaN;
-			if(v instanceof IntValue) r = v.args;
-			else if(v instanceof FloatValue) r = Math.floor(v.args);
-			else if(v instanceof StringValue) r = Math.floor(Number(v.args));
-			else if(v instanceof BooleanValue) r = v.args ? 1 : 0;
-			if(isSafeInteger(r)) this.value = new IntValue(r, this.loc);
-			else throw new RuntimeError(this.loc.first_line, '整数に直せません');
-			this.state = 0;
-		}
+		let v = this.getArgs()[0].getValue();
+		let r = Number.NaN;
+		if(v instanceof IntValue) r = v.getJSValue();
+		else if(v instanceof FloatValue) r = Math.floor(v.getJSValue());
+		else if(v instanceof StringValue) r = Math.floor(Number(v.getJSValue()));
+		else if(v instanceof BooleanValue) r = v.getJSValue() ? 1 : 0;
+		else throw new RuntimeError(this.getLoc().first_line, '整数に直せません');
+		this._value = new IntValue([r], this.getLoc(), r);
 	}
-	getCode()
+	argsPyPEN()
 	{
-		return '整数(' + this.args[0].getCode() + ')';
+		return '整数(' + this.getArgs()[0].argsPyPEN() + ')';
 	}
-	makePython()
+	argsPython()
 	{
-		return 'int(' + this.args[0].makePython() + ')';
-	}
-	getValue()
-	{
-		return this.value;
+		return 'int(' + this.getArgs()[0].argsPython() + ')';
 	}
 }
 
-class ConvertFloat extends Value
+class ConvertFloat extends SimpleValue
 {
-	constructor(x, loc)
+	constructor(v, loc, value = null)
 	{ 
-		super([x], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new ConvertFloat(this.args[0].clone(), this.loc);
+		return new ConvertFloat(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v = this.args[0].getValue();
-			let r = Number.NaN;
-			if(v instanceof IntValue || v instanceof FloatValue) r = v.args;
-			else if(v instanceof StringValue) r = Number(v.args);
-			else if(v instanceof BooleanValue) r = v.args ? 1 : 0;
-			if(isFinite(r)) this.value = new FloatValue(r, this.loc);
-			else throw new RuntimeError(this.loc.first_line, '実数に直せません');
-			this.state = 0;
-		}
+		let v = this.getArgs()[0].getValue();
+		let r = Number.NaN;
+		if(v instanceof IntValue || v instanceof FloatValue) r = v.getJSValue();
+		else if(v instanceof StringValue) r = Number(v.getJSValue());
+		else if(v instanceof BooleanValue) r = v.getJSValue() ? 1 : 0;
+		else this.throwRuntimeError('実数に直せません');
+		if(isFinite(r)) 
+			this._value = new FloatValue([r], this.getLoc(), r);
+		else this.throwRuntimeError('実数に直せません');
 	}
-	getCode()
+	argsPyPEN()
 	{
-		return '実数(' + this.args[0].getCode() + ')';
+		return '実数(' + this.getArgs()[0].argsPyPEN() + ')';
 	}
-	makePython()
+	argsPython()
 	{
-		return 'float(' + this.args[0].makePython() + ')';
-	}
-	getValue()
-	{
-		return this.value;
+		return 'float(' + this.getArgs()[0].argsPython() + ')';
 	}
 }
 
-class ConvertString extends Value
+class ConvertString extends SimpleValue
 {
-	constructor(x, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x], loc);
-		this.value = null;
-		this.state = 0;
+		super(v, loc, value);
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new ConvertString(this.args[0].clone(), this.loc);
+		return new ConvertString(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v = this.args[0].getValue();
-			let r = '';
-			if(v instanceof IntValue || v instanceof FloatValue) r = String(v.args);
-			else if(v instanceof StringValue) r = v.args
-			else if(v instanceof BooleanValue) r = v.args ? 'True' : 'False';
-			this.value = new StringValue(r, this.loc);
-			this.state = 0;
-		}
+		let v = this.getArgs()[0].getValue();
+		let r = '';
+		if(v instanceof IntValue || v instanceof FloatValue) r = String(v.getJSValue());
+		else if(v instanceof StringValue) r = v.getJSValue();
+		else if(v instanceof BooleanValue) r = v.getJSValue() ? 'true' : 'false';
+		this._value = new StringValue([r], this.getLoc(), r);
 	}
-	getCode()
+	argsPyPEN()
 	{
-		return '文字列(' + this.args[0].getCode() + ')';
+		return '文字列(' + this.getArgs()[0].argsPyPEN() + ')';
 	}
-	makePython()
+	argsPython()
 	{
-		return 'str(' + this.args[0].makePython() + ')';
-	}
-	getValue()
-	{
-		return this.value;
+		return 'str(' + this.getArgs()[0].argsPython() + ')';
 	}
 }
 
+/**
+ * 
+ * @param {Value} v 
+ * @returns boolean
+ */
 function toBool(v)
 {
 	let re = /^(0+|false|偽|)$/i;
@@ -2783,196 +2718,100 @@ function toBool(v)
 	else if(v instanceof BooleanValue) return v.getValue();
 	else if(v instanceof ArrayValue) return v.getValue().valueLength() != 0;
 	else if(v instanceof DictionaryValue) return v.getValue().size() != 0;
-	return false;
+	else return toBool(v.getValue());
 }
 
-class ConvertBool extends Value
+class ConvertBool extends SimpleValue
 {
-	constructor(x, loc)
+	constructor(v, loc, value = null)
 	{
-		super([x], loc);
-		this.value = null;
-		this.state = 0;
-	}
-	clone()
-	{
-		return new ConvertBool(this.args[0].clone(), this.loc);
-	}
-	run()
-	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v = this.args[0].getValue();
-			this.value = new BooleanValue(toBool(v), this.loc);
-			this.state = 0;
-		}
-	}
-	getCode()
-	{
-		return '真偽(' + this.args[0].getCode() + ')';
-	}
-	makePython()
-	{
-		return 'bool(' + this.args[0].makePython() + ')';
-	}
-	getValue()
-	{
-		return this.value;
-	}
-}
-
-class Variable extends Value
-{
-	/**
-	 * 
-	 * @param {string} x 
-	 * @param {ArrayValue} y 
-	 * @param {Location} loc 
-	 */
-	constructor(x, y, loc)
-	{
-		super(y,loc); 
-		this.varname = x;
+		super(v, loc, value);
 		Object.seal(this);
 	}
 	clone()
 	{
-		return new Variable(this.varname, this.args ? this.args.clone() : null, this.loc);
+		return new ConvertBool(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this._state == 0)
-		{
-			if(this.args) code[0].stack.unshift({statementlist: this.args, index: 0});
-			this._state = 1;
-		}
-		else
-		{
-			this.#makeValue();
-			code[0].stack[0].index++;
-			this._state = 0;
-		}
+		let v = toBool(this.getArgs()[0].getValue());
+		this._value = new BooleanValue([v], this.getLoc(), v);
 	}
-	#makeValue()
+	argsPyPEN()
 	{
-		var vt = findVarTable(this.varname);
-		if(vt)
-		{
-			var v = vt.vars[this.varname];
-			this._value = getValueByArgs(v, this.args ? this.args : null, this.loc);
-		}
-		else throw new RuntimeError(this.first_line, "変数に" + this.varname + "がありません");
+		return '真偽(' + this.getArgs()[0].argsPyPEN() + ')';
 	}
-	makeCode()
+	argsPython()
 	{
-		let vn = this.args[0];
-		let pm = this.args[1];
-		if(pm != null)
-		{
-			let ag = new Array(pm.length);
-			for(let i = 0; i < pm.length; i++)
-			{
-				ag[i] = pm.args[i].getCode();
-			}
-			vn += '['+ag.join(',')+']';
-		}
-		return vn;
-	}
-	makePython()
-	{
-		let vn = this.args[0];
-		let pm = this.args[1];
-		if(pm != null)
-		{
-			let ag = new Array(pm.length);
-			for(let i = 0; i < pm.length; i++)
-			{
-				ag[i] = '[' + pm.args[i].makePython() + ']';
-			}
-			vn += ag.join('');
-		}
-		return vn;
-	}
-	getValue()
-	{
-		return this._value;
-	}
-	toString()
-	{
-		return this._value.toString();
-	}
-	/**
-	 * @param {Value} a 
-	 */
-	append(a)
-	{
-		if(!this._args[1]) this._args[1] = new ArrayValue([a], this.loc);
-		else this._args[1]._args.push(a);
-	}
-	/**
-	 * 
-	 * @param {Array<Value>} a 
-	 */
-	extend(a)
-	{
-		if(!this._args[1]) this._args[1] = new ArrayValue(a, this.loc);
-		else for(var i of a) this._args[1]._args.push(i);
+		return 'bool(' + this.getArgs()[0].argsPython() + ')';
 	}
 }
+
 
 /**
  * 関数呼び出し
  */
-class CallFunction extends Value
+class CallFunction extends SimpleValue
 {
 	/**
 	 * @constructor
-	 * @param {string} funcname 
-	 * @param {Array<Value>} parameter 
 	 * @param {Location} loc 
 	 */
-	constructor(funcname, parameter, loc)
+	constructor(v, loc, value = null)
 	{
-		super([funcname, parameter], loc);
-		this.value = null;
-		this.state = 0;
+		super(v[1], loc, value);	// v = [funcname, args] args is Array of Value
+		if(v[1] instanceof Array == false)
+			this.throwRuntimeError('DEBUG: 関数の引数がArrayではありません'+"\n"
+			+constructor_name(v[1]));
+		// textareaAppend("CallFunction name: " + v[0] + "\n");
+		// for(var i of v[1])
+		// 	textareaAppend("CallFunction arg: " + constructor_name(i) + "\n");
+		this.funcname = v[0];
+		Object.seal(this);
 	}
 	clone()
 	{
 		var parm = [];
-		for(var i = 0; i < this.args[1].length; i++) parm.push(this.args[1][i].clone());
-		var rtnv = new CallFunction(this.args[0], parm, this.loc);
-		return rtnv;
+		for(var i = 0; i < this.getArgs().length; i++) parm.push(this.getArgs()[i].clone());
+		return new CallFunction([this.funcname, parm], this.getLoc(), 
+			this._value ? this._value.clone() : null);
 	}
-	run()
+	// run()
+	// {
+	// 	if(this.getState() == 0)
+	// 	{
+	// 		code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+	// 		this.setState(1);
+	// 	}
+	// 	else if(this.getState() == 1)
+	// 	{
+	// 		code[0].stack[0].index++;
+	// 		this._makeValue();
+	// 		this.setState(0);
+	// 	}
+	// }
+	_makeValue()
 	{
-		if(this.state == 0)
+		if(!this._value)
 		{
-			code[0].stack.unshift({statementlist: this.args[1], index: 0});
-			this.state = 1;
-		}
-		else if(this.state == 1)
-		{
-			code[0].stack[0].index++;
-			var func = this.args[0], param = this.args[1];
-			if(definedFunction[func])
+			if(definedFunction[this.funcname])
 			{
-				let fn = definedFunction[func].clone();
+				let fn = definedFunction[this.funcname].clone();
 				fn.setCaller(this, false);
-				fn.setParameter(param);
-				fn.setLocation(this.loc);
+				var a = [];
+				for(var i of this.getArgs())
+				{
+					a.push(i.getValue());
+					// textareaAppend("CallFunction arg value: " + constructor_name(i.getValue()) + "\n");
+				} 
+				fn.setParameter(a);
+				fn.setLocation(this.getLoc());
 				let statementlist = [fn];
 				code.unshift(new parsedFunction(statementlist));
 			}
-			else if(myFuncs[func])
+			else if(myFuncs[this.funcname])
 			{
-				let fn = myFuncs[func];
+				let fn = myFuncs[this.funcname];
 				let vt = new varTable();
 				let globalVarTable = varTables[varTables.length - 1];
 				for(let i of Object.keys(globalVarTable.vars)) 
@@ -2983,42 +2822,31 @@ class CallFunction extends Value
 					else
 						vt.vars[fn.params[i].varname] = param[i].getValue();
 				let statementlist = cloneStatementlist(fn.statementlist);
-				statementlist.push(new ReturnStatement(new NullValue(this.loc), this.loc));
+				statementlist.push(new ReturnStatement(new NullValue(this.getLoc()), this.getLoc()));
 				setCaller(statementlist, this);
 				let pf = new parsedFunction(statementlist);
 				code.unshift(pf);
 				varTables.unshift(vt);
 			}
 			else
-				throw new RuntimeError(this.first_line, '関数 '+func+' は定義されていません');
-			this.state = 0;
+				this.throwRuntimeError('関数 '+this.funcname+' は定義されていません');
 		}
 	}
-	setValue(v)
+	argsPyPEN()
 	{
-		this.value = v;
-	}
-	getValue()
-	{
-		return this.value;
-	}
-	getCode()
-	{
-		let func = this.args[0], param = this.args[1];
 		let ag = [];
-		for(let i = 0; i < param.length; i++)
-			ag.push(param[i].getCode());
-		return func + '(' + ag.join(',') + ')';
+		for(let i = 0; i < this.getArgs().length; i++)
+			ag.push(this.getArgs()[i].argsPyPEN());
+		return this.funcname + '(' + ag.join(', ') + ')';
 	}
-	makePython()
+	argsPython()
 	{
-		let func = this.args[0], param = this.args[1];
 		let deffunc = null;
-		if(definedFunction[func]) deffunc = definedFunction[func];
-		else if(myFuncs[func]) deffunc = myFuncs[func];
+		if(definedFunction[this.funcname]) deffunc = definedFunction[this.funcname];
+		else if(myFuncs[this.funcname]) deffunc = myFuncs[this.funcname];
 		let ag = [];
-		for(let i = 0; i < param.length; i++)
-			ag.push(param[i].makePython());
+		for(let i = 0; i < this.getArgs().length; i++)
+			ag.push(this.getArgs()[i].argsPython());
 		if(deffunc)
 		{
 			var prefix = '';
@@ -3028,64 +2856,47 @@ class CallFunction extends Value
 				python_lib[deffunc.module] = 1;
 			}
 			if(deffunc.convert) return deffunc.convert(ag);
-			else return prefix + func + '(' + ag.join(', ') + ')';
+			else return prefix + this.funcname + '(' + ag.join(', ') + ')';
 		}
 		else 
-			return func + '(' + ag.join(', ') + ')';
+			return this.funcname + '(' + ag.join(', ') + ')';
 	}
 }
 
 class Connect extends Value
 {
-	constructor(x,y,loc)
+	constructor(v,loc,value = null)
 	{
-		super([x,y],loc);
+		super(v,loc,value);
 		this.state = 0;
 	}
 	clone()
 	{
-		var rtnv = new Connect(this.args[0].clone(), this.args[1].clone(), this.loc);
-		rtnv.value = this.value;
-		return rtnv;
+		return new Connect(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
 	}
-	run()
+	_makeValue()
 	{
-		if(this.state == 0)
-		{
-			code[0].stack.unshift({statementlist: this.args, index: 0});
-			this.state = 1;
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			let v1 = array2text(this.args[0].getValue());
-			let v2 = array2text(this.args[1].getValue());
-			let v = v1 + v2;
-			this.value = new StringValue(v, this.loc);
-			this.state = 0;
-		}
+		let v1 = array2text(this.getArgs()[0].getValue());
+		let v2 = array2text(this.getArgs()[1].getValue());
+		let v = v1 + v2;
+		this.value = new StringValue([v], this.getLoc(), v);
 	}
-	getCode()
+	argsPyPEN()
 	{
-		return this.args[0].getCode() + "と" + this.args[1].getCode();
+		return this.getArgs()[0].getCode() + "と" + this.getArgs()[1].getCode();
 	}
-	makePython()
+	argsPython()
 	{
 		var re=/^str\(/;
-		var p1 = this.args[0].makePython();
-		var p2 = this.args[1].makePython();
-		if(!re.exec(p1) && !(this.args[0] instanceof StringValue)) p1 = "str(" + p1 + ")";
-		if(!re.exec(p2) && !(this.args[1] instanceof StringValue)) p2 = "str(" + p2 + ")";
+		var p1 = this.getArgs()[0].argsPython();
+		var p2 = this.getArgs()[1].argsPython();
+		if(!re.exec(p1) && !(this.getArgs()[0] instanceof StringValue)) p1 = "str(" + p1 + ")";
+		if(!re.exec(p2) && !(this.getArgs()[1] instanceof StringValue)) p2 = "str(" + p2 + ")";
 		return  p1 + " + " + p2;
-	}
-	getValue()
-	{
-		return this.value;
 	}
 }
 
-
-class Assign extends Value
+class Assign extends SimpleValue
 {
 	/**
 	 * @constructor
@@ -3096,215 +2907,374 @@ class Assign extends Value
 	 */
 	constructor(variable,value, operator, loc)
 	{
-		super([variable, value, operator],loc);
+		super([value],loc);
+		this.variable = variable;
+		this.operator = operator;
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) 
-			throw new RuntimeError(loc.first_line, "変数でないものに代入はできません");
+			this.throwRuntimeError("変数でないものに代入はできません");
+		Object.seal(this);
 	}
 	clone()
 	{
-		return new Assign(this._args, this.loc);
+		return new Assign(this.variable, this.getArgs()[0], this.operator, this.getLoc(), this._value ? this._value.clone() : null);
 	}
 	run()
 	{
-		var variable = this._args[0];
-		var value    = this._args[1];
-		var operator = this._args[2];
-
-		if(varianle instanceof UNDEFINED) 
-			throw new RuntimeError(this.first_line, "未完成のプログラムです");
-		if(this._state == 0)
+		if(this.variable instanceof UNDEFINED) 
+			this.throwRuntimeError("未完成のプログラムです");
+		if(this.getState() == 0)
 		{
-			let a=[];
-			if(operator) a.push(variable);
-			a.push(value);
+			let a = [];
+			if(this.operator) a.push(this.variable);
+			a.push(this.getArgs()[0]);
 			code[0].stack.unshift({statementlist: a, index: 0});
-			this._state = 1;
+			this.setState(1);
 		}
-		else if(this._state == 1)
+		else if(this.getState() == 1)
 		{
-			if(!this._operator && variable._args[1]._args.length > 0)
-				code[0].stack.unshift({statementlist: variable._args[1]._args, index: 0});
-			this._state = 2;
+			if(!this.operator && this.variable.getArgs().length > 0)
+				code[0].stack.unshift({statementlist: this.variable.getArgs(), index: 0});
+			this.setState(2);
 		}
-		else if(this._state == 2)
+		else if(this.getState() == 2)
 		{
-			var vt1 = findVarTable(variable.varname);
-			var v2  = value;
-			if(operator)
+			var vt1 = findVarTable(this.variable.varname);
+			var v2  = this.getArgs()[0];
+			if(this.operator)
 			{
-				if(!vt1) throw new RuntimeError(this.first_line, '変数 '+this.variable.varname+' は定義されていません');
-				var v1 = getValueByArgs(vt1.vars[this.variable.varname], this.variable.args ? this.variable.args.args : null, this.loc);
+				if(!vt1) this.throwRuntimeError('変数 '+this.variable.varname+' は定義されていません');
+				var v1 = getValueByArgs(vt1.vars[this.variable.varname], this.variable.getValue()	? this.variable.getArgs().getValue() : null, this.getLoc());
 				var v3 = null;
-				switch(this.operator)
+				switch(this.operator)	// 複合代入演算
 				{
 					case '+':
-						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の足し算はまだサポートしていません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の足し算はまだサポートしていません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) v3 = new StringValue(String(v1.args) + String(v2.args), this.loc);
-						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args + v2.args, this.loc);
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(Number(v1.args) + Number(v2.args), this.loc);
+						if(v1 instanceof BooleanValue) 
+						{
+							var v = v1.getJSValue() ? 1 : 0;
+							v1 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v2 instanceof BooleanValue) 
+						{
+							var v = v2.getJSValue() ? 1 : 0;
+							v2 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
+						{
+							var v = [];
+							for(var i of v1.getJSValue()) v.push(i);
+							for(var i of v2.getJSValue()) v.push(i);
+							v3 = new ArrayValue(v, this.getLoc(), v);
+						}
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) 
+							this.throwRuntimeError("辞書の足し算はまだサポートしていません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue)
+						{
+							var v = String(v1.getJSValue()) + String(v2.getJSValue());
+							v3 = new StringValue([v], this.getLoc(), v);
+						}
+						else if(v1 instanceof IntValue && v2 instanceof IntValue)
+						{
+							var v = v1.getJSValue() + v2.getJSValue();
+							v3 = new IntValue([v], this.getLoc(), v);
+						}
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+						{
+							var v = Number(v1.getJSValue()) + Number(v2.getJSValue());
+							v3 = new FloatValue([v], this.getLoc(), v);
+						}
 						break;
 					case '-':
-						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の引き算はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の引き算はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の引き算はできません");
-						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args - v2.args, this.loc);
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(Number(v1.args) - Number(v2.args), this.loc);
+						if(v1 instanceof BooleanValue)
+						{
+							var v = v1.getJSValue() ? 1 : 0;
+							v1 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v2 instanceof BooleanValue)
+						{
+							var v = v2.getJSValue() ? 1 : 0;
+							v2 = new IntValue([v], this.getLoc(), v);
+						} 
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) 
+							this.throwRuntimeError("リストの引き算はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue)
+							 this.throwRuntimeError("辞書の引き算はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) 
+							this.throwRuntimeError("文字列の引き算はできません");
+						else if(v1 instanceof IntValue && v2 instanceof IntValue)
+						{
+							var v = v1.getJSValue() - v2.getJSValue();
+							v3 = new IntValue([v], this.getLoc(), v);
+						}
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+						{
+							var v = Number(v1.getJSValue()) - Number(v2.getJSValue());
+							v3 = new FloatValue([v], this.getLoc(), v);
+						}
 						break;
 					case '*':
-						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の掛け算は出来ません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の掛け算はできません");
+						if(v1 instanceof BooleanValue)
+						{
+							var v = v1.getJSValue() ? 1 : 0;
+							v1 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v2 instanceof BooleanValue)
+						{
+							var v = v2.getJSValue() ? 1 : 0;
+							v2 = new IntValue([v], this.getLoc(), v);
+						} 
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストの掛け算は出来ません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の掛け算はできません");
 						else if(v1 instanceof StringValue)
 						{
-							if(v2 instanceof IntValue) v3 = new StringValue(v1.args.repeat(v2.args >= 0 ? Number(v2.args) : 0), this.loc);
-							else throw new RuntimeError(this.first_line, "文字列に掛けられるのは整数だけです")
+							if(v2 instanceof IntValue)
+							{
+								v = '';
+								for(var i = 0; i < v2.getJSValue(); i++) v += v1.getJSValue();
+								v3 = new StringValue([v], this.getLoc(), v);
+							}
+							else this.throwRuntimeError("文字列に掛けられるのは整数だけです");
 						}
-						else if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args * v2.args, this.loc);
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) v3 = new FloatValue(Number(v1.args) * Number(v2.args), this.loc);
+						else if(v1 instanceof IntValue && v2 instanceof IntValue)
+						{
+							var v = v1.getJSValue() * v2.getJSValue();
+							v3 = new IntValue([v], this.getLoc(), v);
+						}
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue)
+						{
+							var v = Number(v1.getJSValue()) * Number(v2.getJSValue());
+							v3 = new FloatValue([v], this.getLoc(), v);
+						}
 						break;
 					case '/':
-						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の割り算はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+						if(v1 instanceof BooleanValue)
+						{
+							var v = v1.getJSValue() ? 1 : 0;
+							v1 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v2 instanceof BooleanValue)
+						{
+							var v = v2.getJSValue() ? 1 : 0;
+							v2 = new IntValue([v], this.getLoc(), v);
+						} 
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストの割り算はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の割り算はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の割り算はできません");
 						else
 						{
-							if(v2.args == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							else v3 = new FloatValue(Number(v1.args) / Number(v2.args), this.loc);
+							if(v2.args == 0) this.throwRuntimeError('0で割り算をしました');
+							var v = Number(v1.getJSValue()) / Number(v2.getJSValue());
+							v3 = new FloatValue([v], this.getLoc(), v);
 						}
 						break;
 					case '//':
-						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の割り算はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+						if(v1 instanceof BooleanValue)
+						{
+							var v = v1.getJSValue() ? 1 : 0;
+							v1 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v2 instanceof BooleanValue)
+						{
+							var v = v2.getJSValue() ? 1 : 0;
+							v2 = new IntValue([v], this.getLoc(), v);
+						} 
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストの割り算はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の割り算はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の割り算はできません");
 						else if(v1 instanceof IntValue && v2 instanceof IntValue)
 						{
 							let q = v1.args / v2.args, r = v1.args % v2.args;
 							if(!SameSignBigInt(v1.args, v2.args) && r != 0) q--;
-							v3 = new IntValue(q, this.loc);
+							v3 = new IntValue([q], this.getLoc(), q);
 						}
 						else
 						{
-							if(Number(v2.args) == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							let v4 = Math.floor(Number(v1.args) / Number(v2.args));
-							v3 = new FloatValue(v4, this.loc);
+							if(Number(v2.args) == 0) this.throwRuntimeError('0で割り算をしました');
+							let v = Math.floor(Number(v1.args) / Number(v2.args));
+							v3 = new FloatValue([v], this.getLoc(), v);
 						}
 						break;
 					case '%':
-						if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-						if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の割り算はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の割り算はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の割り算はできません");
+						if(v1 instanceof BooleanValue)
+						{
+							var v = v1.getJSValue() ? 1 : 0;
+							v1 = new IntValue([v], this.getLoc(), v);
+						}
+						if(v2 instanceof BooleanValue)
+						{
+							var v = v2.getJSValue() ? 1 : 0;
+							v2 = new IntValue([v], this.getLoc(), v);
+						} 
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストの割り算はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の割り算はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の割り算はできません");
 						else if(v1 instanceof IntValue && v2 instanceof IntValue)
 						{
-							let q = v1.args / v2.args, r = v1.args % v2.args;
-							if(!SameSignBigInt(v1.args, v2.args) && r != 0) q--;
-							v3 = new IntValue(r - q * v2.args, this.loc);
+							let q = v1.getJSValue() / v2.getJSValue(), r = v1.getJSValue() % v2.getJSValue();
+							if(!SameSignBigInt(v1.getJSValue(), v2.getJSValue()) && r != 0) q--;
+							var v = r - q * v2.getJSValue();
+							v3 = new IntValue([v], this.getLoc(), v);
 						}
 						else
 						{
-							if(Number(v2.args) == 0) throw new RuntimeError(this.first_line, '0で割り算をしました');
-							let v4 = Math.floor(Number(v1.args) / Number(v2.args));
-							v3 = new FloatValue(Number(v1.args) - v4 * Number(v2.args), this.loc);
+							if(Number(v2.getJSValue()) == 0) this.throwRuntimeError('0で割り算をしました');
+							let v = Math.floor(Number(v1.getJSValue()) / Number(v2.getJSValue()));
+							v = Number(v1.getJSValue()) - v * Number(v2.getJSValue());
+							v3 = new FloatValue([v], this.getLoc(), v);
 						}
 						break;
 					case '&':
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット積はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書のビット積はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット積はできません");
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット積はできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.loc);
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストのビット積はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビット積はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビット積はできません");
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビット積はできません");
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
 						else
 						{
-							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args & v2.args, this.loc);
+							if(v1 instanceof BooleanValue)
+							{
+								var v = v1.getJSValue() ? 1 : 0;
+								v1 = new IntValue([v], this.getLoc(), v);
+							}
+							if(v2 instanceof BooleanValue)
+							{
+								var v = v2.getJSValue() ? 1 : 0;
+								v2 = new IntValue([v], this.getLoc(), v);
+							} 
+							if(v1 instanceof IntValue && v2 instanceof IntValue)
+							{
+								var v = v1.getsJSValue() & v2.getJSValue();
+								v3 = new IntValue([v], this.getLoc(), v);
+							}
 						} 
 						break;
 					case '|':
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビット和はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書のビット和はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビット和はできません");
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビット和はできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.loc);
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストのビット和はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビット和はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビット和はできません");
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビット和はできません");
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
 						else
 						{
-							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args | v2.args, this.loc);
+							if(v1 instanceof BooleanValue)
+							{
+								var v = v1.getJSValue() ? 1 : 0;
+								v1 = new IntValue([v], this.getLoc(), v);
+							}
+							if(v2 instanceof BooleanValue)
+							{
+								var v = v2.getJSValue() ? 1 : 0;
+								v2 = new IntValue([v], this.getLoc(), v);
+							} 
+
+							if(v1 instanceof IntValue && v2 instanceof IntValue)
+							{
+								var v = v1.getJSValue() | v2.getJSValue();
+								v3 = new IntValue([v], this.getLoc(), v);
+							} 
 						} 
 						break;
 					case '^':
-						if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列の排他的論理和はできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書の排他的論理和はできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列の排他的論理和はできません");
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数の排他的論理和はできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.loc);
+						if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) this.throwRuntimeError("リストの排他的論理和はできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の排他的論理和はできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の排他的論理和はできません");
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数の排他的論理和はできません");
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
 						else
 						{
-							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args ^ v2.args, this.loc);
+							if(v1 instanceof BooleanValue)
+							{
+								var v = v1.getJSValue() ? 1 : 0;
+								v1 = new IntValue([v], this.getLoc(), v);
+							}
+							if(v2 instanceof BooleanValue)
+							{
+								var v = v2.getJSValue() ? 1 : 0;
+								v2 = new IntValue([v], this.getLoc(), v);
+							} 
+
+							if(v1 instanceof IntValue && v2 instanceof IntValue)
+							{
+								var v = v1.getJSValue() ^ v2.getJSValue();
+								v3 = new IntValue([v], this.getLoc(), v);
+							}
 						} 
 						break;
 					case '<<':
-						if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書のビットシフトはできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.loc);
+						if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) this.throwRuntimeError("リストのビットシフトはできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビットシフトはできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビットシフトはできません");
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビットシフトはできません");
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
 						else
 						{
-							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args << v2.args, this.loc);
+							if(v1 instanceof BooleanValue)
+							{
+								var v = v1.getJSValue() ? 1 : 0;
+								v1 = new IntValue([v], this.getLoc(), v);
+							}
+							if(v2 instanceof BooleanValue)
+							{
+								var v = v2.getJSValue() ? 1 : 0;
+								v2 = new IntValue([v], this.getLoc(), v);
+							} 
+
+							if(v1 instanceof IntValue && v2 instanceof IntValue)
+							{
+								var v = v1.getJSValue() << v2.getJSValue();
+								v3 = new IntValue([v], this.getLoc(), v);
+							} 
 						} 
 						break;
 					case '>>':
-						if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) throw new RuntimeError(this.first_line, "配列のビットシフトはできません");
-						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) throw new RuntimeError(this.first_line, "辞書のビットシフトはできません");
-						else if(v1 instanceof StringValue || v2 instanceof StringValue) throw new RuntimeError(this.first_line, "文字列のビットシフトはできません");
-						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) throw new RuntimeError(this.first_line, "実数のビットシフトはできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.loc);
+						if(v1 instanceof ArrayValue && v2 instanceof ArrayValue) this.throwRuntimeError("リストのビットシフトはできません");
+						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビットシフトはできません");
+						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビットシフトはできません");
+						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビットシフトはできません");
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
 						else
 						{
-							if(v1 instanceof BooleanValue) v1 = new IntValue(v1.args ? 1 : 0, this.loc);
-							if(v2 instanceof BooleanValue) v2 = new IntValue(v2.args ? 1 : 0, this.loc);
-							if(v1 instanceof IntValue && v2 instanceof IntValue) v3 = new IntValue(v1.args >> v2.args, this.loc);
+							if(v1 instanceof BooleanValue)
+							{
+								var v = v1.getJSValue() ? 1 : 0;
+								v1 = new IntValue([v], this.getLoc(), v);
+							}
+							if(v2 instanceof BooleanValue)
+							{
+								var v = v2.getJSValue() ? 1 : 0;
+								v2 = new IntValue([v], this.getLoc(), v);
+							} 
+
+							if(v1 instanceof IntValue && v2 instanceof IntValue)
+							{
+								var v = v1.getJSValue() >> v2.getJSValue();
+								v3 = new IntValue([v], this.getLoc(), v);
+							}
 						} 
 						break;
 				}
-				if(!v3) throw new RuntimeError(this.first_line, '複合代入演算子の使い方が間違っています');
-				setVariableByArgs(vt1,this.variable.varname, this.variable.args ? this.variable.args.getValue() : null, v3, this.loc);
-				this.value = v3;
+				if(!v3) this.throwRuntimeError('複合代入演算子の使い方が間違っています');
+				setVariableByArgs(vt1,this.variable.varname, this.variable.getArgs() ? this.variable.getArgs() : null, v3, this.getLoc());
+				this._value = v3;
 			}
 			else
 			{
 				if(!vt1)	// 変数が定義されていないので，ダミーを代入
 				{
 					vt1 = varTables[0];
-					vt1.vars[variable.varname] = new NullValue(this.loc);
+					vt1.vars[this.variable.varname] = new NullValue(this.getLoc());
 				}
-				setVariableByArgs(vt1, variable.varname, variable._args[1]._args.length > 0 ? variable._args[1] : null, v2, this.loc);
+				setVariableByArgs(vt1, this.variable.varname, this.variable.getArgs(), v2, this.getLoc());
 				this._value = v2;
 			}
 			this._state = 0;
 			code[0].stack[0].index++;
+			this._makeValue();
 		}
 	}
-	getValue()
+	_makeValue()
 	{
-		return this._value;
+		if(!(this._value instanceof Value)) this.throwRuntimeError("代入する値が不明です");
+		// this._value = this.getArgs()[0]._value;
 	}
 	makePython(indent)
 	{
@@ -3326,6 +3296,10 @@ class Assign extends Value
  */
 function setVariableByArgs(vt,vn, args, newval, loc)
 {
+	// textareaAppend("DEBUG: setVariableByArgs: vn=" + vn + ", args=" + (args ? args.length : 0) + constructor_name(newval) + "\n");
+	if(!(newval instanceof Value))
+		throw new RuntimeError(loc.first_line, "代入する値が不明です" +
+			"\n" + constructor_name(newval));
 	if(args && args.length > 0)
 	{
 		var v = vt.vars[vn];
@@ -3336,71 +3310,73 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			{
 				if(arg instanceof IntValue)
 				{
-					var idx = Number(arg.getValue());
-					var l = v.value.args.length;
+					var idx = Number(arg.getJSValue());
+					var l = v.valueLength();
 					if(idx < 0) idx += l;
 					if(idx >= 0 && idx < l) v = v.getValue(idx);
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えています");
+					else throw new RuntimeError(loc.first_line, "リストの範囲を超えています");
 				}
-				else throw new RuntimeError(loc.first_line, "配列の添字は整数でなければなりません");
+				else throw new RuntimeError(loc.first_line, "リストの添字は整数でなければなりません");
 			}
 			else if(v instanceof DictionaryValue)
 			{
 				if(isPrimitive(arg))
 				{
-					var key = arg.getValue();
+					var key = arg.getJSValue();
 					if(v.getValue().has(key)) v = v.getValue().get(key);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+key.args+"がありません");
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+key+"がありません");
 				}
+				else throw new RuntimeError(loc.first_line, "辞書の添字は単純型でなければなりません");
 			}
 			else if(v instanceof StringValue)
 			{
 				if(arg instanceof IntValue)
 				{
-					var idx = Number(arg.getValue().args);
-					var l = v.value.args.length;
+					var idx = Number(arg.getJSValue());
+					var l = arg.getJSValue().length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = new StringValue(v.getValue().charAt(idx), loc);
+					if(idx >= 0 && idx < l) v = new StringValue(v.getJSValue().charAt(idx), loc);
 					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えています");
 				}
 				else if(arg instanceof SliceValue)
 				{
-					var idx1 = Number(arg.getValue1().getValue().args);
-					var idx2 = Number(arg.getValue2().getValue().args);
-					var l = v.value.args.length;
+					var idx1 = Number(arg.getValue1().getJSValue());
+					var idx2 = Number(arg.getValue2().getJSValue());
+					var l = arg.getJSValue().length;
 					if(!idx1) idx1 = 0;
 					if(!idx2) idx2 = l;
 					if(idx1 < 0) idx1 += l;
 					if(idx2 < 0) idx2 += l;
 					if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 <= l)
-						v = new StringValue(v.value.substring(idx1, idx2), loc);
+						v = new StringValue(v.getJSValue().substring(idx1, idx2), loc);
 					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えています");
 				}
 			}
 			else throw new RuntimeError(loc.first_line, "添字が使える型ではありません");
 		}
 		// 最後の添字を使って代入
-		var arg = args.getElement(args.length - 1);
+		var arg = args[args.length - 1];
 		if(v instanceof ArrayValue)
 		{
 			if(arg instanceof IntValue)
 			{
-				var idx = Number(arg.getValue());
-				var l = v.value.args.length;
+				var idx = Number(arg.getJSValue());
+				var l = v.valueLength();
+				// textareaAppend("DEBUG: setVariableByArgs: idx=" + idx + ", length=" + l + "\n");
 				if(idx < 0) idx += l;
-				if(idx >= 0 && idx < l) v.setValue(idx, newval.clone());
-				else throw new RuntimeError(loc.first_line, "配列の範囲を超えています");
+				// textareaAppend("DEBUG: setVariableByArgs: newval" + constructor_name(newval) + "\n");
+				if(idx >= 0 && idx < l) v.setValue(newval,idx);
+				else throw new RuntimeError(loc.first_line, "リストの範囲を超えています!");
 			}
-			else throw new RuntimeError(loc.first_line, "配列の添字は整数でなければなりません");
+			else throw new RuntimeError(loc.first_line, "リストの添字は整数でなければなりません");
 		}
 		else if(v instanceof DictionaryValue)
 		{
 			if(isPrimitive(arg))
 			{
-				var key = arg.getValue();
-				if(v.getValue().has(key)) v.setValue(key, newval.clone());
-				else throw new RuntimeError(loc.first_line, "辞書にキー"+key.args+"がありません");
+				v.setValue(newval, arg);
 			}
+			else throw new RuntimeError(loc.first_line, "辞書の添字は単純型でなければなりません");
 		}
 		else if(v instanceof StringValue)
 		{
@@ -3408,24 +3384,32 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			{
 				if(arg instanceof IntValue)
 				{
-					var idx = Number(arg.getValue().args);
-					var l = v.value.args.length;
+					var s = v.getJSValue();
+					var idx = Number(arg.getJSValue());
+					var l = s.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) 
-					v = new StringValue(s.substring(0, idx) + newval.getValue() + s.substring(idx + 1), loc);
+					if(idx >= 0 && idx < l)
+					{
+						s = s.substring(0, idx) + newval.getJSValue() + s.substring(idx + 1);
+						v = new StringValue([s], loc, s);
+					} 
 					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えています");
 				}
 				else if(arg instanceof SliceValue)
 				{
-					var idx1 = Number(arg.getValue1().getValue().args);
-					var idx2 = Number(arg.getValue2().getValue().args);
-					var l = v.value.args.length;
+					var s = v.getJSValue();
+					var idx1 = Number(arg.getValue1().getJSValue());
+					var idx2 = Number(arg.getValue2().getJSValue());
+					var l = s.length;
 					if(!idx1) idx1 = 0;
 					if(!idx2) idx2 = l;
 					if(idx1 < 0) idx1 += l;
 					if(idx2 < 0) idx2 += l;
 					if(idx1 >= 0 && idx2 >= 0 && idx1 < l && idx2 <= l)
-						v = new StringValue(s.substring(0, idx1) + newval.getValue() + s.substring(idx2), loc);
+					{
+						s = s.substring(0, idx1) + newval.getJSValue() + s.substring(idx2);
+						v = new StringValue([s], loc, s);
+					}
 					else throw new RuntimeError(loc.first_line, "文字列の範囲を超えています");
 				}
 			}
@@ -3435,13 +3419,14 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 	}
 	else
 	{
+		// textareaAppend("DEBUG: setVariableByArgs: newval" + constructor_name(newval) + "\n");
 		vt.vars[vn] = newval;
 	}
 }
 
 /**
  * v[args]の値を取得する
- * @param {Variable} v 
+ * @param {Value} v
  * @param {Array<Value>} args 
  * @param {Location} loc 
  * @returns Value
@@ -3453,33 +3438,37 @@ function getValueByArgs(v, args, loc)
 	{
 		for(var i = 0; i < args.length; i++)
 		{
-			var arg = args._value[i];
-			if(val instanceof ArrayValue)
+			var arg = args[i];
+			if(v instanceof ArrayValue)
 			{
 				if(arg instanceof IntValue)
 				{
-					var idx = Number(arg.getValue());
-					var l = val.length;
+					var idx = Number(arg.getJSValue());
+					var l = v._value.length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) val = val._args[idx];
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
+					if(idx >= 0 && idx < l) v = v._value[idx];
+					else throw new RuntimeError(loc.first_line, "リストの範囲を超えてアクセスしました");
 				}
 				else if(arg instanceof SliceValue)
 				{
-					var idx1 = Number(arg.getValue1().getValue());
-					var idx2 = Number(arg.getValue2().getValue());
-					var l = val.length;
+					var idx1 = Number(arg.getValue1().getJSValue());
+					var idx2 = Number(arg.getValue2().getJSValue());
+					var l = v._value.length;
 					if(!idx1) idx1 = 0;
 					if(!idx2) idx2 = l;
 					if(idx1 < 0) idx1 += l;
 					if(idx2 < 0) idx2 += l;
 					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l)
 					{
-						var a = [];
-						for(var j = idx1; j < idx2; j++) a.push(val.getValue(j).clone());
-						val = new ArrayValue(a, loc);
+						var a = [], b = [];
+						for(var j = idx1; j < idx2; j++){
+							a.push(v.getValue(j).clone());
+							b.push(v.getValue(j));
+						}
+						v = new ArrayValue(a, loc);
+						v._value = b;
 					}
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えました");
+					else throw new RuntimeError(loc.first_line, "リストの範囲を超えました");
 				}
 				else throw new RuntimeError(loc.first_line, "リストの添字は整数かスライスです"
 					+ debug_mode ? (" (arg type: " + arg.constructor.name + ")") : ''
@@ -3489,9 +3478,9 @@ function getValueByArgs(v, args, loc)
 			{
 				if(isPrimitive(arg))
 				{
-					var key = arg.getValue();
-					if(v.getValue().args.has(key.args)) v = v.value.get(key.args);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+key.args+"がありません");
+					var key = arg.getJSValue();
+					if(v._value.has(key)) v = v._value.get(key);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+key+"がありません");
 				}
 				else throw new RuntimeError(loc.first_line, "辞書の添字は基本型です");
 			}
@@ -3499,28 +3488,143 @@ function getValueByArgs(v, args, loc)
 			{
 				if(arg instanceof IntValue)
 				{
-					var idx = Number(arg.getValue());
-					var l = val.length;
+					var idx = Number(arg.getJSValue());
+					var l = v.getJSValue().length;
 					if(idx < 0) idx += l;
-					if(idx >= 0 && idx < l) v = new StringValue(v.getValue()[idx], loc);
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えてアクセスしました");
+					if(idx >= 0 && idx < l) 
+					{
+						var s = v.getJSValue().charAt(idx);
+						v = new StringValue(s, loc);
+						v._value = s;
+					}
+					else throw new RuntimeError(loc.first_line, "リストの範囲を超えてアクセスしました");
 				}
 				else if(arg instanceof SliceValue)
 				{
-					var idx1 = Number(arg.getValue1().getValue());
-					var idx2 = Number(arg.getValue2().getValue());
-					var l = val.length;
+					var idx1 = Number(arg.getValue1().getJSValue());
+					var idx2 = Number(arg.getValue2().getJSValue());
+					var l = v.getJSValue().length;
 					if(!idx1) idx1 = 0;
 					if(!idx2) idx2 = l;
 					if(idx1 < 0) idx1 += l;
 					if(idx2 < 0) idx2 += l;
+					// textareaAppend("DEBUG: String slice idx1=" + idx1 + ", idx2=" + idx2 + ", length=" + l + "\n");
 					if(idx1 >= 0 && idx2 >= 0 && idx1 <= l && idx2 <= l)
-						v = new StringValue(v.getValue().substring(idx1, idx2), loc);
-					else throw new RuntimeError(loc.first_line, "配列の範囲を超えました");
+					{
+						var s = v.getJSValue().substring(idx1, idx2);
+						v = new StringValue(s, loc);
+						v._value = s;
+					}
+					else throw new RuntimeError(loc.first_line, "リストの範囲を超えました");
 				}
 				else throw new RuntimeError(loc.first_line, "文字列の添字は整数かスライスです");
 			}
 		}
 	}
-	return val;
+	return v.getValue();
+}
+
+function setCaller(statementlist, caller)
+{
+	for(let i = 0; i < statementlist.length; i++)
+	{
+		if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
+		if(statementlist[i].state) setCaller(statementlist[i].state, caller);
+		if(statementlist[i].blocks)
+		{
+			for(var j = 0; j < statementlist[i].blocks.length; j++)
+				setCaller(statementlist[i].blocks[j][1], caller);
+		}
+		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
+	}
+}
+
+function cloneStatementlist(statementlist)
+{
+	var rtnv = [];
+	for(let i = 0; i < statementlist.length; i++) if(statementlist[i]) rtnv.push(statementlist[i].clone());
+	return rtnv;
+}
+
+/**
+ * 
+ * @param {Value|Array|Map} v 
+ */
+function argsPyPEN(v)
+{
+	if(v instanceof Value) return v.argsPyPEN();
+	else if(v instanceof Array)
+	{
+		let ag = [];
+		for(let i = 0; i < v.length; i++)
+			ag.push(argsPyPEN(v[i]));
+		return '[' + ag.join(', ') + ']';
+	}
+	else if(v instanceof Map)
+	{
+		let ag = [];
+		for(let [key, value] of v)
+			ag.push(key + ': ' + argsPyPEN(value));
+		return '{' + ag.join(', ') + '}';
+	}
+}
+
+function argsPython(v)
+{
+	if(v instanceof Value) return v.argsPython();
+	else if(v instanceof Array)
+	{
+		let ag = [];
+		for(let i = 0; i < v.length; i++)
+			ag.push(argsPython(v[i]));
+		return '[' + ag.join(', ') + ']';
+	}
+	else if(v instanceof Map)
+	{
+		let ag = [];
+		for(let [key, value] of v)
+			ag.push(key + ': ' + argsPython(value));
+		return '{' + ag.join(', ') + '}';
+	}
+}
+
+function valueString(v)
+{
+	if(v instanceof Value) return v.valueString();
+	else if(v instanceof Array)
+	{
+		let ag = [];
+		for(let i = 0; i < v.length; i++)
+			ag.push(valueString(v[i]));
+		return '[' + ag.join(', ') + ']';
+	}
+	else if(v instanceof Map)
+	{
+		let ag = [];
+		for(let [key, value] of v)
+		{
+			if(typeof key === 'string') key = "'" + key + "'";
+			ag.push(key + ':' + valueString(value));
+		}
+		return '{' + ag.join(', ') + '}';
+	}
+}
+
+function valueCode(v)
+{
+	if(v instanceof Value) return v.valueCode();
+	else if(v instanceof Array)
+	{
+		let ag = [];
+		for(let i = 0; i < v.length; i++)
+			ag.push(valueCode(v[i]));
+		return '[' + ag.join(', ') + ']';
+	}
+	else if(v instanceof Map)
+	{
+		let ag = [];
+		for(let [key, value] of v)
+			ag.push(key + ': ' + valueCode(value));
+		return '{' + ag.join(', ') + '}';
+	}
 }

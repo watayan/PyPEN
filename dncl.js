@@ -183,10 +183,10 @@ case 40:
 this.$ = $$[$0];
 break;
 case 41:
-this.$ = new ArrayValue($$[$0-1], new Location(_$[$0-2], _$[$0]));
+this.$ = new ArrayValue($$[$0-1], new Location(_$[$0-2],_$[$0]));
 break;
 case 42:
-this.$ = new ArrayValue($$[$0-1], new Location(_$[$0-3], _$[$0]));
+this.$ = new ArrayValue($$[$0-1], new Location(_$[$0-3],_$[$0]));
 break;
 case 43:
 this.$ = new DictionaryValue($$[$0-1], new Location(_$[$0-2], _$[$0]));
@@ -198,40 +198,40 @@ case 45:
 this.$ = new NumberOf([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
 case 46:
-this.$ = new Assign([$$[$0-2], $$[$0], null], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], null, new Location(_$[$0-2],_$[$0]));
 break;
 case 47:
-this.$ = new Assign([$$[$0-2], $$[$0], '+'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '+', new Location(_$[$0-2],_$[$0]));
 break;
 case 48:
-this.$ = new Assign([$$[$0-2], $$[$0], '-'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '-', new Location(_$[$0-2],_$[$0]));
 break;
 case 49:
-this.$ = new Assign([$$[$0-2], $$[$0], '*'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '*', new Location(_$[$0-2],_$[$0]));
 break;
 case 50:
-this.$ = new Assign([$$[$0-2], $$[$0], '/'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '/', new Location(_$[$0-2],_$[$0]));
 break;
 case 51:
-this.$ = new Assign([$$[$0-2], $$[$0], '//'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '//', new Location(_$[$0-2],_$[$0]));
 break;
 case 52:
-this.$ = new Assign([$$[$0-2], $$[$0], '%'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '%', new Location(_$[$0-2],_$[$0]));
 break;
 case 53:
-this.$ = new Assign([$$[$0-2], $$[$0], '&'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '&', new Location(_$[$0-2],_$[$0]));
 break;
 case 54:
-this.$ = new Assign([$$[$0-2], $$[$0], '|'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '|', new Location(_$[$0-2],_$[$0]));
 break;
 case 55:
-this.$ = new Assign([$$[$0-2], $$[$0], '^'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '^', new Location(_$[$0-2],_$[$0]));
 break;
 case 56:
-this.$ = new Assign([$$[$0-2], $$[$0], '<<'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '<<', new Location(_$[$0-2],_$[$0]));
 break;
 case 57:
-this.$ = new Assign([$$[$0-2], $$[$0], '>>'], new Location(_$[$0-2],_$[$0]));
+this.$ = new Assign($$[$0-2], $$[$0], '>>', new Location(_$[$0-2],_$[$0]));
 break;
 case 58:
 $$[$0-3].extend($$[$0-1]); this.$ = $$[$0-3];
@@ -255,19 +255,19 @@ case 64:
 this.$ = new SliceValue([$$[$0-2], $$[$0]], new Location(_$[$0-2],_$[$0]));
 break;
 case 65: case 66:
-this.$ = $$[$0-2].concat($$[$0]);
+$$[$0-2].push($$[$0]);this.$ = $$[$0-2];
 break;
 case 67: case 68:
-this.$ = $$[$0-3].concat($$[$0]);
+$$[$0-3].push($$[$0]);this.$ = $$[$0-3];
 break;
 case 69:
 this.$ = $$[$0-2];
 break;
 case 71: case 72:
- this.$ = [$$[$0]];
+ this.$ = [$$[$0]]
 break;
 case 73:
- this.$ = [];
+ this.$ = []
 break;
 case 74:
  if($$[$0] != null) this.$ = $$[$0-1].concat($$[$0]);

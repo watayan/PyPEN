@@ -344,27 +344,29 @@ e
 	| '真偽' '(' e ')' {$$ = new ConvertBool([$3], new Location(@1, @4));}
 	| '識別子' '(' args ')' {$$ = new CallFunction([$1, $3], new Location(@1,@4));}
 	| variable		{$$ = $1;}
-	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1, @3));}
-	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1, @4));}
+	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1,@3));}
+	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1,@4));}
+//	| '[' args ']'	{$$ = $2;}
+//	| '[' '改行' args ']'	{$$ = $3;}
 	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
 	| '{' '改行' args '}'	{$$ = new DictionaryValue($3, new Location(@1, @4));}
 	| e '個の' e	{$$ = new NumberOf([$1, $3], new Location(@1, @3));}
-	| e '=' e		{$$ = new Assign([$1, $3, null], new Location(@1,@3));}
-	| e '+=' e		{$$ = new Assign([$1, $3, '+'], new Location(@1,@3));}
-	| e '-=' e		{$$ = new Assign([$1, $3, '-'], new Location(@1,@3));}
-	| e '*=' e		{$$ = new Assign([$1, $3, '*'], new Location(@1,@3));}
-	| e '/=' e		{$$ = new Assign([$1, $3, '/'], new Location(@1,@3));}
-	| e '//=' e		{$$ = new Assign([$1, $3, '//'], new Location(@1,@3));}
-	| e '%=' e		{$$ = new Assign([$1, $3, '%'], new Location(@1,@3));}
-	| e '&=' e		{$$ = new Assign([$1, $3, '&'], new Location(@1,@3));}
-	| e '|=' e		{$$ = new Assign([$1, $3, '|'], new Location(@1,@3));}
-	| e '^=' e		{$$ = new Assign([$1, $3, '^'], new Location(@1,@3));}
-	| e '<<=' e		{$$ = new Assign([$1, $3, '<<'], new Location(@1,@3));}
-	| e '>>=' e		{$$ = new Assign([$1, $3, '>>'], new Location(@1,@3));}
+	| e '=' e		{$$ = new Assign($1, $3, null, new Location(@1,@3));}
+	| e '+=' e		{$$ = new Assign($1, $3, '+', new Location(@1,@3));}
+	| e '-=' e		{$$ = new Assign($1, $3, '-', new Location(@1,@3));}
+	| e '*=' e		{$$ = new Assign($1, $3, '*', new Location(@1,@3));}
+	| e '/=' e		{$$ = new Assign($1, $3, '/', new Location(@1,@3));}
+	| e '//=' e		{$$ = new Assign($1, $3, '//', new Location(@1,@3));}
+	| e '%=' e		{$$ = new Assign($1, $3, '%', new Location(@1,@3));}
+	| e '&=' e		{$$ = new Assign($1, $3, '&', new Location(@1,@3));}
+	| e '|=' e		{$$ = new Assign($1, $3, '|', new Location(@1,@3));}
+	| e '^=' e		{$$ = new Assign($1, $3, '^', new Location(@1,@3));}
+	| e '<<=' e		{$$ = new Assign($1, $3, '<<', new Location(@1,@3));}
+	| e '>>=' e		{$$ = new Assign($1, $3, '>>', new Location(@1,@3));}
 	;
 
 variable
-	: variable '[' args ']' {$1.extend($3); $$ = $1;}
+	: variable '[' args ']' {$1.append($3); $$ = $1;}
 	| '識別子' {$$ = new Variable([toHalf($1, @1)], new Location(@1, @1));}
 	| UNDEFINED	{$$ = new UNDEFINED([yytext], new Location(@1,@1));}
 	;
@@ -375,17 +377,29 @@ slice
 	| e ':' {$$ = new SliceValue([$1, new NullValue(@1)], new Location(@1,@1));}
 	| e ':' e {$$ = new SliceValue([$1, $3], new Location(@1,@3));}
 	;
-
+/*
 args
-	: args 'COMMA' e {$$ = $1.concat($3);}
-	| args 'COMMA' slice {$$ = $1.concat($3);}
-	| args 'COMMA' '改行' e {$$ = $1.concat($4);}
-	| args 'COMMA' '改行' slice {$$ = $1.concat($4);}
+	: args 'COMMA' e {$1.append($3);$$ = $1;}
+	| args 'COMMA' slice {$1.append($3);$$ = $1;}
+	| args 'COMMA' '改行' e {$1.append($4);$$ = $1;}
+	| args 'COMMA' '改行' slice {$1.append($4);$$ = $1;}
 	| args 'COMMA' '改行' {$$ = $1;}
 	| args 'COMMA'  {$$ = $1;}
-	| e { $$ = [$1];}
-	| slice { $$ = [$1];}
-	|   { $$ = [];}
+	| e { $$ = new ArrayValue([$1], new Location(@1,@1));}
+	| slice { $$ = new ArrayValue([$1], new Location(@1,@1));}
+	|   { $$ = new ArrayValue([], new Location(@1,@1));}
+	;
+*/
+args
+	: args 'COMMA' e {$1.push($3);$$ = $1;}
+	| args 'COMMA' slice {$1.push($3);$$ = $1;}
+	| args 'COMMA' '改行' e {$1.push($4);$$ = $1;}
+	| args 'COMMA' '改行' slice {$1.push($4);$$ = $1;}
+	| args 'COMMA' '改行' {$$ = $1;}
+	| args 'COMMA'  {$$ = $1;}
+	| e { $$ = [$1]}
+	| slice { $$ = [$1]}
+	|   { $$ = []}
 	;
 
 statements
