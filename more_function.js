@@ -138,11 +138,11 @@ var functions = {
 	}),
     "max": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue()._value;
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue().getJSValue();
         var max_val = new NullValue(loc), val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
-            var val = par[i];
+            var val = par[i].getValue();
             if(val instanceof IntValue)
             {
                 if(val_type == 0) 
@@ -182,11 +182,11 @@ var functions = {
     }, null, null),
     "min": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue()._value;
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue().getJSValue();
         var min_val = new NullValue(loc), val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
-            var val = par[i];
+            var val = par[i].getValue();
             if(val instanceof IntValue)
             {
                 if(val_type == 0) 
@@ -226,7 +226,7 @@ var functions = {
     }, null, null),
     "median": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
         var nums = [];
         for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getJSValue()));
         if(nums.length == 0) return new NullValue(loc);
@@ -272,7 +272,7 @@ var functions = {
     }, null, null),
     "pvariance": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
         var mean = functions["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length == 0) throw new RuntimeError(loc.first_line, "空のリストでは分散は計算できません");
@@ -284,7 +284,7 @@ var functions = {
     }, null, null),
     "variance": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
         var mean = functions["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは分散は計算できません");
@@ -295,31 +295,31 @@ var functions = {
         return new FloatValue([sum / (par.length - 1)], loc, sum / (par.length - 1));
     }, null, null),
     "pstdev": new DefinedFunction(-1, function(param, loc){
-        var s = functions["pvariance"].func(param, loc).getValue()._value;
+        var s = functions["pvariance"].func(param, loc).getValue().getJSValue();
         return new FloatValue([Math.sqrt(s)], loc, Math.sqrt(s));
     }, null, null),
     "stdev": new DefinedFunction(-1, function(param, loc){
-        var s = functions["variance"].func(param, loc).getValue()._value;
+        var s = functions["variance"].func(param, loc).getValue().getJSValue();
         return new FloatValue([Math.sqrt(s)], loc, Math.sqrt(s));
     }, null, null),
     "pcovariance": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1._value.length == par2._value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.getJSValue().length == par2.getJSValue().length)
         {
-            var n = par1._value.length;
+            var n = par1.getJSValue().length;
             if(n == 0) throw new RuntimeError(loc.first_line, "空のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func(par1._value, loc).getValue()._value,
-                m2 = functions["average"].func(par2._value, loc).getValue()._value;
+            var m1 = functions["average"].func(par1.getJSValue(), loc).getValue().getJSValue(),
+                m2 = functions["average"].func(par2.getJSValue(), loc).getValue().getJSValue();
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
-                if(par1._value[i] instanceof IntValue || par1._value[i] instanceof FloatValue)
-                    val1 = Number(par1._value[i].getValue()._value);
+                if(par1.getJSValue()[i] instanceof IntValue || par1.getJSValue()[i] instanceof FloatValue)
+                    val1 = Number(par1.getJSValue()[i].getValue().getJSValue());
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
-                if(par2._value[i] instanceof IntValue || par2._value[i] instanceof FloatValue)
-                    val2 = Number(par2._value[i].getValue()._value);
+                if(par2.getJSValue()[i] instanceof IntValue || par2.getJSValue()[i] instanceof FloatValue)
+                    val2 = Number(par2.getJSValue()[i].getValue().getJSValue());
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
                 s += (val1 - m1) * (val2 - m2);
             }
@@ -330,21 +330,21 @@ var functions = {
     "covariance": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1._value.length == par2._value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.getJSValue().length == par2.getJSValue().length)
         {
-            var n = par1._value.length;
+            var n = par1.getJSValue().length;
             if(n < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func(par1._value, loc).getValue()._value,
-                m2 = functions["average"].func(par2._value, loc).getValue()._value;
+            var m1 = functions["average"].func(par1.getJSValue(), loc).getValue().getJSValue(),
+                m2 = functions["average"].func(par2.getJSValue(), loc).getValue().getJSValue();
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
-                if(par1._value[i] instanceof IntValue || par1._value[i] instanceof FloatValue)
-                    val1 = Number(par1._value[i].getValue()._value);
+                if(par1.getJSValue()[i] instanceof IntValue || par1.getJSValue()[i] instanceof FloatValue)
+                    val1 = Number(par1.getJSValue()[i].getValue().getJSValue());
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
-                if(par2._value[i] instanceof IntValue || par2._value[i] instanceof FloatValue)
-                    val2 = Number(par2._value[i].getValue()._value);
+                if(par2.getJSValue()[i] instanceof IntValue || par2.getJSValue()[i] instanceof FloatValue)
+                    val2 = Number(par2.getJSValue()[i].getValue().getJSValue());
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
                 s += (val1 - m1) * (val2 - m2);
             }
@@ -355,11 +355,11 @@ var functions = {
     "correl": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1._value.length == par2._value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.getJSValue().length == par2.getJSValue().length)
         {
             var c = functions["pcovariance"].func([par1, par2], loc).getValue()._value;
-            var s1 = functions["pstdev"].func(par1._value, loc).getValue()._value;
-            var s2 = functions["pstdev"].func(par2._value, loc).getValue()._value;
+            var s1 = functions["pstdev"].func(par1.getJSValue(), loc).getValue()._value;
+            var s2 = functions["pstdev"].func(par2.getJSValue(), loc).getValue()._value;
             if(s1 == 0.0 || s2 == 0.0) throw new RuntimeError(loc.first_line, "標準偏差が0なので相関係数が計算できません");
             return new FloatValue([c / s1 / s2], loc, c / s1 / s2);
             }
