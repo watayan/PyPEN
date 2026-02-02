@@ -235,15 +235,15 @@ button{
 .CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #d7d4f0 !important; }
 
 /* 入力支援ボタンを不可視にするには，下の「この行を消す」の2行を削除する（間の3行はそのまま） */
-/* この行を消す */
+/* この行を消す 
 div#EditButtons {
     display: none;
 }
-/*   この行を消す */
+   この行を消す */
 
 /* ファイル操作欄を不可視にするには，下の「この行を消す」の2行を削除する（間の3行はそのまま） */
-/* この行を消す*/
+/* この行を消す
 div#Storage_area {
     display: none;
 }
-/*   この行を消す */
+   この行を消す */

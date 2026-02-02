@@ -31,8 +31,8 @@ class GraphicStatement extends Statement
 			{
 				var canvas = document.getElementById('canvas');
 				context = canvas.getContext('2d');
-				canvas.setAttribute("width", Number(this.args[0].getValue().value) + "px");
-				canvas.setAttribute("height", Number(this.args[1].getValue().value) + "px");
+				canvas.setAttribute("width", Number(this.args[0].getJSValue()) + "px");
+				canvas.setAttribute("height", Number(this.args[1].getJSValue()) + "px");
 				canvas.style.display="block";
 			}
 			else if(this.command == 'gCloseWindow')
@@ -49,44 +49,44 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gSetLineColor')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let r = Number(this.args[0].getValue().value), g = Number(this.args[1].getValue().value), b = Number(this.args[2].getValue().value);
+				let r = Number(this.args[0].getJSValue()), g = Number(this.args[1].getJSValue()), b = Number(this.args[2].getJSValue());
 				context.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
 			}
 			else if(this.command == 'gSetFillColor')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let r = Number(this.args[0].getValue().value), g = Number(this.args[1].getValue().value), b = Number(this.args[2].getValue().value);
+				let r = Number(this.args[0].getJSValue()), g = Number(this.args[1].getJSValue()), b = Number(this.args[2].getJSValue());
 				context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
 			}
 			else if(this.command == 'gSetTextColor')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let r = Number(this.args[0].getValue().value), g = Number(this.args[1].getValue().value), b = Number(this.args[2].getValue().value);
+				let r = Number(this.args[0].getJSValue()), g = Number(this.args[1].getJSValue()), b = Number(this.args[2].getJSValue());
 				context.textStyle = "rgb(" + r + "," + g + "," + b + ")";
 			}
 			else if(this.command == 'gSetLineWidth')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				context.lineWidth = Number(this.args[0].getValue().value);
+				context.lineWidth = Number(this.args[0].getJSValue());
 			}
 			else if(this.command == 'gSetFontSize')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				context.font = Number(this.args[0].getValue().value) + "px 'sans-serif'";
+				context.font = Number(this.args[0].getJSValue()) + "px 'sans-serif'";
 			}
 			else if(this.command == 'gDrawText')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
 				var temp = context.fillStyle;
 				context.fillStyle = context.textStyle;
-				context.fillText(this.args[0].getValue().value, Number(this.args[1].getValue().value), Number(this.args[2].getValue().value));
+				context.fillText(this.args[0].getJSValue(), Number(this.args[1].getJSValue()), Number(this.args[2].getJSValue()));
 				context.fillStyle = temp;
 			}
 			else if(this.command == 'gDrawLine')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value),
-					x2 = Number(this.args[2].getValue().value), y2 = Number(this.args[3].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()),
+					x2 = Number(this.args[2].getJSValue()), y2 = Number(this.args[3].getJSValue());
 				context.beginPath();
 				context.moveTo(x1, y1);
 				context.lineTo(x2, y2);
@@ -95,7 +95,7 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gDrawPoint')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = numthis.args[0].getValue().value, y1 = this.args[1].getValue().value;
+				let x1 = numthis.args[0].getJSValue(), y1 = this.args[1].getJSValue();
 				context.beginPath();
 				context.arc(x1, y1, 1, 0, Math.PI * 2, false);
 				context.stroke();
@@ -103,8 +103,8 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gDrawBox')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value),
-					width = Number(this.args[2].getValue().value), height = Number(this.args[3].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()),
+					width = Number(this.args[2].getJSValue()), height = Number(this.args[3].getJSValue());
 				context.beginPath();
 				context.strokeRect(x1, y1, width, height);
 				context.stroke();
@@ -112,8 +112,8 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gFillBox')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value),
-					width = Number(this.args[2].getValue().value), height = Number(this.args[3].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()),
+					width = Number(this.args[2].getJSValue()), height = Number(this.args[3].getJSValue());
 				context.fillRect(x1, y1, width, height);
 				context.beginPath();
 				context.strokeRect(x1, y1, width, height);
@@ -122,7 +122,7 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gDrawCircle')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value), r = Number(this.args[2].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()), r = Number(this.args[2].getJSValue());
 				context.beginPath();
 				context.arc(x1, y1, r, 0, Math.PI * 2, false);
 				context.stroke();
@@ -130,7 +130,7 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gFillCircle')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value), r = Number(this.args[2].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()), r = Number(this.args[2].getJSValue());
 				for(var i = 0; i < 2; i++)
 				{
 					context.beginPath();
@@ -142,7 +142,7 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gDrawOval')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value), w = Number(this.args[2].getValue().value), h = Number(this.args[3].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()), w = Number(this.args[2].getJSValue()), h = Number(this.args[3].getJSValue());
 				context.beginPath();
 				context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
 				context.stroke();
@@ -150,7 +150,7 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gFillOval')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value), w = Number(this.args[2].getValue().value), h = Number(this.args[3].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()), w = Number(this.args[2].getJSValue()), h = Number(this.args[3].getJSValue());
 				for(var i = 0; i < 2; i++)
 				{
 					context.beginPath();
@@ -162,8 +162,8 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gDrawArc')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value), w = Number(this.args[2].getValue().value), h = Number(this.args[3].getValue().value),
-					theta1 = Number(this.args[4].getValue().value), theta2 = Number(this.args[5].getValue().value), style = Number(this.args[6].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()), w = Number(this.args[2].getJSValue()), h = Number(this.args[3].getJSValue()),
+					theta1 = Number(this.args[4].getJSValue()), theta2 = Number(this.args[5].getJSValue()), style = Number(this.args[6].getJSValue());
 				context.beginPath();
 				context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, -theta1 * Math.PI / 180, -theta2 * Math.PI / 180, true);
 				switch(style)
@@ -179,8 +179,8 @@ class GraphicStatement extends Statement
 			else if(this.command == 'gFillArc')
 			{
 				if(context == null) throw new RuntimeError(this.first_line, "描画領域がありません");
-				let x1 = Number(this.args[0].getValue().value), y1 = Number(this.args[1].getValue().value), w = Number(this.args[2].getValue().value), h = Number(this.args[3].getValue().value),
-					theta1 = Number(this.args[4].getValue().value), theta2 = Number(this.args[5].getValue().value), style = Number(this.args[6].getValue().value);
+				let x1 = Number(this.args[0].getJSValue()), y1 = Number(this.args[1].getJSValue()), w = Number(this.args[2].getJSValue()), h = Number(this.args[3].getJSValue()),
+					theta1 = Number(this.args[4].getJSValue()), theta2 = Number(this.args[5].getJSValue()), style = Number(this.args[6].getJSValue());
 				for(var i = 0; i < 2; i++)
 				{
 					context.beginPath();
@@ -202,8 +202,8 @@ class GraphicStatement extends Statement
 				if(context == null)
 				{
 					var canvas = document.getElementById('canvas');
-					var w = Number(this.args[0].getValue().value), 
-						h = Number(this.args[1].getValue().value);
+					var w = Number(this.args[0].getJSValue()), 
+						h = Number(this.args[1].getJSValue());
 					context = canvas.getContext('2d');
 					canvas.setAttribute("width", w + "px");
 					canvas.setAttribute("height", h + "px");
@@ -258,7 +258,7 @@ class GraphicStatement extends Statement
 				if(context == null)
 				{
 					var canvas = document.getElementById('canvas');
-					var w = Number(this.args[0].getValue().value), h = Number(this.args[1].getValue().value);
+					var w = Number(this.args[0].getJSValue()), h = Number(this.args[1].getJSValue());
 					context = canvas.getContext('2d');
 					canvas.setAttribute("width", w + "px");
 					canvas.setAttribute("height", h + "px");

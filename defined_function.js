@@ -616,10 +616,10 @@ var definedFunction = {
 		}
 		else this.throwRuntimeError("putline", "呼び出しが不正です");
 	}, null, function(argc){
-		var str = argc[1].makePython();
+		var str = argsPython(argc[1]);
 		if(!(argc[1] instanceof StringValue))
 			str = 'str(' + str + ')';
-		return argc[0].makePython() + '.write(' + str + " + '\n')";
+		return argsPython(argc[0]) + '.write(' + str + " + '\n')";
 	}),
 	"putstr": new DefinedFunction(2, function(param, loc){
 		var par1 = param[0].getValue();
@@ -633,10 +633,10 @@ var definedFunction = {
 		}
 		else this.throwRuntimeError("putstr", "呼び出しが不正です");
 	}, null, function(argc){
-		var str = argc[1].makePython();
+		var str = argsPython(argc[1]);
 		if(!(argc[1] instanceof StringValue))
 			str = 'str(' + str + ')';
-		return argc[0].makePython() + '.write(' + str + ")";
+		return argsPython(argc[0]) + '.write(' + str + ")";
 	}),
 	"close": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
@@ -648,7 +648,7 @@ var definedFunction = {
 		}
 		else this.throwRuntimeError("close", "呼び出しが不正です");
 	}, null, function(argc){
-		return argc[0].makePython() + '.close()\n';
+		return argsPython(argc[0]) + '.close()\n';
 	}),
 	"pop": new DefinedFunction(1, function(param, loc){
 		var par1 = param[0].getValue();
@@ -684,7 +684,7 @@ var definedFunction = {
 		}
 		else this.throwRuntimeError("push", "pushは配列にしか使えません");
 	}, null, function(argc){
-		return argc[0].makePython() + '.append(' + argc[1].makePython() + ')\n';
+		return argsPython(argc[0]) + '.append(' + argsPython(argc[1]) + ')\n';
 	}),
 	"unshift": new DefinedFunction(2, function(param, loc){
 		var par1 = param[0].getValue();
@@ -696,6 +696,6 @@ var definedFunction = {
 		}
 		else this.throwRuntimeError("unshift", "unshiftは配列にしか使えません");
 	}, null, function(argc){
-		return argc[0].makePython() + '.insert(0, ' + argc[1].makePython() + ')\n';
+		return argsPython(argc[0]) + '.insert(0, ' + argsPython(argc[1]) + ')\n';
 	}),
 };

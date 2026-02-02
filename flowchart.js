@@ -221,7 +221,8 @@ class Flowchart
 				var c = constructor_name(p.value);
 				var brace = false;
 				// if(c == 'Compare'){brace = true;}
-				p1.setValue(p.variable.getCode(), (brace ? '(' : '') + p.value.getCode() + (brace ? ')' : ''), p.operator);
+				p1.setValue(argsPyPEN(p.variable), 
+					(brace ? '(' : '') + argsPyPEN(p) + (brace ? ')' : ''), p.operator);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -229,7 +230,7 @@ class Flowchart
 			{
 				var p1 = new Parts_Append();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.variable.getCode(), p.value.getCode());
+				p1.setValue(argsPyPEN(p.variable), argsPyPEN(p.value));
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -237,7 +238,7 @@ class Flowchart
 			{
 				var p1 = new Parts_Extend();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.variable.getCode(), p.value.getCode());
+				p1.setValue(argsPyPEN(p.variable), argsPyPEN(p.value));
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -245,7 +246,7 @@ class Flowchart
 			{
 				var p1 = new Parts_Input();
 				var b1 = new Parts_Bar();
-				p1.setValue(p.varname.getCode(), p.type);
+				p1.setValue(argsPyPEN(p.variable), p.type);
 				parts.next = p1;
 				parts = p1.next = b1;
 			}
@@ -254,7 +255,7 @@ class Flowchart
 				var p1 = new Parts_Output();
 				var b1 = new Parts_Bar();
 				var v0 = []
-				for(var j = 0; j < p.value.length; j++) v0.push(p.value[j].getCode());
+				for(var j = 0; j < p.value.length; j++) v0.push(argsPyPEN(p.value[j]));
 				p1.setValue(v0.join(','), p.ln);
 				parts.next = p1;
 				parts = p1.next = b1;
@@ -272,7 +273,7 @@ class Flowchart
 				var p1 = new Parts_If();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar(), b3 = new Parts_Bar();
 				var n1 = new Parts_Null(), n2 = new Parts_Null(), n3 = new Parts_Null();
-				p1.setValue(p.blocks[0][0].getCode());
+				p1.setValue(argsPyPEN(p.blocks[0][0]));
 				parts.next = p1;
 				p1.next = n1; n1.next = b1;
 				p1.left = b2; b2._prev = p1; b2.next = n2;
@@ -292,7 +293,7 @@ class Flowchart
 			{
 				var p1 = new Parts_LoopBeginInc(), p2 = new Parts_LoopEnd();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
-				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				p1.setValue(argsPyPEN(p.variable), argsPyPEN(p.begin), argsPyPEN(p.end), argsPyPEN(p.step));
 				parts.next = p1; 
 				p1.next = b1; b1.next = p2; p2.next = b2;
 				p1._end = p2; p2._begin = p1;
@@ -303,7 +304,7 @@ class Flowchart
 			{
 				var p1 = new Parts_LoopBeginDec(), p2 = new Parts_LoopEnd();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
-				p1.setValue(p.varname.getCode(), p.begin.getCode(), p.end.getCode(), p.step.getCode());
+				p1.setValue(argsPyPEN(p.variable), argsPyPEN(p.begin), argsPyPEN(p.end), argsPyPEN(p.step));
 				parts.next = p1; 
 				p1.next = b1; b1.next = p2; p2.next = b2;
 				p1._end = p2; p2._begin = p1;
@@ -314,7 +315,7 @@ class Flowchart
 			{
 				var p1 = new Parts_LoopBeginFor(), p2 = new Parts_LoopEnd();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
-				p1.setValue(p.array.getCode(), p.variable.getCode());
+				p1.setValue(argsPyPEN(p.array), argsPyPEN(p.variable));
 				parts.next = p1; 
 				p1.next = b1; b1.next = p2; p2.next = b2;
 				p1._end = p2; p2._begin = p1;
@@ -325,7 +326,7 @@ class Flowchart
 			{
 				var p1 = new Parts_LoopBegin1(), p2 = new Parts_LoopEnd();
 				var b1 = new Parts_Bar(), b2 = new Parts_Bar();
-				p1.setValue(p.condition.getCode());
+				p1.setValue(argsPyPEN(p.condition));
 				parts.next = p1; 
 				p1.next = b1; b1.next = p2; p2.next = b2;
 				p1._end = p2; p2._begin = p1;
@@ -513,12 +514,6 @@ class Parts
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
 	}
-    static makeIndent(indent_level)
-    {
-        var s = "";
-        for(var i = 0; i < indent_level; i++) s += "    ";
-        return s;
-    }
 	editMe()
 	{
 
@@ -746,7 +741,7 @@ class Parts_Output extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		if(this.text == '改行') code += '改行する\n';
 		else code += (this.newline ? "" : "改行なしで") + "表示する(" + this.text +")\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
@@ -835,7 +830,7 @@ class Parts_Input extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.var;
 		if(this.type > 0) code += "に" + nameOfType[this.type]; 
 		code += "を入力する\n";
@@ -929,7 +924,7 @@ class Parts_Substitute extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.var + (this.operator ? this.operator : "") + "=" + this.val + "\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
@@ -1020,7 +1015,7 @@ class Parts_Append extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.var + "に" + this.val + "を追加する\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
@@ -1110,7 +1105,7 @@ class Parts_Extend extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.var + "に" + this.val + "を連結する\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;
@@ -1293,13 +1288,13 @@ class Parts_If extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += "もし" + this.condition + "ならば：\n";
-		if(this.left.next instanceof Parts_Null) code += Parts.makeIndent(indent + 1) + "\n";
+		if(this.left.next instanceof Parts_Null) code += makeIndent(indent + 1) + "\n";
 		else code += this.left.appendCode('', indent + 1);
 		if(!(this.right.next instanceof Parts_Null))
 		{
-			code += Parts.makeIndent(indent) + "そうでなければ：\n"
+			code += makeIndent(indent) + "そうでなければ：\n"
 			code += this.right.appendCode('', indent + 1);
 		}
 
@@ -1458,10 +1453,10 @@ class Parts_LoopBegin1 extends Parts_LoopBegin
 
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.condition + "の間：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
-		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
+		if(code_inner == '') code += makeIndent(indent + 1) + "\n";
 		else code += code_inner;
 
 		if(this.end.next != null) return this.end.next.appendCode(code, indent);
@@ -1515,10 +1510,10 @@ class Parts_LoopBeginFor extends Parts_LoopBegin
 
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.array +"の要素" + this.variable + "について繰り返す：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
-		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
+		if(code_inner == '') code += makeIndent(indent + 1) + "\n";
 		else code += code_inner;
 
 		if(this.end.next != null) return this.end.next.appendCode(code, indent);
@@ -1580,10 +1575,10 @@ class Parts_LoopBeginInc extends Parts_LoopBegin
 
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.var +"を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ増やしながら：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
-		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
+		if(code_inner == '') code += makeIndent(indent + 1) + "\n";
 		else code += code_inner;
 
 		if(this.end.next != null) return this.end.next.appendCode(code, indent);
@@ -1644,10 +1639,10 @@ class Parts_LoopBeginDec extends Parts_LoopBegin
 
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.var +"を" + this.start + "から" + this.goal + "まで" + this.step + "ずつ減らしながら：\n";
 		var code_inner = this.next.appendCode('', indent + 1);
-		if(code_inner == '') code += Parts.makeIndent(indent + 1) + "\n";
+		if(code_inner == '') code += makeIndent(indent + 1) + "\n";
 		else code += code_inner;
 
 		if(this.end.next != null) return this.end.next.appendCode(code, indent);
@@ -1863,7 +1858,7 @@ class Parts_Misc extends Parts
 	{
 		this._identifier = identifier;
 		this._values = [];
-		for(var i = 0; i < values.length; i++) this._values.push(values[i].getCode());
+		for(var i = 0; i < values.length; i++) this._values.push(values[i].argsPyPEN());
 		for(var i = 0; i < misc_menu.length; i++)
 		{
 			if(this._identifier != misc_menu[i][1]) continue;
@@ -1948,7 +1943,7 @@ class Parts_Misc extends Parts
 	}
 	appendCode(code, indent)
 	{
-		code += Parts.makeIndent(indent);
+		code += makeIndent(indent);
 		code += this.text + "\n";
 		if(this.next != null) return this.next.appendCode(code, indent);
 		return code;

@@ -591,27 +591,31 @@ class UNDEFINED extends PrimitiveValue	// 未完成のプログラム用
 	}
 	clone()
 	{
-		return new UNDEFINED(this.getArgs(), this.getLoc(), this._value);
+		return new UNDEFINED(this.getArgs(), this.getLoc(), this.getArgs(0));
+	}
+	run()
+	{
+		this.throwRuntimeError("未完成のプログラムです");
 	}
 	copy()
 	{
-		return new UNDEFINED([this._value], this.getLoc(), this._value);
+		return new UNDEFINED([this.getArgs(0)], this.getLoc(), this.getArgs(0));
 	}
 	argsPyPEN()
-	{
-		return this.getArgs().argsPyPEN();
+	{	
+		return this.getArgs(0);
 	}
 	argsPython()
 	{
-		return this.getArgs().argsPython();
+		return this.getArgs(0);
 	}
 	valueCode()
 	{
-		this.throwRuntimeError("未完成のプログラムです");
+		return this.getArgs(0);
 	}
 	valueString()
 	{
-		this.throwRuntimeError("未完成のプログラムです");
+		return this.getArgs(0);
 	}
 }
 
@@ -1164,16 +1168,16 @@ class Pow extends SimpleValue
 			+ '**'
 			+ (brace2 ? '(' : '') + v2.getCode() + (brace2 ? ')' : '')
 	}
-	makePython()
+	argsPython()
 	{
 		let v1 = this.getArgs()[0], v2 = this.getArgs()[1];
 		let c1 = constructor_name(v1), c2 = constructor_name(v2);
 		let brace1 = false, brace2 = false;
 		if(c1 == "Minus" || c1 == "Add" || c1 == "Sub" || c1 == "Mul" || c1 == "Div" || c1 == "DivInt" || c1 == "Mod") brace1 = true;
 		if(c2 == "Minus" || c2 == "Add" || c2 == "Sub" || c2 == "Mul" || c2 == "Div" || c2 == "DivInt" || c2 == "Mod") brace2 = true;
-		return (brace1 ? '(' : '') + v1.makePython() + (brace1 ? ')' : '')
+		return (brace1 ? '(' : '') + v1.argsPython() + (brace1 ? ')' : '')
 			+ ' ** '
-			+ (brace2 ? '(' : '') + v2.makePython() + (brace2 ? ')' : '')
+			+ (brace2 ? '(' : '') + v2.argsPython() + (brace2 ? ')' : '')
 	}
 }
 
@@ -2624,21 +2628,21 @@ class CallFunction extends SimpleValue
 		else
 			this.throwRuntimeError('関数 '+this.funcname+' は定義されていません');
 	}
-	argsPyPEN()
+	argsPyPEN(indent = 0)
 	{
 		let ag = [];
 		for(let i = 0; i < this.getArgs().length; i++)
 			ag.push(this.getArgs()[i].argsPyPEN());
-		return this.funcname + '(' + ag.join(', ') + ')';
+		return makeIndent(indent) + this.funcname + '(' + ag.join(', ') + ')';
 	}
-	argsPython()
+	argsPython(indent = 0)
 	{
 		let deffunc = null;
 		if(definedFunction[this.funcname]) deffunc = definedFunction[this.funcname];
 		else if(myFuncs[this.funcname]) deffunc = myFuncs[this.funcname];
 		let ag = [];
 		for(let i = 0; i < this.getArgs().length; i++)
-			ag.push(this.getArgs()[i].argsPython());
+			ag.push(this.getArgs()[i].argsPython(indent));
 		if(deffunc)
 		{
 			var prefix = '';
@@ -2647,11 +2651,11 @@ class CallFunction extends SimpleValue
 				prefix= deffunc.module + ".";
 				python_lib[deffunc.module] = 1;
 			}
-			if(deffunc.convert) return deffunc.convert(ag);
-			else return prefix + this.funcname + '(' + ag.join(', ') + ')';
+			if(deffunc.convert) return makeIndent(indent) + deffunc.convert(ag);
+			else return makeIndent(indent) + prefix + this.funcname + '(' + ag.join(', ') + ')';
 		}
 		else 
-			return this.funcname + '(' + ag.join(', ') + ')';
+			return makeIndent(indent) + this.funcname + '(' + ag.join(', ') + ')';
 	}
 }
 
@@ -2668,14 +2672,19 @@ class Connect extends Value
 	}
 	_makeValue()
 	{
-		let v1 = array2text(this.getArgs()[0].getValue());
-		let v2 = array2text(this.getArgs()[1].getValue());
+		let v1 = valueString(this.getArgs()[0]);
+		let v2 = valueString(this.getArgs()[1]);
 		let v = v1 + v2;
-		this.value = new StringValue([v], this.getLoc(), v);
+		this._value = new StringValue([v], this.getLoc(), v);
+	}
+	getValue()
+	{
+		if(this._value == null) this._makeValue();
+		return this._value;
 	}
 	argsPyPEN()
 	{
-		return this.getArgs()[0].getCode() + "と" + this.getArgs()[1].getCode();
+		return argsPyPEN(this.getArgs(0)) + "と" + argsPyPEN(this.getArgs(1));
 	}
 	argsPython()
 	{
@@ -2684,6 +2693,19 @@ class Connect extends Value
 		var p2 = this.getArgs()[1].argsPython();
 		if(!re.exec(p1) && !(this.getArgs()[0] instanceof StringValue)) p1 = "str(" + p1 + ")";
 		if(!re.exec(p2) && !(this.getArgs()[1] instanceof StringValue)) p2 = "str(" + p2 + ")";
+		return  p1 + " + " + p2;
+	}
+	valueString()
+	{
+		return this.getArgs()[0].valueString() + this.getArgs()[1].valueString();
+	}
+	valuePython()
+	{
+		var re=/^str\(/;
+		var p1 = this.getArgs()[0].valuePython();
+		var p2 = this.getArgs()[1].valuePython();
+		if(!re.exec(p1) && !(this.getArgs(0) instanceof StringValue)) p1 = "str(" + p1 + ")";
+		if(!re.exec(p2) && !(this.getArgs(1) instanceof StringValue)) p2 = "str(" + p2 + ")";
 		return  p1 + " + " + p2;
 	}
 }
@@ -3071,12 +3093,12 @@ class Assign extends SimpleValue
 		if(!(this._value instanceof Value)) this.throwRuntimeError("代入する値が不明です");
 		// this._value = this.getArgs()[0]._value;
 	}
-	makePython(indent)
+	argsPython(indent = 0)
 	{
-		var code = Parts.makeIndent(indent);
-		code += this._args[0].makePython() + " ";
-		if(this._args[2]) code += this._args[2];
-		code += "= " + this._args[1].makePython() + "\n";
+		var code = makeIndent(indent);
+		code += argsPython(this.variable) + " ";
+		if(this.operator) code += this.operator;
+		code += "= " + argsPython(this.getArgs(0));
 		return code;
 	}
 }
@@ -3362,7 +3384,7 @@ function argsPyPEN(v)
 			ag.push(key + ': ' + argsPyPEN(value));
 		return '{' + ag.join(', ') + '}';
 	}
-	else return v.toString();
+	else return v + '';
 }
 
 function argsPython(v)
@@ -3382,7 +3404,7 @@ function argsPython(v)
 			ag.push(key + ': ' + argsPython(value));
 		return '{' + ag.join(', ') + '}';
 	}
-	else return v.toString();
+	else return v + '';
 }
 
 function valueString(v)
@@ -3405,7 +3427,7 @@ function valueString(v)
 		}
 		return '{' + ag.join(', ') + '}';
 	}
-	else return v.toString();
+	else return v + '';
 }
 
 function valueCode(v)
@@ -3425,5 +3447,5 @@ function valueCode(v)
 			ag.push(key + ': ' + valueCode(value));
 		return '{' + ag.join(', ') + '}';
 	}
-	else return v.toString();
+	else return v + '';
 }

@@ -44,22 +44,22 @@ class parsedCode
 	 * @param {Array<Statement>} statementlist 
 	 */
 	constructor(statementlist){this.stack = [{statementlist:statementlist, index: 0}]}
-	makePython(){
+	argsPython(){
 		python_lib = {}	// クリアする
-		var code = ''
+		var code = []
 		var libs = '';
 		for(var i = 0; i < this.stack[0].statementlist.length; i++) // 関数・手続き宣言を先に
 		{
 			var state = this.stack[0].statementlist[i];
-			if(state && state instanceof DefineFunction) code += state.makePython(0) + "\n\n";
+			if(state && state instanceof DefineFunction) code.push(state.argsPython(0) + "\n");
 		}
 		for(var i = 0; i < this.stack[0].statementlist.length; i++)	// メインルーチン
 		{
 			var state = this.stack[0].statementlist[i];
-			if(state && !(state instanceof DefineFunction)) code += state.makePython(0);
+			if(state && !(state instanceof DefineFunction)) code.push(state.argsPython(0));
 		}
 		for(var lib in python_lib) libs += "import " + lib + "\n";
-		return libs + code;
+		return libs + code.join('\n');
 	}
 }
 
@@ -845,6 +845,11 @@ function font_size(updown)
 	editor.focus();
 }
 
+function makeIndent(indent_level)
+{
+	return '    '.repeat(indent_level);
+}
+
 function makePython()
 {
 	if(run_flag) return;
@@ -857,7 +862,7 @@ function makePython()
 		var code = editor.getDoc().getValue();
 		var dncl_code = python_to_dncl(code);
 		var main_routine = new parsedMainRoutine(dncl.parse(dncl_code));
-		var python_code = main_routine.makePython();
+		var python_code = main_routine.argsPython(0);
 		textareaClear();
 		textareaAppend(python_code);
 	}

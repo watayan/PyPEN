@@ -22,9 +22,9 @@ class Statement
 	 * 
 	 * @param {number} indent 
 	 */
-	makePython(indent)
+	argsPython(indent)
 	{
-		return Parts.makeIndent(indent);
+		return makeIndent(indent);
 	}
 	clone()
 	{
@@ -48,10 +48,10 @@ class ExitStatement extends Statement {
 		}
 		else throw new RuntimeError(this.first_line, "手続きの中ではありません");
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		code += "break\n";
+		var code = makeIndent(indent);
+		code += "break";
 		return code;
 	}
 }
@@ -73,25 +73,26 @@ class DefineFunction extends Statement {
 	run() {
 		code[0].stack[0].index++;
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
 		var code = "def ";
 		code += this.funcName + '(';
 		for(var i = 0; i < this.params.length; i++)
 		{
 			if(i > 0) code += ', ';
-			code += this.params[i].makePython();
+			code += this.params[i].argsPython(indent);
 		}
-		code += '):\n';
+		code += '):';
+		code = [code];
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
 			{
 				codes = 1;
-				code += this.statementlist[i].makePython(1);
+				code.push(this.statementlist[i].argsPython(indent + 1));
 			}
-		if(codes == 0) code += Parts.makeIndent(1) + "pass\n";
-		return code;
+		if(codes == 0) code.push(makeIndent(1) + "pass");
+		return code.join("\n");
 	}
 }
 
@@ -138,12 +139,12 @@ class ReturnStatement extends Statement {
 			this.state = 0;
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
+		var code = makeIndent(indent);
 		code += "return";
-		if(this.value) code += ' ' + this.value.makePython();
-		return code + "\n";
+		if(this.value) code += ' ' + this.value.argsPython();
+		return code;
 	}
 }
 
@@ -178,7 +179,7 @@ class DumpStatement extends Statement
 		dump();
 		code[0].stack[0].index++;
 	}
-	makePython()
+	argsPython()
 	{
 		return '';
 	}
@@ -241,10 +242,10 @@ class Append extends Statement
 			this.state = 0;
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		code += this.variable.makePython() + ".append(" + this.value.makePython() + ")\n";
+		var code = makeIndent(indent);
+		code += this.variable.argsPython() + ".push(" + this.value.argsPython() + ")";
 		return code;
 	}
 }
@@ -286,10 +287,10 @@ class Extend extends Statement
 			this.state = 0;
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		code += this.variable.makePython() + ".extend(" + this.value.makePython() + ")\n";
+		var code = makeIndent(indent);
+		code += this.variable.argsPython() + ".extend(" + this.value.argsPython() + ")";
 		return code;
 	}
 }
@@ -366,16 +367,16 @@ class Input extends Statement
 			}
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		code += this.varname.makePython() + " = ";
+		var code = makeIndent(indent);
+		code += this.variable.argsPython() + " = ";
 		switch(this.type)
 		{
-			case typeOfValue.typeInt: code += "int(input())\n"; break;
-			case typeOfValue.typeFloat: code += "float(input())\n"; break;
-			case typeOfValue.typeString: code += "input()\n"; break;
-			case typeOfValue.typeBoolean: code += "bool(input())\n"; break;
+			case typeOfValue.typeInt: code += "int(input())"; break;
+			case typeOfValue.typeFloat: code += "float(input())"; break;
+			case typeOfValue.typeString: code += "input()"; break;
+			case typeOfValue.typeBoolean: code += "bool(input())"; break;
 		} 
 		return code;
 	}
@@ -508,9 +509,9 @@ class Newline extends Statement
 			output_str += "\n";
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		return Parts.makeIndent(indent) + "print()\n";
+		return makeIndent(indent) + "print()";
 	}
 }
 
@@ -681,14 +682,14 @@ class Output extends Statement
 			this.state = 0;
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
+		var code = makeIndent(indent);
 		code += "print(";
 		for(var i = 0; i < this.value.length; i++)
-			code += (i > 0 ? ', ' : '') + this.value[i].makePython();
+			code += (i > 0 ? ', ' : '') + this.value[i].argsPython();
 		if(!this.ln) code += ",end=''";
-		return code + ")\n";
+		return code + ")";
 	}
 }
 
@@ -760,22 +761,22 @@ class If extends Statement
 			}
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = '';
+		var code = [];
 		for(var i = 0; i < this.blocks.length; i++)
 		{
-			if(i == 0) code += Parts.makeIndent(indent) + "if " + this.blocks[i][0].makePython(0) + ":\n";
-			else if(this.blocks[i][0]) code += Parts.makeIndent(indent) + "elif " + this.blocks[i][0].makePython(0) + ":\n";
-			else code += Parts.makeIndent(indent) + "else:\n";
+			if(i == 0) code.push(makeIndent(indent) + "if " + this.blocks[i][0].argsPython() + ":");
+			else if(this.blocks[i][0]) code.push(makeIndent(indent) + "elif " + this.blocks[i][0].argsPython(0) + ":");
+			else code.push(makeIndent(indent) + "else:");
 			if(this.blocks[i][1] && this.blocks[i][1].length > 0)
 			{
 				for(var j = 0; j < this.blocks[i][1].length; j++)
-					code += this.blocks[i][1][j].makePython(indent + 1);
+					code.push(this.blocks[i][1][j].argsPython(indent + 1));
 			}	
-			else code += Parts.makeIndent(indent + 1) + "pass\n";
+			else code.push(makeIndent(indent + 1) + "pass");
 		}
-		return code;
+		return code.join("\n");
 	}
 }
 
@@ -892,20 +893,20 @@ class ForIn extends Statement
 			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new ForIn(this.array.clone(), this.variable.clone(), state, this.loc);
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		var pa = this.array.makePython(), pv = this.variable.makePython();
-		code += "for " + pv + " in " + pa + ":\n";
+		var code = [makeIndent(indent)];
+		var pa = this.array.argsPython(), pv = this.variable.argsPython();
+		code.push("for " + pv + " in " + pa + ":");
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
 			{
 				codes = 1;
-				code += this.statementlist[i].makePython(indent + 1);
+				code.push(this.statementlist[i].argsPython(indent + 1));
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
-		return code;
+		if(codes == 0) code.push(makeIndent(indent + 1) + "pass");
+		return code.join("\n");
 	}
 	run()
 	{
@@ -951,9 +952,9 @@ class ForIn_step extends Statement
 	run()
 	{
 		code[0].stack[0].index++;
-		if(this.index < this.array._value.length)
+		if(this.index < this.array.length)
 		{
-			let assign = new Assign(this.variable, this.array._value[this.index++], null, this.loc);
+			let assign = new Assign(this.variable, this.array[this.index++], null, this.loc);
 			code[0].stack.unshift({statementlist: [assign], index: 0});
 		}
 		else
@@ -996,20 +997,20 @@ class ForInc extends Statement
 			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new ForInc(this.variable.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		var pv = this.variable.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + ", " + pe + "+1, " + ps + "):\n";
+		var code = [];
+		var pv = this.variable.argsPython(), pb = this.begin.argsPython(), pe = this.end.argsPython(), ps = this.step.argsPython();
+		code.push(makeIndent(indent) + "for " + pv + " in range(" + pb + ", " + pe + "+1, " + ps + ")");
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
 			{
 				codes = 1;
-				code += this.statementlist[i].makePython(indent + 1);
+				code.push(this.statementlist[i].argsPython(indent + 1));
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
-		return code;
+		if(codes == 0) code.push(makeIndent(indent + 1) + "pass");
+		return code.join("\n");
 	}
 	run()
 	{
@@ -1072,20 +1073,20 @@ class ForDec extends Statement
 		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new ForDec(this.variable.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		var pv = this.variable.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + ", " + pe + "-1, " + ps + "):\n";
+		var code = [];
+		var pv = this.variable.argsPython(), pb = this.begin.argsPython(), pe = this.end.argsPython(), ps = this.step.argsPython();
+		code.push(makeIndent(indent) + "for " + pv + " in range(" + pb + ", " + pe + "-1, " + ps + "):");
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
 			{
 				codes = 1;
-				code += this.statementlist[i].makePython(indent + 1);
+				code.push(this.statementlist[i].argsPython(indent + 1));
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
-		return code;
+		if(codes == 0) code.push(makeIndent(indent + 1) + "pass");
+		return code.join("\n");
 	}
 	run()
 	{
@@ -1136,19 +1137,19 @@ class While extends Statement
 			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new While(this.condition.clone(), state, this.loc);
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
-		code += "while " + this.condition.makePython() + ":\n";
+		var code = [];
+		code.push(makeIndent(indent) + "while " + this.condition.argsPython() + ":");
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
 			{
 				codes = 1;
-				code += this.statementlist[i].makePython(indent + 1);
+				code.push(this.statementlist[i].argsPython(indent + 1));
 			}
-		if(codes == 0) code += Parts.makeIndent(indent + 1) + "pass\n";
-		return code;
+		if(codes == 0) code.push(makeIndent(indent + 1) + "pass");
+		return code.join("\n");
 	}
 	run()
 	{
@@ -1185,11 +1186,11 @@ class SleepStatement extends Statement
 		wait_time = this.sec.getJSValue();
 		code[0].stack[0].index++;
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		var code = Parts.makeIndent(indent);
+		var code = makeIndent(indent);
 		python_lib["time"] = 1;
-		return code + "time.sleep(" + this.sec.makePython() + " / 1000)\n";
+		return code + "time.sleep(" + this.sec.argsPython() + " / 1000)";
 	}
 }
 
@@ -1198,8 +1199,8 @@ class NopStatement extends Statement
 	constructor(loc) {super(loc);}
 	clone()	{return new NopStatement(this.loc);}
 	run(){ code[0].stack[0].index++;}
-	makePython(indent){
-		return Parts.makeIndent(indent) + "pass\n";
+	argsPython(indent){
+		return makeIndent(indent) + "pass";
 	}
 }
 
@@ -1208,7 +1209,7 @@ class PauseStatement extends Statement
 	constructor(loc) {super(loc);}
 	clone(){return new PauseStatement(this.loc);}
 	run(){code[0].stack[0].index++; }
-	makePython(indent){
+	argsPython(indent){
 		return '';
 	}
 }
@@ -1231,9 +1232,9 @@ class BreakStatement extends Statement
 				if(block.statementlist[i] instanceof LoopBegin) return;
 		}
 	}
-	makePython(indent)
+	argsPython(indent)
 	{
-		return Parts.makeIndent(indent) + "break\n";
+		return makeIndent(indent) + "break";
 	}
 }
 
