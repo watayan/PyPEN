@@ -2511,12 +2511,14 @@ function toBool(v)
 {
 	let re = /^(0+|false|偽|)$/i;
 	if(typeof v === "boolean") return v;
-	else if(v instanceof IntValue || v instanceof FloatValue) return v.getValue() != 0;
-	else if(v instanceof StringValue) return re.exec(v.getValue()) ? false : true;
-	else if(v instanceof BooleanValue) return v.getValue();
+	else if(v instanceof IntValue || v instanceof FloatValue) return v.getJSValue() != 0;
+	else if(v instanceof StringValue) return re.exec(v.getJSValue()) ? false : true;
+	else if(v instanceof BooleanValue) return v.getJSValue();
 	else if(v instanceof ArrayValue) return v.getValue().valueLength() != 0;
 	else if(v instanceof DictionaryValue) return v.getValue().size() != 0;
-	else throw new RuntimeError(null, '真偽値に直せません');
+	else throw new RuntimeError(null, '真偽値に直せません'
+		+ debug_mode ? ("\n値の型: " + constructor_name(v)) : ''
+	);
 }
 
 class ConvertBool extends SimpleValue

@@ -9,21 +9,24 @@
 var functions = {
     "all": new DefinedFunction(-1, function(param, loc){
         var par = param;
-        if(param.length == 1 && par[0] instanceof ArrayValue) par = par[0]._value;
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
+            par = param[0].getValue().getJSValue();
         for(let i = 0; i < par.length; i++)
-            if(!toBool(par[i]._value, loc)) return new BooleanValue([false], loc, false);
+            if(!toBool(par[i].getValue())) return new BooleanValue([false], loc, false);
         return new BooleanValue([true], loc, true);
     }, null, null),
     "any": new DefinedFunction(-1, function(param, loc){
         var par = param;
-        if(param.length == 1 && param[0] instanceof ArrayValue) par = param[0]._value;
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
+            par = param[0].getValue().getJSValue();
         for(let i = 0; i < par.length; i++)
-            if(toBool(par[i]._value, loc)) return new BooleanValue([true], loc, true);
+            if(toBool(par[i].getValue())) return new BooleanValue([true], loc, true);
         return new BooleanValue([false], loc, false);
     }, null, null),
     "sum": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue()._value;
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) 
+            par = par[0].getValue().getJSValue();
         var sum = BigInt(0);
         var int_flag = true;
         for(let i = 0; i < par.length; i++)
@@ -49,7 +52,8 @@ var functions = {
 	}, null, null),
     "prod": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArrayValue
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = param[0]._value;
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) 
+            par = param[0].getValue().getJSValue();
         var prod = BigInt(1);
         var int_flag = true;
         for(let i = 0; i < par.length; i++)
@@ -78,14 +82,14 @@ var functions = {
         var par2 = param[1].getValue();
         if(!(par1 instanceof ArrayValue) || !(par2 instanceof ArrayValue))
             throw new RuntimeError(loc.first_line, '引数は2つの数値の配列です');
-        if(par1._value.length != par2._value.length)
+        if(par1.valueLength() != par2.valueLength())
             throw new RuntimeError(loc.first_line, '引数の配列の長さが違います');
         var sumprod = BigInt(0);
         var int_flag = true;
-        for(let i = 0; i < par1._value.length; i++)
+        for(let i = 0; i < par1.valueLength(); i++)
         {
-            var v1 = par1._value[i].getValue();
-            var v2 = par2._value[i].getValue();
+            var v1 = par1.getValue(i);
+            var v2 = par2.getValue(i);
             if(v1 instanceof IntValue && v2 instanceof IntValue)
             {
                 if(int_flag) sumprod += v1.getJSValue() * v2.getJSValue();
@@ -104,8 +108,8 @@ var functions = {
 	}, null, null),
     "average": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
-        var sum = functions["sum"].func(param, loc).getValue()._value;
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
+        var sum = functions["sum"].func(param, loc).getValue().getJSValue();
         if(par.length == 0) this.throwRuntimeError("average", "引数の配列は空であってはいけません");
         var v = Number(sum) / par.length;
         return new FloatValue([v], this.loc, v);
@@ -138,7 +142,8 @@ var functions = {
 	}),
     "max": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue().getJSValue();
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) 
+            par = par[0].getValue().getJSValue();
         var max_val = new NullValue(loc), val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
@@ -152,13 +157,13 @@ var functions = {
                 }
                 else if(val_type == 1)
                 {
-                    if(val.getJSValue() > max_val.getJSValue()) max_val = val;
+                    if(val.getValue().getJSValue() > max_val.getValue().getJSValue()) max_val = val;
                 }
                 else
                 {
-                    if(Number(val.getJSValue()) > max_val.getJSValue())
+                    if(Number(val.getValue().getJSValue()) > max_val.getValue().getJSValue())
                     {
-                        max_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
+                        max_val = new FloatValue([Number(val.getValue().getJSValue())], loc, Number(val.getValue().getJSValue()));
                         val_type = 2;
                     } 
                 }
@@ -172,8 +177,8 @@ var functions = {
                 }
                 else
                 {
-                    if(val.getJSValue() > max_val.getJSValue())
-                        max_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
+                    if(val.getValue().getJSValue() > max_val.getValue().getJSValue())
+                        max_val = new FloatValue([Number(val.getValue().getJSValue())], loc, Number(val.getValue().getJSValue()));
                 }
             }
             else throw new RuntimeError(loc.first_line, '引数は数値のリストです');
@@ -182,7 +187,8 @@ var functions = {
     }, null, null),
     "min": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue().getJSValue();
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) 
+            par = par[0].getValue().getJSValue();
         var min_val = new NullValue(loc), val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
@@ -196,13 +202,13 @@ var functions = {
                 }
                 else if(val_type == 1)
                 {
-                    if(val.getJSValue() < min_val.getJSValue()) min_val = val;
+                    if(val.getValue().getJSValue() < min_val.getValue().getJSValue()) min_val = val;
                 }
                 else
                 {
-                    if(Number(val.getJSValue()) < min_val.getJSValue())
+                    if(Number(val.getValue().getJSValue()) < min_val.getValue().getJSValue())
                     {
-                        min_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
+                        min_val = new FloatValue([Number(val.getValue().getJSValue())], loc, Number(val.getValue().getJSValue()));
                         val_type = 2;
                     } 
                 }
@@ -216,8 +222,8 @@ var functions = {
                 }
                 else
                 {
-                    if(val.getJSValue() < min_val.getJSValue())
-                        min_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
+                    if(val.getValue().getJSValue() < min_val.getValue().getJSValue())
+                        min_val = new FloatValue([Number(val.getValue().getJSValue())], loc, Number(val.getValue().getJSValue()));
                 }
             }
             else throw new RuntimeError(loc.first_line, '引数は数値のリストです');
@@ -226,9 +232,10 @@ var functions = {
     }, null, null),
     "median": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) 
+            par = param[0].getValue().getJSValue();
         var nums = [];
-        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getJSValue()));
+        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getValue().getJSValue()));
         if(nums.length == 0) return new NullValue(loc);
         nums.sort(function(a, b){return a - b;});
         if(nums.length % 2 == 1){
@@ -272,7 +279,8 @@ var functions = {
     }, null, null),
     "pvariance": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) 
+            par = param[0].getValue().getJSValue();
         var mean = functions["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length == 0) throw new RuntimeError(loc.first_line, "空のリストでは分散は計算できません");
@@ -284,7 +292,8 @@ var functions = {
     }, null, null),
     "variance": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) 
+            par = param[0].getValue().getJSValue();
         var mean = functions["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは分散は計算できません");
@@ -455,8 +464,8 @@ var functions = {
             for(let i = 0, j = par1.valueLength() - 1; i < j; i++, j--)
             {
                 var temp = par1.getValue(i);
-                par1.setValue(i, par1.getValue(j));
-                par1.setValue(j, temp);
+                par1.setValue(par1.getValue(j), i);
+                par1.setValue(temp, j);
             }
             return par1;
         }
@@ -467,8 +476,8 @@ var functions = {
         if(par1 instanceof ArrayValue)
         {
             var arr = [];
-            for(let i = par1.value.length - 1; i >= 0; i--) arr.push(par1.value[i]);
-            return new ArrayValue(arr, loc);
+            for(let i = par1.valueLength() - 1; i >= 0; i--) arr.push(par1.getValue(i));
+            return new ArrayValue(arr, loc,arr);
         }
         else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
@@ -476,25 +485,26 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            var arr = [].concat(par1.value);
-            arr.sort(function(a, b){
+            // var arr = [].concat(par1.getValue());
+            // textareaAppend("DEBUG: " + constructor_name(par1.getJSValue()) + "\n");
+            var arr = par1.getJSValue().toSorted(function(a, b){
                 if(a instanceof IntValue && b instanceof IntValue)
-                    return (a.value < b.value) ? -1 : (a.value > b.value) ? 1 : 0;
+                    return (a.getJSValue() < b.getJSValue()) ? -1 : (a.getJSValue() > b.getJSValue()) ? 1 : 0;
                 else
                 {
-                    var va = (a instanceof IntValue || a instanceof FloatValue) ? Number(a.value) : NaN;
-                    var vb = (b instanceof IntValue || b instanceof FloatValue) ? Number(b.value) : NaN;
+                    var va = (a instanceof IntValue || a instanceof FloatValue) ? Number(a.getJSValue()) : NaN;
+                    var vb = (b instanceof IntValue || b instanceof FloatValue) ? Number(b.getJSValue()) : NaN;
                     if(!isNaN(va) && !isNaN(vb))
                         return (va < vb) ? -1 : (va > vb) ? 1 : 0;
                     else
                     {
-                        var sa = a.toString();
-                        var sb = b.toString();
+                        var sa = a.getJSValue().toString();
+                        var sb = b.getJSValue().toString();
                         return (sa < sb) ? -1 : (sa > sb) ? 1 : 0;
                     }
                 }
             });
-            return new ArrayValue(arr, loc);
+            return new ArrayValue(arr, loc, arr);
         }
         else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
@@ -502,19 +512,20 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            par1.value.sort(function(a, b){
+            par1.getJSValue().sort(function(a, b){
                 if(a instanceof IntValue && b instanceof IntValue)
-                    return (a.value < b.value) ? -1 : (a.value > b.value) ? 1 : 0;
+                if(a instanceof IntValue && b instanceof IntValue)
+                    return (a.getJSValue() < b.getJSValue()) ? -1 : (a.getJSValue() > b.getJSValue()) ? 1 : 0;
                 else
                 {
-                    var va = (a instanceof IntValue || a instanceof FloatValue) ? Number(a.value) : NaN;
-                    var vb = (b instanceof IntValue || b instanceof FloatValue) ? Number(b.value) : NaN;
+                    var va = (a instanceof IntValue || a instanceof FloatValue) ? Number(a.getJSValue()) : NaN;
+                    var vb = (b instanceof IntValue || b instanceof FloatValue) ? Number(b.getJSValue()) : NaN;
                     if(!isNaN(va) && !isNaN(vb))
                         return (va < vb) ? -1 : (va > vb) ? 1 : 0;
                     else
                     {
-                        var sa = a.toString();
-                        var sb = b.toString();
+                        var sa = a.getJSValue().toString();
+                        var sb = b.getJSValue().toString();
                         return (sa < sb) ? -1 : (sa > sb) ? 1 : 0;
                     }
                 }
@@ -527,7 +538,7 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            var arr = [].concat(par1.value);
+            var arr = [].concat(par1.getJSValue());
             for(let i = arr.length - 1; i > 0; i--)
             {
                 var j = Math.floor(Math.random() * (i + 1));
@@ -535,7 +546,7 @@ var functions = {
                 arr[i] = arr[j];
                 arr[j] = temp;
             }
-            return new ArrayValue(arr, loc);
+            return new ArrayValue(arr, loc, arr);
         }
         else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
@@ -547,8 +558,8 @@ var functions = {
             {
                 var j = Math.floor(Math.random() * (i + 1));
                 var temp = par1.getValue(i);
-                par1.setValue(i, par1.getValue(j));
-                par1.setValue(j, temp);
+                par1.setValue(par1.getValue(j), i);
+                par1.setValue(temp, j);
             }
             return par1;
         }
@@ -558,25 +569,25 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            var arr = [].concat(par1._value);
+            var arr = [].concat(par1.getJSValue());
             var i = arr.length - 2;
-            while(i >= 0 && arr[i].value >= arr[i + 1].value) i--;
+            while(i >= 0 && arr[i] >= arr[i + 1]) i--;
             if(i < 0) {
-                return new ArrayValue([], loc);
+                return new ArrayValue([], loc, []);
             }
             var j = arr.length - 1;
-            while(i < j && arr[i].value >= arr[j].value) j--;
+            while(i < j && arr[i] >= arr[j]) j--;
             // arr[i]とarr[j]を交換
-            var temp = arr[i].value;
-            arr[i].value = arr[j].value;
-            arr[j].value = temp;
+            var temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
             // arr[i+1]以降を反転
             var left = i + 1, right = arr.length - 1;
             while(left < right)
             {
-                var temp2 = arr[left].value;
-                arr[left].value = arr[right].value;
-                arr[right].value = temp2;
+                var temp2 = arr[left];
+                arr[left] = arr[right];
+                arr[right] = temp2;
                 left++;
                 right--;
             }
