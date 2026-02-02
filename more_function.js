@@ -9,21 +9,21 @@
 var functions = {
     "all": new DefinedFunction(-1, function(param, loc){
         var par = param;
-        if(param.length == 1 && par[0] instanceof ArrayValue) par = par[0].getValue();
-        for(let i = 0; i < param.length; i++)
-            if(!toBool(param[i].getJSValue(), loc)) return new BooleanValue([false], loc, false);
+        if(param.length == 1 && par[0] instanceof ArrayValue) par = par[0]._value;
+        for(let i = 0; i < par.length; i++)
+            if(!toBool(par[i]._value, loc)) return new BooleanValue([false], loc, false);
         return new BooleanValue([true], loc, true);
     }, null, null),
     "any": new DefinedFunction(-1, function(param, loc){
         var par = param;
-        if(param.length == 1 && param[0] instanceof ArrayValue) par = param[0].getValue();
+        if(param.length == 1 && param[0] instanceof ArrayValue) par = param[0]._value;
         for(let i = 0; i < par.length; i++)
-            if(toBool(par[i], loc)) return new BooleanValue([true], loc, true);
+            if(toBool(par[i]._value, loc)) return new BooleanValue([true], loc, true);
         return new BooleanValue([false], loc, false);
     }, null, null),
     "sum": new DefinedFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
-        if(param.length == 1 && param[0] instanceof ArrayValue) par = param[0].getValue();
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue()._value;
         var sum = BigInt(0);
         var int_flag = true;
         for(let i = 0; i < par.length; i++)
@@ -48,19 +48,16 @@ var functions = {
         else return new FloatValue([sum], this.loc, sum);
 	}, null, null),
     "prod": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArrayValue
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getJSValue();
-        else
-            par = param;
+        var par = param;    // 引数のArrayValue
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = param[0]._value;
         var prod = BigInt(1);
         var int_flag = true;
         for(let i = 0; i < par.length; i++)
         {
             if(par[i] instanceof IntValue)
             {
-                if(int_flag) prod *= par[i].value;
-                else prod *= Number(par[i].value);
+                if(int_flag) prod *= par[i].getJSValue();
+                else prod *= Number(par[i].getJSValue());
             }
             else if(par[i] instanceof FloatValue)
             {
@@ -69,26 +66,26 @@ var functions = {
                     prod = Number(prod);
                     int_flag = false;
                 }
-                prod *= par[i].value;
+                prod *= par[i].getJSValue();
             }
             else this.throwRuntimeError("prod", "引数は数値のリストです");
         }
-        if(int_flag) return new IntValue([prod], this.loc, prod);
-        else return new FloatValue([prod], this.loc, prod);
+        if(int_flag) return new IntValue([prod], loc, prod);
+        else return new FloatValue([prod], loc, prod);
     	}, null, null),
     "sumprod": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
         if(!(par1 instanceof ArrayValue) || !(par2 instanceof ArrayValue))
             throw new RuntimeError(loc.first_line, '引数は2つの数値の配列です');
-        if(par1.getValue().length != par2.getValue().length)
+        if(par1._value.length != par2._value.length)
             throw new RuntimeError(loc.first_line, '引数の配列の長さが違います');
         var sumprod = BigInt(0);
         var int_flag = true;
-        for(let i = 0; i < par1.value.length; i++)
+        for(let i = 0; i < par1._value.length; i++)
         {
-            var v1 = par1.getElement(i);
-            var v2 = par2.getElement(i);
+            var v1 = par1._value[i].getValue();
+            var v2 = par2._value[i].getValue();
             if(v1 instanceof IntValue && v2 instanceof IntValue)
             {
                 if(int_flag) sumprod += v1.getJSValue() * v2.getJSValue();
@@ -102,27 +99,24 @@ var functions = {
             }
             else this.throwRuntimeError("sumprod", "引数は2つの数値の配列です");
         }
-        if(int_flag) return new IntValue([sumprod], this.loc, sumprod);
-        else return new FloatValue([sumprod], this.loc, sumprod);
+        if(int_flag) return new IntValue([sumprod], loc, sumprod);
+        else return new FloatValue([sumprod], loc, sumprod);
 	}, null, null),
     "average": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArrayValue
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0];
-        else
-            par = param;
-            var sum = functions["sum"].func(param, loc).getValue().value;
-            if(par.length == 0) this.throwRuntimeError("average", "引数の配列は空であってはいけません");
-            var v = Number(sum) / par.length;
-            return new FloatValue([v], this.loc, v);
+        var par = param;    // 引数のArray
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
+        var sum = functions["sum"].func(param, loc).getValue()._value;
+        if(par.length == 0) this.throwRuntimeError("average", "引数の配列は空であってはいけません");
+        var v = Number(sum) / par.length;
+        return new FloatValue([v], this.loc, v);
 	}, null, null),
     "factorial": new DefinedFunction(1, function(param, loc){
-		var par1 = param[0].getValue();
-		if(par1 instanceof IntValue && par1.value >= BigInt(0))
+		var par1 = param[0];
+		if(par1 instanceof IntValue && par1.getJSValue() >= BigInt(0))
 		{
             var p = BigInt(1);
-            for(let i = BigInt(2); i <= par1.value; i++) p *= i;
-            return new IntValue(p, this.loc);
+            for(let i = BigInt(2); i <= par1.getJSValue(); i++) p *= i;
+            return new IntValue([p], this.loc, p);
 		}
 		else throw new RuntimeError(loc.first_line, '引数は非負整数です');
 	}, null, null),
@@ -132,10 +126,10 @@ var functions = {
 		{
 			var vt1 = findVarTable(par1.varname);
 			var vt2 = findVarTable(par2.varname);
-			var val1 = getValueByArgs(vt1.vars[par1.varname], par1.args ? par1.args.value : null, loc);
-			var val2 = getValueByArgs(vt2.vars[par2.varname], par2.args ? par2.args.value : null, loc);
-			setVariableByArgs(vt1, par1.varname, par1.args ? par1.args.value : null, val2.getValue(), loc);
-			setVariableByArgs(vt2, par2.varname, par2.args ? par2.args.value : null, val1.getValue(), loc);
+			var val1 = getValueByArgs(vt1.vars[par1.varname], par1._args ? par1._args : null, loc);
+			var val2 = getValueByArgs(vt2.vars[par2.varname], par2._args ? par2._args : null, loc);
+			setVariableByArgs(vt1, par1.varname, par1._args ? par1._args : null, val2.getValue(), loc);
+			setVariableByArgs(vt2, par2.varname, par2._args ? par2._args : null, val1.getValue(), loc);
 			return new NullValue(loc);
 		}
 		else throw new RuntimeError(loc.first_line, "swapの引数は変数にしてください");
@@ -143,226 +137,231 @@ var functions = {
 		return argc[0] + ", " + argc[1] + " = " + argc[1] + ", " + argc[0];
 	}),
     "max": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue)
-            par = param[0].getValue().rtnv.value;
-        else
-            par = param;
-        var max_val = null, val_type = 0; // 0:未定義, 1:Int, 2:Float
+        var par = param;    // 引数のArray
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue()._value;
+        var max_val = new NullValue(loc), val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
-            var val = par[i].rtnv;
+            var val = par[i];
             if(val instanceof IntValue)
             {
                 if(val_type == 0) 
                 {
-                    max_val = val.value;
+                    max_val = val;
                     val_type = 1;
                 }
                 else if(val_type == 1)
                 {
-                    if(val.value > max_val) max_val = val.value;
+                    if(val.getJSValue() > max_val.getJSValue()) max_val = val;
                 }
                 else
                 {
-                    if(Number(val.value) > max_val) max_val = Number(val.value);
+                    if(Number(val.getJSValue()) > max_val.getJSValue())
+                    {
+                        max_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
+                        val_type = 2;
+                    } 
                 }
             }
             else if(val instanceof FloatValue)
             {
-                val_type = 2;
-                if(val_type == 0) max_val = val.value;
+                if(val_type == 0)
+                {
+                    max_val = val;
+                    val_type = 2;
+                }
                 else
                 {
-                    if(val.value > max_val) max_val = val.value;
+                    if(val.getJSValue() > max_val.getJSValue())
+                        max_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
                 }
             }
             else throw new RuntimeError(loc.first_line, '引数は数値のリストです');
         }
-        if(val_type == 1) return new IntValue(max_val, this.loc);
-        else if(val_type == 2) return new FloatValue(max_val, this.loc);
-        else return new NullValue(this.loc);
+        return max_val;
     }, null, null),
     "min": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
-        else par = param;
-        var min_val = null, val_type = 0; // 0:未定義, 1:Int, 2:Float
+        var par = param;    // 引数のArray
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = par[0].getValue()._value;
+        var min_val = new NullValue(loc), val_type = 0; // 0:未定義, 1:Int, 2:Float
         for(let i = 0; i < par.length; i++)
         {
-            var val = par[i].rtnv;
+            var val = par[i];
             if(val instanceof IntValue)
             {
                 if(val_type == 0) 
                 {
-                    min_val = val.value;
+                    min_val = val;
                     val_type = 1;
                 }
                 else if(val_type == 1)
                 {
-                    if(val.value < min_val) min_val = val.value;
+                    if(val.getJSValue() < min_val.getJSValue()) min_val = val;
                 }
                 else
                 {
-                    if(Number(val.value) < min_val) min_val = Number(val.value);
+                    if(Number(val.getJSValue()) < min_val.getJSValue())
+                    {
+                        min_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
+                        val_type = 2;
+                    } 
                 }
             }
             else if(val instanceof FloatValue)
             {
-                val_type = 2;
-                if(val_type == 0) min_val = val.value;
+                if(val_type == 0)
+                {
+                    min_val = val;
+                    val_type = 2;
+                }
                 else
                 {
-                    if(val.value < min_val) min_val = val.value;
+                    if(val.getJSValue() < min_val.getJSValue())
+                        min_val = new FloatValue([Number(val.getJSValue())], loc, Number(val.getJSValue()));
                 }
             }
             else throw new RuntimeError(loc.first_line, '引数は数値のリストです');
         }
-        if(val_type == 1) return new IntValue(min_val, this.loc);
-        else if(val_type == 2) return new FloatValue(min_val, this.loc);
-        else return new NullValue(this.loc);
+        return min_val;
     }, null, null),
     "median": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
-        else par = param;
+        var par = param;    // 引数のArray
+        if(par.length == 1 && par[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
         var nums = [];
-        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getValue().rtnv.value));
-        nums.sort(function(a, b){return a - b;});
+        for(let i = 0; i < par.length; i++) nums.push(Number(par[i].getJSValue()));
         if(nums.length == 0) return new NullValue(loc);
-        else if(nums.length % 2 == 1){
+        nums.sort(function(a, b){return a - b;});
+        if(nums.length % 2 == 1){
             var median = nums[(nums.length - 1) / 2];
-            return new FloatValue(median, loc);
+            return new FloatValue([median], loc, median);
         }
         else{
             var median = (nums[nums.length / 2 - 1] + nums[nums.length / 2]) / 2;
-            return new FloatValue(median, loc);
+            return new FloatValue([median], loc, median);
         }
     }, null, null),
     "comb": new DefinedFunction(2, function(param, loc){
-        var par1 = param[0].getValue().rtnv;
-        var par2 = param[1].getValue().rtnv; 
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
         if(par1 instanceof IntValue && par2 instanceof IntValue &&
-           par1.value >= BigInt(0) && par2.value >= BigInt(0) && par1.value >= par2.value)
+           par1.getJSValue() >= BigInt(0) && par2.getJSValue() >= BigInt(0) && par1.getJSValue() >= par2.getJSValue())
         {
-            var n = par1.rtnv.value;
-            var r = par2.rtnv.value;
+            var n = par1.getJSValue();
+            var r = par2.getJSValue();
             if(r > n - r) r = n - r;
             var p = BigInt(1);
             for(let i = BigInt(0); i < r; i++) p *= (n - i);
             for(let i = BigInt(0); i < r; i++) p /= (i + BigInt(1));
-            return new IntValue(p, loc);
+            return new IntValue([p], loc, p);
         }
         else throw new RuntimeError(loc.first_line, '引数は非負整数で、1つ目の引数は2つ目の引数以上でなければなりません');
     }, null, null),
     "perm": new DefinedFunction(2, function(param, loc){
-        var par1 = param[0].getValue().rtnv;
-        var par2 = param[1].getValue().rtnv; 
+        var par1 = param[0].getValue();
+        var par2 = param[1].getValue();
         if(par1 instanceof IntValue && par2 instanceof IntValue &&
-           par1.value >= BigInt(0) && par2.value >= BigInt(0) && par1.value >= par2.value)
+           par1.getJSValue() >= BigInt(0) && par2.getJSValue() >= BigInt(0) && par1.getJSValue() >= par2.getJSValue())
         {
-            var n = par1.rtnv.value;
-            var r = par2.rtnv.value;
+            var n = par1.getJSValue();
+            var r = par2.getJSValue();
             var p = BigInt(1);
             for(let i = BigInt(0); i < r; i++) p *= (n - i);
-            return new IntValue(p, loc);
+            return new IntValue([p], loc, p);
         }
         else throw new RuntimeError(loc.first_line, '引数は非負整数で、1つ目の引数は2つ目の引数以上でなければなりません');
     }, null, null),
     "pvariance": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
-        else par = param;
-        var mean = functions["average"].func(par, loc).getValue().value;
+        var par = param;    // 引数のArray
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
+        var mean = functions["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length == 0) throw new RuntimeError(loc.first_line, "空のリストでは分散は計算できません");
         for(let i = 0; i < par.length; i++)
             if(par[i] instanceof IntValue || par[i] instanceof FloatValue)
-                sum += (Number(par[i].getValue().value) - mean) ** 2;
+                sum += (Number(par[i].getJSValue()) - mean) ** 2;
             else throw new RuntimeError(loc.first_line, "引数は数値のリストでなくてはいけません");
-        return new FloatValue(sum / par.length, loc);
+        return new FloatValue([sum / par.length], loc, sum / par.length);
     }, null, null),
     "variance": new DefinedFunction(-1, function(param, loc){
-        var par;    // 引数のArray
-        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().value;
-        else par = param;
-        var mean = functions["average"].func(par, loc).getValue().value;
-        var sum = 0.0;
+        var par = param;    // 引数のArray
+        if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue()._value;
+        var mean = functions["average"].func(par, loc).getJSValue();
+        var sum = 0.0; 
         if(par.length < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは分散は計算できません");
         for(let i = 0; i < par.length; i++)
             if(par[i] instanceof IntValue || par[i] instanceof FloatValue)
-                sum += (Number(par[i].value) - mean) ** 2;
+                sum += (Number(par[i].getJSValue()) - mean) ** 2;
             else throw new RuntimeError(loc.first_line, "引数は数値のリストでなくてはいけません");
-        return new FloatValue(sum / (par.length - 1), loc);
+        return new FloatValue([sum / (par.length - 1)], loc, sum / (par.length - 1));
     }, null, null),
     "pstdev": new DefinedFunction(-1, function(param, loc){
-        var s = functions["pvariance"].func(param, loc).getValue().value;
-        return new FloatValue(Math.sqrt(s), loc);
+        var s = functions["pvariance"].func(param, loc).getValue()._value;
+        return new FloatValue([Math.sqrt(s)], loc, Math.sqrt(s));
     }, null, null),
     "stdev": new DefinedFunction(-1, function(param, loc){
-        var s = functions["variance"].func(param, loc).getValue().value;
-        return new FloatValue(Math.sqrt(s), loc);
+        var s = functions["variance"].func(param, loc).getValue()._value;
+        return new FloatValue([Math.sqrt(s)], loc, Math.sqrt(s));
     }, null, null),
     "pcovariance": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1._value.length == par2._value.length)
         {
-            var n = par1.value.length;
+            var n = par1._value.length;
             if(n == 0) throw new RuntimeError(loc.first_line, "空のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func(par1.value, loc).getValue().value,
-                m2 = functions["average"].func(par2.value, loc).getValue().value;
+            var m1 = functions["average"].func(par1._value, loc).getValue()._value,
+                m2 = functions["average"].func(par2._value, loc).getValue()._value;
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
-                if(par1.value[i] instanceof IntValue || par1.value[i] instanceof FloatValue)
-                    val1 = Number(par1.value[i].getValue().value);
+                if(par1._value[i] instanceof IntValue || par1._value[i] instanceof FloatValue)
+                    val1 = Number(par1._value[i].getValue()._value);
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
-                if(par2.value[i] instanceof IntValue || par2.value[i] instanceof FloatValue)
-                    val2 = Number(par2.value[i].getValue().value);
+                if(par2._value[i] instanceof IntValue || par2._value[i] instanceof FloatValue)
+                    val2 = Number(par2._value[i].getValue()._value);
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
                 s += (val1 - m1) * (val2 - m2);
             }
-            return new FloatValue(s / n, loc);
+            return new FloatValue([s / n], loc, s / n);
         }
         else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
     }, null, null),
     "covariance": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1._value.length == par2._value.length)
         {
-            var n = par1.value.length;
-            if(n < 1) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは共分散が計算できません");
+            var n = par1._value.length;
+            if(n < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func(par1.value, loc).getValue().value,
-                m2 = functions["average"].func(par2.value, loc).getValue().value;
+            var m1 = functions["average"].func(par1._value, loc).getValue()._value,
+                m2 = functions["average"].func(par2._value, loc).getValue()._value;
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
-                if(par1.value[i] instanceof IntValue || par1.value[i] instanceof FloatValue)
-                    val1 = Number(par1.value[i].getValue().value);
+                if(par1._value[i] instanceof IntValue || par1._value[i] instanceof FloatValue)
+                    val1 = Number(par1._value[i].getValue()._value);
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
-                if(par2.value[i] instanceof IntValue || par2.value[i] instanceof FloatValue)
-                    val2 = Number(par2.value[i].getValue().value);
+                if(par2._value[i] instanceof IntValue || par2._value[i] instanceof FloatValue)
+                    val2 = Number(par2._value[i].getValue()._value);
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
                 s += (val1 - m1) * (val2 - m2);
             }
-            return new FloatValue(s / (n - 1), loc);
+            return new FloatValue([s / (n - 1)], loc, s / (n - 1));
         }
         else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
     }, null, null),
     "correl": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1._value.length == par2._value.length)
         {
-            var c = functions["pcovariance"].func([par1, par2], loc).getValue().value;
-            var s1 = functions["pstdev"].func(par1.value, loc).getValue().value;
-            var s2 = functions["pstdev"].func(par2.value, loc).getValue().value;
+            var c = functions["pcovariance"].func([par1, par2], loc).getValue()._value;
+            var s1 = functions["pstdev"].func(par1._value, loc).getValue()._value;
+            var s2 = functions["pstdev"].func(par2._value, loc).getValue()._value;
             if(s1 == 0.0 || s2 == 0.0) throw new RuntimeError(loc.first_line, "標準偏差が0なので相関係数が計算できません");
-            return new FloatValue(c / s1 / s2, loc);
+            return new FloatValue([c / s1 / s2], loc, c / s1 / s2);
             }
         else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
     }, null, null),
@@ -371,10 +370,12 @@ var functions = {
         var par2 = param[1].getValue();
         if(par1 instanceof IntValue && par2 instanceof IntValue)
         {
-            var a = par1.value >= BigInt(0) ? par1.value : -par1.value;
-            var b = par2.value >= BigInt(0) ? par2.value : -par2.value;
+            var a = par1.getJSValue();
+            var b = par2.getJSValue();
+            if(a < BigInt(0)) a = -a;
+            if(b < BigInt(0)) b = -b;
             var g = gcd(a, b);
-            return new IntValue(g, loc);
+            return new IntValue([g], loc, g);
         }
         else throw new RuntimeError(loc.first_line, "引数は整数でなくてはいけません");
     }, null, null),
@@ -383,12 +384,12 @@ var functions = {
         var par2 = param[1].getValue();
         if(par1 instanceof IntValue && par2 instanceof IntValue)
         {
-            var a = par1.value >= BigInt(0) ? par1.value : -par1.value;
-            var b = par2.value >= BigInt(0) ? par2.value : -par2.value;
+            var a = par1.getJSValue() >= BigInt(0) ? par1.getJSValue() : -par1.getJSValue();
+            var b = par2.getJSValue() >= BigInt(0) ? par2.getJSValue() : -par2.getJSValue();
             if(a == BigInt(0) || b == BigInt(0)) return new IntValue(BigInt(0), loc);
             var g = gcd(a, b);
             var l = (a / g) * b;
-            return new IntValue(l, loc);
+            return new IntValue([l], loc, l);
         }
         else throw new RuntimeError(loc.first_line, "引数は整数でなくてはいけません");
     }, null, null),
@@ -396,10 +397,11 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof IntValue)
         {
-            var code = Number(par1.value);
+            var code = Number(par1.getJSValue());
             if(code < 0 || code > 0x10FFFF)
                 throw new RuntimeError(loc.first_line, "引数の値が不正です");
-            return new StringValue(String.fromCodePoint(code), loc);
+            var s = String.fromCodePoint(code);
+            return new StringValue([s], loc, s);
         }
         else throw new RuntimeError(loc.first_line, "引数は整数でなくてはいけません");
     }, null, null),
@@ -407,30 +409,30 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof StringValue)
         {
-            var s = par1.value;
+            var s = par1.getJSValue();
             if(s.length == 0)
                 throw new RuntimeError(loc.first_line, "空文字列のordは定義されていません");
             var code = s.codePointAt(0);
-            return new IntValue(BigInt(code), loc);
+            return new IntValue([BigInt(code)], loc, BigInt(code));
         }
         else throw new RuntimeError(loc.first_line, "引数は文字列でなくてはいけません");
     }, null, null),
     "linear_regression": new DefinedFunction(2, function(param, loc){
         var par1 = param[0].getValue();
         var par2 = param[1].getValue();
-        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.value.length == par2.value.length)
+        if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.valueLength() == par2.valueLength())
         {
-            var n = par1.value.length;
+            var n = par1.valueLength();
             if(n < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは線形回帰は計算できません");
             var sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x2 = 0.0;
             for(let i = 0; i < n; i++)
             {
                 var x, y;
-                if(par1.value[i] instanceof IntValue || par1.value[i] instanceof FloatValue)
-                    x = Number(par1.value[i].getValue().value);
+                if(par1.getValue(i) instanceof IntValue || par1.getValue(i) instanceof FloatValue)
+                    x = Number(par1.getValue(i).getValue().getJSValue());
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
-                if(par2.value[i] instanceof IntValue || par2.value[i] instanceof FloatValue)
-                    y = Number(par2.value[i].getValue().value);
+                if(par2.getValue(i) instanceof IntValue || par2.getValue(i) instanceof FloatValue)
+                    y = Number(par2.getValue(i).getValue().getJSValue());
                 else throw new RuntimeError(loc.first_line, "数値のリストである必要があります");
                 sum_x += x;
                 sum_y += y;
@@ -441,7 +443,8 @@ var functions = {
                 throw new RuntimeError(loc.first_line, "線形回帰が計算できません");
             var slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
             var intercept = (sum_y - slope * sum_x) / n;
-            return new ArrayValue([new FloatValue(slope, loc), new FloatValue(intercept, loc)], loc);
+            return new ArrayValue([new FloatValue(slope, loc), new FloatValue(intercept, loc)], loc
+                , [new FloatValue(slope, loc), new FloatValue(intercept, loc)]);
         }
         else throw new RuntimeError(loc.first_line, "引数は2つの長さが等しい数値のリストでなくてはいけません");
     }, null, null),
@@ -449,11 +452,11 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            for(let i = 0, j = par1.value.length - 1; i < j; i++, j--)
+            for(let i = 0, j = par1.valueLength() - 1; i < j; i++, j--)
             {
-                var temp = par1.value[i];
-                par1.value[i] = par1.value[j];
-                par1.value[j] = temp;
+                var temp = par1.getValue(i);
+                par1.setValue(i, par1.getValue(j));
+                par1.setValue(j, temp);
             }
             return par1;
         }
@@ -540,12 +543,12 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            for(let i = par1.value.length - 1; i > 0; i--)
+            for(let i = par1.valueLength() - 1; i > 0; i--)
             {
                 var j = Math.floor(Math.random() * (i + 1));
-                var temp = par1.value[i];
-                par1.value[i] = par1.value[j];
-                par1.value[j] = temp;
+                var temp = par1.getValue(i);
+                par1.setValue(i, par1.getValue(j));
+                par1.setValue(j, temp);
             }
             return par1;
         }
@@ -555,7 +558,7 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof ArrayValue)
         {
-            var arr = [].concat(par1.value);
+            var arr = [].concat(par1._value);
             var i = arr.length - 2;
             while(i >= 0 && arr[i].value >= arr[i + 1].value) i--;
             if(i < 0) {
@@ -577,7 +580,7 @@ var functions = {
                 left++;
                 right--;
             }
-            return new ArrayValue(arr, loc);
+            return new ArrayValue(arr, loc, arr);
         }
         else throw new RuntimeError(loc.first_line, "引数は配列でなくてはいけません");
     }, null, null),
@@ -585,9 +588,9 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof IntValue || par1 instanceof FloatValue)
         {
-            var x = Number(par1.value);
+            var x = Number(par1.getJSValue());
             var res = dnorm(x);
-            return new FloatValue(res, loc);
+            return new FloatValue([res], loc, res);
         }
         else throw new RuntimeError(loc.first_line, "引数は数値でなくてはいけません");
     }, null, null),
@@ -595,9 +598,9 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof IntValue || par1 instanceof FloatValue)
         {
-            var x = Number(par1.value);
+            var x = Number(par1.getJSValue());
             var res = pnorm(x);
-            return new FloatValue(res, loc);
+            return new FloatValue([res], loc, res);
         }
         else throw new RuntimeError(loc.first_line, "引数は数値でなくてはいけません");
     }, null, null),
@@ -605,10 +608,10 @@ var functions = {
         var par1 = param[0].getValue();
         if(par1 instanceof IntValue || par1 instanceof FloatValue)
         {
-            var p = Number(par1.value);
+            var p = Number(par1.getJSValue());
             if(p < 0 || p > 1) throw new RuntimeError(loc.first_line, "確率は0から1の間でなくてはいけません");
             var res = qnorm(p);
-            return new FloatValue(res, loc);
+            return new FloatValue([res], loc, res);
         }
         else throw new RuntimeError(loc.first_line, "引数は数値でなくてはいけません");
     }, null, null),

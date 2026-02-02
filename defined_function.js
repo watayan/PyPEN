@@ -119,15 +119,15 @@ var definedFunction = {
 	}),
 	"typeof": new DefinedFunction(1, function(param, loc){
 		// textareaAppend("typeof called with param[0] " + constructor_name(param[0]) + "\n");
-		var par1 = param[0];
+		var par1 = param[0].getValue();
 		// textareaAppend("typeof called with par1 " + constructor_name(par1) + "\n");
-		if(par1 instanceof IntValue) return new StringValue("整数", loc, "整数");
-		else if(par1 instanceof FloatValue) return new StringValue("実数", loc, "実数");
-		else if(par1 instanceof StringValue) return new StringValue("文字列", loc, "文字列");
-		else if(par1 instanceof BooleanValue) return new StringValue("真偽", loc, "真偽");
-		else if(par1 instanceof ArrayValue) return new StringValue("リスト", loc, "リスト");
-		else if(par1 instanceof DictionaryValue) return new StringValue("辞書", loc, "辞書");
-		else if(par1 instanceof NullValue) return new StringValue("", loc, "");
+		if(par1 instanceof IntValue) return new StringValue(["整数"], loc, "整数");
+		else if(par1 instanceof FloatValue) return new StringValue(["実数"], loc, "実数");
+		else if(par1 instanceof StringValue) return new StringValue(["文字列"], loc, "文字列");
+		else if(par1 instanceof BooleanValue) return new StringValue(["真偽"], loc, "真偽");
+		else if(par1 instanceof ArrayValue) return new StringValue(["リスト"], loc, "リスト");
+		else if(par1 instanceof DictionaryValue) return new StringValue(["辞書"], loc, "辞書");
+		else if(par1 instanceof NullValue) return new StringValue([""], loc, "");
 		else this.throwRuntimeError("typeof", "不明な型です");
 	}, null, function(argc){
 		return "type(" + argc[0] + ")";
@@ -259,7 +259,7 @@ var definedFunction = {
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
 			var v = Math.sin(Number(par1.getJSValue()));
-			return new FloatValue([v], this.loc, v);
+			return new FloatValue([v], loc, v);
 		}
 		else this.throwRuntimeError("sin", "sinは数値にしか使えません");
 	}, "math", null),
@@ -268,7 +268,7 @@ var definedFunction = {
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
 			var v = Math.cos(Number(par1.getJSValue()));
-			return new FloatValue([v], this.loc, v);
+			return new FloatValue([v], loc, v);
 		}
 		else this.throwRuntimeError("cos", "cosは数値にしか使えません");
 	}, "math", null),
@@ -277,7 +277,7 @@ var definedFunction = {
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
 			let v = Math.tan(Number(par1.getJSValue()));
-			if(isFinite(v)) return new FloatValue([v], this.loc, v);
+			if(isFinite(v)) return new FloatValue([v], loc, v);
 			else this.throwRuntimeError("tan", "オーバーフローしました");
 		}
 		else this.throwRuntimeError("tan", "tanは数値にしか使えません");
@@ -291,7 +291,7 @@ var definedFunction = {
 			else
 			{
 				var v = Math.asin(Number(par1.getJSValue()));
-				return new FloatValue([v], this.loc, v);
+				return new FloatValue([v], loc, v);
 			}
 		}
 		else this.throwRuntimeError("asin", "asinは数値にしか使えません");
@@ -305,7 +305,7 @@ var definedFunction = {
 			else
 			{
 				var v = Math.acos(Number(par1.getJSValue()));
-				return new FloatValue([v], this.loc, v);
+				return new FloatValue([v], loc, v);
 			}
 		}
 		else this.throwRuntimeError("acos", "acosは数値にしか使えません");
@@ -315,7 +315,7 @@ var definedFunction = {
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
 			var v = Math.atan(Number(par1.getJSValue()));
-			return new FloatValue([v], this.loc, v);
+			return new FloatValue([v], loc, v);
 		}
 		else this.throwRuntimeError("atan", "atanは数値にしか使えません");
 	}, "math", null),
@@ -337,7 +337,7 @@ var definedFunction = {
 			if(Number(par1.getJSValue()) < 0) 
 				this.throwRuntimeError("sqrt", "負の数のルートを求めようとしました");
 			var v = Math.sqrt(Number(par1.getJSValue()));
-			return new FloatValue([v], this.loc, v);
+			return new FloatValue([v], loc, v);
 		}
 		else this.throwRuntimeError("sqrt", "sqrtは数値にしか使えません");
 	}, "math", null),
@@ -347,7 +347,7 @@ var definedFunction = {
 		{
 			if(Number(par1.getJSValue()) <= 0) this.throwRuntimeError("log", "正でない数の対数を求めようとしました");
 			let v = Math.log(Number(par1.getJSValue()));
-			if(isFinite(v)) return new FloatValue([v], this.loc, v);
+			if(isFinite(v)) return new FloatValue([v], loc, v);
 			this.throwRuntimeError("log", "オーバーフローしました");
 		}
 		else this.throwRuntimeError("log", "logは数値にしか使えません");
@@ -357,7 +357,7 @@ var definedFunction = {
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
 			let v = Math.exp(Number(par1.getJSValue()));
-			if(isFinite(v)) return new FloatValue([v], this.loc, v);
+			if(isFinite(v)) return new FloatValue([v], loc, v);
 			this.throwRuntimeError("exp", "オーバーフローしました");
 		}
 		else this.throwRuntimeError("exp", "expは数値にしか使えません");
@@ -371,8 +371,8 @@ var definedFunction = {
 				this.throwRuntimeError("pow", "0は正の数乗しかできません");
 			var v = par1.getJSValue() ** par2.getJSValue();
 			return par2.getJSValue() >= 0 ? 
-				new IntValue([v], this.loc, v) :
-				new FloatValue([v], this.loc, v);
+				new IntValue([v], loc, v) :
+				new FloatValue([v], loc, v);
 		}
 		else if((par1 instanceof IntValue || par1 instanceof FloatValue) &&
 			(par2 instanceof IntValue || par2 instanceof FloatValue))
@@ -384,13 +384,13 @@ var definedFunction = {
 			if(par1 == 0 && par2 <= 0)
 				 this.throwRuntimeError("pow", "0は正の数乗しかできません");
 			let v = par1 ** par2;
-			if(isFinite(v)) return new FloatValue([v], this.loc, v);
+			if(isFinite(v)) return new FloatValue([v], loc, v);
 			else this.throwRuntimeError("pow", "オーバーフローしました");
 		}
 		else this.throwRuntimeError("pow", "powは数値にしか使えません");
 	}, null, null),
 	"length": new DefinedFunction(1, function(param, loc){
-		var par1 = param[0];
+		var par1 = param[0].getValue();
 		if(par1 instanceof StringValue)
 		{
 			var v = par1.getJSValue().length;
@@ -418,7 +418,7 @@ var definedFunction = {
 			var v;
 			if(par3 == null) v = par1.getJSValue().substr(Number(par2.getJSValue()));
 			else v = par1.getJSValue().substr(Number(par2.getJSValue()), Number(par3.getJSValue()));
-			return new StringValue([v], this.loc, v);
+			return new StringValue([v], loc, v);
 		}
 		else this.throwRuntimeError("substring", "substringの引数の型が違います");
 	}, null, function(argc){
@@ -432,13 +432,13 @@ var definedFunction = {
 		if(par1 instanceof StringValue && par2 instanceof StringValue)
 		{
 			var v = par1.getJSValue() + par2.getJSValue();
-			return new StringValue([v], this.loc, v);
+			return new StringValue([v], loc, v);
 		}
 		else if(par1 instanceof ArrayValue && par2 instanceof Value)
 		{
 			var v = par1._value.slice();
 			v.push(par2);
-			return new ArrayValue(v, this.loc, v);
+			return new ArrayValue(v, loc, v);
 		}
 		else this.throwRuntimeError("append", "appendの引数の型が違います");
 	}, null, function(argc){
@@ -461,6 +461,24 @@ var definedFunction = {
 		if(argc.length == 2) return argc[0] + '.split(' + argc[1] + ')';
 		else return 'list(' + argc[0] + ')';
 	}),
+	"extend": new DefinedFunction(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if(par1 instanceof StringValue && par2 instanceof StringValue)
+		{
+			var v = par1.getJSValue() + par2.getJSValue();
+			return new StringValue([v], loc, v);
+		}
+		else if(par1 instanceof ArrayValue && par2 instanceof ArrayValue)
+		{
+			var v = par1._value.slice();
+			for(var i of par2._value) v.push(i);
+			return new ArrayValue(v, loc, v);
+		}
+		else this.throwRuntimeError("extend", "extendの引数の型が違います");
+	}, null, function(argc){
+		return argc[0] + '.extend(' + argc[1] + ')';
+	}),
 	"extract": new DefinedFunction(3, function(param, loc){
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
@@ -471,7 +489,7 @@ var definedFunction = {
 			var v2 = par2.getJSValue();
 			var v3 = par3.getJSValue();
 			var v = v1.split(v2);
-			if(v3 >= 0 && v3 < v.length) return new StringValue([v[v3]], this.loc, v[v3]);
+			if(v3 >= 0 && v3 < v.length) return new StringValue([v[v3]], loc, v[v3]);
 			else this.throwRuntimeError("extract", "番号の値が不正です");
 		}
 		else this.throwRuntimeError("extract", "extractの引数の型が違います");
@@ -491,7 +509,7 @@ var definedFunction = {
 			var s1 = v1.substr(0, v2);
 			var s2 = v1.substr(v2);
 			var s = s1 + v3 + s2;
-			return new StringValue([s], this.loc, s);
+			return new StringValue([s], loc, s);
 		}
 		else this.throwRuntimeError("insert", "insertの引数の型が違います");
 	}, null, function(argc){
@@ -514,7 +532,7 @@ var definedFunction = {
 			var s1 = v1.substr(0, v2);
 			var s2 = v1.substr(v2 + v3);
 			var s = s1 + v4 + s2;
-			return new StringValue([s], this.loc, s);
+			return new StringValue([s], loc, s);
 		}
 		else this.throwRuntimeError("replace", "replaceの引数の型が違います");
 	}, null, function (argc){

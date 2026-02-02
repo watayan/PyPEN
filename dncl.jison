@@ -97,7 +97,7 @@ LT				[<＜]
 Comma			[，,、]
 Colon			[:：]
 Comment			[#＃♯].*(\r|\n|\r\n)
-Whitespace		[ 　]
+Whitespace		[ 　\t]
 
 %%
 
@@ -366,8 +366,8 @@ e
 	;
 
 variable
-	: variable '[' args ']' {$1.append($3); $$ = $1;}
-	| '識別子' {$$ = new Variable([toHalf($1, @1)], new Location(@1, @1));}
+	: variable '[' args ']' {$1.extend($3); $$ = $1;}
+	| '識別子' {$$ = new Variable(toHalf($1, @1), new Location(@1, @1));}
 	| UNDEFINED	{$$ = new UNDEFINED([yytext], new Location(@1,@1));}
 	;
 
@@ -529,17 +529,17 @@ ForStatement
 	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist
 		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@13));}
 	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist
-		{$$ =  new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@10));}
+		{$$ =  new ForInc($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$11, new Location(@1,@10));}
 	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$11, new Location(@1,@10));}
+		{$$ = new ForDec($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$11, new Location(@1,@10));}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist
 		{$$ = new ForInc($1, $3, $5, $7,$12, new Location(@1,@11));}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist
 		{$$ = new ForDec($1, $3, $5, $7,$12, new Location(@1,@11));}
 	| e 'を' e 'から' e 'まで' '増やしながら' ':' '改行' statementlist
-		{$$ = new ForInc($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@9));}
+		{$$ = new ForInc($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$10, new Location(@1,@9));}
 	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist
-		{$$ = new ForDec($1, $3, $5, new IntValue(1, new Location(@1, @1)),$10, new Location(@1,@9));}
+		{$$ = new ForDec($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$10, new Location(@1,@9));}
 	| e 'の要素' e 'について' '繰り返す' ':' '改行' statementlist
 		{$$ = new ForIn($1, $3, $8, new Location(@1,@8));}
 	| e 'の要素' e 'について' ':' '改行' statementlist

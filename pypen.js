@@ -8,7 +8,7 @@ function python_to_dncl(code)
 {
     var python_lines = code.split('\n');
     while(python_lines.length > 1 && 
-        /^[ 　]*$/.exec(python_lines[python_lines.length - 1]) && 
+        /^[ 　\t]*$/.exec(python_lines[python_lines.length - 1]) && 
         !(/[:：]$/.exec(python_lines[python_lines.length - 2])))
         python_lines.pop();
     python_lines.push('');
@@ -19,7 +19,7 @@ function python_to_dncl(code)
     for(var i = 0; i < python_lines.length; i++)
     {
         var line = python_lines[i].trimEnd();
-        var result = /^([ 　]*)(.*)$/.exec(line);
+        var result = /^([ 　\t]*)(.*)$/.exec(line);
         if(i < python_lines.length - 1 && result && !result[2])
         {
             dncl_lines.push(line);
@@ -28,7 +28,7 @@ function python_to_dncl(code)
         if(result)
         {
             var spaces = count_spaces(result[1]);
-            if(/^[ 　]*[#＃]/.exec(result[2]))
+            if(/^[ 　\t]*[#＃]/.exec(result[2]))
             {
                 dncl_lines.push(line);
                 continue;
@@ -66,6 +66,6 @@ function count_spaces(s)
 {
     var spaces = 0;
     for(var i = 0; i < s.length; i++)
-        spaces += s[i] == ' ' ? 1 : 2;
+        spaces += s[i] == ' ' ? 1 : s[i] == '\t' ? 4 : 2;
     return spaces;
 }

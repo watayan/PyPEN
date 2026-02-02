@@ -473,6 +473,11 @@ function next_line()
 	if(statement && typeof statement.run === 'function')
 	{
 		try{
+			if(debug_mode){
+				// textareaAppend('// ' + constructor_name(statement));
+				// textareaAppend(
+				// 	statement.getLoc ? "(" + statement.getLoc().first_line +  ')\n': '\n');
+			}
 			statement.run();
 		}
 		catch(e)
@@ -491,11 +496,12 @@ function next_line()
 			else throw e;
 		}
 	}
-	else
+	else if(statement)
 	{
-		textareaAppend('内部エラー: 実行できない文があります。\n' + constructor_name(statement) + '\n'
-	+ constructor_name(code[0].stack[1].statementlist[code[0].stack[1].index]) + '\n');
-		debugger;
+		textareaAppend('内部エラー: 実行できない文があります。\n' + 
+			+ "Statement:" + constructor_name(statement) + '\n'
+			+ "Called by:" + constructor_name(code[0].stack[1].statementlist[code[0].stack[1].index])  +" index:" + code[0].stack[1].index +"\n");
+		if(debug_mode) code_dump();
 		code[0].stack[0].index++;
 	} 
 	if(!code || !code[0]) return;

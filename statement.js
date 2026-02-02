@@ -11,10 +11,12 @@ class Statement
 	{
 		this._loc = loc;
 		this.state = 0;
+		if(!(this._loc instanceof Location)) throw new Error("StatementのlocがLocationではありません" + constructor_name(this));
 	}
 	get first_line() {return this._loc.first_line;}
 	get last_line() {return this._loc.last_line;}
 	get loc(){return this._loc;}
+	getLoc(){return this._loc;}
 	run(){throw new RuntimeError(this.first_line, "これを呼んではいけない");}
 	/**
 	 * 
@@ -214,7 +216,7 @@ class Append extends Statement
 	 */
 	constructor(variable,value,loc)
 	{
-		super(null, loc);
+		super(loc);
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "追加されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
@@ -226,7 +228,6 @@ class Append extends Statement
 	}
 	run()
 	{
-		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: [this.variable, this.value], index: 0});
@@ -234,36 +235,9 @@ class Append extends Statement
 		}
 		else
 		{
+			if(!(this.variable.getValue() instanceof ArrayValue && this.value.getValue() instanceof Value)) throw new RuntimeError(this.first_line, "追加される値はリストです");
 			code[0].stack[0].index++;
-			let vn = this.variable.varname;
-			let ag = this.variable.args;
-			let vl = this.value.getValue();
-			let vt = findVarTable(vn);
-			if(vt) // 変数が定義されている
-			{
-				let va = vt.vars[vn];
-				if(ag && ag.value.length > 0) // 配列の添字がある
-				{
-					for(let i = 0; i < ag.value.length; i++) 
-					{
-						if(ag.value[i].getValue() instanceof StringValue)
-						{
-							va = va.getElement(ag.value[i].getValue().value);
-						}
-						else if(ag.value[i].getValue() instanceof IntValue)
-						{
-							if(va.value[Number(ag.value[i].getValue().value)])
-								va = va.value[Number(ag.value[i].getValue().value)];
-							else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに追加しようとしました')
-						}
-						else throw new RuntimeError(this.first_line, '添字に使えないデータ型です');
-					}
-				}
-				if(va instanceof ArrayValue) va.append(vl);
-				else throw new RuntimeError(this.first_line, '配列でない変数に追加はできません');
-			}
-			else // 変数が定義されていない
-				throw new RuntimeError(this.first_line, '存在しない配列に追加はできません');
+			this.variable.getValue().append(this.value.getValue());
 			this.state = 0;
 		}
 	}
@@ -285,7 +259,7 @@ class Extend extends Statement
 	 */
 	constructor(variable,value,loc)
 	{
-		super(null, loc);
+		super(loc);
 		if(!(variable instanceof Variable || variable instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "連結されるものは変数でなくてはいけません");
 		this.variable = variable;
 		this.value = value;
@@ -297,7 +271,6 @@ class Extend extends Statement
 	}
 	run()
 	{
-		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: [this.variable, this.value], index: 0});
@@ -305,44 +278,11 @@ class Extend extends Statement
 		}
 		else
 		{
+			if(!(this.variable.getValue() instanceof ArrayValue && this.value.getValue() instanceof ArrayValue)) throw new RuntimeError(this.first_line, "リストどうしでないと連結できません");
 			code[0].stack[0].index++;
-			let vn = this.variable.varname;
-			let ag = this.variable.args;
-			let vl = this.value.getValue();
-			let vt = findVarTable(vn);
-			if(vt) // 変数が定義されている
-			{
-				let va = vt.vars[vn];
-				if(ag && ag.value.length > 0) // 配列の添字がある
-				{
-					for(let i = 0; i < ag.value.length; i++) 
-					{
-						ag.value[i].run();
-						if(ag.value[i] instanceof StringValue)
-						{
-							va = va.value[ag.value[i].getValue().value];					}
-						else if(ag.value[i] instanceof IntValue)
-						{
-							if(va.value[ag.value[i].getValue().value])
-								va = va.value[ag.value[i].getValue().value];
-							else throw new RuntimeError(this.first_line, '配列の範囲を超えたところに連結しようとしました')
-						}
-						else throw new RuntimeError(this.first_line, "添字に使えないデータ型です");
-					}
-				}
-				if(va instanceof ArrayValue)
-				{
-					if(vl instanceof ArrayValue)
-					{
-						var l = vl.value.length;
-						for(var i = 0; i < l; i++) va.value.push(vl.value[i].clone());
-					}
-					else throw new RuntimeError(this.first_line, '配列でない値を連結することはできません');
-				} 
-				else throw new RuntimeError(this.first_line, '配列でない変数に連結はできません');
-			}
-			else // 変数が定義されていない
-				throw new RuntimeError(this.first_line, '存在しない配列に連結はできません');
+			var a = [];	// 自分への連結対策
+			for(var i of this.value.getValue()._value) a.push(i.getValue());
+			this.variable.getValue().extend(a);
 			this.state = 0;
 		}
 	}
@@ -360,28 +300,28 @@ class Input extends Statement
 	{
 		super(loc);
 		if(!(x instanceof Variable || x instanceof UNDEFINED))throw new RuntimeError(loc.first_line, "入力されるものは変数でなくてはいけません");
-		this.varname = x;
+		this.variable = x;
 		this.type = type;
 		this.state = 0;
 	}
 	clone()
 	{
-		return new Input(this.varname.clone(), this.type, this.loc);
+		return new Input(this.variable.clone(), this.type, this.loc);
 	}
 	run()
 	{
 		if(selected_quiz < 0)	// 通常時
 		{
 			code[0].stack[0].index++;
-			if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-			var list = [new InputBegin(this.loc), new InputEnd(this.varname, this.type, this.loc)];
+			if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+			var list = [new InputBegin(this.loc), new InputEnd(this.variable, this.type, this.loc)];
 			code[0].stack.unshift({statementlist: list, index: 0});
 		}
 		else	// 自動採点時
 		{
 			if(this.state == 0)
 			{
-				if(this.varname.args) code[0].stack.unshift({statementlist: this.varname.args, index: 0});
+				if(this.variable.args) code[0].stack.unshift({statementlist: this.variable.args, index: 0});
 				this.state = 1;
 			}
 			else
@@ -389,17 +329,37 @@ class Input extends Statement
 				code[0].stack[0].index++;
 				if(selected_quiz_input < Quizzes[selected_quiz].inputs(selected_quiz_case).length)
 				{
-					if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
-					let va = new Variable(this.varname.varname, this.varname.args, this.loc);
+					if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+					let va = new Variable(this.variable.varname, this.loc);
 					let vl = Quizzes[selected_quiz].inputs(selected_quiz_case)[selected_quiz_input++];
 					// va.run();
-					let assign = null;
-					let re = /^(0+|false|偽|)$/i;
-					if(this.type == typeOfValue.typeInt)assign = new Assign(this.varname, new IntValue(Number(toHalf(vl, this.loc)), this.loc),null, this.loc);
-					else if(this.type == typeOfValue.typeFloat)assign = new Assign(this.varname, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);
-					else if(this.type == typeOfValue.typeString) assign = new Assign(this.varname, new StringValue(vl + '', this.loc), null, this.loc);
-					else if(this.type == typeOfValue.typeBoolean) assign = new Assign(this.varname, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);
-					code[0].stack.unshift({statementlist: [assign], index: 0});
+					var v = null;
+					if(this.type == typeOfValue.typeInt)
+					{
+						var v0 = BigInt(toHalf(vl, this.loc));
+						v = new IntValue([v0], this.loc, v0);
+					}
+					else if(this.type == typeOfValue.typeFloat)
+					{
+						var v0 = Number(toHalf(vl, this.loc));
+						v = new FloatValue([v0], this.loc, v0);
+					}
+					else if(this.type == typeOfValue.typeString) 
+					{
+						var v0 = vl + '';
+						v = new StringValue([v0], this.loc, v0);
+					}
+					else if(this.type == typeOfValue.typeBoolean) 
+					{
+						var v0 = toBool(vl);
+						v = new BooleanValue([v0], this.loc, v0);
+					}
+					if(v !== null)
+					{
+						var assign = new Assign(this.variable, v, null, this.loc);
+						code[0].stack.unshift({statementlist: [assign], index: 0});
+					}
+					else throw new RuntimeError(this.first_line, '不明な型です。');
 				}
 				else throw new RuntimeError(this.first_line, '必要以上の入力を求めています。');
 				this.state = 0;
@@ -513,10 +473,10 @@ class InputEnd extends Statement
 				// va.run();
 				let assign = null;
 				let re = /^(0+|false|偽|)$/i;
-				if(this.type == typeOfValue.typeInt)assign = new Assign(this.varname, new IntValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);
-				else if(this.type == typeOfValue.typeFloat)assign = new Assign(this.varname, new FloatValue(Number(toHalf(vl, this.loc)), this.loc), null, this.loc);
-				else if(this.type == typeOfValue.typeString) assign = new Assign(this.varname, new StringValue(vl + '', this.loc), null, this.loc);
-				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(this.varname, new BooleanValue(!re.exec(vl), this.loc), null, this.loc);
+				if(this.type == typeOfValue.typeInt)assign = new Assign(this.varname, new IntValue([toHalf(vl, this.loc)], this.loc,toHalf(vl, this.loc), null, this.loc));
+				else if(this.type == typeOfValue.typeFloat)assign = new Assign(this.varname, new FloatValue([Number(toHalf(vl, this.loc))], this.loc, Number(toHalf(vl, this.loc))), null, this.loc);
+				else if(this.type == typeOfValue.typeString) assign = new Assign(this.varname, new StringValue([vl + ''], this.loc, vl + ''), null, this.loc);
+				else if(this.type == typeOfValue.typeBoolean) assign = new Assign(this.varname, new BooleanValue([toBool(vl)], this.loc, toBool(vl)), null, this.loc);
 				code[0].stack.unshift({statementlist: [assign], index: 0});
 			}
 			catch(e)
@@ -713,7 +673,7 @@ class Output extends Statement
 			let s = '';
 			for(var i = 0; i < this.value.length; i++)
 			{
-				s += (i > 0 ? ' ' : '') + valueString(this.value[i]);
+				s += (i > 0 ? ' ' : '') + valueString(this.value[i].getValue());
 			}
 			if(this.ln)	s += '\n';
 			if(selected_quiz < 0) textareaAppend(s);
@@ -767,7 +727,8 @@ class If extends Statement
 		{
 			if(this.running < this.blocks.length)
 			{
-				if(this.blocks[this.running][0]) code[0].stack.unshift({statementlist: [this.blocks[this.running][0]], index: 0});
+				if(this.blocks[this.running] && this.blocks[this.running][0])
+					code[0].stack.unshift({statementlist: [this.blocks[this.running][0]], index: 0});
 				this.state = 2;
 			}
 			else
@@ -778,12 +739,19 @@ class If extends Statement
 		}
 		else if(this.state == 2)
 		{
-			var flag = this.blocks[this.running][0] ? toBool(this.blocks[this.running][0].getValue()) : true;
+			var flag = this.blocks[this.running][0] ? 
+				this.blocks[this.running][0].getValue().getJSValue() : 
+				true;
 			if(flag)
 			{
 				code[0].stack[0].index++;
 				this.state = 0;
 				code[0].stack.unshift({statementlist: this.blocks[this.running][1], index: 0});
+				// if(debug_mode)
+				// {
+				// 		textareaAppend("DEBUG: If block " + this.running + " is executed\n");
+				// 	for(var i of this.blocks[this.running][1]) textareaAppend("DEBUG:   " + constructor_name(i) + "\n");
+				// }
 			}
 			else
 			{
@@ -839,7 +807,8 @@ class LoopBegin extends Statement
 		}
 		else
 		{
-			if(!this.condition || toBool(this.condition.getValue()) == this.continuous) code[0].stack[0].index++;
+			if(!this.condition || toBool(this.condition.getJSValue()) == this.continuous) 
+				code[0].stack[0].index++;
 			else code[0].stack[0].index = -1;
 			this.state = 0;
 		}
@@ -874,10 +843,34 @@ class LoopEnd extends Statement
 		}
 		else
 		{
-			if(!this.condition || toBool(this.condition.getValue()) == this.continuous) code[0].stack[0].index = 0;
+			if(!this.condition || toBool(this.condition.getJSValue()) == this.continuous) code[0].stack[0].index = 0;
 			else code[0].stack[0].index = -1;
 			this.state = 0;
 		}
+	}
+}
+
+class LoopBody extends Statement
+{
+	constructor(statementlist, loc)
+	{
+		super(loc);
+		this.statementlist = statementlist;
+	}
+	clone()
+	{
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		return new LoopBody(state, this.loc);
+	}
+	run()
+	{
+		code[0].stack[0].index++;
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		code[0].stack.unshift({statementlist: state, index: 0});
 	}
 }
 
@@ -895,7 +888,8 @@ class ForIn extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new ForIn(this.array.clone(), this.variable.clone(), state, this.loc);
 	}
 	makePython(indent)
@@ -915,7 +909,8 @@ class ForIn extends Statement
 	}
 	run()
 	{
-		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.loc.first_line, "未完成のプログラムです");
+		if(this.variable instanceof UNDEFINED) 
+			throw new RuntimeError(this.loc.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: [this.array], index: 0});
@@ -924,9 +919,13 @@ class ForIn extends Statement
 		else
 		{
 			code[0].stack[0].index++;
-			let variable = new Variable(this.variable.varname, this.variable.args, this.loc);
-			let loop = [new ForIn_step(this, variable, this.array, this.loc), new LoopBegin(new BooleanValue(true, this.loc), true, this.loc)];
-			for(let i = 0; i < this.statementlist.length; i++)if(this.statementlist[i])loop.push(this.statementlist[i].clone());
+			// if(debug_mode) textareaAppend("DEBUG: ForIn array is "+constructor_name(this.array)+"\n");
+			// let variable = new Variable(this.variable.varname, this.variable.args, this.loc);
+			let loop = [new ForIn_step(this, this.variable, this.array._value, this.loc), 
+				new LoopBegin(new BooleanValue([true], this.loc, true), true, this.loc)];
+			loop.push(new LoopBody(this.statementlist, this.loc));
+			// for(let i = 0; i < this.statementlist.length; i++)
+			// 	if(this.statementlist[i])loop.push(this.statementlist[i].clone());
 			loop.push(new LoopEnd(null, true, this.loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 			this.state = 0;
@@ -942,6 +941,7 @@ class ForIn_step extends Statement
 		this.forin = forin;
 		this.variable = variable;
 		this.array = array;
+		// if(debug_mode) textareaAppend("DEBUG: ForIn_step array is "+constructor_name(this.array) + "\n");
 		this.index = 0;
 	}
 	clone()
@@ -951,14 +951,15 @@ class ForIn_step extends Statement
 	run()
 	{
 		code[0].stack[0].index++;
-		if(this.index < this.array.rtnv.length)
+		if(this.index < this.array._value.length)
 		{
-			let assign = new Assign(this.variable, this.array.rtnv.value[this.index++], null, this.loc);
+			let assign = new Assign(this.variable, this.array._value[this.index++], null, this.loc);
 			code[0].stack.unshift({statementlist: [assign], index: 0});
 		}
 		else
 		{
-			code[0].stack[0].statementlist[1] = new LoopBegin(new BooleanValue(false, true, this.loc),true, this.loc);
+			code[0].stack[0].statementlist[1] = 
+			new LoopBegin(new BooleanValue([false], this.loc, false),true, this.loc);
 		}
 	}
 }
@@ -977,11 +978,11 @@ class ForInc extends Statement
 	 * @param {Array<Statement>} statementlist 
 	 * @param {Location} loc 
 	 */
-	constructor(varname, begin, end, step, statementlist,loc)
+	constructor(variable, begin, end, step, statementlist,loc)
 	{
 		super(loc);
-		if(!(varname instanceof Variable || varname instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
-		this.varname = varname;
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		this.variable = variable;
 		this.begin = begin;
 		this.end = end;
 		this.step = step;
@@ -991,13 +992,14 @@ class ForInc extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
-		return new ForInc(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		return new ForInc(this.variable.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
 	{
 		var code = Parts.makeIndent(indent);
-		var pv = this.varname.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
+		var pv = this.variable.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
 		code += "for " + pv + " in range(" + pb + ", " + pe + "+1, " + ps + "):\n";
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
@@ -1011,23 +1013,28 @@ class ForInc extends Statement
 	}
 	run()
 	{
-		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		if(this.variable instanceof UNDEFINED) 
+			throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: [new Assign(this.varname, this.begin, null, this.loc)], index: 0});
+			code[0].stack.unshift({statementlist: [new Assign(this.variable, this.begin, null, this.loc)], index: 0});
+			code[0].stack.unshift({statementlist: [this.begin, this.end, this.step], index: 0});
 			this.state = 1;
 		}
 		else
 		{
 			code[0].stack[0].index++;
+			if(this.step.getJSValue() <= 0) throw new RuntimeError(this.first_line, '増分は0より大きい値である必要があります');
 			if(this.begin.getValue() instanceof IntValue || this.begin.getValue() instanceof FloatValue)
 			{
-				let variable = new Variable(this.varname.varname, this.varname.args,this.loc);
-				let condition = new LE(variable, this.end, this.loc);	// IncとDecの違うところ
-				let loop = [variable, condition, new LoopBegin(condition, true, this.loc)];
-				for(let i = 0; i < this.statementlist.length; i++)if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
+				// let variable = new Variable(this.variable.varname, this.variable.args,this.loc);
+				let condition = new Compare([this.variable,'<=', this.end], this.loc);	// IncとDecの違うところ
+				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
+				loop.push(new LoopBody(this.statementlist, this.loc));
+				// for(let i = 0; i < this.statementlist.length; i++)
+				// 	if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
 				loop.push(this.step);
-				loop.push(new Assign(variable, this.step, '+', this.loc));	// IncとDecの違うところ
+				loop.push(new Assign(this.variable, this.step, '+', this.loc));	// IncとDecの違うところ
 				loop.push(new LoopEnd(null, true, this.loc));
 				code[0].stack.unshift({statementlist: loop, index: 0});
 			}
@@ -1039,11 +1046,20 @@ class ForInc extends Statement
 
 class ForDec extends Statement
 {
-	constructor(varname, begin, end, step, statementlist,loc)
+	/**
+	 * @constructor
+	 * @param {Variable} varname 
+	 * @param {Value} begin 
+	 * @param {Value} end 
+	 * @param {Value} step 
+	 * @param {Array<Statement>} statementlist 
+	 * @param {Location} loc 
+	 */
+	constructor(variable, begin, end, step, statementlist,loc)
 	{
 		super(loc);
-		if(!(varname instanceof Variable || varname instanceof Variable)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
-		this.varname = varname;
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		this.variable = variable;
 		this.begin = begin;
 		this.end = end;
 		this.step = step;
@@ -1053,14 +1069,14 @@ class ForDec extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i])state.push(this.statementlist[i].clone());
-		return new ForDec(this.varname.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
+		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		return new ForDec(this.variable.clone(), this.begin.clone(), this.end.clone(), this.step.clone(), state, this.loc);
 	}
 	makePython(indent)
 	{
 		var code = Parts.makeIndent(indent);
-		var pv = this.varname.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
-		code += "for " + pv + " in range(" + pb + ", " + pe + "-1, -" + ps + "):\n";
+		var pv = this.variable.makePython(), pb = this.begin.makePython(), pe = this.end.makePython(), ps = this.step.makePython();
+		code += "for " + pv + " in range(" + pb + ", " + pe + "-1, " + ps + "):\n";
 		var codes = 0;
 		for(var i = 0; i < this.statementlist.length; i++)
 			if(this.statementlist[i])
@@ -1073,23 +1089,28 @@ class ForDec extends Statement
 	}
 	run()
 	{
-		if(this.varname instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		if(this.variable instanceof UNDEFINED) throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: [new Assign(this.varname, this.begin, null, this.loc)], index: 0});
+			code[0].stack.unshift({statementlist: [new Assign(this.variable, this.begin, null, this.loc)], index: 0});
+			code[0].stack.unshift({statementlist: [this.begin, this.end, this.step], index: 0});
 			this.state = 1;
 		}
 		else
 		{
 			code[0].stack[0].index++;
+			if(this.step.getJSValue() <= 0) throw new RuntimeError(this.first_line, '減分は0より大きい値である必要があります');
 			if(this.begin.getValue() instanceof IntValue || this.begin.getValue() instanceof FloatValue)
 			{
-				let variable = new Variable(this.varname.varname, this.varname.args,this.loc);
-				let condition = new GE(variable, this.end, this.loc);	// IncとDecの違うところ
-				let loop = [variable, condition, new LoopBegin(condition, true, this.loc)];
-				for(let i = 0; i < this.statementlist.length; i++) if(this.statementlist[i])loop.push(this.statementlist[i].clone());
+				// let variable = new Variable(this.variable.varname, this.variable.args,this.loc);
+				let condition = new Compare([this.variable,'>=', this.end], this.loc);	// IncとDecの違うところ
+
+				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
+				loop.push(new LoopBody(this.statementlist, this.loc));
+				// for(let i = 0; i < this.statementlist.length; i++)
+				//     if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
 				loop.push(this.step);
-				loop.push(new Assign(variable, this.step, '-', this.loc));	// IncとDecの違うところ
+				loop.push(new Assign(this.variable, this.step, '-', this.loc));	// IncとDecの違うところ
 				loop.push(new LoopEnd(null, true, this.loc));
 				code[0].stack.unshift({statementlist: loop, index: 0});
 			}
@@ -1111,7 +1132,8 @@ class While extends Statement
 	clone()
 	{
 		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
 		return new While(this.condition.clone(), state, this.loc);
 	}
 	makePython(indent)
@@ -1139,7 +1161,7 @@ class While extends Statement
 		{
 			code[0].stack[0].index++;
 			let loop = [new LoopBegin(this.condition, true, this.loc)];
-			for(var i = 0; i < this.statementlist.length; i++) if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
+			loop.push(new LoopBody(this.statementlist, this.loc));
 			loop.push(new LoopEnd(null, false, this.loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
 			this.status = 0;
@@ -1160,7 +1182,7 @@ class SleepStatement extends Statement
 	}
 	run()
 	{
-		wait_time = this.sec.value;
+		wait_time = this.sec.getJSValue();
 		code[0].stack[0].index++;
 	}
 	makePython(indent)
