@@ -1348,7 +1348,7 @@ class Mul extends SimpleValue
 			for(let i = 0; i < vn; i++) v += va;
 			this._value = new StringValue([v], this.getLoc(), v);
 		}
-		else if(v1 instanceof Array || v2 instanceof Array)
+		else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
 		{
 			let va = null, vn = null;
 			if(v1 instanceof IntValue){va = v2; vn = v1.getJSValue();}
@@ -1356,7 +1356,7 @@ class Mul extends SimpleValue
 			else this.throwRuntimeError("リストには整数しか掛けられません");
 			let v = []
 			for(let i = 0; i < vn; i++)
-				for(let j = 0; j < va.length; j++) v.push(va[j]);
+				for(let j = 0; j < va.valueLength(); j++) v.push(va.getValue(j));
 			this._value = new ArrayValue([v], this.getLoc(), v);
 		} 
 		else
@@ -2357,20 +2357,22 @@ class NumberOf extends SimpleValue
 	}
 	clone()
 	{
-		return new NumberOf(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+		return new NumberOf(this.getArgs(), this.getLoc());
+		// , this._value ? this._value.clone() : null);
 	}
 	run()
 	{
 		if(this.getState() == 0)
 		{
 			code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
-			this.getState(1);
+			this.setState(1);
 		}
 		else if(this.getState() == 1)
 		{
-			for(var i = 0; i < this.getArgs()[0].getJSValue(); i++) 
-				statementlist.push(this.getArgs()[1].clone());
-			code[0].stack.unshift({statementlist: statementlist, index: 0});
+			this.statementlist = [];
+			for(var i = 0; i < this.getArgs(0).getJSValue(); i++) 
+				this.statementlist.push(this.getArgs(1).clone());
+			code[0].stack.unshift({statementlist: this.statementlist, index: 0});
 			this.setState(2);
 		}
 		else

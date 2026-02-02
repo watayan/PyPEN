@@ -920,14 +920,11 @@ class ForIn extends Statement
 		else
 		{
 			code[0].stack[0].index++;
-			// if(debug_mode) textareaAppend("DEBUG: ForIn array is "+constructor_name(this.array)+"\n");
-			// let variable = new Variable(this.variable.varname, this.variable.args, this.loc);
-			let loop = [new ForIn_step(this, this.variable, this.array._value, this.loc), 
-				new LoopBegin(new BooleanValue([true], this.loc, true), true, this.loc)];
-			loop.push(new LoopBody(this.statementlist, this.loc));
-			// for(let i = 0; i < this.statementlist.length; i++)
-			// 	if(this.statementlist[i])loop.push(this.statementlist[i].clone());
-			loop.push(new LoopEnd(null, true, this.loc));
+			let loop = [new ForIn_step(this, this.variable, this.array.getValue(), this.loc), 
+				new LoopBegin(new BooleanValue([true], this.loc, true), true, this.loc),
+				new LoopBody(this.statementlist, this.loc),
+				new LoopEnd(null, true, this.loc)
+			];
 			code[0].stack.unshift({statementlist: loop, index: 0});
 			this.state = 0;
 		}
@@ -942,19 +939,19 @@ class ForIn_step extends Statement
 		this.forin = forin;
 		this.variable = variable;
 		this.array = array;
-		// if(debug_mode) textareaAppend("DEBUG: ForIn_step array is "+constructor_name(this.array) + "\n");
 		this.index = 0;
 	}
 	clone()
 	{
-		return new ForIn_step(this.forin.clone(), this.variable.clone(), this.array.clone(), this.loc);
+		return new ForIn_step(this.forin.clone(), this.variable.clone());
+		// , this.array.clone(), this.loc);
 	}
 	run()
 	{
 		code[0].stack[0].index++;
-		if(this.index < this.array.length)
+		if(this.index < this.array.valueLength())
 		{
-			let assign = new Assign(this.variable, this.array[this.index++], null, this.loc);
+			let assign = new Assign(this.variable, this.array.getValue(this.index++), null, this.loc);
 			code[0].stack.unshift({statementlist: [assign], index: 0});
 		}
 		else

@@ -680,7 +680,7 @@ var definedFunction = {
 		if(par1 instanceof ArrayValue && par2 instanceof Value)
 		{
 			par1._value.push(par2);
-			return new NullValue(loc);
+			return new ArrayValue(par1._value, loc, par1._value);
 		}
 		else this.throwRuntimeError("push", "pushは配列にしか使えません");
 	}, null, function(argc){
