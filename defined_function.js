@@ -436,9 +436,8 @@ var definedFunction = {
 		}
 		else if(par1 instanceof ArrayValue && par2 instanceof Value)
 		{
-			var v = par1._value.slice();
-			v.push(par2);
-			return new ArrayValue(v, loc, v);
+			par1._value.push(par2);
+			return par1;
 		}
 		else this.throwRuntimeError("append", "appendの引数の型が違います");
 	}, null, function(argc){
@@ -471,9 +470,8 @@ var definedFunction = {
 		}
 		else if(par1 instanceof ArrayValue && par2 instanceof ArrayValue)
 		{
-			var v = par1._value.slice();
-			for(var i of par2._value) v.push(i);
-			return new ArrayValue(v, loc, v);
+			for(var i of par2._value) par1._value.push(i);
+			return par1;
 		}
 		else this.throwRuntimeError("extend", "extendの引数の型が違います");
 	}, null, function(argc){

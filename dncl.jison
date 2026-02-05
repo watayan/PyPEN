@@ -128,6 +128,7 @@ Whitespace		[ 　\t]
 {DivInt}					{return '//'}
 {Div}						{return '/'}
 {Mod}						{return '%';}
+"."							{return 'DOT';}
 "("							{return '(';}
 ")"							{return ')';}
 "（"						{return '(';}
@@ -296,6 +297,7 @@ Whitespace		[ 　\t]
 %left '*' '/' '//' '%'
 %left UMINUS '~'
 %right '**'
+%left 'DOT'
 %right ELSE_PREC
 %nonassoc 'else' 'そうでなければ' 'elif' 'そうでなくもし'
 %
@@ -343,6 +345,9 @@ e
 	| '文字列' '(' e ')' {$$ = new ConvertString([$3], new Location(@1, @4));}
 	| '真偽' '(' e ')' {$$ = new ConvertBool([$3], new Location(@1, @4));}
 	| '識別子' '(' args ')' {$$ = new CallFunction([$1, $3], new Location(@1,@4));}
+	| e 'DOT' '識別子' '(' args ')' 
+		{$$ = new CallFunction([$3, 
+			[$1].concat($5)], new Location(@1,@6));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1,@3));}
 	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1,@4));}
