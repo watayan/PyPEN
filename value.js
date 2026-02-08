@@ -1749,7 +1749,7 @@ class Not extends SimpleValue
 {
 	constructor(v, loc, value = null)
 	{
-		super([v],loc, value);
+		super(v,loc, value);
 		Object.seal(this);
 	}
 	clone()
@@ -1758,12 +1758,14 @@ class Not extends SimpleValue
 	}
 	_makeValue()
 	{
-		let v1 = this.getArgs()[0].getValue();
-		if(v1 instanceof BooleanValue){
-			var v = !v1.getJSValue();
+		let v1 = this.getArgs(0).getValue();
+		if(v1 instanceof Value){
+			var v = !toBool(v1);
 			this._value = new BooleanValue([v], this.getLoc(), v);
 		}
-		else this.throwRuntimeError("not は真偽値にしか使えません");
+		else this.throwRuntimeError("not は真偽値にしか使えません"
+			+ debug_mode ? ("(" + constructor_name(v1) + ")") : ''
+		);
 	}
 	argsPyPEN()
 	{
@@ -2514,7 +2516,7 @@ function toBool(v)
 	else if(v instanceof IntValue || v instanceof FloatValue) return v.getJSValue() != 0;
 	else if(v instanceof StringValue) return re.exec(v.getJSValue()) ? false : true;
 	else if(v instanceof BooleanValue) return v.getJSValue();
-	else if(v instanceof ArrayValue) return v.getValue().valueLength() != 0;
+	else if(v instanceof ArrayValue) return v.valueLength() != 0;
 	else if(v instanceof DictionaryValue) return v.getValue().size() != 0;
 	else throw new RuntimeError(null, '真偽値に直せません'
 		+ debug_mode ? ("\n値の型: " + constructor_name(v)) : ''

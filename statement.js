@@ -741,7 +741,7 @@ class If extends Statement
 		else if(this.state == 2)
 		{
 			var flag = this.blocks[this.running][0] ? 
-				this.blocks[this.running][0].getValue().getJSValue() : 
+				toBool(this.blocks[this.running][0].getValue()) : 
 				true;
 			if(flag)
 			{
