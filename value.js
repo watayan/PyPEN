@@ -2905,8 +2905,8 @@ class Assign extends SimpleValue
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の割り算はできません");
 						else if(v1 instanceof IntValue && v2 instanceof IntValue)
 						{
-							let q = v1.args / v2.args, r = v1.args % v2.args;
-							if(!SameSignBigInt(v1.args, v2.args) && r != 0) q--;
+							let q = v1.getJSValue() / v2.getJSValue(), r = v1.getJSValue() % v2.getJSValue();
+							if(!SameSignBigInt(q, r) && r != 0) q--;
 							v3 = new IntValue([q], this.getLoc(), q);
 						}
 						else
@@ -2975,7 +2975,7 @@ class Assign extends SimpleValue
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビット和はできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビット和はできません");
 						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビット和はできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(toBool(v1.getJSValue() && v2.getJSValue()), this.getLoc());
 						else
 						{
 							if(v1 instanceof BooleanValue)
@@ -3001,7 +3001,7 @@ class Assign extends SimpleValue
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の排他的論理和はできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列の排他的論理和はできません");
 						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数の排他的論理和はできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(toBool(v1.getJSValue() && v2.getJSValue()), this.getLoc());
 						else
 						{
 							if(v1 instanceof BooleanValue)
@@ -3027,7 +3027,7 @@ class Assign extends SimpleValue
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビットシフトはできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビットシフトはできません");
 						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビットシフトはできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(toBool(v1.getJSValue() && v2.getJSValue()), this.getLoc());
 						else
 						{
 							if(v1 instanceof BooleanValue)
@@ -3053,7 +3053,7 @@ class Assign extends SimpleValue
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書のビットシフトはできません");
 						else if(v1 instanceof StringValue || v2 instanceof StringValue) this.throwRuntimeError("文字列のビットシフトはできません");
 						else if(v1 instanceof FloatValue || v2 instanceof FloatValue) this.throwRuntimeError("実数のビットシフトはできません");
-						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(v1.args && v2.args, this.getLoc());
+						else if(v1 instanceof BooleanValue && v2 instanceof BooleanValue) v3 = new BooleanValue(toBool(v1.getJSValue() && v2.getJSValue()), this.getLoc());
 						else
 						{
 							if(v1 instanceof BooleanValue)
