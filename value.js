@@ -128,7 +128,8 @@ class Value
 	{
 		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			if(this.getArgs().length > 0)
+				code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
 			this.setState(1);
 		}
 		else
@@ -292,7 +293,8 @@ class SimpleValue extends Value
 	{
 		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			if(this.getArgs().length > 0)
+				code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
 			this.setState(1);
 		}
 		else
@@ -388,16 +390,17 @@ class CollectionValue extends Value
 	}
 	run()
 	{
-		if(this._state == 0)
+		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
-			this._state = 1;
+			if(this.getArgs().length > 0)
+				code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
 		}
 		else
 		{
 			code[0].stack[0].index++;
 			this._makeValue();
-			this._state = 0;
+			this.setState(0);
 		}
 	}
 }
@@ -1006,6 +1009,7 @@ class Variable extends SimpleValue
 	{
 		super([],loc, value);
 		this.varname = x;
+		this._value = null;
 		Object.seal(this);
 		if(debug_mode && !(loc instanceof Location)) 
 			textareaAppend("Error Variable#constructor: " +x +": "+ constructor_name(loc) + "\n");
@@ -1014,34 +1018,23 @@ class Variable extends SimpleValue
 	{
 		var a = [];
 		for(var i of this.getArgs()) a.push(i.clone());
-		var rtnv = new Variable(this.varname, this.getLoc(), this._value ? this._value.clone() : null);
+		var rtnv = new Variable(this.varname, this.getLoc());
+		// var rtnv = new Variable(this.varname, this.getLoc(), this._value ? this._value.clone() : null);
 		rtnv._args = a;
 		return rtnv;
 	}
-	// run()
-	// {
-	// 	if(this._state == 0)
-	// 	{
-	// 		if(this.getArgs()) code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
-	// 		this._state = 1;
-	// 	}
-	// 	else
-	// 	{
-	// 		this._makeValue();
-	// 		code[0].stack[0].index++;
-	// 		this._state = 0;
-	// 	}
-	// }
 	_makeValue()
+	{
+
+	}
+
+	getValue()
 	{
 		var vt = findVarTable(this.varname);
 		if(vt)
 		{
 			var v = vt.vars[this.varname];
-			this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
-			if(!(this._value instanceof Value)) 
-				this.throwRuntimeError("代入する値が不明です(_makeValue): " 
-				+ constructor_name(this._value));
+			return this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
 		}
 		else this.throwRuntimeError("変数に" + this.varname + "がありません");
 	}
@@ -1111,7 +1104,9 @@ class Pow extends SimpleValue
 	}
 	clone()
 	{
-		return new Pow(this.getArgs(), this._loc, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Pow(a, this._loc);
 	}
 	_makeValue()
 	{
@@ -1186,11 +1181,28 @@ class Add extends SimpleValue
 	constructor(v, loc, value = null)
 	{
 		super(v, loc, value);
-		Object.seal(this);
+		// Object.seal(this);
 	}
 	clone()
 	{
-		return new Add(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Add(a, this.getLoc());
+	}
+	run()
+	{
+		if(this.getState() == 0)
+		{
+
+			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
+		}
+		else if(this.getState() == 1)
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
 	}
 	_makeValue()
 	{
@@ -1264,7 +1276,9 @@ class Sub extends SimpleValue
 	}
 	clone()
 	{
-		return new Sub(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Sub(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1331,7 +1345,9 @@ class Mul extends SimpleValue
 	}
 	clone()
 	{
-		return new Mul(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Mul(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1410,11 +1426,28 @@ class Div extends SimpleValue	// /
 	constructor(v, loc, value = null)
 	{
 		super(v, loc, value);
-		Object.seal(this);
+		// Object.seal(this);
 	}
 	clone()
 	{
-		return new Div(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Div(a, this.getLoc());
+	}
+	run()
+	{
+		if(this.getState() == 0)
+		{
+
+			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
+		}
+		else if(this.getState() == 1)
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
 	}
 	_makeValue()
 	{
@@ -1470,7 +1503,9 @@ class DivInt extends SimpleValue // //
 	}
 	clone()
 	{
-		return new DivInt(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new DivInt(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1536,7 +1571,9 @@ class Mod extends SimpleValue
 	}
 	clone()
 	{
-		return new Mod(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Mod(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1590,7 +1627,9 @@ class Minus extends SimpleValue
 	}
 	clone()
 	{
-		return new Minus(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Minus(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1644,7 +1683,9 @@ class And extends SimpleValue
 	}
 	clone()
 	{
-		return new And(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new And(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1699,7 +1740,9 @@ class Or extends SimpleValue
 	}
 	clone()
 	{
-		return new Or(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Or(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1754,7 +1797,9 @@ class Not extends SimpleValue
 	}
 	clone()
 	{
-		return new Not(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new Not(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1794,7 +1839,9 @@ class BitAnd extends SimpleValue
 	}
 	clone()
 	{
-		return new BitAnd(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new BitAnd(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1857,7 +1904,9 @@ class BitOr extends SimpleValue
 	}
 	clone()
 	{
-		return new BitOr(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new BitOr(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1922,7 +1971,9 @@ class BitXor extends SimpleValue
 	}
 	clone()
 	{
-		return new BitXor(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new BitXor(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -1987,7 +2038,9 @@ class BitNot extends SimpleValue
 	}
 	clone()
 	{
-		return new BitNot(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : 	null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new BitNot(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2044,7 +2097,9 @@ class BitLShift extends SimpleValue
 	}
 	clone()
 	{
-		return new BitLShift(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new BitLShift(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2104,7 +2159,9 @@ class BitRShift extends SimpleValue
 	}
 	clone()
 	{
-		return new BitRShift(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new BitRShift(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2182,14 +2239,16 @@ class Compare extends SimpleValue
 	}
 	clone()
 	{
-		return new Compare(this.getArgs(), this.getLoc());
-		// , this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i instanceof Value ? i.clone() : i);
+		return new Compare(a, this.getLoc());
 	}
 	run()
 	{
 		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
+			if(this.getArgs().length > 0) 
+				code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
 			this.setState(1);
 		}
 		else if(this.getState() == 1)
@@ -2359,14 +2418,16 @@ class NumberOf extends SimpleValue
 	}
 	clone()
 	{
-		return new NumberOf(this.getArgs(), this.getLoc());
-		// , this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new NumberOf(a, this.getLoc());
 	}
 	run()
 	{
 		if(this.getState() == 0)
 		{
-			code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
+			if(this.getArgs().length > 0) 
+				code[0].stack.unshift({statementlist: [this.getArgs()[0]], index: 0});
 			this.setState(1);
 		}
 		else if(this.getState() == 1)
@@ -2418,7 +2479,9 @@ class ConvertInt extends SimpleValue
 	}
 	clone()
 	{
-		return new ConvertInt(this.getArgs(), this.getLoc());//, this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new ConvertInt(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2450,7 +2513,9 @@ class ConvertFloat extends SimpleValue
 	}
 	clone()
 	{
-		return new ConvertFloat(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new ConvertFloat(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2483,7 +2548,9 @@ class ConvertString extends SimpleValue
 	}
 	clone()
 	{
-		return new ConvertString(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new ConvertString(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2532,7 +2599,9 @@ class ConvertBool extends SimpleValue
 	}
 	clone()
 	{
-		return new ConvertBool(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+		var a = [];
+		for(var i of this.getArgs()) a.push(i.clone());
+		return new ConvertBool(a, this.getLoc());
 	}
 	_makeValue()
 	{
@@ -2569,7 +2638,7 @@ class CallFunction extends SimpleValue
 		// for(var i of v[1])
 		// 	textareaAppend("CallFunction arg: " + constructor_name(i) + "\n");
 		this.funcname = v[0];
-		Object.seal(this);
+		// Object.seal(this);
 	}
 	clone()
 	{
@@ -2584,20 +2653,20 @@ class CallFunction extends SimpleValue
 		this._value = v;
 		// this._args[idx] = v;
 	}
-	// run()
-	// {
-	// 	if(this.getState() == 0)
-	// 	{
-	// 		code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
-	// 		this.setState(1);
-	// 	}
-	// 	else if(this.getState() == 1)
-	// 	{
-	// 		code[0].stack[0].index++;
-	// 		this._makeValue();
-	// 		this.setState(0);
-	// 	}
-	// }
+	run()
+	{
+		if(this.getState() == 0)
+		{
+			code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
+		}
+		else if(this.getState() == 1)
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
+	}
 	_makeValue()
 	{
 		if(definedFunction[this.funcname])
@@ -2670,11 +2739,11 @@ class Connect extends Value
 	constructor(v,loc,value = null)
 	{
 		super(v,loc,value);
-		this.state = 0;
 	}
 	clone()
 	{
-		return new Connect(this.getArgs(), this.getLoc(), this._value ? this._value.clone() : null);
+		return new Connect(this.getArgs(), this.getLoc());
+		// , this._value ? this._value.clone() : null);
 	}
 	_makeValue()
 	{
@@ -3103,7 +3172,7 @@ class Assign extends SimpleValue
 				setVariableByArgs(vt1, this.variable.varname, this.variable.getArgs(), v2, this.getLoc());
 				this._value = v2;
 			}
-			this._state = 0;
+			this.setState(0);
 			code[0].stack[0].index++;
 			this._makeValue();
 		}
@@ -3379,7 +3448,8 @@ function setCaller(statementlist, caller)
 function cloneStatementlist(statementlist)
 {
 	var rtnv = [];
-	for(let i = 0; i < statementlist.length; i++) if(statementlist[i]) rtnv.push(statementlist[i].clone());
+	for(let i = 0; i < statementlist.length; i++) 
+		if(statementlist[i]) rtnv.push(statementlist[i].clone());
 	return rtnv;
 }
 

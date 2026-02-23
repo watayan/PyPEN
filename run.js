@@ -14,9 +14,9 @@ const typeOfValue=
 
 const nameOfType=['','整数','実数','文字列','真偽','配列','辞書'];
 
-var code = null;		// コードを積む（関数・手続き単位で）
+var code = null;		// コードを積む（関数単位で）
 var varTables = [];		// 変数テーブルを積む
-var myFuncs = {};		// プログラム中で定義される関数・手続き
+var myFuncs = {};		// プログラム中で定義される関数
 var run_flag = false, step_flag = false, editable_flag = true;
 var flowchart = null;
 var textarea = null;
@@ -521,7 +521,7 @@ function next_line()
 		{
 			index = code[0].stack[0].index;
 			statement = code[0].stack[0].statementlist[index];
-			if(statement && (statement instanceof Statement))
+			if(statement && (statement instanceof Statement || statement instanceof Value))
 			{
 				if(statement.loc) highlightLine(current_line = statement.first_line);
 				if(statement instanceof PauseStatement) 
@@ -878,23 +878,26 @@ function makePython()
 
 function code_dump()
 {
-	let str = '';
+	let str = '**** code dump ****\n';
 	for(let i = 0; i < code.length; i++)
 	{
-		str += 'code['+i+']\n';
+		// str += 'code['+i+']\n';
 		for(let j = 0; j < code[i].stack.length; j++)
 		{
-			let statement = [];
 			for(let k = 0; k < code[i].stack[j].statementlist.length; k++) 
 			{
-				if(code[i].stack[j].statementlist[k]) statement.push('  ' + constructor_name(code[i].stack[j].statementlist[k]) + '(' + code[i].stack[j].statementlist[k].state + ')');
+				str += '['+i+']['+j+'][' + k + ']';
+				if(code[i].stack[j].statementlist[k]) 
+					str += (k == code[i].stack[j].index ? '*' : ' ') + 
+					constructor_name(code[i].stack[j].statementlist[k]) + 
+					'(' + code[i].stack[j].statementlist[k].state + ')';
 				if(constructor_name(code[i].stack[j].statementlist[k]) == 'Assign')
 				{
-					statement.push('   varname: ' + code[i].stack[j].statementlist[k].variable.varname);
-					statement.push('   value: ' + array2code(code[i].stack[j].statementlist[k].value, true));
+					str += '   varname: ' + code[i].stack[j].statementlist[k].variable.varname;
+					str += '   value: ' + array2code(code[i].stack[j].statementlist[k].value, true);
 				}
+				str += "\n";
 			}
-			str += ' stack['+j+'][' + code[i].stack[j].index + ']' + statement.join('\n') + '\n';
 		}
 	}
 	// console.log(str);

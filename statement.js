@@ -102,7 +102,7 @@ class DefineFunction extends Statement {
 class ReturnStatement extends Statement {
 	constructor(value, loc) {
 		super(loc);
-		this.value = value.clone();
+		this.value = value;
 		this.caller = null;
 		this.flag = false;
 		this.state = 0;
@@ -110,8 +110,8 @@ class ReturnStatement extends Statement {
 	clone()
 	{
 		let rtnv = new ReturnStatement(this.value.clone(), this.loc);
-		rtnv.caller  = this.caller;
-		rtnv.flag  = this.flag;
+		// rtnv.caller  = this.caller;
+		// rtnv.flag  = this.flag;
 		return rtnv;
 	}
 	setCaller(caller, flag)
@@ -131,7 +131,7 @@ class ReturnStatement extends Statement {
 			code[0].stack[0].index++;
 			if(code[0] instanceof parsedFunction)
 			{
-				this.caller.setValue(this.value);
+				this.caller.setValue(this.value.getValue());
 				code.shift();
 				if(this.flag) varTables.shift();
 			}
@@ -712,7 +712,8 @@ class If extends Statement
 		for(var i = 0; i < this.blocks.length; i++)
 		{
 			var newblock1 = [];
-			for(var j = 0; j < this.blocks[i][1].length; j++) if(this.blocks[i][1][j]) newblock1.push(this.blocks[i][1][j].clone());
+			for(var j = 0; j < this.blocks[i][1].length; j++) 
+				if(this.blocks[i][1][j]) newblock1.push(this.blocks[i][1][j].clone());
 			newblock.push([this.blocks[i][0] ? this.blocks[i][0].clone() : null, newblock1]);
 		}
 		return new If(newblock,this.loc);
