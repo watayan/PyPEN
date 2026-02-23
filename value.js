@@ -2274,7 +2274,7 @@ class Compare extends SimpleValue
 	}
 	_makeValue()
 	{
-		var v1, v2 = this.getArgs()[2];
+		var v1, v2 = this.getArgs()[2].getValue();
 		if(this.getArgs()[0] instanceof Compare) 
 			v1 = this.getArgs()[0].getArgs()[2].getValue();
 		else v1 = this.getArgs()[0].getValue();
