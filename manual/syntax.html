@@ -106,13 +106,18 @@ c[2] = 30   # aは[10,20,3]，bは[10,20,3]，cは[1,2,30]
             <tr><td>substring(《文字列》,《開始位置》,《長さ》)</td><td>部分文字列（長さ指定）</td><td>substring("こんにちは",2,1)→"に"</td></tr>
             <tr><td>split(《文字列》)</td><td>文字列分割</td><td>split("abcd")→["a","b,"c","d"]（リスト）</td></tr>
             <tr><td>split(《文字列》,《区切文字列》)</td><td>文字列分割</td><td>split("a:b:c:d",":")→["a","b,"c","d"]（リスト）</td></tr>
+            <tr><td>join(《文字列》,《リスト》)</td><td>文字列結合</td><td>join("-", ["a","b","c"])→"a-b-c"</td></tr>
             <tr><td>extract(《文字列》,《区切文字列》,《番号》)</td><td>文字列分割（番号指定）</td><td>extract("a:b:c:d",":",2)→"c"</td></tr>
             <tr><td>insert(《文字列》,《位置》,《文字列》)</td><td>文字列挿入</td><td>insert("こんは",2,"にち")→"こんにちは"</td></tr>
             <tr><td>replace(《文字列》,《位置》,《長さ》,《文字列》)</td><td>文字列置換</td><td>replace("こんにちは",2,2,"ばん")→"こんばんは"</td></tr>
             <tr><td>整数(《値》)</td><td>整数への変換</td><td>整数(3.5)→3，整数("3.14")→3</td></tr>
             <tr><td>実数(《値》)</td><td>実数への変換</td><td>実数(3)→3.0，実数("3.14")→3.14</td></tr>
             <tr><td>文字列(《値》)</td><td>文字列への変換</td><td>文字列(3.5)→"3.5"，文字列(1=1)→"true"</td></tr>
-            <tr><td>真偽(《値》)</td><td>真偽への変換</td><td>真偽(0)→false，整数(1)→true</td></tr>
+            <tr><td>真偽(《値》)</td><td>真偽への変換</td><td>真偽(0)→false，真偽(1)→true</td></tr>
+            <tr><td>int(《値》)</td><td>整数への変換</td><td>int(3.5)→3，int("3.14")→3</td></tr>
+            <tr><td>float(《値》)</td><td>実数への変換</td><td>float(3)→3.0，float("3.14")→3.14</td></tr>
+            <tr><td>str(《値》)</td><td>文字列への変換</td><td>str(3.5)→"3.5"，str(1=1)→"true"</td></tr>
+            <tr><td>bool(《値》)</td><td>真偽への変換</td><td>bool(0)→false，bool(1)→true</td></tr>
             <tr><td>pop(《リスト》)</td><td>リストの末尾を取り出して削除</td><td>a=[1,2,3]でpop(a)→3（aは[1,2]になる）</td></tr>
             <tr><td>shift(《リスト》)</td><td>リストの先頭を取り出して削除</td><td>a=[1,2,3]でshift(a)→1（aは[2,3]になる）</td></tr>
             <tr><td>push(《リスト》,《値》)</td><td>リストの末尾に値を追加</td><td>a=[1,2,3]でpush(a,4)→aは[1,2,3,4]になる</td></tr>

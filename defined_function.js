@@ -62,6 +62,21 @@ class DefinedFunction
  * 定義済み関数一覧
  */
 var definedFunction = {
+	"join": new DefinedFunction(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if(par1 instanceof StringValue && par2 instanceof ArrayValue)
+		{
+			var sep = par1.getJSValue();
+			var rtnv = [];
+			for(var i = 0; i < par2._value.length; i++)
+				rtnv.push(par2.getValue(i).valueString());
+			var v = rtnv.join(sep);
+			return new StringValue([v], loc, v);
+		}
+	}, null, function(argc){
+		return argc[0] + '.join(' + argc[1] + ')';
+	}),
 	"match": new DefinedFunction(2, function(param, loc){
 		var par1 = param[0].getValue();
 		var par2 = param[1].getValue();
