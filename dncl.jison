@@ -75,6 +75,10 @@ Return			[Rr][Ee][Tt][Uu][Rr][Nn]/[^a-zA-Z0-9_]
 Pass			[Pp][Aa][Ss][Ss]/[^a-zA-Z0-9_]
 Break			[Bb][Rr][Ee][Aa][Kk]/[^a-zA-Z0-9_]
 Def				[Dd][Ee][Ff]/[^a-zA-Z0-9_]
+int				[Ii][Nn][Tt]/[^a-zA-Z0-9_]
+float			[Ff][Ll][Oo][Aa][Tt]/[^a-zA-Z0-9_]
+str				[Ss][Tt][Rr]/[^a-zA-Z0-9_]
+bool			[Bb][Oo][Oo][Ll]/[^a-zA-Z0-9_]
 Identifier		{IdentifierStart}{IdentifierPart}*
 Add				[+＋]
 Del				[-ー−‐]
@@ -168,6 +172,10 @@ Whitespace		[ 　\t]
 {Pass}						{return 'pass';}
 {Break}						{return 'break';}
 {Def}						{return 'def';}
+{int}						{return '整数';}
+{float}						{return '実数';}
+{str}						{return '文字列';}
+{bool}						{return '真偽';}
 "■"							{return 'ブロック終端'}
 "を"{Output}"する"			{return 'を表示する';}
 "を改行無しで"{Output}"する"	{return 'を改行無しで表示する';}
