@@ -930,6 +930,7 @@ class DictionaryValue extends CollectionValue
 		for(var [k,v] of this._value.entries())	
 		{
 			if(typeof(k) === "string") k = "'" + k + "'";
+			if(typeof(k) === "number" && isSafeInteger(k)) k = k.toString() + ".0";
 			ag.push(k + ':' + v.valueCode());
 		}
 		return '{' + ag.join(', ') + '}';
@@ -940,6 +941,7 @@ class DictionaryValue extends CollectionValue
 		for(var [k,v] of this._value.entries())
 		{
 			if(typeof(k) === "string") k = "'" + k.replace(/'/g, "\\'") + "'";
+			if(typeof(k) === "number" && isSafeInteger(k)) k = k.toString() + ".0";
 			ag.push(k + ':' + v.valueCode());
 		}
 		return '{' + ag.join(', ') + '}';
