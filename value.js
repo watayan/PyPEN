@@ -2916,7 +2916,18 @@ class Assign extends SimpleValue
 							var v = v2.getJSValue() ? 1 : 0;
 							v2 = new IntValue([v], this.getLoc(), v);
 						} 
-						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストの掛け算は出来ません");
+						if(v1 instanceof ArrayValue || v2 instanceof ArrayValue)
+						{
+							let va = null, vn = null;
+							if(v1 instanceof IntValue){va = v2; vn = v1.getJSValue();}
+							else if(v2 instanceof IntValue){va = v1; vn = v2.getJSValue();}
+							else this.throwRuntimeError("リストには整数しか掛けられません");
+							let v = []
+							for(let i = 0; i < vn; i++)
+								for(let j = 0; j < va.valueLength(); j++) v.push(va.getValue(j));
+							v3 = new ArrayValue([v], this.getLoc(), v);
+
+						}
 						else if(v1 instanceof DictionaryValue || v2 instanceof DictionaryValue) this.throwRuntimeError("辞書の掛け算はできません");
 						else if(v1 instanceof StringValue)
 						{
