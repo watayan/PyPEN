@@ -1209,11 +1209,11 @@ class Add extends SimpleValue
 	_makeValue()
 	{
 		let v1 = this.getArgs()[0].getValue(), v2 = this.getArgs()[1].getValue();
-		if(v1 instanceof Array && v2 instanceof Array)
+		if(v1 instanceof ArrayValue && v2 instanceof ArrayValue)
 		{
 			let v = [];
-			for(let i = 0; i < v1.length; i++) v.push(v1[i]);
-			for(let i = 0; i < v2.length; i++) v.push(v2[i]);
+			for(let i = 0; i < v1.valueLength(); i++) v.push(v1.getValue(i));
+			for(let i = 0; i < v2.valueLength(); i++) v.push(v2.getValue(i));
 			this._value = new ArrayValue([v], this.getLoc(), v);
 		}
 		else if(v1 instanceof ArrayValue || v2 instanceof ArrayValue) this.throwRuntimeError("リストと足し算ができるのはリストどうしだけです");
