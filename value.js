@@ -842,7 +842,7 @@ class DictionaryValue extends CollectionValue
 		var a =[], m = new Map();
 		for(var arg of this._args)
 		{
-			a.push(arg.copy());
+			a.push(arg.clone());
 			var key = arg.getValue1();
 			var val = arg.getValue2();
 			m.set(key.getJSValue(), val.clone());
@@ -873,7 +873,7 @@ class DictionaryValue extends CollectionValue
 				{
 					var key = this.getArgs(i).getValue1();
 					var val = this.getArgs(i).getValue2();
-					if(isPrimitive(key)) this._value.set(key.getJSValue(), val);
+					if(isPrimitive(key.getValue())) this._value.set(key.getJSValue(), val.getValue());
 					else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 				}
 				else this.throwRuntimeError("辞書の初期化が間違っています");
@@ -884,28 +884,28 @@ class DictionaryValue extends CollectionValue
 	getValue(key = null)
 	{
 		if(key === null) return this;
-		if(isPrimitive(key)) return this._value.get(key.getJSValue());
+		if(isPrimitive(key.getValue())) return this._value.get(key.getJSValue());
 		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 	}
 	getJSValue(key = null)
 	{
 		if(key === null) this.throwRuntimeError("引数なしのgetJSValueは使えません");
-		if(isPrimitive(key)) return this._value.get(key.getJSValue()).getJSValue();
+		if(isPrimitive(key.getValue())) return this._value.get(key.getJSValue()).getJSValue();
 		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 	}
 	setValue(v, key)
 	{
-		if(isPrimitive(key)) //this._value.set(key.getJSValue(), v);
+		if(isPrimitive(key.getValue())) //this._value.set(key.getJSValue(), v);
 		{
 			for(var i in this._args)
 				if(this._args[i].getValue1().getJSValue() === key.getJSValue())
 				{
-					this._args[i] = new SliceValue([key, v], this.getLoc(),[key,v]);
+					this._args[i] = new SliceValue([key.getValue(), v], this.getLoc(),[key.getValue(),v]);
 					this._makeValue();
 					return;
 				}
 			// キーがなかったときは追加
-			this._args.push(new SliceValue([key, v], this.getLoc(),[key,v]));
+			this._args.push(new SliceValue([key.getValue(), v], this.getLoc(),[key.getValue(),v]));
 			// this._value.set(key.getJSValue(), v);
 			this._makeValue();
 		}
@@ -3397,7 +3397,7 @@ function getValueByArgs(v, args, loc)
 			}
 			else if(v instanceof DictionaryValue)
 			{
-				if(isPrimitive(arg))
+				if(isPrimitive(arg.getValue()))
 				{
 					var key = arg.getJSValue();
 					if(v._value.has(key)) v = v._value.get(key).getValue();
