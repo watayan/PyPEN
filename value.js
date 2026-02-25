@@ -377,7 +377,7 @@ class CollectionValue extends Value
 	}
 	getJSValue(idx = null)
 	{
-		if(idx === null) this.throwRuntimeError("引数なしのgetJSValueは使えません");
+		if(idx === null) return this._value;
 		return this._value[idx].getJSValue();
 	}
 
@@ -885,7 +885,10 @@ class DictionaryValue extends CollectionValue
 			}
 		}
     }
-
+	has(key)
+	{
+		this._value.has(key);
+	}
 	getValue(key = null)
 	{
 		if(key === null) return this;
@@ -894,7 +897,7 @@ class DictionaryValue extends CollectionValue
 	}
 	getJSValue(key = null)
 	{
-		if(key === null) this.throwRuntimeError("引数なしのgetJSValueは使えません");
+		if(key === null) return this._value;
 		if(isPrimitive(key.getValue())) return this._value.get(key.getJSValue()).getJSValue();
 		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 	}
@@ -3244,13 +3247,13 @@ function setVariableByArgs(vt,vn, args, newval, loc)
 			}
 			else if(v.getValue() instanceof DictionaryValue)
 			{
-				if(isPrimitive(arg))
+				if(isPrimitive(arg.getValue()))
 				{
 					var key = arg.getJSValue();
-					if(v.getValue().has(key)) v = v.getValue().get(key);
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+key+"がありません");
+					if(v.getJSValue().has(key)) v = v.getJSValue().get(key);
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+key+"がありません!");
 				}
-				else throw new RuntimeError(loc.first_line, "辞書の添字は単純型でなければなりません");
+				else throw new RuntimeError(loc.first_line, "辞書の添字は単純型でなければなりません!");
 			}
 			else if(v.getValue() instanceof StringValue)
 			{
@@ -3405,8 +3408,8 @@ function getValueByArgs(v, args, loc)
 				if(isPrimitive(arg.getValue()))
 				{
 					var key = arg.getJSValue();
-					if(v._value.has(key)) v = v._value.get(key).getValue();
-					else throw new RuntimeError(loc.first_line, "辞書にキー"+key+"がありません");
+					if(v.getJSValue().has(key)) v = v.getJSValue().get(key).getValue();
+					else throw new RuntimeError(loc.first_line, "辞書にキー"+key+"がありません!!");
 				}
 				else throw new RuntimeError(loc.first_line, "辞書の添字は基本型です");
 			}
