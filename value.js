@@ -1380,7 +1380,7 @@ class Mul extends SimpleValue
 			let v = []
 			for(let i = 0; i < vn; i++)
 				for(let j = 0; j < va.valueLength(); j++) v.push(va.getValue(j));
-			this._value = new ArrayValue([v], this.getLoc(), v);
+			this._value = new ArrayValue(v, this.getLoc(), v);
 		} 
 		else
 		{
