@@ -645,10 +645,10 @@ class SliceValue extends CollectionValue
 	{
 		// if(!this._value)
 		{
-			this._value = [
-			this.getArgs(0) instanceof PrimitiveValue ? this.getArgs(0).getValue() : this.getArgs(0),
-			this.getArgs(1) instanceof PrimitiveValue ? this.getArgs(1).getValue() : this.getArgs(1)
-			];
+			this._value = [ this.getArgs(0).getValue(), this.getArgs(1).getValue() ];
+			// this.getArgs(0) instanceof PrimitiveValue ? this.getArgs(0).getValue() : this.getArgs(0),
+			// this.getArgs(1) instanceof PrimitiveValue ? this.getArgs(1).getValue() : this.getArgs(1)
+			// ];
 		}
 	}
 
@@ -677,6 +677,11 @@ class SliceValue extends CollectionValue
 		this._args[0] = v1;
 		this._args[1] = v2;
 		this._makeValue();
+	}
+	getArgs(idx = null)
+	{
+		if(idx === null) return this._args;
+		else return this._args[idx];
 	}
 	getValue1()
 	{
@@ -843,8 +848,8 @@ class DictionaryValue extends CollectionValue
 		for(var arg of this._args)
 		{
 			a.push(arg.clone());
-			var key = arg.getValue1();
-			var val = arg.getValue2();
+			var key = arg.getArgs(0).clone();
+			var val = arg.getArgs(1).clone();
 			m.set(key.getJSValue(), val.clone());
 		}
 		return new DictionaryValue(a, this.getLoc(), m);
@@ -855,8 +860,8 @@ class DictionaryValue extends CollectionValue
 		for(var arg of this._args)
 		{
 			a.push(arg.copy());
-			var key = arg.getValue1();
-			var val = arg.getValue2();
+			var key = arg.getArgs(0).copy();
+			var val = arg.getArgs(1).copy();
 			m.set(key.getJSValue(), val.copy());
 		}
 		return new DictionaryValue(a, this.getLoc(), m);
