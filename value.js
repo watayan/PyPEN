@@ -2232,8 +2232,8 @@ function ArrayCompare(v1, v2)
 	var rtnv = true;
 	if(v1 instanceof ArrayValue && v2 instanceof ArrayValue)
 	{
-		if(v1.valueLength != v2.valueLength) return false;
-		for(let i = 0; i < v1.valueLength; i++) 
+		if(v1.valueLength() != v2.valueLength()) return false;
+		for(let i = 0; i < v1.valueLength(); i++) 
 			rtnv = rtnv && ArrayCompare(v1.getValue().getArgs()[i], v2.getValue().getArgs()[i]);
 	}
 	else rtnv = rtnv && typeof v1 == typeof v2 && v1.getJSValue() == v2.getJSValue();
