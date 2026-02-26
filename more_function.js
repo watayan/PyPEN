@@ -571,12 +571,12 @@ var functions = {
         {
             var arr = [].concat(par1.getJSValue());
             var i = arr.length - 2;
-            while(i >= 0 && arr[i] >= arr[i + 1]) i--;
+            while(i >= 0 && arr[i].getJSValue() >= arr[i + 1].getJSValue()) i--;
             if(i < 0) {
                 return new ArrayValue([], loc, []);
             }
             var j = arr.length - 1;
-            while(i < j && arr[i] >= arr[j]) j--;
+            while(i < j && arr[i].getJSValue() >= arr[j].getJSValue()) j--;
             // arr[i]とarr[j]を交換
             var temp = arr[i];
             arr[i] = arr[j];

@@ -809,7 +809,7 @@ class LoopBegin extends Statement
 		}
 		else
 		{
-			if(!this.condition || toBool(this.condition.getJSValue()) == this.continuous) 
+			if(!this.condition || toBool(this.condition.getValue()) == this.continuous) 
 				code[0].stack[0].index++;
 			else code[0].stack[0].index = -1;
 			this.state = 0;
@@ -1161,8 +1161,8 @@ class While extends Statement
 			code[0].stack[0].index++;
 			let loop = [new LoopBegin(this.condition, true, this.loc)];
 			loop.push(new LoopBody(this.statementlist, this.loc));
-			loop.push(new LoopEnd(null, false, this.loc));
 			code[0].stack.unshift({statementlist: loop, index: 0});
+			loop.push(new LoopEnd(null, false, this.loc));
 			this.status = 0;
 		}
 	}
