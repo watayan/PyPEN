@@ -110,8 +110,8 @@ class ReturnStatement extends Statement {
 	clone()
 	{
 		let rtnv = new ReturnStatement(this.value.clone(), this.loc);
-		// rtnv.caller  = this.caller;
-		// rtnv.flag  = this.flag;
+		rtnv.caller  = this.caller;
+		rtnv.flag  = this.flag;
 		return rtnv;
 	}
 	setCaller(caller, flag)
@@ -861,18 +861,12 @@ class LoopBody extends Statement
 	}
 	clone()
 	{
-		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) 
-			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
-		return new LoopBody(state, this.loc);
+		return new LoopBody(cloneStatementlist(this.statementlist), this.loc);
 	}
 	run()
 	{
 		code[0].stack[0].index++;
-		var state = [];
-		for(var i = 0; i < this.statementlist.length; i++) 
-			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
-		code[0].stack.unshift({statementlist: state, index: 0});
+		code[0].stack.unshift({statementlist: cloneStatementlist(this.statementlist), index: 0});
 	}
 }
 
@@ -1030,8 +1024,6 @@ class ForInc extends Statement
 				let condition = new Compare([this.variable,'<=', this.end], this.loc);	// IncとDecの違うところ
 				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
 				loop.push(new LoopBody(this.statementlist, this.loc));
-				// for(let i = 0; i < this.statementlist.length; i++)
-				// 	if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
 				loop.push(this.step);
 				loop.push(new Assign(this.variable, this.step, '+', this.loc));	// IncとDecの違うところ
 				loop.push(new LoopEnd(null, true, this.loc));
@@ -1106,8 +1098,6 @@ class ForDec extends Statement
 
 				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
 				loop.push(new LoopBody(this.statementlist, this.loc));
-				// for(let i = 0; i < this.statementlist.length; i++)
-				//     if(this.statementlist[i]) loop.push(this.statementlist[i].clone());
 				loop.push(this.step);
 				loop.push(new Assign(this.variable, this.step, '-', this.loc));	// IncとDecの違うところ
 				loop.push(new LoopEnd(null, true, this.loc));

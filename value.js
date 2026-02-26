@@ -3455,14 +3455,17 @@ function setCaller(statementlist, caller)
 {
 	for(let i = 0; i < statementlist.length; i++)
 	{
-		if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
-		if(statementlist[i].state) setCaller(statementlist[i].state, caller);
-		if(statementlist[i].blocks)
+		if(statementlist[i] instanceof ReturnStatement) 
+		{
+			statementlist[i].setCaller(caller, true);
+		}
+		else if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
+		else if(statementlist[i].state) setCaller(statementlist[i].state, caller);
+		else if(statementlist[i].blocks)
 		{
 			for(var j = 0; j < statementlist[i].blocks.length; j++)
 				setCaller(statementlist[i].blocks[j][1], caller);
 		}
-		if(statementlist[i] instanceof ReturnStatement) statementlist[i].setCaller(caller, true);
 	}
 }
 
