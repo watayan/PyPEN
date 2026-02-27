@@ -1049,6 +1049,11 @@ class Variable extends SimpleValue
 		else this.throwRuntimeError("変数に" + this.varname + "がありません");
 	}
 
+	getJSValue()
+	{
+		return this.getValue().getJSValue();
+	}
+
 	setValue(v)
 	{
 		setVariableByArgs(this.varname, v, this.getArgs(), this.getLoc());
