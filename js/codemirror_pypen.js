@@ -16,14 +16,21 @@
   }
 
   var wordOperators = wordRegexp(["and", "or", "not", "の中に","と"]);
-  var commonKeywords = ["もし", "ならば", "そうでなくもし", "そうでなければ","から", "まで","ずつ","増やしながら","増やしつつ","減らしながら","減らしつつ","の間",
+  var commonKeywords = ["もし", "ならば", "そうでなくもし", "そうでなければ",
+                        "から", "まで","ずつ","増やしながら","増やしつつ","減らしながら","減らしつつ",
+                        "の間",
                         "繰り返す", "繰返す", "くりかえす", "表示する", "印刷する", "改行する","入力する","整数","実数","文字列","真偽",
-                        "改行なしで", "改行無しで", "追加する", "連結する", "追加","連結","繰り返し","繰返し","くりかえし","抜ける","関数","手続き","返す",
+                        "改行なしで", "改行無しで", "改行せずに", "追加する", "連結する", 
+                        "追加","連結","繰り返し","繰返し","くりかえし","抜ける","関数","手続き","返す",
                         "変数を確認する","何もしない","一時停止する","一時停止",
                         "個の","の要素","について","真","偽","True","False",
-                        "に", "を"];
-  var commonBuiltins = ["abs", "random", "ceil", "floor", "round", "sin", "cos", "tan","asin","acos","atan","atan2",
-                        "sqrt","log","exp","pow","length","length","append","substring","split","extract","insert","replace",
+                        "に", "を", "で", "区間",
+                        "for", "while", "if", "elif", "else", "in"];
+  var commonBuiltins = ["abs", "random", "ceil", "floor", "round", "sin", "cos", "tan",
+                        "asin","acos","atan","atan2",
+                        "sqrt","log","exp","pow","length","append","substring","split","extract","insert","replace",
+                        "int", "float", "str", "bool", "pop", "shift", "push", "unshift", 
+                        "typeof", "typeis", "range", "match",
                         "描画領域開く","描画領域閉じる","描画領域全消去","線色設定","塗色設定","文字色設定","線太さ設定","文字サイズ設定",
                         "文字描画","点描画","線描画","矩形描画","矩形塗描画","円描画","円塗描画","楕円描画","楕円塗描画","弧描画","弧塗描画",
                         "棒グラフ描画","線グラフ描画","グラフ描画","グラフ消去","ミリ秒待つ",
@@ -324,10 +331,14 @@
       if (current.length == 1 && !/string|comment/.test(style)) {
         var delimiter_index = "[({".indexOf(current);
         if (delimiter_index != -1)
+        {
+          if (delimiter_index == 1) delimiter_index = 0; // (と[を同一視する
           pushBracketScope(stream, state, "])}".slice(delimiter_index, delimiter_index+1));
+        }
 
         delimiter_index = "])}".indexOf(current);
         if (delimiter_index != -1) {
+          if(current == ')') current = ']';
           if (top(state).type == current) state.indent = state.scopes.pop().offset - hangingIndent
           else return ERRORCLASS;
         }
