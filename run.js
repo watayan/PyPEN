@@ -1120,6 +1120,10 @@ $.contextMenu(
 					の中に:	{name:"の中に",	callback: function(k,e){insertCode("《配列》の中に《値》");}},
 					個の:	{name:"個の",	callback: function(k,e){insertCode("《整数》個の《値》");}},
 					と: 	{name:"と",		callback: function(k,e){insertCode("《値》と《値》")}},
+					区間1:	{name:"区間 [ ]",	callback: function(k,e){insertCode("[《値》, 《値》]")}},
+					区間2:	{name:"区間 ( )",	callback: function(k,e){insertCode("(《値》, 《値》)")}},
+					区間3:	{name:"区間 [ )",	callback: function(k,e){insertCode("[《値》, 《値》)")}},
+					区間4:	{name:"区間 ( ]",	callback: function(k,e){insertCode("(《値》, 《値》]")}},
 				}
 			},
 			convert:{name:"変換",
