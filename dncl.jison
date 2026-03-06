@@ -42,6 +42,14 @@ Float			({Integer}([.．]{DecimalDigit}+)?[eE][+-]?{Integer}) | ({Integer}[.．]
 Integer			({NonZeroDigit}{DecimalDigit}*) | ("0x"{HexDigit}+) | ("0b"{ZeroOneDigit}+) | ("0o"{OctDigit}+) | [0０]
 String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
 Output			"表示"|"印刷"|"出力"
+WithoutNewline	"改行"("無しで"|"なしで"|"せずに")
+while			"の間"("繰り返す"|"繰返す"|"くりかえす"|)
+Interval		"範囲"|"区間"
+Increasing		("増やしながら"|"増やしつつ")("繰り返す"|"繰返す"|"くりかえす"|)
+Decreasing		("減らしながら"|"減らしつつ")("繰り返す"|"繰返す"|"くりかえす"|)
+Repeat			("繰り返す"|"繰返す"|"くりかえす")
+Repeating		("繰り返し"|"繰返し"|"くりかえし")
+Exit			("抜ける"|"ぬける"|"出る"|"でる")
 Newline			(\r\n|\r|\n)+
 UNDEFINED		"《"[^》]*"》"
 IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ]
@@ -64,6 +72,7 @@ AssignRshift	[>＞][>＞][\=＝]
 In				[Ii][Nn]/[^a-zA-Z0-9_]
 And				[Aa][Nn][Dd]/[^a-zA-Z0-9_]
 Or				[Oo][Rr]/[^a-zA-Z0-9_]
+NotIn			[Nn][Oo][Tt]\s[Ii][Nn]/[^a-zA-Z0-9_]
 Not				[Nn][Oo][Tt]/[^a-zA-Z0-9_]
 If				[Ii][Ff]/[^a-zA-Z0-9_]
 Elif			[Ee][Ll][Ii][Ff]/[^a-zA-Z0-9_]
@@ -129,8 +138,8 @@ Whitespace		[ 　\t]
 {Del}						{return '-';}
 {Pow}						{return '**';}
 {Mul}						{return '*';}
-{DivInt}					{return '//'}
-{Div}						{return '/'}
+{DivInt}					{return '//';}
+{Div}						{return '/';}
 {Mod}						{return '%';}
 "."							{return 'DOT';}
 "("							{return '(';}
@@ -157,9 +166,10 @@ Whitespace		[ 　\t]
 {BitXor}					{return '^';}
 {BitNot}					{return '~';}
 {Comma}						{return 'COMMA';}
-{Colon}						{return ':'}
+{Colon}						{return ':';}
 {And}						{return 'and';}
 {Or}						{return 'or';}
+{NotIn}						{return 'not_in';}
 {Not}						{return 'not';}
 {In}						{return 'in';}
 {If}						{return 'if';}
@@ -177,28 +187,19 @@ Whitespace		[ 　\t]
 {str}						{return '文字列';}
 {bool}						{return '真偽';}
 "■"							{return 'ブロック終端'}
+"を"{WithoutNewline}"で"{Output}"する"	{return 'を改行無しで表示する';}
 "を"{Output}"する"			{return 'を表示する';}
-"を改行無しで"{Output}"する"	{return 'を改行無しで表示する';}
-"を改行なしで"{Output}"する"	{return 'を改行無しで表示する';}
+{WithoutNewline}{Output}"する"	{return '改行無しで表示する';}
 {Output}"する"				{return '表示する';}
-"改行無しで"{Output}"する"	{return '改行無しで表示する';}
-"改行なしで"{Output}"する"	{return '改行無しで表示する';}
 "入力する"					{return '入力する';}
 "もし"						{return 'もし';}
 "ならば"					{return 'ならば';}
 "そうでなければ"			{return 'そうでなければ';}
 "そうでなくもし"			{return 'そうでなくもし';}
-"の間"						{return 'の間';}
-"繰り返しを抜ける"			{return '繰り返しを抜ける';}
-"繰返しを抜ける"			{return '繰り返しを抜ける';}
-"くりかえしを抜ける"		{return '繰り返しを抜ける';}
-"繰り返しをぬける"			{return '繰り返しを抜ける';}
-"繰返しをぬける"			{return '繰り返しを抜ける';}
-"くりかえしをぬける"		{return '繰り返しを抜ける';}
-"手続きを抜ける"			{return '関数を抜ける';}
-"関数を抜ける"				{return '関数を抜ける';}
-"手続きをぬける"			{return '関数を抜ける';}
-"関数をぬける"				{return '関数を抜ける';}
+{while}						{return 'の間';}
+{Repeating}"を"{Exit}		{return '繰り返しを抜ける';}
+"手続きを"{Exit}			{return '関数を抜ける';}
+"関数を"{Exit}				{return '関数を抜ける';}
 "手続き"					{return '関数';}
 "関数"						{return '関数';}
 "を返す"					{return 'を返す';}
@@ -210,19 +211,17 @@ Whitespace		[ 　\t]
 "から"						{return 'から';}
 "まで"						{return 'まで';}
 "ずつ"						{return 'ずつ';}
-"増やしながら"				{return '増やしながら';}
-"減らしながら"				{return '減らしながら';}
-"増やしつつ"				{return '増やしながら';}
-"減らしつつ"				{return '減らしながら';}
-"くりかえす"				{return '繰り返す';}
-"繰り返す"					{return '繰り返す';}
-"繰返す"					{return '繰り返す';}
+{Increasing}				{return '増やしながら';}
+{Decreasing}				{return '減らしながら';}
+{Repeat}					{return '繰り返す';}
 "の要素"					{return 'の要素';}
+{Interval}					{return '区間';}
 "整数"						{return '整数';}
 "実数"						{return '実数';}
 "文字列"					{return '文字列';}
 "と"{Comma}					{return 'と';}
 "と"						{return 'と';}
+"で"						{return 'で';}
 "追加する"					{return '追加する';}
 "連結する"					{return '連結する';}
 "追加"						{return '追加する';}
@@ -289,6 +288,7 @@ Whitespace		[ 　\t]
 
 /lex
 
+%left 'COMMA'
 %right '=' '+=' '-=' '*=' '/=' '//=' '%=' '&=' '|=' '^=' '<<=' '>>='
 %left 'と'
 %left 'or'
@@ -308,7 +308,7 @@ Whitespace		[ 　\t]
 %left 'DOT'
 %right ELSE_PREC
 %nonassoc 'else' 'そうでなければ' 'elif' 'そうでなくもし'
-%
+
 %start Program
 
 %%
@@ -537,14 +537,47 @@ ElseIfList
 	;
 
 ForStatement
-	: e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' '繰り返す' ':' '改行' statementlist
-		{$$ = new ForInc($1, $3, $5, $7,$13, new Location(@1,@13));}
-	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' '繰り返す' ':' '改行' statementlist
-		{$$ = new ForDec($1, $3, $5, $7,$13, new Location(@1,@13));}
-	| e 'を' e 'から' e 'まで' '増やしながら' '繰り返す' ':' '改行' statementlist
-		{$$ =  new ForInc($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$11, new Location(@1,@10));}
-	| e 'を' e 'から' e 'まで' '減らしながら' '繰り返す' ':' '改行' statementlist
-		{$$ = new ForDec($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$11, new Location(@1,@10));}
+	: e 'を' '区間' '[' e 'COMMA' e ']' 'で' e 'ずつ' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'cc'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '[' e 'COMMA' e ']' 'で' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'cc'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '[' e 'COMMA' e ']' 'で' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'cc'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $12, new Location(@1, @12));}
+	| e 'を' '区間' '[' e 'COMMA' e ')' 'で' e 'ずつ' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'co'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '[' e 'COMMA' e ')' 'で' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'co'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '[' e 'COMMA' e ')' 'で' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'co'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $12, new Location(@1, @12));}	
+	| e 'を' '区間' '(' e 'COMMA' e ']' 'で' e 'ずつ' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'oc'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '(' e 'COMMA' e ']' 'で' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'oc'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '(' e 'COMMA' e ']' 'で' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'oc'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $12, new Location(@1, @12));}
+	| e 'を' '区間' '(' e 'COMMA' e ')' 'で' e 'ずつ' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'oo'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '(' e 'COMMA' e ')' 'で' '増やしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'oo'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '(' e 'COMMA' e ')' 'で' ':' '改行' statementlist
+		{$$ = new ForIntervalInc($1, new IntervalValue([$5, $7,'oo'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $12, new Location(@1, @12));}
+	| e 'を' '区間' '[' e 'COMMA' e ']' 'で' e 'ずつ' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'cc'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '[' e 'COMMA' e ']' 'で' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'cc'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '[' e 'COMMA' e ')' 'で' e 'ずつ' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'co'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '[' e 'COMMA' e ')' 'で' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'co'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '(' e 'COMMA' e ']' 'で' e 'ずつ' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'oc'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '(' e 'COMMA' e ']' 'で' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'oc'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+	| e 'を' '区間' '(' e 'COMMA' e ')' 'で' e 'ずつ' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'oo'], new Location(@5, @8)), $10, $15, new Location(@1, @15));}
+	| e 'を' '区間' '(' e 'COMMA' e ')' 'で' '減らしながら' ':' '改行' statementlist
+		{$$ = new ForIntervalDec($1, new IntervalValue([$5, $7,'oo'], new Location(@5, @8)), new IntValue([1], new Location(@1, @1), 1), $13, new Location(@1, @13));}
+
 	| e 'を' e 'から' e 'まで' e 'ずつ' '増やしながら' ':' '改行' statementlist
 		{$$ = new ForInc($1, $3, $5, $7,$12, new Location(@1,@11));}
 	| e 'を' e 'から' e 'まで' e 'ずつ' '減らしながら' ':' '改行' statementlist
@@ -553,8 +586,6 @@ ForStatement
 		{$$ = new ForInc($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$10, new Location(@1,@9));}
 	| e 'を' e 'から' e 'まで' '減らしながら' ':' '改行' statementlist
 		{$$ = new ForDec($1, $3, $5, new IntValue([1], new Location(@1, @1), 1),$10, new Location(@1,@9));}
-	| e 'の要素' e 'について' '繰り返す' ':' '改行' statementlist
-		{$$ = new ForIn($1, $3, $8, new Location(@1,@8));}
 	| e 'の要素' e 'について' ':' '改行' statementlist
 		{$$ = new ForIn($1, $3, $7, new Location(@1,@7));}
 	| 'for' e 'in' e ':' '改行' statementlist
@@ -562,9 +593,7 @@ ForStatement
 	;
 
 WhileStatement
-	: e 'の間' '繰り返す' ':' '改行' statementlist
-		{$$ = new While($1, $6, new Location(@1, @6));}
-	| e 'の間' ':' '改行' statementlist
+	: e 'の間' ':' '改行' statementlist
 		{$$ = new While($1, $5, new Location(@1, @5));}
 	| 'while' e ':' '改行' statementlist
 		{$$ = new While($2, $5, new Location(@1, @5));}

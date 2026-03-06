@@ -624,6 +624,89 @@ class UNDEFINED extends PrimitiveValue	// 未完成のプログラム用
 
 /*********************************** Complex Value classes */
 
+class IntervalValue extends CollectionValue
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		return new IntervalValue([this.getArgs(0).clone(), this.getArgs(1).clone(), this.getArgs(2)], this.getLoc());
+		// ,this._value ? this._value.slice() : null);
+	}
+	copy()
+	{
+		return new IntervalValue([this.getArgs(0).copy(), this.getArgs(1).copy(), this.getArgs(2)], this.getLoc(), this._value);
+	}
+	run()
+	{
+		if(this.getState() == 0)
+		{
+			code[0].stack.unshift({statementlist: [this.getArgs(0), this.getArgs(1)], index: 0});
+			this.setState(1);
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
+	}
+	_makeValue()
+	{
+		this._value = [ this.getArgs(0).getValue(), this.getArgs(1).getValue() ];
+	}
+	argsPyPEN()
+	{
+		var left = this.getArgs(2) === 'cc' || this.getArgs(2) === 'co' ? '[' : '(';
+		var right = this.getArgs(2) === 'cc' || this.getArgs(2) === 'oc' ? ']' : ')';
+		return left + this.getArgs(0).argsPyPEN() + ', ' + this.getArgs(1).argsPyPEN() + right;
+	}
+	argsPython()
+	{
+		this.throwRuntimeError("Pythonにはこの表現はありません");
+	}
+	valueString()
+	{
+		var left = this.getArgs(2) === 'cc' || this.getArgs(2) === 'co' ? '[' : '(';
+		var right = this.getArgs(2) === 'cc' || this.getArgs(2) === 'oc' ? ']' : ')';
+		return left + this.getArgs(0).valueString() + ":" + this.getArgs(1).valueString() + right;
+	}
+	valueCode()
+	{
+		var left = this.getArgs(2) === 'cc' || this.getArgs(2) === 'co' ? '[' : '(';
+		var right = this.getArgs(2) === 'cc' || this.getArgs(2) === 'oc' ? ']' : ')';
+		return left + this.getArgs(0).valueCode() + ":" + this.getArgs(1).valueCode() + right;
+	}
+	getArgs(idx = null)
+	{
+		if(idx === null) return this._args;
+		else return this._args[idx];
+	}
+	getValue1()
+	{
+		return this._value[0];
+	}
+	getValue2()
+	{
+		return this._value[1];
+	}
+	getValueLeftClose()
+	{
+		return this.getArgs(2)[0] == 'c';
+	}
+	getValueRightClose()
+	{
+		return this.getArgs(2)[1] == 'c';
+	}
+	valueLength()
+	{
+		return 2;
+	}
+}
+
 class SliceValue extends CollectionValue
 {
 	constructor(v, loc, value = null)

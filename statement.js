@@ -1109,6 +1109,189 @@ class ForDec extends Statement
 	}
 }
 
+/**
+ * forループ（加算）
+ */
+class ForIntervalInc extends Statement
+{
+	/**
+	 * @constructor
+	 * @param {Variable} varname 
+	 * @param {Value} interval
+	 * @param {Value} step 
+	 * @param {Array<Statement>} statementlist 
+	 * @param {Location} loc 
+	 */
+	constructor(variable, interval, step, statementlist,loc)
+	{
+		super(loc);
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		this.variable = variable;
+		this.interval = interval;
+		this.step = step;
+		this.statementlist = statementlist;
+		this.state = 0;
+	}
+	clone()
+	{
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		return new ForIntervalInc(this.variable.clone(), this.interval.clone(), this.step.clone(), state, this.loc);
+	}
+	argsPython(indent)
+	{
+		var code = [];
+		var pv = this.variable.argsPython(), pb = this.begin.argsPython(), pe = this.end.argsPython(), ps = this.step.argsPython();
+		code.push(makeIndent(indent) + "for " + pv + " in range(" + pb + ", " + pe + "+1, " + ps + ")");
+		var codes = 0;
+		for(var i = 0; i < this.statementlist.length; i++)
+			if(this.statementlist[i])
+			{
+				codes = 1;
+				code.push(this.statementlist[i].argsPython(indent + 1));
+			}
+		if(codes == 0) code.push(makeIndent(indent + 1) + "pass");
+		return code.join("\n");
+	}
+	run()
+	{
+		if(this.variable instanceof UNDEFINED) 
+			throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		if(this.state == 0)
+		{
+			var statementlist = [this.interval, this.interval.getArgs(0), this.interval.getArgs(1), this.step];
+			code[0].stack.unshift({statementlist: statementlist, index: 0});
+			this.state = 1;
+		}
+		else if(this.state == 1)
+		{
+			this.begin = this.interval.getValue1()
+			this.end = this.interval.getValue2();
+			if(this.begin instanceof IntValue && this.end instanceof IntValue && this.step.getValue() instanceof IntValue)
+			{
+				var statementlist = [];
+				if(!this.interval.getValueLeftClose()) this.begin = 
+					new IntValue([this.begin.getJSValue() + this.step.getJSValue()], this.loc);
+				if(!this.interval.getValueRightClose()) this.end = 
+					new IntValue([this.end.getJSValue() - this.step.getJSValue()], this.loc);
+				statementlist.push(new Assign(this.variable, this.begin, null, this.loc));
+				code[0].stack.unshift({statementlist: statementlist, index: 0});
+				this.state = 2;
+			}
+			else throw new RuntimeError(this.first_line, '区間やステップは整数型である必要があります');
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			if(this.step.getJSValue() <= 0) throw new RuntimeError(this.first_line, '増分は0より大きい値である必要があります');
+			if(this.begin.getValue() instanceof IntValue || this.begin.getValue() instanceof FloatValue)
+			{
+				// let variable = new Variable(this.variable.varname, this.variable.args,this.loc);
+				let condition = new Compare([this.variable,'<=', this.end], this.loc);	// IncとDecの違うところ
+				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
+				loop.push(new LoopBody(this.statementlist, this.loc));
+				loop.push(this.step);
+				loop.push(new Assign(this.variable, this.step, '+', this.loc));	// IncとDecの違うところ
+				loop.push(new LoopEnd(null, true, this.loc));
+				code[0].stack.unshift({statementlist: loop, index: 0});
+			}
+			else throw new RuntimeError(this.first_line, '初期値は数値型である必要があります');
+			this.state = 0;
+		}
+	}
+}
+
+class ForIntervalDec extends Statement
+{
+	/**
+	 * @constructor
+	 * @param {Variable} varname 
+	 * @param {Value} interval
+	 * @param {Value} step 
+	 * @param {Array<Statement>} statementlist 
+	 * @param {Location} loc 
+	 */
+	constructor(variable, interval, step, statementlist,loc)
+	{
+		super(loc);
+		if(!(variable instanceof Variable || variable instanceof UNDEFINED)) throw new RuntimeError(loc.first_line, "繰り返しのカウンタは変数でなくてはいけません");
+		this.variable = variable;
+		this.interval = interval;
+		this.step = step;
+		this.statementlist = statementlist;
+		this.state = 0;
+	}
+	clone()
+	{
+		var state = [];
+		for(var i = 0; i < this.statementlist.length; i++) 
+			if(this.statementlist[i]) state.push(this.statementlist[i].clone());
+		return new ForIntervalDec(this.variable.clone(), this.interval.clone(), this.step.clone(), state, this.loc);
+	}
+	argsPython(indent)
+	{
+		var code = [];
+		var pv = this.variable.argsPython(), pb = this.begin.argsPython(), pe = this.end.argsPython(), ps = this.step.argsPython();
+		code.push(makeIndent(indent) + "for " + pv + " in range(" + pb + ", " + pe + "+1, " + ps + ")");
+		var codes = 0;
+		for(var i = 0; i < this.statementlist.length; i++)
+			if(this.statementlist[i])
+			{
+				codes = 1;
+				code.push(this.statementlist[i].argsPython(indent + 1));
+			}
+		if(codes == 0) code.push(makeIndent(indent + 1) + "pass");
+		return code.join("\n");
+	}
+	run()
+	{
+		if(this.variable instanceof UNDEFINED) 
+			throw new RuntimeError(this.first_line, "未完成のプログラムです");
+		if(this.state == 0)
+		{
+			var statementlist = [this.interval, this.interval.getArgs(0), this.interval.getArgs(1), this.step];
+			code[0].stack.unshift({statementlist: statementlist, index: 0});
+			this.state = 1;
+		}
+		else if(this.state == 1)
+		{
+			this.begin = this.interval.getValue2()
+			this.end = this.interval.getValue1();
+			if(this.begin instanceof IntValue && this.end instanceof IntValue && this.step.getValue() instanceof IntValue)
+			{
+				var statementlist = [];
+				if(!this.interval.getValueRightClose()) this.begin = 
+					new IntValue([this.begin.getJSValue() - this.step.getJSValue()], this.loc);
+				if(!this.interval.getValueLeftClose()) this.end = 
+					new IntValue([this.end.getJSValue() + this.step.getJSValue()], this.loc);
+				statementlist.push(new Assign(this.variable, this.begin, null, this.loc));
+				code[0].stack.unshift({statementlist: statementlist, index: 0});
+				this.state = 2;
+			}
+			else throw new RuntimeError(this.first_line, '区間やステップは整数型である必要があります');
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			if(this.step.getJSValue() <= 0) throw new RuntimeError(this.first_line, '増分は0より大きい値である必要があります');
+			if(this.begin.getValue() instanceof IntValue || this.begin.getValue() instanceof FloatValue)
+			{
+				// let variable = new Variable(this.variable.varname, this.variable.args,this.loc);
+				let condition = new Compare([this.variable,'>=', this.end], this.loc);	// IncとDecの違うところ
+				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
+				loop.push(new LoopBody(this.statementlist, this.loc));
+				loop.push(this.step);
+				loop.push(new Assign(this.variable, this.step, '-', this.loc));	// IncとDecの違うところ
+				loop.push(new LoopEnd(null, true, this.loc));
+				code[0].stack.unshift({statementlist: loop, index: 0});
+			}
+			else throw new RuntimeError(this.first_line, '初期値は数値型である必要があります');
+			this.state = 0;
+		}
+	}
+}
+
 class While extends Statement
 {
 	constructor(condition, statementlist, loc)
