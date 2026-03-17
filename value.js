@@ -3147,7 +3147,7 @@ class Assign extends SimpleValue
 							} 
 							if(v1 instanceof IntValue && v2 instanceof IntValue)
 							{
-								var v = v1.getsJSValue() & v2.getJSValue();
+								var v = v1.getJSValue() & v2.getJSValue();
 								v3 = new IntValue([v], this.getLoc(), v);
 							}
 						} 
