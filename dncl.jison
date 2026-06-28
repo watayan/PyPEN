@@ -333,7 +333,7 @@ e
 	| '~' e			{$$ = new BitNot([$2], new Location(@1, @2));}
 	| e '<<' e		{$$ = new BitLShift([$1, $3], new Location(@1, @3));}
 	| e '>>' e		{$$ = new BitRShift([$1, $3], new Location(@1, @3));}
-	| '(' e ')'		{$$ = $2;}
+	| '(' e ')'		{$$ = ($2 instanceof Compare) ? new ParenValue([$2], new Location(@1, @3)) : $2;}
 	| e '==' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
 	| e '!=' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}
 	| e '>' e		{$$ = new Compare([$1, $2, $3], new Location(@1,@3));}

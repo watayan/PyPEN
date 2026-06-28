@@ -140,8 +140,8 @@ break;
 case 19:
 this.$ = new BitRShift([$$[$0-2], $$[$0]], new Location(_$[$0-2], _$[$0]));
 break;
-case 20: case 71: case 96:
-this.$ = $$[$0-1];
+case 20:
+this.$ = ($$[$0-1] instanceof Compare) ? new ParenValue([$$[$0-1]], new Location(_$[$0-2], _$[$0])) : $$[$0-1];
 break;
 case 21: case 22: case 23: case 24: case 25: case 26: case 27: case 29:
 this.$ = new Compare([$$[$0-2], $$[$0-1], $$[$0]], new Location(_$[$0-2],_$[$0]));
@@ -266,6 +266,9 @@ $$[$0-3].push($$[$0]);this.$ = $$[$0-3];
 break;
 case 70:
 this.$ = $$[$0-2];
+break;
+case 71: case 96:
+this.$ = $$[$0-1];
 break;
 case 72: case 73:
  this.$ = [$$[$0]]

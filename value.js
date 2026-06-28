@@ -2328,6 +2328,41 @@ function ArrayCompare(v1, v2)
 	return rtnv;
 }
 
+class ParenValue extends SimpleValue
+{
+	constructor(v, loc, value = null)
+	{
+		super(v, loc, value);
+		Object.seal(this);
+	}
+	clone()
+	{
+		var a = [];
+		for(var i of this.getArgs()) a.push(i instanceof Value ? i.clone() : i);
+		return new Paren(a, this.getLoc());
+	}
+	argsPyPEN()
+	{
+		return '(' + this.getArgs()[0].argsPyPEN() + ')';
+	}
+	argsPython()
+	{
+		return '(' + this.getArgs()[0].argsPython() + ')';
+	}
+	run()
+	{
+		this.getArgs()[0].run();
+	}
+	getValue()
+	{
+		return this.getArgs()[0].getValue();
+	}
+	getJSValue()
+	{
+		return this.getArgs()[0].getJSValue();
+	}
+}
+
 class Compare extends SimpleValue
 {
 	constructor(v,loc, value = null)

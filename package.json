@@ -5,14 +5,13 @@
   "author": "watayan",
   "maintainers": [
     {
-      "name": "Wataru Nakanishi",
+      "name": "watayan",
       "email": "watayan@watayan.net"
     }
   ],
   "license": "MIT",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "uglifyjs value.js statement.js defined_function.js fileio.js graphics.js flowchart.js run.js -o run.min.js",
     "jison": "jison dncl.jison && node applyPatch.js && uglifyjs dncl.js -o dncl.min.js"
   },
@@ -24,13 +23,12 @@
     "url": "https://github.com/watayan/PyPEN/issues"
   },
   "homepage": "https://github.com/watayan/PyPEN#readme",
-  "devDependencies": {
-    "diff": "^7.0.0",
-    "jison": "^0.4.18",
-    "jison-lex": "^0.3.4",
-    "uglifyjs": "^3.17.4"
-  },
   "dependencies": {
-    "codemirror": "^6.0.1"
+    "codemirror": "^6.0.2"
+  },
+  "devDependencies": {
+    "diff": "^9.0.0",
+    "jison": "^0.4.18",
+    "uglify-js": "^3.19.3"
   }
 }
