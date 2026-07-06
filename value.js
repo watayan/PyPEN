@@ -638,7 +638,7 @@ class IntervalValue extends CollectionValue
 	}
 	copy()
 	{
-		return new IntervalValue([this.getArgs(0).copy(), this.getArgs(1).copy(), this.getArgs(2)], this.getLoc(), this._value);
+		return new IntervalValue([this.getArgs(0).copy(), this.getArgs(1).copy(), this.getArgs(2)], this.getLoc());
 	}
 	run()
 	{
@@ -718,21 +718,14 @@ class SliceValue extends CollectionValue
 	clone()
 	{
 		return new SliceValue([this.getArgs(0).clone(), this.getArgs(1).clone()], this.getLoc());
-		// ,this._value ? this._value.slice() : null);
 	}
 	copy()
 	{
-		return new SliceValue([this.getArgs(0).copy(), this.getArgs(1).copy()], this.getLoc(), this._value);
+		return new SliceValue([this.getArgs(0).copy(), this.getArgs(1).copy()], this.getLoc());
 	}
 	_makeValue()
 	{
-		// if(!this._value)
-		{
-			this._value = [ this.getArgs(0).getValue(), this.getArgs(1).getValue() ];
-			// this.getArgs(0) instanceof PrimitiveValue ? this.getArgs(0).getValue() : this.getArgs(0),
-			// this.getArgs(1) instanceof PrimitiveValue ? this.getArgs(1).getValue() : this.getArgs(1)
-			// ];
-		}
+		this._value = [ this.getArgs(0).getValue(), this.getArgs(1).getValue() ];
 	}
 
 	argsPyPEN()
@@ -807,22 +800,16 @@ class ArrayValue extends CollectionValue
 	}
 	copy()
 	{
-		var a = [], v = [];
-		for(var i of this.getValue()._value) a.push(i.copy());
+		var a = [];
+		for(var i of this.getValue()._value)  a.push(i.copy());
 		return new ArrayValue(a, this.getLoc(), a);
 	}
 
 	_makeValue()
 	{
-		// if(!this._value)
-		{
-			this._value = [];
-			for(var i = 0; i < this.getArgs().length; i++) 
-				this._value.push(this.getArgs(i).getValue());
-				// this.getArgs(i) instanceof PrimitiveValue ? 
-				// 	this.getArgs(i).getValue() : 
-				// 	this.getArgs(i).getValue());
-		}
+		this._value = [];
+		for(var i = 0; i < this.getArgs().length; i++) 
+			this._value.push(this.getArgs(i).getValue());
 	}
 	getValue(idx = null)
 	{
@@ -942,65 +929,72 @@ class DictionaryValue extends CollectionValue
 		var a =[], m = new Map();
 		for(var arg of this._args)
 		{
-			a.push(arg.copy());
-			var key = arg.getArgs(0).copy();
-			var val = arg.getArgs(1).copy();
-			m.set(key.getJSValue(), val.copy());
+			var copied = arg.copy();
+			copied._makeValue();
+			a.push(copied);
+			var key = copied.getValue1();
+			var val = copied.getValue2();
+			m.set(key.getJSValue(), val.getValue());
 		}
 		return new DictionaryValue(a, this.getLoc(), m);
 	}
 
     _makeValue()
 	{
-		// if(!this._value)
+		this._value = new Map();
+		for(var i = 0; i < this.getArgs().length; i++)
 		{
-			this._value = new Map();
-			for(var i = 0; i < this.getArgs().length; i++)
+			if(this.getArgs(i) instanceof SliceValue)
 			{
-				if(this.getArgs(i) instanceof SliceValue)
-				{
-					var key = this.getArgs(i).getValue1();
-					var val = this.getArgs(i).getValue2();
-					if(isPrimitive(key.getValue())) this._value.set(key.getJSValue(), val.getValue());
-					else this.throwRuntimeError("辞書のキーには単純型しか使えません");
-				}
-				else this.throwRuntimeError("辞書の初期化が間違っています");
+				this.getArgs(i)._makeValue();
+				var key = this.getArgs(i).getValue1();
+				var val = this.getArgs(i).getValue2();
+				if(isPrimitive(key.getValue())) this._value.set(key.getJSValue(), val.getValue());
+				else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 			}
+			else this.throwRuntimeError("辞書の初期化が間違っています");
 		}
     }
 	has(key)
 	{
 		this._value.has(key);
 	}
+	/**
+	 * @returns Array of value of JS
+	 */
+	getKeys()
+	{
+		return this._value.keys();
+	}
 	getValue(key = null)
 	{
 		if(key === null) return this;
-		if(isPrimitive(key.getValue())) return this._value.get(key.getJSValue());
+		if(this._value.has(key)) return this._value.get(key);
 		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 	}
 	getJSValue(key = null)
 	{
 		if(key === null) return this._value;
-		if(isPrimitive(key.getValue())) return this._value.get(key.getJSValue()).getJSValue();
+		if(this._value.has(key)) return this._value.get(key).getJSValue();
 		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 	}
 	setValue(v, key)
 	{
-		if(isPrimitive(key.getValue())) //this._value.set(key.getJSValue(), v);
+		for(var i in this._args)
 		{
-			for(var i in this._args)
-				if(this._args[i].getValue1().getJSValue() === key.getJSValue())
-				{
-					this._args[i] = new SliceValue([key.getValue(), v], this.getLoc(),[key.getValue(),v]);
-					this._makeValue();
-					return;
-				}
-			// キーがなかったときは追加
-			this._args.push(new SliceValue([key.getValue(), v], this.getLoc(),[key.getValue(),v]));
-			// this._value.set(key.getJSValue(), v);
-			this._makeValue();
+			this._args[i]._makeValue();
+			if(this._args[i].getValue1().getJSValue() === key)
+			{
+				this._args[i] = new SliceValue([key, v], this.getLoc(),[key,v]);
+				this._makeValue();
+				return;
+			}
 		}
-		else this.throwRuntimeError("辞書のキーには単純型しか使えません");
+		// キーがなかったときは追加
+		this._args.push(new SliceValue([key, v], this.getLoc(),[key,v]));
+		// this._value.set(key.getJSValue(), v);
+		this._makeValue();
+		// else this.throwRuntimeError("辞書のキーには単純型しか使えません");
 	}
 
 	argsPyPEN()

@@ -359,14 +359,14 @@ function drawGraph(layout, data, loc)
 	var graph_data = [], graph_layout = {};
 	if(layout instanceof DictionaryValue)
 	{
-		for(var key of layout.value.keys())
+		for(var key of layout.getKeys())
 		{
-			var val = layout.value.get(key).getValue();
+			var val = layout.getValue(key);
 			if(val instanceof ArrayValue)
 			{
 				graph_layout[key] = {};
-				for(var key1 of val.value.keys())
-					graph_layout[key][key1] = val2obj(val.value.get(key1).getValue());
+				for(var key1 of val.getJSValue().keys())
+					graph_layout[key][key1] = val2obj(val.getValue(key1));
 			}
 			else graph_layout[key] = val2obj(val);
 		}
@@ -374,16 +374,16 @@ function drawGraph(layout, data, loc)
 	else if(layout) throw new RuntimeError(loc.first_line, "レイアウト情報が辞書になっていません");
 	if(data instanceof ArrayValue)
 	{
-		var dl = data.value.length;
+		var dl = data._value.length;
 		for(var i = 0; i < dl; i++)
 		{
-			var d = data.value[i].getValue();
+			var d = data._value[i].getValue();
 			if(d instanceof DictionaryValue)
 			{
 				var va = {};
-				for(var key of d.value.keys())
+				for(var key of d.getKeys())
 				{
-					var val = d.value.get(key).getValue();
+					var val = d.getValue(key).getJSValue();
 					va[key] = val2obj(val);
 				}
 				graph_data.push(va);
@@ -392,5 +392,6 @@ function drawGraph(layout, data, loc)
 			else throw new RuntimeError(loc.first_line, "データの" + i + "番目の要素が辞書になっていません");
 		}
 	}else throw new RuntimeError(loc.first_line, 'データが配列になっていません');
+	// dump("graph_layout", graph_layout);
 	Plotly.newPlot(div, graph_data, graph_layout);
 }

@@ -588,22 +588,23 @@ function array2code(v, flag = false)	// flag: 文字列に''をつける
 
 function val2obj(val)
 {
-	if(val instanceof ArrayValue)
+	if(val instanceof Array)
 	{
 		var rtnv = [];
-		var l = val.getValue().value.length;
-		for(var i = 0; i < l; i++) rtnv.push(val2obj(val.getValue().value[i]));
+		var l = val.length;
+		for(var i = 0; i < l; i++) rtnv.push(val2obj(val[i]));
 		return rtnv;
 	}
-	else if(val instanceof DictionaryValue)
+	else if(val instanceof Map)
 	{
 		var rtnv = {};
-		for(var key of val.getValue().value.keys())
-			rtnv[key] = val2obj(val.getValue().value.get(key).getValue());
+		for(var key of val.keys())
+			rtnv[key] = val2obj(val.get(key));
 		return rtnv;
 	}
-	else if(val instanceof IntValue)return Number(val.rtnv);
-	else return val.rtnv;
+	else if(val instanceof IntValue)return Number(val.getJSValue());
+	else if(val instanceof Value) return val.getJSValue();
+	else return val;
 }
 
 /**

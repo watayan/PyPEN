@@ -489,6 +489,7 @@ function next_line()
 				else if(e instanceof RangeError) textareaAppend("計算できない値があります。\n" + e.message + "\n");
 				else textareaAppend("（おそらくPyPENのバグなので，コードを添えて開発者に連絡してください）\n" + e.message + "\n");
 				if(debug_mode){
+					dump();
 					textareaAppend(e.stack);
 				}
 				reset(false);
