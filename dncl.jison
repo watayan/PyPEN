@@ -432,7 +432,7 @@ statement
 	| WhileStatement
 	| IfStatement
 	| SleepStatement
-	| DefineFuncStatement
+	| DefineStatement
 	| ReturnStatement
 	| DumpStatement
 	| BreakStatement
@@ -459,11 +459,11 @@ DumpStatement
 		{$$ = new DumpStatement(new Location(@1, @1));}
 	;
 
-DefineFuncStatement
+DefineStatement
 	: '関数' '識別子' '(' args ')' ':' '改行' statementlist
-		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @8));}
+		{$$ = new DefineStatement($2, $4, $8, new Location(@1, @8));}
 	| 'def' '識別子' '(' args ')' ':' '改行' statementlist
-		{$$ = new DefineFunction($2, $4, $8, new Location(@1, @8));}
+		{$$ = new DefineStatement($2, $4, $8, new Location(@1, @8));}
 
 	;
 

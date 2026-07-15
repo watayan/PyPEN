@@ -56,7 +56,7 @@ class ExitStatement extends Statement {
 	}
 }
 
-class DefineFunction extends Statement {
+class DefineStatement extends Statement {
 	constructor(funcName, params, statementlist, loc) {
 		super(loc);
 		if (definedFunction[funcName]) throw new RuntimeError(this.first_line, '関数 '+funcName+' と同名の標準関数が存在します');

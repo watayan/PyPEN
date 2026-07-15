@@ -1185,6 +1185,8 @@ class Variable extends SimpleValue
 			var v = vt.vars[this.varname];
 			return this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
 		}
+		else if(this.varname in myFuncs) return this._value = myFuncs[this.varname];
+		else if(this.varname in definedFunction) return this._value = definedFunction[this.varname];
 		else this.throwRuntimeError("変数に" + this.varname + "がありません");
 	}
 
@@ -3403,8 +3405,16 @@ class Assign extends SimpleValue
 function setVariableByArgs(vt,vn, args, newval, loc)
 {
 	// textareaAppend("DEBUG: setVariableByArgs: vn=" + vn + ", args=" + (args ? args.length : 0) + constructor_name(newval) + "\n");
-	if(!(newval instanceof Value))
-		throw new RuntimeError(loc.first_line, "代入する値が不明です" +
+	if(newval instanceof DefinedFunction)
+	{
+
+	}
+	else if(newval instanceof DefineStatement)
+	{
+
+	}
+	else if(!(newval instanceof Value))
+		throw new RuntimeError(loc.first_line, "代入する値が不明です!" +
 			"\n" + constructor_name(newval));
 	if(args && args.length > 0)
 	{

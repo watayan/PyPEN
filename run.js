@@ -51,12 +51,12 @@ class parsedCode
 		for(var i = 0; i < this.stack[0].statementlist.length; i++) // 関数・手続き宣言を先に
 		{
 			var state = this.stack[0].statementlist[i];
-			if(state && state instanceof DefineFunction) code.push(state.argsPython(0) + "\n");
+			if(state && state instanceof DefineStatement) code.push(state.argsPython(0) + "\n");
 		}
 		for(var i = 0; i < this.stack[0].statementlist.length; i++)	// メインルーチン
 		{
 			var state = this.stack[0].statementlist[i];
-			if(state && !(state instanceof DefineFunction)) code.push(state.argsPython(0));
+			if(state && !(state instanceof DefineStatement)) code.push(state.argsPython(0));
 		}
 		for(var lib in python_lib) libs += "import " + lib + "\n";
 		return libs + code.join('\n');
@@ -139,7 +139,7 @@ function codeChange()
 		var parse = dncl.parse(dncl_code);
 		var flag = false; // 関数・手続き定義がないか調べる
 		for(var i = 0; i < parse.length; i++)
-			if(parse[i] instanceof DefineFunction) flag = true;
+			if(parse[i] instanceof DefineStatement) flag = true;
 		if(flag)
 		{
 			textareaAppend("関数定義のあるプログラムのフローチャートはまだ実装していません。\n");
