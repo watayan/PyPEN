@@ -87,7 +87,6 @@ class Value
 		else return this._args[idx];
 	}
 
-	/* newpage */
 	/* サブクラスで実装するメソッド
 	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
 	   _makeValue() : void		this._valueを作る。runから呼ばれる
@@ -1033,54 +1032,117 @@ class DictionaryValue extends CollectionValue
 	}
 }
 
-/**
- * 値渡しをする
- */
-class Copy extends SimpleValue
+class FunctionValue extends Value
 {
-	/**
-	 * 
-	 * @param {Value} v 
-	 * @param {Location} loc 
-	 */
-	constructor(v, loc, value = null)
+	constructor(argc, func, loc, value = null)
 	{
-		super(v, loc, value);
-		Object.seal(this);
+		super([argc, func], loc, value);
 	}
+
+	copy()
+	{
+		return this;
+	}
+
 	/* サブクラスで実装するメソッド
 	   clone()		: Value		複製を作る。this._argsの要素をcloneしたArrayで初期化する（this._valueはnull）
 	   _makeValue() : void		this._valueを作る。runから呼ばれる
+	   getValue()	: Value		PrimitiveValueならthis，SimpleValueやCollectionValueならthis._value
+	   getJSValue() : value of JS(bigint|number|string|boolean|Array|Map)	
+	                  PrimitiveValueならthis._value，SimpleValueならthis._value.getJSValue()，CollectionValueならthis._value
+	   setValue()	: void		this._valueを設定する
+	   argsPyPEN()	: string	PyPENの文法で表した文字列
+	   argsPython() : string	Pythonの文法で表した文字列
+	   valueString(): string	this._valueを文字列で表したもの
+	   valueCode()	: string	this._valueをコードで表したもの
 	----------------------------*/
-	clone()
+
+	/**
+	 * @returns {Value}
+	 * @throws {RuntimeError}
+	 */
+	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
-		return new Copy([this.getArgs(0).clone()], this.getLoc());
-		// , this._value ? this._value.clone() : null);
+		return new FunctionValue(this.getArgs(0), this.getArgs(1), this.getLoc());
 	}
-	copy()
-	{
-		return new Copy([this.getArgs(0).copy()], this.getLoc());
-	}
+
+	/**
+	 * this._valueを作る。実体のあるサブクラスでは必ずオーバーライドする
+	 */
 	_makeValue()
 	{
-		var v = this.getArgs(0).getValue().copy();
-		this._value = v;
+
+		this.throwRuntimeError("_makeValueが作られていません");
 	}
-	argsPyPEN()
+
+	/**
+	 * this._argsを実行する
+	 * this._valueは_makeValueで作る
+	 */
+	run()
 	{
-		return "copy(" + this.getArgs(0).getPyPEN() + ")";
+		if(this.getState() == 0)
+		{
+			if(this.getArgs().length > 0)
+				code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
+			this.setState(1);
+		}
+		else
+		{
+			code[0].stack[0].index++;
+			this._makeValue();
+			this.setState(0);
+		}
 	}
-	argsPython()
+
+
+	/**
+	 * @returns {Value}
+	 */
+	getValue() //Valueを返す。
 	{
-		return  this.getArgs(0).argsPython() + ".copy()";
+		return this._value;
 	}
+
+	/**
+	 * @returns {bigint|number|string|boolean|Array|Map}
+	 */
+	getJSValue()	// 実際のJSの値を返す
+	{
+		return this._value.getJSValue();
+	}
+
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPyPEN()	// PyPENの文法で表した文字列
+	{
+		this.throwRuntimeError("argsPyPENが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPython()	// Pythonの文法で表した文字列
+	{
+		this.throwRuntimeError("argsPythonが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
 	valueString()
 	{
-		return this.getValue().valueString();
+		this.throwRuntimeError("valueStringが作られていません");
 	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
 	valueCode()
 	{
-		return this.getValue().valueCode();
+		this.throwRuntimeError("valueCodeが作られていません");
 	}
 }
 

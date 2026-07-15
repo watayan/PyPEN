@@ -205,7 +205,6 @@ var definedFunction = {
 	}, null, null),
 	"abs": new DefinedFunction(1, function (param, loc){
 		var par1 = param[0].getValue();
-		textareaAppend("abs FloatValue:" + par1.getJSValue() + "\n");
 		if(par1 instanceof IntValue)
 		{
 			var v = par1.getJSValue();
@@ -692,6 +691,7 @@ var definedFunction = {
 		var par2 = param[1].getValue();
 		if(par1 instanceof ArrayValue && par2 instanceof Value)
 		{
+			par1._args.push(par2);
 			par1._value.push(par2);
 			return new ArrayValue(par1._value, loc, par1._value);
 		}
@@ -711,4 +711,31 @@ var definedFunction = {
 	}, null, function(argc){
 		return argsPython(argc[0]) + '.insert(0, ' + argsPython(argc[1]) + ')\n';
 	}),
+	"samplingRate": new DefinedFunction(0, function(param, loc){
+		var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+		return new IntValue([audioCtx.sampleRate], loc, audioCtx.sampleRate);
+	}, null, null),
+	"playWave": new DefinedFunction(2, function(param, loc){
+		var par1 = param[0].getValue();
+		var par2 = param[1].getValue();
+		if(par1 instanceof ArrayValue && (par2 instanceof IntValue || par2 instanceof FloatValue))
+		{
+			var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+			var duration = Number(par2.getJSValue());
+			var myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
+			for(var i = 0; i < audioCtx.sampleRate * duration; i++)
+				myArrayBuffer.getChannelData(0)[i] = Number(par1.getValue(i % par1._value.length).getJSValue());
+			var source = audioCtx.createBufferSource();
+			source.buffer = myArrayBuffer;
+			source.connect(audioCtx.destination);
+			source.start();
+			return new NullValue(loc);
+		}
+	}, null, null),
+	"copy": new DefinedFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		return par1.copy();
+	}, null, null),
 };
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
