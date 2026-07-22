@@ -62,10 +62,6 @@ var answer_load = false, sample_load = false;
     result = await load_js_witherror('./sample.js');
     sample_load = (result === 'ok');
     await load_js('./run.min.js');
-    if(setting.more_function == 1)
-    {
-        await load_js('./more_function.js');
-    }
     var input_status = document.getElementById('input_status');
     input_status.style.visibility = 'hidden';
     input_status.innerText = '入力待ち';

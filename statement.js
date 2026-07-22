@@ -59,8 +59,6 @@ class ExitStatement extends Statement {
 class DefineStatement extends Statement {
 	constructor(funcName, params, statementlist, loc) {
 		super(loc);
-		if (definedFunction[funcName]) throw new RuntimeError(this.first_line, '関数 '+funcName+' と同名の標準関数が存在します');
-		if (myFuncs[funcName]) throw new RuntimeError(this.first_line, '関数 '+funcName+' と同名の関数、または手続きが既に定義されています');
 		this.params = params;
 		this.funcName = funcName;
 		myFuncs[funcName] = this;
@@ -71,6 +69,8 @@ class DefineStatement extends Statement {
 		throw new RuntimeError(this.first_line, 'これはクローンされるべきでない');
 	}
 	run() {
+		varTables[0].vars[this.funcName] = new UserDefinedFunction(this.params, this.statementlist, this.loc);
+
 		code[0].stack[0].index++;
 	}
 	argsPython(indent)

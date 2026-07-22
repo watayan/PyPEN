@@ -51,7 +51,7 @@ class Value
 	 */
 	throwRuntimeError(msg)	// Value（およびサブクラス）の外から呼ばないこと
 	{
-		throw new RuntimeError(this._loc.first_line, constructor_name(this) + ": " + msg);
+		throw new RuntimeError(this._loc ? this._loc.first_line : 0, constructor_name(this) + ": " + msg);
 	}
 
 	copy()
@@ -1034,14 +1034,14 @@ class DictionaryValue extends CollectionValue
 
 class FunctionValue extends Value
 {
-	constructor(argc, func, loc, value = null)
+	constructor(v, loc, value = null)
 	{
-		super([argc, func], loc, value);
+		super(v, loc, value);
 	}
 
 	copy()
 	{
-		return this;
+		this.throwRuntimeError("抽象クラスです");
 	}
 
 	/* サブクラスで実装するメソッド
@@ -1063,7 +1063,7 @@ class FunctionValue extends Value
 	 */
 	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
-		return new FunctionValue(this.getArgs(0), this.getArgs(1), this.getLoc());
+		this.throwRuntimeError("抽象クラスです");
 	}
 
 	/**
@@ -1071,8 +1071,7 @@ class FunctionValue extends Value
 	 */
 	_makeValue()
 	{
-
-		this.throwRuntimeError("_makeValueが作られていません");
+		this.throwRuntimeError("抽象クラスです");
 	}
 
 	/**
@@ -1081,20 +1080,8 @@ class FunctionValue extends Value
 	 */
 	run()
 	{
-		if(this.getState() == 0)
-		{
-			if(this.getArgs().length > 0)
-				code[0].stack.unshift({statementlist: this.getArgs(), index: 0});
-			this.setState(1);
-		}
-		else
-		{
-			code[0].stack[0].index++;
-			this._makeValue();
-			this.setState(0);
-		}
+		this.throwRuntimeError("抽象クラスです");
 	}
-
 
 	/**
 	 * @returns {Value}
@@ -1102,6 +1089,171 @@ class FunctionValue extends Value
 	getValue() //Valueを返す。
 	{
 		return this._value;
+	}
+
+	/**
+	 * @returns {bigint|number|string|boolean|Array|Map}
+	 */
+	getJSValue()	// 実際のJSの値を返す
+	{
+		return this._value.getJSValue();
+	}
+
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPyPEN()	// PyPENの文法で表した文字列
+	{
+		this.throwRuntimeError("argsPyPENが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPython()	// Pythonの文法で表した文字列
+	{
+		this.throwRuntimeError("argsPythonが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	valueString()
+	{
+		this.throwRuntimeError("valueStringが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	valueCode()
+	{
+		this.throwRuntimeError("valueCodeが作られていません");
+	}
+}
+
+class BuiltinFunction extends FunctionValue
+{
+	// funcはJavaScriptの関数
+	constructor(argc, func, module, convert, loc, value = null)
+	{
+		super([], loc, value);
+		this.argc = argc; this.func = func; this.module = module; this.convert = convert;
+		this.caller = null;
+		this.parameters = null;
+		Object.seal(this);
+	}
+	/**
+	 * @returns {Value}
+	 */
+	getValue() //Valueを返す。
+	{
+		return this._value;
+	}
+	clone()		// 実体のあるすべてのサブクラスで実体を実装する
+	{
+		return new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
+	}
+	copy()
+	{
+		return new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
+	}
+	setCaller(caller)
+	{
+		this.caller = caller;
+	}
+
+	setParameter(params)
+	{
+		this.parameters = params;
+	}
+	setLocation(loc)
+	{
+		this._loc = loc;
+	}
+	run()
+	{
+		if((this.argc instanceof Array && this.argc[0] <= this.parameters.length && this.argc[1] >= this.parameters.length)
+			|| this.parameters.length == this.argc
+			|| this.argc < 0)
+			{
+				code[0].stack[0].index++;
+				this.caller.setValue(this.func(this.parameters, this._loc));
+				code.shift();
+			}
+		else throw new RuntimeError(this._loc.first_line, "引数の個数が違います");
+	}
+
+
+	/**
+	 * @returns {bigint|number|string|boolean|Array|Map}
+	 */
+	getJSValue()	// 実際のJSの値を返す
+	{
+		return this._value.getJSValue();
+	}
+
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPyPEN()	// PyPENの文法で表した文字列
+	{
+		this.throwRuntimeError("argsPyPENが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	argsPython()	// Pythonの文法で表した文字列
+	{
+		this.throwRuntimeError("argsPythonが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	valueString()
+	{
+		this.throwRuntimeError("valueStringが作られていません");
+	}
+	/**
+	 * @abstract
+	 * @returns {string}
+	 */
+	valueCode()
+	{
+		this.throwRuntimeError("valueCodeが作られていません");
+	}
+}
+
+class UserDefinedFunction extends FunctionValue
+{
+	// funcはstatementlist
+	constructor(params, statementlist, loc, value = null)
+	{
+		super([], loc, value);
+		this.params = params;
+		this.statementlist = statementlist;
+		this.caller = null;
+		this.state = 0;		
+		Object.seal(this);
+	}
+	/**
+	 * @returns {Value}
+	 */
+	getValue() //Valueを返す。
+	{
+		return this._value;
+	}
+	clone()
+	{
+		return new UserDefinedFunction(this.argc, this.statementlist, this.getLoc(), this._value);
+	}
+	copy()
+	{
+		return new UserDefinedFunction(this.argc, this.statementlist, this.getLoc(), this._value);
 	}
 
 	/**
@@ -1185,9 +1337,9 @@ class Variable extends SimpleValue
 			var v = vt.vars[this.varname];
 			return this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
 		}
-		else if(this.varname in myFuncs) return this._value = myFuncs[this.varname];
-		else if(this.varname in definedFunction) return this._value = definedFunction[this.varname];
-		else this.throwRuntimeError("変数に" + this.varname + "がありません");
+		// else if(this.varname in myFuncs) return this._value = myFuncs[this.varname];
+		// else if(this.varname in definedFunction) return this._value = definedFunction[this.varname];
+		else this.throwRuntimeError(this.varname + "が定義されていません");
 	}
 
 	getJSValue()
@@ -2397,7 +2549,7 @@ class ParenValue extends SimpleValue
 	{
 		var a = [];
 		for(var i of this.getArgs()) a.push(i instanceof Value ? i.clone() : i);
-		return new Paren(a, this.getLoc());
+		return new ParenValue(a, this.getLoc());
 	}
 	argsPyPEN()
 	{
@@ -2860,38 +3012,41 @@ class CallFunction extends SimpleValue
 	}
 	_makeValue()
 	{
-		if(definedFunction[this.funcname])
-		{
-			let fn = definedFunction[this.funcname].clone();
-			fn.setCaller(this, false);
-			var a = [];
-			for(var i of this.getArgs())
+		var vt = findVarTable(this.funcname);
+		if(vt){
+			if(vt.vars[this.funcname] instanceof BuiltinFunction)
 			{
-				a.push(i);
-				// textareaAppend("CallFunction arg value: " + constructor_name(i.getValue()) + "\n");
-			} 
-			fn.setParameter(a);
-			fn.setLocation(this.getLoc());
-			let statementlist = [fn];
-			code.unshift(new parsedFunction(statementlist));
+				let fn = vt.vars[this.funcname].clone();
+				fn.setCaller(this, false);
+				var a = [];
+				for(var i of this.getArgs())
+				{
+					a.push(i);
+				} 
+				fn.setParameter(a);
+				fn.setLocation(this.getLoc());
+				let statementlist = [fn];
+				code.unshift(new parsedFunction(statementlist));
+			}
+			else if(vt.vars[this.funcname] instanceof UserDefinedFunction)
+			{
+				let fn = vt.vars[this.funcname];
+				let vtlocal = new varTable();
+				let globalVarTable = varTables[varTables.length - 1];
+				for(let i of Object.keys(globalVarTable.vars)) 
+					vtlocal.vars[i] = globalVarTable.vars[i].copy();
+				for(let i = 0; i < this.getArgs().length; i++)
+					vtlocal.vars[fn.params[i].varname] = this.getArgs()[i].getValue();
+				let statementlist = cloneStatementlist(fn.statementlist);
+				statementlist.push(new ReturnStatement(new NullValue(this.getLoc()), this.getLoc()));
+				setCaller(statementlist, this);
+				let pf = new parsedFunction(statementlist);
+				code.unshift(pf);
+				varTables.unshift(vtlocal);
+			}
+			else this.throwRuntimeError('関数 '+this.funcname+' は定義されていません');
 		}
-		else if(myFuncs[this.funcname])
-		{
-			let fn = myFuncs[this.funcname];
-			let vt = new varTable();
-			let globalVarTable = varTables[varTables.length - 1];
-			for(let i of Object.keys(globalVarTable.vars)) 
-				vt.vars[i] = globalVarTable.vars[i].copy();
-			for(let i = 0; i < this.getArgs().length; i++)
-				vt.vars[fn.params[i].varname] = this.getArgs()[i].getValue();
-			let statementlist = cloneStatementlist(fn.statementlist);
-			statementlist.push(new ReturnStatement(new NullValue(this.getLoc()), this.getLoc()));
-			setCaller(statementlist, this);
-			let pf = new parsedFunction(statementlist);
-			code.unshift(pf);
-			varTables.unshift(vt);
-		}
-		else
+		else 
 			this.throwRuntimeError('関数 '+this.funcname+' は定義されていません');
 	}
 	argsPyPEN(indent = 0)
@@ -2904,7 +3059,7 @@ class CallFunction extends SimpleValue
 	argsPython(indent = 0)
 	{
 		let deffunc = null;
-		if(definedFunction[this.funcname]) deffunc = definedFunction[this.funcname];
+		if(this.funcname in BuiltinFunction) deffunc = BuiltinFunction[this.funcname];
 		else if(myFuncs[this.funcname]) deffunc = myFuncs[this.funcname];
 		let ag = [];
 		for(let i = 0; i < this.getArgs().length; i++)
@@ -3405,15 +3560,7 @@ class Assign extends SimpleValue
 function setVariableByArgs(vt,vn, args, newval, loc)
 {
 	// textareaAppend("DEBUG: setVariableByArgs: vn=" + vn + ", args=" + (args ? args.length : 0) + constructor_name(newval) + "\n");
-	if(newval instanceof DefinedFunction)
-	{
-
-	}
-	else if(newval instanceof DefineStatement)
-	{
-
-	}
-	else if(!(newval instanceof Value))
+	if(!(newval instanceof Value))
 		throw new RuntimeError(loc.first_line, "代入する値が不明です!" +
 			"\n" + constructor_name(newval));
 	if(args && args.length > 0)

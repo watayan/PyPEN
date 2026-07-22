@@ -361,6 +361,7 @@ function reset(b = true)
 	filesystem.all_close();
 	filesystem.clear();
 	storage_list_update();
+	load_functions();
 }
 
 /**
@@ -390,6 +391,17 @@ function setEditableflag(b)
 	document.getElementById("drawButton").disabled = !b;
 	document.getElementById("pythonButton").disabled = !b;
 	document.getElementById("urlButton").disabled = !b;
+}
+
+function load_functions()
+{
+	for(var funcname in defined_functions)
+		varTables[0].vars[funcname] = defined_functions[funcname];
+	if(setting.more_function == 1)
+	{
+		for(var funcname in more_functions)
+			varTables[0].vars[funcname] = more_functions[funcname];
+	}
 }
 
 function run(clear = true)
