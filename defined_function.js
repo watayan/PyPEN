@@ -23,6 +23,7 @@ var defined_functions = {
 		else if(par1 instanceof BooleanValue) result = s.match(/^真偽|bool|boolean$/i);
 		else if(par1 instanceof ArrayValue) result = s.match(/^(リスト|list|array)$/i);
 		else if(par1 instanceof DictionaryValue) result = s.match(/^辞書|dictionary|dict$/i);
+		else if(par1 instanceof FunctionValue) result = s.match(/^関数|function$/i);
 		else if(par1 instanceof NullValue) result = false;
 		else this.throwRuntimeError("typeis", "不明な型です" + constructor_name(par1));
 		return new BooleanValue([result], loc, result);
@@ -34,6 +35,7 @@ var defined_functions = {
 		else if(par1 instanceof FloatValue) return new StringValue(["実数"], loc, "実数");
 		else if(par1 instanceof StringValue) return new StringValue(["文字列"], loc, "文字列");
 		else if(par1 instanceof BooleanValue) return new StringValue(["真偽"], loc, "真偽");
+		else if(par1 instanceof FunctionValue) return new StringValue(["関数"], loc, "関数");
 		else if(par1 instanceof ArrayValue) return new StringValue(["リスト"], loc, "リスト");
 		else if(par1 instanceof DictionaryValue) return new StringValue(["辞書"], loc, "辞書");
 		else if(par1 instanceof NullValue) return new StringValue([""], loc, "");

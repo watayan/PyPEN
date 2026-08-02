@@ -1088,7 +1088,7 @@ class FunctionValue extends Value
 	 */
 	getValue() //Valueを返す。
 	{
-		return this._value;
+		return this;
 	}
 
 	/**
@@ -1098,7 +1098,6 @@ class FunctionValue extends Value
 	{
 		return this._value.getJSValue();
 	}
-
 	/**
 	 * @abstract
 	 * @returns {string}
@@ -1144,20 +1143,17 @@ class BuiltinFunction extends FunctionValue
 		this.parameters = null;
 		Object.seal(this);
 	}
-	/**
-	 * @returns {Value}
-	 */
-	getValue() //Valueを返す。
-	{
-		return this._value;
-	}
 	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
-		return new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
+		var rtnv = new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
+		rtnv.setParameter(this.parameters);
+		return rtnv;
 	}
 	copy()
 	{
-		return new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
+		var rtnv = new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
+		rtnv.setParameter(this.parameters);
+		return rtnv;
 	}
 	setCaller(caller)
 	{
@@ -1216,7 +1212,7 @@ class BuiltinFunction extends FunctionValue
 	 */
 	valueString()
 	{
-		this.throwRuntimeError("valueStringが作られていません");
+		return "組み込み関数";
 	}
 	/**
 	 * @abstract
@@ -1240,20 +1236,13 @@ class UserDefinedFunction extends FunctionValue
 		this.state = 0;		
 		Object.seal(this);
 	}
-	/**
-	 * @returns {Value}
-	 */
-	getValue() //Valueを返す。
-	{
-		return this._value;
-	}
 	clone()
 	{
-		return new UserDefinedFunction(this.argc, this.statementlist, this.getLoc(), this._value);
+		return new UserDefinedFunction(this.params, this.statementlist, this.getLoc(), this._value);
 	}
 	copy()
 	{
-		return new UserDefinedFunction(this.argc, this.statementlist, this.getLoc(), this._value);
+		return new UserDefinedFunction(this.params, this.statementlist, this.getLoc(), this._value);
 	}
 
 	/**
@@ -1286,7 +1275,7 @@ class UserDefinedFunction extends FunctionValue
 	 */
 	valueString()
 	{
-		this.throwRuntimeError("valueStringが作られていません");
+		return "ユーザ定義関数";
 	}
 	/**
 	 * @abstract
@@ -1312,8 +1301,8 @@ class Variable extends SimpleValue
 		this.varname = x;
 		this._value = null;
 		Object.seal(this);
-		if(debug_mode && !(loc instanceof Location)) 
-			textareaAppend("Error Variable#constructor: " +x +": "+ constructor_name(loc) + "\n");
+		// if(debug_mode && !(loc instanceof Location)) 
+		// 	textareaAppend("Error Variable#constructor: " +x +": "+ constructor_name(loc) + "\n");
 	}
 	clone()
 	{

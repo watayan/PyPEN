@@ -485,11 +485,11 @@ function next_line()
 	if(statement && typeof statement.run === 'function')
 	{
 		try{
-			if(debug_mode){
-				// textareaAppend('// ' + constructor_name(statement));
-				// textareaAppend(
-				// 	statement.getLoc ? "(" + statement.getLoc().first_line +  ')\n': '\n');
-			}
+			// if(debug_mode){
+			// 	textareaAppend('// ' + constructor_name(statement));
+			// 	textareaAppend(
+			// 		statement.getLoc ? "(" + statement.getLoc().first_line +  ')\n': '\n');
+			// }
 			statement.run();
 		}
 		catch(e)

@@ -163,6 +163,7 @@ function dump(message = null)
 		if(vars[i][0] == '!') continue;
 		let vartable = findVarTable(vars[i]);
 		let v = vartable.vars[vars[i]];
+		if(v instanceof FunctionValue) continue;
 		textareaAppend(vars[i] + ":" + valueString(v) + "\n");
 	}
 }
