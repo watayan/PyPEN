@@ -824,7 +824,7 @@ var more_functions = {
         return new FloatValue([v], this.loc, v);
 	}, null, null),
     "factorial": new BuiltinFunction(1, function(param, loc){
-		var par1 = param[0];
+		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue && par1.getJSValue() >= BigInt(0))
 		{
             var p = BigInt(1);
