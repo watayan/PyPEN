@@ -617,27 +617,36 @@ function array2values(a, loc)
 {
 	var rtnv = [];
 	var array = null;
-	if(a.rtnv instanceof ArrayValue)
+	if(a instanceof ArrayValue)
 	{
-		if(a.rtnv.value[0] instanceof ArrayValue) array = a.rtnv;
-		else if(a.rtnv.value instanceof Array) array = new ArrayValue([a.rtnv.value], loc);
-		else throw new RuntimeError(loc.first_line, "グラフに誤った型が使われています");
-	}
-	else if(a.rtnv instanceof Array) array = new ArrayValue(a.rtnv, loc);
-	else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
-
-	for(var i = 0; i < array.length; i++)
-	{
-		var rtnv1 = [];
-		for(var j = 0; j < array.value[i].length; j++)
+		if(a.getJSValue()[0] instanceof ArrayValue)
 		{
-			var val = array.value[i] instanceof ArrayValue ? array.value[i].value[j] : array.value[i][j];
-			if(val instanceof IntValue) rtnv1.push(Number(val.getValue()));
-			else rtnv1.push(val.getValue());
+			for(var i = 0; i < a.getJSValue().length; i++)
+			{
+				var rtnv1 = [];
+				for(var j = 0; j < a.getJSValue()[i].getJSValue().length; j++)
+				{
+					var val = a.getJSValue()[i].getJSValue()[j].getValue();
+					if(val instanceof IntValue) rtnv1.push(Number(val.getJSValue()));
+					else rtnv1.push(val.getJSValue());
+				}
+				rtnv.push(rtnv1);
+			}
 		}
-		rtnv.push(rtnv1);
+		else 
+		{
+			var rtnv1 = [];
+			for(var j = 0; j < a.getJSValue().length; j++)
+			{
+				var val = a.getJSValue()[j].getValue();
+				if(val instanceof IntValue) rtnv1.push(Number(val.getJSValue()));
+				else rtnv1.push(val.getJSValue());
+			}
+			rtnv.push(rtnv1);
+		}
+		return rtnv;
 	}
-	return rtnv;
+	else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
 }
 
 
