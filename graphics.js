@@ -199,16 +199,12 @@ class GraphicStatement extends Statement
 			}
 			else if(this.command == 'gBarplot')
 			{
-				if(context == null)
-				{
-					var canvas = document.getElementById('canvas');
-					var w = Number(this.args[0].getJSValue()), 
-						h = Number(this.args[1].getJSValue());
-					context = canvas.getContext('2d');
-					canvas.setAttribute("width", w + "px");
-					canvas.setAttribute("height", h + "px");
-					canvas.style.display="block";
-				}
+				var canvas = document.getElementById('canvas');
+				var w = Number(this.args[0].getValue().getJSValue()), h = Number(this.args[1].getValue().getJSValue());
+				if(context == null) context = canvas.getContext('2d');
+				canvas.setAttribute("width", w + "px");
+				canvas.setAttribute("height", h + "px");
+				canvas.style.display="block";	
 				// 値の取得
 				var values = array2values(this.args[2], this.loc);
 				var max = 0, min = 0, maxn = 0;
@@ -255,15 +251,12 @@ class GraphicStatement extends Statement
 			}
 			else if(this.command == 'gLineplot')
 			{
-				if(context == null)
-				{
-					var canvas = document.getElementById('canvas');
-					var w = Number(this.args[0].getValue().getJSValue()), h = Number(this.args[1].getValue().getJSValue());
-					context = canvas.getContext('2d');
-					canvas.setAttribute("width", w + "px");
-					canvas.setAttribute("height", h + "px");
-					canvas.style.display="block";	
-				}
+				var canvas = document.getElementById('canvas');
+				var w = Number(this.args[0].getValue().getJSValue()), h = Number(this.args[1].getValue().getJSValue());
+				if(context == null) context = canvas.getContext('2d');
+				canvas.setAttribute("width", w + "px");
+				canvas.setAttribute("height", h + "px");
+				canvas.style.display="block";	
 				// 値の取得
 				var values = array2values(this.args[2].getValue(), this.loc);
 				var max = 0, min = 0, maxn = 0;
