@@ -22,7 +22,6 @@ var flowchart = null;
 var textarea = null;
 var context = null;
 var current_line = -1;
-var wait_time = 0;
 var flowchart_display = false;
 var converting = false;
 var dirty = null;
@@ -33,6 +32,7 @@ var test_limit_time = 0;
 var fontsize = 16;
 var python_lib = {};
 var editor = null;
+var sleep_end_time = 0;
 
 /**
  * parsed...すべての親クラス
@@ -354,7 +354,7 @@ function reset(b = true)
 	var input_area = document.getElementById('input_area');
 	input_area.readOnly = true;
 	input_area.value = '';
-	wait_time = 0;
+	sleep_end_time = 0;
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';
@@ -433,16 +433,9 @@ function run(clear = true)
 	step();
 }
 
-// busy wait !!
-function wait(ms)
-{
-	let t1 = Date.now();
-	while(Date.now() - t1 < ms)
-		;
-}
-
 function step()
 {
+	// if(sleep_end_time > 0 && sleep_end_time < Date.now()) return;
 	if(selected_quiz < 0)
 	{
 		// 次の行まで進める
@@ -454,14 +447,7 @@ function step()
 		if(code[0] && code[0].stack.length > 0)
 		{
 			if(run_flag && !step_flag)
-			{
-				if(wait_time > 0) 
-				{
-					wait(wait_time);
-					wait_time = 0;
-				}
 				setZeroTimeout(step, 0);
-			}
 		}
 		else
 		{

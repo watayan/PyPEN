@@ -177,8 +177,7 @@ case 38:
 this.$ = new CallFunction([$$[$0-3], $$[$0-1]], new Location(_$[$0-3],_$[$0]));
 break;
 case 39:
-this.$ = new CallFunction([$$[$0-3], 
-			[$$[$0-5]].concat($$[$0-1])], new Location(_$[$0-5],_$[$0]));
+this.$ = new CallFunction([$$[$0-3], [$$[$0-5]].concat($$[$0-1])], new Location(_$[$0-5],_$[$0]));
 break;
 case 40:
 this.$ = $$[$0];

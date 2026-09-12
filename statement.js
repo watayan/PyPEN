@@ -1357,7 +1357,8 @@ class SleepStatement extends Statement
 	constructor(sec, loc)
 	{
 		super(loc)
-		this.sec = new IntValue(sec.value, loc); // milli seconds
+		this.sec = sec; // milli seconds
+		this.state = 0;
 	}
 	clone()
 	{
@@ -1365,8 +1366,25 @@ class SleepStatement extends Statement
 	}
 	run()
 	{
-		wait_time = this.sec.getJSValue();
-		code[0].stack[0].index++;
+		switch(this.state)
+		{
+			case 0:
+				code[0].stack.unshift({statementlist: [this.sec], index: 0});
+				this.state = 1;
+				return;
+			case 1:
+				sleep_end_time = Date.now() + Number(this.sec.getValue().getJSValue());
+				this.state = 2;
+				return;
+			case 2:
+				if(Date.now() >= sleep_end_time)
+				{
+					this.state = 0;
+					code[0].stack[0].index++;
+					sleep_end_time = 0;
+				}
+				return;
+		}
 	}
 	argsPython(indent)
 	{

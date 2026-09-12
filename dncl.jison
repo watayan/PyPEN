@@ -351,13 +351,10 @@ e
 	| '真偽' '(' e ')' {$$ = new ConvertBool([$3], new Location(@1, @4));}
 	| '識別子' '(' args ')' {$$ = new CallFunction([$1, $3], new Location(@1,@4));}
 	| e 'DOT' '識別子' '(' args ')' 
-		{$$ = new CallFunction([$3, 
-			[$1].concat($5)], new Location(@1,@6));}
+		{$$ = new CallFunction([$3, [$1].concat($5)], new Location(@1,@6));}
 	| variable		{$$ = $1;}
 	| '[' args ']'	{$$ = new ArrayValue($2, new Location(@1,@3));}
 	| '[' '改行' args ']'	{$$ = new ArrayValue($3, new Location(@1,@4));}
-//	| '[' args ']'	{$$ = $2;}
-//	| '[' '改行' args ']'	{$$ = $3;}
 	| '{' args '}'	{$$ = new DictionaryValue($2, new Location(@1, @3));}
 	| '{' '改行' args '}'	{$$ = new DictionaryValue($3, new Location(@1, @4));}
 	| e '個の' e	{$$ = new NumberOf([$1, $3], new Location(@1, @3));}
@@ -387,19 +384,7 @@ slice
 	| e ':' {$$ = new SliceValue([$1, new NullValue(@1)], new Location(@1,@1));}
 	| e ':' e {$$ = new SliceValue([$1, $3], new Location(@1,@3));}
 	;
-/*
-args
-	: args 'COMMA' e {$1.append($3);$$ = $1;}
-	| args 'COMMA' slice {$1.append($3);$$ = $1;}
-	| args 'COMMA' '改行' e {$1.append($4);$$ = $1;}
-	| args 'COMMA' '改行' slice {$1.append($4);$$ = $1;}
-	| args 'COMMA' '改行' {$$ = $1;}
-	| args 'COMMA'  {$$ = $1;}
-	| e { $$ = new ArrayValue([$1], new Location(@1,@1));}
-	| slice { $$ = new ArrayValue([$1], new Location(@1,@1));}
-	|   { $$ = new ArrayValue([], new Location(@1,@1));}
-	;
-*/
+
 args
 	: args 'COMMA' e {$1.push($3);$$ = $1;}
 	| args 'COMMA' slice {$1.push($3);$$ = $1;}
