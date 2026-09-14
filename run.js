@@ -442,7 +442,7 @@ function step()
 		var l = current_line;
 		do{
 			next_line();
-		}while(run_flag && l == current_line);
+		}while(run_flag && l == current_line && sleep_end_time == 0);
 		if(!code) return;
 		if(code[0] && code[0].stack.length > 0)
 		{
