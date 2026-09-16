@@ -52,8 +52,10 @@ Repeating		("繰り返し"|"繰返し"|"くりかえし")
 Exit			("抜ける"|"ぬける"|"出る"|"でる")
 Newline			(\r\n|\r|\n)+
 UNDEFINED		"《"[^》]*"》"
-IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ]
-IdentifierPart	[_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９]
+IdentifierStart [_a-zA-Zａ-ｚＡ-Ｚ\u3040-\u30FF\u4E00-\u9FFF]
+IdentifierPart  [_a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3040-\u30FF\u4E00-\u9FFF]
+Identifier		{IdentifierStart}{IdentifierPart}*
+Boundary		[^_a-zA-Z0-9\u3040-\u30FF\u4E00-\u9FFF]
 StringTrue		"真"|[Tt][Rr][Uu][Ee]
 StringFalse		"偽"|[Ff][Aa][Ll][Ss][Ee]
 EQEQ			[\=＝][\=＝]
@@ -88,7 +90,6 @@ int				[Ii][Nn][Tt]/[^a-zA-Z0-9_]
 float			[Ff][Ll][Oo][Aa][Tt]/[^a-zA-Z0-9_]
 str				[Ss][Tt][Rr]/[^a-zA-Z0-9_]
 bool			[Bb][Oo][Oo][Ll]/[^a-zA-Z0-9_]
-Identifier		{IdentifierStart}{IdentifierPart}*
 Add				[+＋]
 Del				[-ー−‐]
 Pow				[\*＊×][\*＊×]
@@ -114,13 +115,13 @@ Whitespace		[ 　\t]
 
 %%
 
-"真偽"						{return '真偽';}
-{Float}						{return '実数値';}
-{Integer}					{return '整数値';}
-{StringTrue}				{return 'True';}
-{StringFalse}				{return 'False';}
-{String}					{return '文字列値';}
-{UNDEFINED}					{return 'UNDEFINED';}
+"真偽"/{Boundary}				{return '真偽';}
+{Float}/{Boundary}			{return '実数値';}
+{Integer}/{Boundary}			{return '整数値';}
+{StringTrue}/{Boundary}		{return 'True';}
+{StringFalse}/{Boundary}		{return 'False';}
+{String}/{Boundary}			{return '文字列値';}
+{UNDEFINED}/{Boundary}		{return 'UNDEFINED';}
 {EQEQ}						{return '=='}
 {Assign}					{return '=';}
 {AssignAdd}					{return '+=';}
@@ -142,18 +143,12 @@ Whitespace		[ 　\t]
 {Div}						{return '/';}
 {Mod}						{return '%';}
 "."							{return 'DOT';}
-"("							{return '(';}
-")"							{return ')';}
-"（"						{return '(';}
-"）"						{return ')';}
-"["							{return '[';}
-"]"							{return ']';}
-"［"						{return '[';}
-"］"						{return ']';}
-"{"							{return '{';}
-"}"							{return '}';}
-"｛"						{return '{';}
-"｝"						{return '}';}
+[\(（]						{return '(';}
+[\)）]						{return ')';}
+[\[［]]						{return '[';}
+[\]］]						{return ']';}
+[{｛]						{return '{';}
+[}｝]						{return '}';}
 {GE}						{return '>=';}
 {LE}						{return '<=';}
 {Rshift}					{return '>>';}
@@ -167,117 +162,121 @@ Whitespace		[ 　\t]
 {BitNot}					{return '~';}
 {Comma}						{return 'COMMA';}
 {Colon}						{return ':';}
-{And}						{return 'and';}
-{Or}						{return 'or';}
-{NotIn}						{return 'not_in';}
-{Not}						{return 'not';}
-{In}						{return 'in';}
-{If}						{return 'if';}
-{Elif}						{return 'elif';}
-{Else}						{return 'else';}
-{While}						{return 'while';}
-{For}						{return 'for';}
-{Print}						{return 'print';}
-{Return}					{return 'return';}
-{Pass}						{return 'pass';}
-{Break}						{return 'break';}
-{Def}						{return 'def';}
-{int}						{return '整数';}
-{float}						{return '実数';}
-{str}						{return '文字列';}
-{bool}						{return '真偽';}
+{And}/{Boundary}			{return 'and';}
+{Or}/{Boundary}				{return 'or';}
+{NotIn}/{Boundary}			{return 'not_in';}
+{Not}/{Boundary}			{return 'not';}
+{In}/{Boundary}				{return 'in';}
+{If}/{Boundary}				{return 'if';}
+{Elif}/{Boundary}			{return 'elif';}
+{Else}/{Boundary}			{return 'else';}
+{While}/{Boundary}			{return 'while';}
+{For}/{Boundary}			{return 'for';}
+{Print}/{Boundary}			{return 'print';}
+{Return}/{Boundary}			{return 'return';}
+{Pass}/{Boundary}			{return 'pass';}
+{Break}/Bounday				{return 'break';}
+{Def}/{Boundary}			{return 'def';}
+{int}/{Boundary}			{return '整数';}
+{float}/{Boundary}			{return '実数';}
+{str}/{Boundary}			{return '文字列';}
+{bool}/{Boundary}			{return '真偽';}
 "■"							{return 'ブロック終端'}
-"を"{WithoutNewline}"で"{Output}"する"	{return 'を改行無しで表示する';}
-"を"{Output}"する"			{return 'を表示する';}
-{WithoutNewline}{Output}"する"	{return '改行無しで表示する';}
-{Output}"する"				{return '表示する';}
-"入力する"					{return '入力する';}
-"もし"						{return 'もし';}
-"ならば"					{return 'ならば';}
-"そうでなければ"			{return 'そうでなければ';}
-"そうでなくもし"			{return 'そうでなくもし';}
-{while}						{return 'の間';}
-{Repeating}"を"{Exit}		{return '繰り返しを抜ける';}
-"手続きを"{Exit}			{return '関数を抜ける';}
-"関数を"{Exit}				{return '関数を抜ける';}
-"手続き"					{return '関数';}
-"関数"						{return '関数';}
-"を返す"					{return 'を返す';}
-"の中に"					{return 'の中に';}
-"について"					{return 'について';}
-"に"						{return 'に';}
-"を"						{return 'を';}
-"個の"						{return '個の';}
-"から"						{return 'から';}
-"まで"						{return 'まで';}
-"ずつ"						{return 'ずつ';}
-{Increasing}				{return '増やしながら';}
-{Decreasing}				{return '減らしながら';}
-{Repeat}					{return '繰り返す';}
-"の要素"					{return 'の要素';}
-{Interval}					{return '区間';}
-"整数"						{return '整数';}
-"実数"						{return '実数';}
-"文字列"					{return '文字列';}
-"と"{Comma}					{return 'と';}
-"と"						{return 'と';}
-"で"						{return 'で';}
-"追加する"					{return '追加する';}
-"連結する"					{return '連結する';}
-"追加"						{return '追加する';}
-"連結"						{return '連結する';}
-"描画領域開く"				{return 'gOpenWindow';}
-"gOpenWindow"				{return 'gOpenWindow';}
-"描画領域閉じる"			{return 'gCloseWindow';}
-"gCloseWindow"				{return 'gCloseWindow';}
-"描画領域全消去"			{return 'gClearWindow';}
-"gClearWindow"				{return 'gClearWindow';}
-"線色設定"					{return 'gSetLineColor';}
-"gSetLineColor"				{return 'gSetLineColor';}
-"塗色設定"					{return 'gSetFillColor';}
-"gSetFillColor"				{return 'gSetFillColor';}
-"文字色設定"				{return 'gSetTextColor';}
-"gSetTextColor"				{return 'gSetTextColor';}
-"線太さ設定"				{return 'gSetLineWidth';}
-"gSetLineWidth"				{return 'gSetLineWidth';}
-"文字サイズ設定"			{return 'gSetFontSize';}
-"gSetFontSize"				{return 'gSetFontSize';}
-"文字描画"					{return 'gDrawText';}
-"gDrawText"					{return 'gDrawText';}
-"線描画"					{return 'gDrawLine';}
-"gDrawLine"					{return 'gDrawLine';}
-"点描画"					{return 'gDrawPoint';}
-"gDrawPoint"				{return 'gDrawPoint';}
-"矩形描画"					{return 'gDrawBox';}
-"gDrawBox"					{return 'gDrawBox';}
-"矩形塗描画"				{return 'gFillBox';}
-"gFillBox"					{return 'gFillBox';}
-"円描画"					{return 'gDrawCircle';}
-"gDrawCircle"				{return 'gDrawCircle';}
-"円塗描画"					{return 'gFillCircle';}
-"gFillCircle"				{return 'gFillCircle';}
-"楕円描画"					{return 'gDrawOval';}
-"gDrawOval"					{return 'gDrawOval';}
-"楕円塗描画"				{return 'gFillOval';}
-"gFillOval"					{return 'gFillOval';}
-"弧描画"					{return 'gDrawArc';}
-"gDrawArc"					{return 'gDrawArc';}
-"弧塗描画"					{return 'gFillArc';}
-"gFillArc"					{return 'gFillArc';}
-"棒グラフ描画"				{return 'gBarplot';}
-"gBarplot"					{return 'gBarplot';}
-"線グラフ描画"				{return 'gLineplot';}
-"gLinePlot"					{return 'gLineplot';}
-"グラフ描画"				{return 'gDrawGraph';}
-"gDrawGraph"				{return 'gDrawGraph';}
-"グラフ消去"				{return 'gClearGraph';}
-"gClearGraph"				{return 'gClearGraph';}
-"ミリ秒待つ"				{return 'ミリ秒待つ';}
-"変数を確認する"			{return '変数を確認する';}
-"改行する"					{return '改行する';}
-"何もしない"				{return '何もしない';}
-"一時停止する"				{return '一時停止する';}
-"一時停止"					{return '一時停止する';}
+"を"{WithoutNewline}"で"{Output}"する"/{Boundary}
+							{return 'を改行無しで表示する';}
+"を"{Output}"する"/{Boundary}
+							{return 'を表示する';}
+{WithoutNewline}{Output}"する"/{Boundary}
+							{return '改行無しで表示する';}
+{Output}"する"/{Boundary}	{return '表示する';}
+"入力する"/{Boundary}		{return '入力する';}
+"もし"/{Boundary}			{return 'もし';}
+"ならば"/{Boundary}			{return 'ならば';}
+"そうでなければ"/{Boundary}	{return 'そうでなければ';}
+"そうでなくもし"/{Boundary}	{return 'そうでなくもし';}
+{while}/{Boundary}			{return 'の間';}
+{Repeating}"を"{Exit}/{Boundary}
+							{return '繰り返しを抜ける';}
+"手続きを"{Exit}/{Boundary}	{return '関数を抜ける';}
+"関数を"{Exit}/{Boundary}	{return '関数を抜ける';}
+"手続き"/{Boundary}			{return '関数';}
+"関数"/{Boundary}			{return '関数';}
+"を返す"/{Boundary}			{return 'を返す';}
+"の中に"/{Boundary}			{return 'の中に';}
+"について"/{Boundary}		{return 'について';}
+"に"/{Boundary}				{return 'に';}
+"を"/{Boundary}				{return 'を';}
+"個の"/{Boundary}			{return '個の';}
+"から"/{Boundary}			{return 'から';}
+"まで"/{Boundary}			{return 'まで';}
+"ずつ"/{Boundary}			{return 'ずつ';}
+{Increasing}/{Boundary}		{return '増やしながら';}
+{Decreasing}/{Boundary}		{return '減らしながら';}
+{Repeat}/{Boundary}			{return '繰り返す';}
+"の要素"/{Boundary}			{return 'の要素';}
+{Interval}/{Boundary}		{return '区間';}
+"整数"/{Boundary}			{return '整数';}
+"実数"/{Boundary}			{return '実数';}
+"文字列"/{Boundary}			{return '文字列';}
+"と"{Comma}/{Boundary}		{return 'と';}
+"と"/{Boundary}				{return 'と';}
+"で"/{Boundary}				{return 'で';}
+"追加する"/{Boundary}		{return '追加する';}
+"連結する"/{Boundary}		{return '連結する';}
+"追加"/{Boundary}			{return '追加する';}
+"連結"/{Boundary}			{return '連結する';}
+"描画領域開く"/{Boundary}	{return 'gOpenWindow';}
+"gOpenWindow"/{Boundary}	{return 'gOpenWindow';}
+"描画領域閉じる"/{Boundary}	{return 'gCloseWindow';}
+"gCloseWindow"/{Boundary}	{return 'gCloseWindow';}
+"描画領域全消去"/{Boundary}	{return 'gClearWindow';}
+"gClearWindow"/{Boundary}	{return 'gClearWindow';}
+"線色設定"/{Boundary}		{return 'gSetLineColor';}
+"gSetLineColor"/{Boundary}	{return 'gSetLineColor';}
+"塗色設定"/{Boundary}		{return 'gSetFillColor';}
+"gSetFillColor"/{Boundary}	{return 'gSetFillColor';}
+"文字色設定"/{Boundary}		{return 'gSetTextColor';}
+"gSetTextColor"/{Boundary}	{return 'gSetTextColor';}
+"線太さ設定"/{Boundary}		{return 'gSetLineWidth';}
+"gSetLineWidth"/{Boundary}	{return 'gSetLineWidth';}
+"文字サイズ設定"/{Boundary}	{return 'gSetFontSize';}
+"gSetFontSize"/{Boundary}	{return 'gSetFontSize';}
+"文字描画"/{Boundary}		{return 'gDrawText';}
+"gDrawText"/{Boundary}		{return 'gDrawText';}
+"線描画"/{Boundary}			{return 'gDrawLine';}
+"gDrawLine"/{Boundary}		{return 'gDrawLine';}
+"点描画"/{Boundary}			{return 'gDrawPoint';}
+"gDrawPoint"/{Boundary}		{return 'gDrawPoint';}
+"矩形描画"/{Boundary}		{return 'gDrawBox';}
+"gDrawBox"/{Boundary}		{return 'gDrawBox';}
+"矩形塗描画"/{Boundary}		{return 'gFillBox';}
+"gFillBox"/{Boundary}		{return 'gFillBox';}
+"円描画"/{Boundary}			{return 'gDrawCircle';}
+"gDrawCircle"/{Boundary}	{return 'gDrawCircle';}
+"円塗描画"/{Boundary}		{return 'gFillCircle';}
+"gFillCircle"/{Boundary}	{return 'gFillCircle';}
+"楕円描画"/{Boundary}		{return 'gDrawOval';}
+"gDrawOval"/{Boundary}		{return 'gDrawOval';}
+"楕円塗描画"/{Boundary}		{return 'gFillOval';}
+"gFillOval"/{Boundary}		{return 'gFillOval';}
+"弧描画"/{Boundary}			{return 'gDrawArc';}
+"gDrawArc"/{Boundary}		{return 'gDrawArc';}
+"弧塗描画"/{Boundary}		{return 'gFillArc';}
+"gFillArc"/{Boundary}		{return 'gFillArc';}
+"棒グラフ描画"/{Boundary}	{return 'gBarplot';}
+"gBarplot"/{Boundary}		{return 'gBarplot';}
+"線グラフ描画"/{Boundary}	{return 'gLineplot';}
+"gLinePlot"/{Boundary}		{return 'gLineplot';}
+"グラフ描画"/{Boundary}		{return 'gDrawGraph';}
+"gDrawGraph"/{Boundary}		{return 'gDrawGraph';}
+"グラフ消去"/{Boundary}		{return 'gClearGraph';}
+"gClearGraph"/{Boundary}	{return 'gClearGraph';}
+"ミリ秒待つ"/{Boundary}		{return 'ミリ秒待つ';}
+"変数を確認する"/{Boundary}	{return '変数を確認する';}
+"改行する"/{Boundary}		{return '改行する';}
+"何もしない"/{Boundary}		{return '何もしない';}
+"一時停止する"/{Boundary}	{return '一時停止する';}
+"一時停止"/{Boundary}		{return '一時停止する';}
 {Identifier}				{return '識別子';}
 {Comment}					{}
 <<EOF>>						{return 'EOF';}
