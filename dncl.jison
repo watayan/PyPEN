@@ -35,7 +35,7 @@
 
 
 Boundary   [^_a-zA-Z0-9\u3040-\u30FF\u4E00-\u9FFF]
-JPBoundary [^_a-zA-Zａ-ｚＡ-Ｚ\u3040-\u30FF\u4E00-\u9FFF]
+JPBoundary [^_\u3040-\u30FF\u4E00-\u9FFF]
 
 DecimalDigit	[0-9０-９]
 NonZeroDigit	[1-9１-９]
@@ -188,7 +188,7 @@ Whitespace		[ 　\t]
 {WithoutNewline}{Output}"する"				{return '改行無しで表示する';}
 {Output}"する"								{return '表示する';}
 "入力する"									{return '入力する';}
-"もし"/{JPBoundary}										{return 'もし';}
+"もし"										{return 'もし';}
 "ならば"										{return 'ならば';}
 "そうでなければ"								{return 'そうでなければ';}
 "そうでなくもし"								{return 'そうでなくもし';}
