@@ -11,14 +11,18 @@
 	};
 	function toHalf(s, token)
 	{
-		if(setting.zenkaku_mode == 1)
+		switch(setting.zenkaku_mode)
 		{
-			if(/[Ａ-Ｚａ-ｚ０-９．−]/.exec(s))
-				throw {message:token.first_line + "行目に全角文字が間違って使われています"};
+			case 0:
+				return s.replace(/[Ａ-Ｚａ-ｚ０-９．−]/g, function(s) {
+					return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);});
+			case 1:
+				if(/[Ａ-Ｚａ-ｚ０-９．−]/.exec(s))
+					throw {message:token.first_line + "行目に全角文字が間違って使われています"};
+				return s;
+			case 2:
+				return s;
 		}
-		return s.replace(/[Ａ-Ｚａ-ｚ０-９．−]/g, function(s) {
-			return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);}
-		);
 	}
 	function escape_bracket(s)
 	{
@@ -113,8 +117,8 @@ Integer			({NonZeroDigit}{DecimalDigit}*) | ("0x"{HexDigit}+) | ("0b"{ZeroOneDig
 String			"「"[^」]*"」"|"'"(\\\'|[^\'])*"'"|"\""(\\\"|[^"])*"\""
 ASCIIIdentifierStart	[_a-zA-Z]
 ASCIIIdentifierPart		[_a-zA-Z0-9]
-JPIdentifierStart 		[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]
-JPIdentifierPart  		[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF_a-zA-Z0-9]
+JPIdentifierStart 		[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF０-９Ａ-Ｚ]
+JPIdentifierPart  		[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF_a-zA-Z0-9０-９Ａ-Ｚ]
 ASCIIIdentifier      	{ASCIIIdentifierStart}{ASCIIIdentifierPart}*
 JPIdentifier      		{JPIdentifierStart}{JPIdentifierPart}*
 Identifier				{ASCIIIdentifier}|{JPIdentifier}
