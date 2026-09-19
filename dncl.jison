@@ -204,7 +204,7 @@ Whitespace		[ 　\t]
 "関数"										{return '関数';}
 "を返す"										{return 'を返す';}
 "の中に"										{return 'の中に';}
-"について"									{return 'について';}
+"について"("繰り返す"|"繰返す"|"くりかえす"|)									{return 'について';}
 "まで"										{return 'まで';}
 {Increasing}									{return '増やしながら';}
 {Decreasing}									{return '減らしながら';}
