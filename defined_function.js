@@ -688,7 +688,14 @@ var defined_functions = {
 	}, null, function(argc){
 		return argsPython(argc[0]) + '.close()\n';
 	}),
-
+	"sleep": new BuiltinFunction(1, function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof IntValue || par1 instanceof FloatValue)
+		{
+			var wakeup_time = Date.now() + Number(par1.getJSValue());
+			sleeping = function(){ return Date.now() < wakeup_time; };
+		}
+	}, null, null),
 	// サウンド関係
 	// samplingRate: サンプリングレートを取得
 	// playWave: 波形を再生
@@ -713,6 +720,27 @@ var defined_functions = {
 			return new NullValue(loc);
 		}
 	}, null, null),
+	"recordWave": new BuiltinFunction(1, async function(param, loc){
+		var par1 = param[0].getValue();
+		if(par1 instanceof IntValue || par1 instanceof FloatValue)
+		{
+			var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+			var duration = Number(par1.getJSValue());
+			navigator.mediaDevices
+				.getUserMedia({ audio: true })
+				.then(stream => { const source = audioCtx.createMediaStreamSource(stream); 
+				textareaAppend(stream);
+			var analyser = audioCtx.createAnalyser();
+			var bufferLength = 2048;
+			analyser.fftSize = bufferLength;
+			var dataArray = new Float32Array(bufferLength);
+			source.connect(analyser);
+			analyser.getFloatTimeDomainData(dataArray);
+			return new ArrayValue(Array.from(dataArray), loc, dataArray);
+			});
+		}
+		else return new NullValue(loc);
+	}, null, null)
 };
 
 var more_functions = {

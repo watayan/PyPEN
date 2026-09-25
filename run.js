@@ -32,7 +32,7 @@ var test_limit_time = 0;
 var fontsize = 16;
 var python_lib = {};
 var editor = null;
-var sleep_end_time = 0;
+var sleeping = null;
 
 /**
  * parsed...すべての親クラス
@@ -354,7 +354,7 @@ function reset(b = true)
 	var input_area = document.getElementById('input_area');
 	input_area.readOnly = true;
 	input_area.value = '';
-	sleep_end_time = 0;
+	sleeping = null;
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';
@@ -435,14 +435,18 @@ function run(clear = true)
 
 function step()
 {
-	// if(sleep_end_time > 0 && sleep_end_time < Date.now()) return;
 	if(selected_quiz < 0)
 	{
 		// 次の行まで進める
 		var l = current_line;
 		do{
 			next_line();
-		}while(run_flag && l == current_line && sleep_end_time == 0);
+			if(sleeping)
+			{
+				if(sleeping()) break;
+				else sleeping = null;
+			}
+		}while(run_flag && l == current_line);
 		if(!code) return;
 		if(code[0] && code[0].stack.length > 0)
 		{

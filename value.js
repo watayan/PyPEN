@@ -2994,8 +2994,13 @@ class CallFunction extends SimpleValue
 		}
 		else if(this.getState() == 1)
 		{
-			code[0].stack[0].index++;
 			this._makeValue();
+			this.setState(2);
+		}
+		else
+		{
+			if(sleeping && sleeping()) return ;
+			code[0].stack[0].index++;
 			this.setState(0);
 		}
 	}
