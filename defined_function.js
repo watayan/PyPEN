@@ -717,6 +717,8 @@ var defined_functions = {
 			source.buffer = myArrayBuffer;
 			source.connect(audioCtx.destination);
 			source.start();
+			sleeping = function(){ return true; };
+			source.onended = function(){ sleeping = null; };
 			return new NullValue(loc);
 		}
 	}, null, null),
