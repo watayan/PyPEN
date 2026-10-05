@@ -226,52 +226,6 @@ Whitespace		[ 　\t]
 "連結する"									{return '連結する';}
 "追加"										{return '追加する';}
 "連結"										{return '連結する';}
-"描画領域開く"	{return 'gOpenWindow';}
-"gOpenWindow"	{return 'gOpenWindow';}
-"描画領域閉じる"	{return 'gCloseWindow';}
-"gCloseWindow"	{return 'gCloseWindow';}
-"描画領域全消去"	{return 'gClearWindow';}
-"gClearWindow"	{return 'gClearWindow';}
-"線色設定"		{return 'gSetLineColor';}
-"gSetLineColor"	{return 'gSetLineColor';}
-"塗色設定"		{return 'gSetFillColor';}
-"gSetFillColor"	{return 'gSetFillColor';}
-"文字色設定"		{return 'gSetTextColor';}
-"gSetTextColor"	{return 'gSetTextColor';}
-"線太さ設定"		{return 'gSetLineWidth';}
-"gSetLineWidth"	{return 'gSetLineWidth';}
-"文字サイズ設定"	{return 'gSetFontSize';}
-"gSetFontSize"	{return 'gSetFontSize';}
-"文字描画"		{return 'gDrawText';}
-"gDrawText"		{return 'gDrawText';}
-"線描画"			{return 'gDrawLine';}
-"gDrawLine"		{return 'gDrawLine';}
-"点描画"			{return 'gDrawPoint';}
-"gDrawPoint"		{return 'gDrawPoint';}
-"矩形描画"		{return 'gDrawBox';}
-"gDrawBox"		{return 'gDrawBox';}
-"矩形塗描画"		{return 'gFillBox';}
-"gFillBox"		{return 'gFillBox';}
-"円描画"			{return 'gDrawCircle';}
-"gDrawCircle"	{return 'gDrawCircle';}
-"円塗描画"		{return 'gFillCircle';}
-"gFillCircle"	{return 'gFillCircle';}
-"楕円描画"		{return 'gDrawOval';}
-"gDrawOval"		{return 'gDrawOval';}
-"楕円塗描画"		{return 'gFillOval';}
-"gFillOval"		{return 'gFillOval';}
-"弧描画"			{return 'gDrawArc';}
-"gDrawArc"		{return 'gDrawArc';}
-"弧塗描画"		{return 'gFillArc';}
-"gFillArc"		{return 'gFillArc';}
-"棒グラフ描画"	{return 'gBarplot';}
-"gBarplot"		{return 'gBarplot';}
-"線グラフ描画"	{return 'gLineplot';}
-"gLinePlot"		{return 'gLineplot';}
-"グラフ描画"		{return 'gDrawGraph';}
-"gDrawGraph"		{return 'gDrawGraph';}
-"グラフ消去"		{return 'gClearGraph';}
-"gClearGraph"	{return 'gClearGraph';}
 "ミリ秒待つ"		{return 'ミリ秒待つ';}
 "変数を確認する"	{return '変数を確認する';}
 "改行する"		{return '改行する';}
@@ -434,7 +388,6 @@ statement
 	| AssignStatement
 	| PrintStatement
 	| InputStatement
-	| GraphicStatement
 	| ForStatement
 	| WhileStatement
 	| IfStatement
@@ -633,55 +586,6 @@ InputStatement
 		{$$ = new Input($1, typeOfValue.typeString, new Location(@1, @4));}
 	| e 'に' '真偽' 'を' '入力する' '改行'	
 		{$$ = new Input($1, typeOfValue.typeBoolean, new Location(@1, @4));}
-	;
-
-GraphicStatement
-	: 'gOpenWindow' '(' e 'COMMA' e ')'	'改行'
-		{$$ = new GraphicStatement('gOpenWindow', [$3,$5], new Location(@1, @1));}
-	| 'gCloseWindow' '(' ')' '改行'	
-		{$$ = new GraphicStatement('gCloseWindow', [], new Location(@1,@1));}
-	| 'gClearWindow' '(' ')' '改行'	
-		{$$ = new GraphicStatement('gClearWindow', [], new Location(@1,@1));}
-	| 'gSetLineColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gSetLineColor', [$3,$5,$7], new Location(@1, @1));}
-	| 'gSetFillColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gSetFillColor', [$3,$5,$7], new Location(@1, @1));}
-	| 'gSetTextColor' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gSetTextColor', [$3,$5,$7], new Location(@1, @1));}
-	| 'gSetLineWidth' '(' e ')' '改行'
-		{$$ = new GraphicStatement('gSetLineWidth', [$3], new Location(@1, @1));}
-	| 'gSetFontSize' '(' e ')' '改行'
-		{$$ = new GraphicStatement('gSetFontSize', [$3], new Location(@1, @1));}
-	| 'gDrawText' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawText', [$3,$5,$7], new Location(@1,@1));}
-	| 'gDrawLine' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawLine', [$3,$5,$7,$9], new Location(@1,@1));}
-	| 'gDrawPoint' '(' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawPoint', [$3,$5], new Location(@1,@1));}
-	| 'gDrawBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawBox', [$3,$5,$7,$9], new Location(@1,@1));}
-	| 'gFillBox' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gFillBox', [$3,$5,$7,$9], new Location(@1,@1));}
-	| 'gDrawCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawCircle', [$3,$5,$7], new Location(@1,@1));}
-	| 'gFillCircle' '(' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gFillCircle', [$3,$5,$7], new Location(@1,@1));}
-	| 'gDrawOval' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawOval', [$3,$5,$7,$9], new Location(@1,@1));}
-	| 'gFillOval' '(' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gFillOval', [$3,$5,$7,$9], new Location(@1,@1));}
-	| 'gDrawArc' '(' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1));}
-	| 'gFillArc' '(' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gFillArc', [$3,$5,$7,$9,$11,$13,$15], new Location(@1,@1));}
-	| 'gBarplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gBarplot', [$3,$5,$7], new Location(@1,@1));}
-	| 'gLineplot' '(' e  'COMMA' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gLineplot', [$3,$5,$7], new Location(@1,@1));}
-	| 'gDrawGraph' '(' e 'COMMA' e ')' '改行'
-		{$$ = new GraphicStatement('gDrawGraph', [$3,$5], new Location(@1,@1));}
-	| 'gClearGraph' '(' ')' '改行'
-		{$$ = new GraphicStatement('gClearGraph',[], new Location(@1,@1));}
 	;
 
 SleepStatement

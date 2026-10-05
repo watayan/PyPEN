@@ -1433,4 +1433,5 @@ function qnorm(p) {
 
 more_functions["mean"] = more_functions["average"];
 defined_functions["待つ"] = defined_functions["sleep"];
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();

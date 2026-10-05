@@ -397,6 +397,8 @@ function load_functions()
 {
 	for(var funcname in defined_functions)
 		varTables[0].vars[funcname] = defined_functions[funcname];
+	for(var funcname in graphical_functions)
+		varTables[0].vars[funcname] = graphical_functions[funcname];
 	if(setting.more_function == 1)
 	{
 		for(var funcname in more_functions)
