@@ -676,7 +676,6 @@ class Output extends Statement
 		if(this.state == 0)
 		{
 			code[0].stack.unshift({statementlist: this.value, index: 0});
-			// code[0].stack.unshift({statementlist: [this.value], index: 0});
 			this.state = 1;
 		}
 		else

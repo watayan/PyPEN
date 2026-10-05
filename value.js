@@ -808,7 +808,10 @@ class ArrayValue extends CollectionValue
 	{
 		this._value = [];
 		for(var i = 0; i < this.getArgs().length; i++) 
+		{
+			this.getArgs(i)._makeValue();
 			this._value.push(this.getArgs(i).getValue());
+		}
 	}
 	getValue(idx = null)
 	{
@@ -1315,16 +1318,17 @@ class Variable extends SimpleValue
 	}
 	_makeValue()
 	{
-
+		this.getValue();
 	}
-
 	getValue()
 	{
 		var vt = findVarTable(this.varname);
 		if(vt)
 		{
 			var v = vt.vars[this.varname];
-			return this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
+			v._makeValue();
+			this._value = getValueByArgs(v, this.getArgs() , this.getLoc());
+			return this._value;
 		}
 		// else if(this.varname in myFuncs) return this._value = myFuncs[this.varname];
 		// else if(this.varname in definedFunction) return this._value = definedFunction[this.varname];

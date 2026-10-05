@@ -50,6 +50,14 @@ var graphical_functions = {
 		context.font = Number(param[0].getJSValue()) + "px 'sans-serif'";
 		return new NullValue(loc);
 	}, null, null),
+	"gGetColor" : new BuiltinFunction(2, function(param, loc){
+		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
+		var x = Number(param[0].getValue().getJSValue()), y = Number(param[1].getValue().getJSValue());
+		const color = context.getImageData(x, y, 1, 1).data;
+		var rgb = [];
+		for(var i = 0; i < 3; i++) rgb.push(new IntValue([color[i]], loc));
+		return new ArrayValue(rgb, loc);
+	}, null, null),
 	"gDrawText": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
 		var temp = context.fillStyle;
@@ -275,7 +283,7 @@ var graphical_functions = {
 		}
 		return new NullValue(loc);
 	}, null, null),
-	"gDrawGraph" : new BuiltinFunction(3, function(param, loc){
+	"gDrawGraph" : new BuiltinFunction(2, function(param, loc){
 		drawGraph(param[0].getValue(), param[1].getValue(), loc);
 		return new NullValue(loc);
 	}, null, null),

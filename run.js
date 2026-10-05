@@ -474,7 +474,7 @@ function next_line()
 {
 	var index = code[0].stack[0].index;
 	var statement = code[0].stack[0].statementlist[index];
-	if(statement && typeof statement.run === 'function')
+	if(statement && typeof statement.run)
 	{
 		try{
 			// if(debug_mode){
