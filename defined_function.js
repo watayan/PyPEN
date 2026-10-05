@@ -722,6 +722,19 @@ var defined_functions = {
 			return new NullValue(loc);
 		}
 	}, null, null),
+	"micReady": new BuiltinFunction(0, async function(param, loc){
+		try{
+			sleeping = function(){ return true; };
+			navigator.mediaDevices.getUserMedia({ audio: true })
+			.then(stream => { sleeping = null; })
+			.catch(err => { sleeping = null; });
+			return new NullValue(loc);
+		}
+		catch(e){
+			sleeping = null;
+			return new NullValue(loc);
+		}
+	}, null, null),
 	"recordWave": new BuiltinFunction(1, async function(param, loc){
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
@@ -848,7 +861,7 @@ var more_functions = {
     "average": new BuiltinFunction(-1, function(param, loc){
         var par = param;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) par = param[0].getValue().getJSValue();
-        var sum = functions["sum"].func(param, loc).getValue().getJSValue();
+        var sum = varTables[0].vars["sum"].func(param, loc).getValue().getJSValue();
         if(par.length == 0) this.throwRuntimeError("average", "引数の配列は空であってはいけません");
         var v = Number(sum) / par.length;
         return new FloatValue([v], this.loc, v);
@@ -1020,7 +1033,7 @@ var more_functions = {
         var par = param;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) 
             par = param[0].getValue().getJSValue();
-        var mean = functions["average"].func(par, loc).getJSValue();
+        var mean = varTables[0].vars["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length == 0) throw new RuntimeError(loc.first_line, "空のリストでは分散は計算できません");
         for(let i = 0; i < par.length; i++)
@@ -1033,7 +1046,7 @@ var more_functions = {
         var par = param;    // 引数のArray
         if(param.length == 1 && param[0].getValue() instanceof ArrayValue) 
             par = param[0].getValue().getJSValue();
-        var mean = functions["average"].func(par, loc).getJSValue();
+        var mean = varTables[0].vars["average"].func(par, loc).getJSValue();
         var sum = 0.0; 
         if(par.length < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは分散は計算できません");
         for(let i = 0; i < par.length; i++)
@@ -1043,11 +1056,11 @@ var more_functions = {
         return new FloatValue([sum / (par.length - 1)], loc, sum / (par.length - 1));
     }, null, null),
     "pstdev": new BuiltinFunction(-1, function(param, loc){
-        var s = functions["pvariance"].func(param, loc).getValue().getJSValue();
+        var s = varTables[0].vars["pvariance"].func(param, loc).getValue().getJSValue();
         return new FloatValue([Math.sqrt(s)], loc, Math.sqrt(s));
     }, null, null),
     "stdev": new BuiltinFunction(-1, function(param, loc){
-        var s = functions["variance"].func(param, loc).getValue().getJSValue();
+        var s = varTables[0].vars["variance"].func(param, loc).getValue().getJSValue();
         return new FloatValue([Math.sqrt(s)], loc, Math.sqrt(s));
     }, null, null),
     "pcovariance": new BuiltinFunction(2, function(param, loc){
@@ -1058,8 +1071,8 @@ var more_functions = {
             var n = par1.getJSValue().length;
             if(n == 0) throw new RuntimeError(loc.first_line, "空のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func(par1.getJSValue(), loc).getValue().getJSValue(),
-                m2 = functions["average"].func(par2.getJSValue(), loc).getValue().getJSValue();
+            var m1 = varTables[0].vars["average"].func(par1.getJSValue(), loc).getValue().getJSValue(),
+                m2 = varTables[0].vars["average"].func(par2.getJSValue(), loc).getValue().getJSValue();
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
@@ -1083,8 +1096,8 @@ var more_functions = {
             var n = par1.getJSValue().length;
             if(n < 2) throw new RuntimeError(loc.first_line, "長さ2未満のリストでは共分散が計算できません");
             var s = 0.0;
-            var m1 = functions["average"].func(par1.getJSValue(), loc).getValue().getJSValue(),
-                m2 = functions["average"].func(par2.getJSValue(), loc).getValue().getJSValue();
+            var m1 = varTables[0].vars["average"].func(par1.getJSValue(), loc).getValue().getJSValue(),
+                m2 = varTables[0].vars["average"].func(par2.getJSValue(), loc).getValue().getJSValue();
             for(let i = 0; i < n; i++)
             {
                 var val1, val2;
@@ -1105,9 +1118,9 @@ var more_functions = {
         var par2 = param[1].getValue();
         if(par1 instanceof ArrayValue && par2 instanceof ArrayValue && par1.getJSValue().length == par2.getJSValue().length)
         {
-            var c = functions["pcovariance"].func([par1, par2], loc).getValue()._value;
-            var s1 = functions["pstdev"].func(par1.getJSValue(), loc).getValue()._value;
-            var s2 = functions["pstdev"].func(par2.getJSValue(), loc).getValue()._value;
+            var c = varTables[0].vars["pcovariance"].func([par1, par2], loc).getValue()._value;
+            var s1 = varTables[0].vars["pstdev"].func(par1.getJSValue(), loc).getValue()._value;
+            var s2 = varTables[0].vars["pstdev"].func(par2.getJSValue(), loc).getValue()._value;
             if(s1 == 0.0 || s2 == 0.0) throw new RuntimeError(loc.first_line, "標準偏差が0なので相関係数が計算できません");
             return new FloatValue([c / s1 / s2], loc, c / s1 / s2);
             }
@@ -1419,5 +1432,5 @@ function qnorm(p) {
 }
 
 more_functions["mean"] = more_functions["average"];
-
+defined_functions["待つ"] = defined_functions["sleep"];
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
