@@ -9,38 +9,46 @@ var graphical_functions = {
 		canvas.setAttribute("width", Number(param[0].getJSValue()) + "px");
 		canvas.setAttribute("height", Number(param[1].getJSValue()) + "px");
 		canvas.style.display="block";
+		return new NullValue(loc);
 	}, null, null),
 	"gCloseWindow": new BuiltinFunction(0, function(param, loc){
 		var canvas = document.getElementById('canvas');
 		canvas.style.display = "none";
 		context = null;
+		return new NullValue(loc);
 	}, null, null),
 	"gClearWindow": new BuiltinFunction(0, function(param, loc){
 		var canvas = document.getElementById('canvas');
 		context.clearRect(0,0,canvas.width, canvas.height)
+		return new NullValue(loc);
 	}, null, null),
 	"gSetLineColor": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
 		let r = Number(param[0].getJSValue()), g = Number(param[1].getJSValue()), b = Number(param[2].getJSValue());
 		context.strokeStyle = "rgb(" + r + "," + g + "," + b + ")";
+		return new NullValue(loc);
 	}, null, null),
 	"gSetFillColor": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
 		let r = Number(param[0].getJSValue()), g = Number(param[1].getJSValue()), b = Number(param[2].getJSValue());
 		context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+		return new NullValue(loc);
 	}, null, null),
 	"gSetTextColor": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
 		let r = Number(param[0].getJSValue()), g = Number(param[1].getJSValue()), b = Number(param[2].getJSValue());
 		context.textStyle = "rgb(" + r + "," + g + "," + b + ")";
+		return new NullValue(loc);
 	}, null, null),
 	"gSetLineWidth": new BuiltinFunction(1, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
 		context.lineWidth = Number(param[0].getJSValue());
+		return new NullValue(loc);
 	}, null, null),
 	"gSetFontSize": new BuiltinFunction(1, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
 		context.font = Number(param[0].getJSValue()) + "px 'sans-serif'";
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawText": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -48,6 +56,7 @@ var graphical_functions = {
 		context.fillStyle = context.textStyle;
 		context.fillText(param[0].getJSValue(), Number(param[1].getJSValue()), Number(param[2].getJSValue()));
 		context.fillStyle = temp;
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawLine": new BuiltinFunction(4, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -57,6 +66,7 @@ var graphical_functions = {
 		context.moveTo(x1, y1);
 		context.lineTo(x2, y2);
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawPoint": new BuiltinFunction(2, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -64,6 +74,7 @@ var graphical_functions = {
 		context.beginPath();
 		context.arc(x1, y1, 1, 0, Math.PI * 2, false);
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawBox": new BuiltinFunction(4, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -72,6 +83,7 @@ var graphical_functions = {
 		context.beginPath();
 		context.strokeRect(x1, y1, width, height);
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gFillBox": new BuiltinFunction(4, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -81,6 +93,7 @@ var graphical_functions = {
 		context.beginPath();
 		context.strokeRect(x1, y1, width, height);
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawCircle": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -88,6 +101,7 @@ var graphical_functions = {
 		context.beginPath();
 		context.arc(x1, y1, r, 0, Math.PI * 2, false);
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gFillCircle": new BuiltinFunction(3, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -99,6 +113,7 @@ var graphical_functions = {
 			if(i == 0) context.fill();
 			else context.stroke();
 		}
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawOval": new BuiltinFunction(4, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -106,6 +121,7 @@ var graphical_functions = {
 		context.beginPath();
 		context.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gFillOval": new BuiltinFunction(4, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -117,6 +133,7 @@ var graphical_functions = {
 			if(i == 0) context.fill();
 			else context.stroke();
 		}
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawArc": new BuiltinFunction(7, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -133,6 +150,7 @@ var graphical_functions = {
 				context.closePath();
 		}
 		context.stroke();
+		return new NullValue(loc);
 	}, null, null),
 	"gFillArc": new BuiltinFunction(7, function(param, loc){
 		if(context == null) throw new RuntimeError(loc.first_line, "描画領域がありません");
@@ -153,6 +171,7 @@ var graphical_functions = {
 			if(i == 0) context.fill();
 			else context.stroke();
 		}
+		return new NullValue(loc);
 	}, null, null),
 	"gBarplot": new BuiltinFunction(3, function(param, loc){
 		var canvas = document.getElementById('canvas');
@@ -204,6 +223,7 @@ var graphical_functions = {
 				context.stroke();
 			}
 		}
+		return new NullValue(loc);
 	}, null, null),
 	"gLineplot": new BuiltinFunction(3, function(param, loc){
 		var canvas = document.getElementById('canvas');
@@ -253,12 +273,15 @@ var graphical_functions = {
 				context.stroke();
 			}
 		}
+		return new NullValue(loc);
 	}, null, null),
 	"gDrawGraph" : new BuiltinFunction(3, function(param, loc){
 		drawGraph(param[0].getValue(), param[1].getValue(), loc);
+		return new NullValue(loc);
 	}, null, null),
 	"gClearGraph" : new BuiltinFunction(0, function(param, loc){
 		clearGraph();
+		return new NullValue(loc);
 	}, null, null),
 };
 
