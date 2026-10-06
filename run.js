@@ -33,6 +33,8 @@ var fontsize = 16;
 var python_lib = {};
 var editor = null;
 var sleeping = null;
+var micStream = null;
+var waveData = null;
 
 /**
  * parsed...すべての親クラス
@@ -340,6 +342,7 @@ function reset(b = true)
 	varTables = [new varTable()];
 	myFuncs = {};
 	current_line = -1;
+	waveData = null;
 	if(b){
 		textareaClear();
 		highlightLine(-1);
@@ -355,6 +358,11 @@ function reset(b = true)
 	input_area.readOnly = true;
 	input_area.value = '';
 	sleeping = null;
+	if(micStream)
+	{
+		micStream.getTracks().forEach(track => track.stop());
+		micStream = null;
+	}
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';

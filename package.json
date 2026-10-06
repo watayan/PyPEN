@@ -12,7 +12,7 @@
   "license": "MIT",
   "main": "index.html",
   "scripts": {
-    "build": "uglifyjs value.js statement.js defined_function.js graphical_function.js fileio.js flowchart.js run.js -o run.min.js",
+    "build": "uglifyjs value.js statement.js defined_function.js graphical_function.js sound_function.js fileio.js flowchart.js run.js -o run.min.js",
     "jison": "jison dncl.jison && node applyPatch.js && uglifyjs dncl.js -o dncl.min.js"
   },
   "repository": {
