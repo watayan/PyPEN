@@ -5,14 +5,14 @@ var sound_functions = {
 	"samplingRate": new BuiltinFunction(0, function(param, loc){
 		return new IntValue([audioCtx.sampleRate], loc, audioCtx.sampleRate);
 	}, null, null),
-	"playWave": new BuiltinFunction(2, function(param, loc){
+	"playWave": new BuiltinFunction([1,2], function(param, loc){
 		var par1 = param[0].getValue();
-		var par2 = param[1].getValue();
-		if(par1 instanceof ArrayValue && (par2 instanceof IntValue || par2 instanceof FloatValue))
+		var par2 = param.length < 2 ? null : param[1].getValue();
+		if(par1 instanceof ArrayValue && (par2 === null || (par2 instanceof IntValue || par2 instanceof FloatValue)))
 		{
-			var duration = Number(par2.getJSValue());
-			var myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
-			for(var i = 0; i < audioCtx.sampleRate * duration; i++)
+			var bufferSize = par2 ? Number(par2.getJSValue()) * audioCtx.sampleRate : par1._value.length;
+			var myArrayBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+			for(var i = 0; i < bufferSize; i++)
 				myArrayBuffer.getChannelData(0)[i] = Number(par1.getValue(i % par1._value.length).getJSValue());
 			var source = audioCtx.createBufferSource();
 			source.buffer = myArrayBuffer;
@@ -48,7 +48,7 @@ var sound_functions = {
 		{
 			var duration = Number(par1.getJSValue());
 			const required_samples = audioCtx.sampleRate * duration;
-			waveData = [];
+			var waveData = [];
 			var finished = false;
 			var nosound = true;
 			sleeping = function(){ return true; };
@@ -84,26 +84,19 @@ var sound_functions = {
 					for(var i = 0; i < inputData.length && waveData.length < required_samples; i++)
 					{
 						if(Math.abs(inputData[i]) > 0.001) nosound = false;
-						if(!nosound) waveData.push(inputData[i]);
+						if(!nosound) waveData.push(new FloatValue([inputData[i]], loc, inputData[i]));
 					}
 					if(waveData.length >= required_samples)
 						finalizeRecording();
 				};
-				return new NullValue(loc);
 			})
 			.catch((e) => {
 				finalizeRecording();
 				textareaAppend("Error during recording: " + e + "\n"); // for DEBUG
 			});
+			return new ArrayValue(waveData, loc, waveData);
 		}
 		else return new NullValue(loc);
 	}, null, null),
-	"getWave": new BuiltinFunction(0, function(param, loc){
-		if(!micStream) throw new RuntimeError(loc.first_line, "マイクが準備できていません");
-		if(!waveData) throw new RuntimeError(loc.first_line, "録音データが存在しません");
-		var arr = [];
-		for(var i = 0; i < waveData.length; i++)
-			arr.push(new FloatValue([waveData[i]], loc, waveData[i]));
-		return new ArrayValue(arr, loc, arr);
-	}, null, null)
 }
+

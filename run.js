@@ -34,7 +34,6 @@ var python_lib = {};
 var editor = null;
 var sleeping = null;
 var micStream = null;
-var waveData = null;
 
 /**
  * parsed...すべての親クラス
@@ -342,7 +341,6 @@ function reset(b = true)
 	varTables = [new varTable()];
 	myFuncs = {};
 	current_line = -1;
-	waveData = null;
 	if(b){
 		textareaClear();
 		highlightLine(-1);
@@ -407,6 +405,8 @@ function load_functions()
 		varTables[0].vars[funcname] = defined_functions[funcname];
 	for(var funcname in graphical_functions)
 		varTables[0].vars[funcname] = graphical_functions[funcname];
+	for(var funcname in sound_functions)
+		varTables[0].vars[funcname] = sound_functions[funcname];
 	if(setting.more_function == 1)
 	{
 		for(var funcname in more_functions)
