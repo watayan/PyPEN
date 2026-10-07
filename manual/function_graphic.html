@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="index.css"/>
+        <link rel="icon" href="../pypen.ico"/>
+        <title>グラフィック関係</title>
+    </head>
+    <body>
+        <div id="whole">
+        <h1>グラフィック関係</h1>
+        <a href="syntax.html#builtin_functions">文法に戻る</a>
+        <div class="part">
+        <table class="def_table" id="function">
+            <tr><th>命令</th><th>英語表記</th><th>補足</th></tr>
+            <tr><td>描画領域開く(《幅》,《高さ》)</td><td>gOpenWindow</td><td>1つしか開けない</td></tr>
+            <tr><td>描画領域閉じる()</td><td>gCloseWindow</td><td></td></tr>
+            <tr><td>描画領域全消去()</td><td>gClearWindow</td><td></td></tr>
+            <tr><td>線色設定(《赤》,《緑》,《青》)</td><td>gSetLineColor</td><td>各色の数は0〜255</td></tr>
+            <tr><td>塗色設定(《赤》,《緑》,《青》)</td><td>gSetFillColor</td><td></td></tr>
+            <tr><td>文字色設定(《赤》,《緑》,《青》)</td><td>gSetTextColor</td><td></td></tr>
+            <tr><td>線太さ設定(《太さ》)</td><td>gSetLineWidth</td><td></td></tr>
+            <tr><td>文字サイズ設定(《サイズ》)</td><td>gSetTextSize</td><td></td></tr>
+            <tr><td>文字描画(《文字列》,《x》,《y》)</td><td>gDrawText</td><td>(x,y)は文字列の左下の座標</td></tr>
+            <tr><td>点描画(《x》,《y》)</td><td>gDrawPoint</td><td></td></tr>
+            <tr><td>線描画(《x1》,《y1》,《x2》,《y2》)</td><td>gDrawLine</td><td></td></tr>
+            <tr><td>矩形描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawBox</td><td>(x,y)は矩形の左上の座標</td></tr>
+            <tr><td>矩形塗描画(《x》,《y》,《幅》,《高さ》)</td><td>gFillBox</td><td></td></tr>
+            <tr><td>円描画(《x》,《y》,《半径》)</td><td>gDrawCircle</td><td>(x,y)は中心の座標</td></tr>
+            <tr><td>円塗描画(《x》,《y》,《半径》)</td><td>gFillCircle</td><td></td></tr>
+            <tr><td>楕円描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawOval</td><td>(x,y)は楕円に外接する長方形の左上の座標</td></tr>
+            <tr><td>楕円塗描画(《x》,《y》,《幅》,《高さ》)</td><td>gFillOval</td><td></td></tr>
+            <tr><td>弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)</td><td>gDrawArc</td><td>(x,y)は楕円に外接する長方形の左上の座標<br>角度の単位は度<br>閉じ方は0:閉じない，1:弦，2:半径</td></tr>
+            <tr><td>弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)</td><td>gFillArc</td><td></td></tr>
+            <tr><td>棒グラフ描画(《幅》,《高さ》,《値のリスト》)</td><td>gBarplot</td><td>棒グラフ描画(100,100,[30,10,20])→<img src="barplot.png" alt="棒グラフ"></td></tr>
+            <tr><td>線グラフ描画(《幅》,《高さ》,《値のリスト》)</td><td>gLineplot</td><td>線グラフ描画(100,100,[[30,10,20],[10,30,20]])→<img src="lineplot.png" alt="棒グラフ"></td></tr>
+        </table>
+        </div>
+        <p>棒グラフ描画，線グラフ描画の《値のリスト》は《値のリストのリスト》でも良い。</p>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="index.css"/>
+        <link rel="icon" href="../pypen.ico"/>
+        <title>ファイルI/Oもどき</title>
+    </head>
+    <body>
+        <div id="whole">
+        <h1>ファイルI/Oもどき</h1>
+        <a href="syntax.html#builtin_functions">文法に戻る</a>
+        <div class="part">
+        <table class="def_table" id="fileio">
+            <tr><th>関数・命令</th><th>意味</th></tr>
+            <tr><td>openr(《ファイル名》)</td><td>ファイルを読込用にオープンする。戻り値はファイル番号</td></tr>
+            <tr><td>openw(《ファイル名》)</td><td>ファイルを書込用にオープンする。戻り値はファイル番号</td></tr>
+            <tr><td>opena(《ファイル名》)</td><td>ファイルを追記用にオープンする。戻り値はファイル番号</td></tr>
+            <tr><td>getline(《ファイル番号》)</td><td>ファイルから1行読み込む。戻り値は文字列（改行含む）</td></tr>
+            <tr><td>getchar(《ファイル番号》)</td><td>ファイルから1文字読み込む。戻り値は文字列</td></tr>
+            <tr><td>putline(《ファイル番号》,《文字列》)</td><td>ファイルに文字列と改行を書き込む</td></tr>
+            <tr><td>putstr(《ファイル番号》,《文字列》)</td><td>ファイルに文字列を書き込む</td></tr>
+            <tr><td>close(《ファイル番号》)</td><td>ファイルをクローズする</td></tr>
+        </table>
+        </div>
+        <p>書込・追記用ファイルはクローズしないと保存しないことに注意。</p>
+        </div>
+    </body>
+</html>

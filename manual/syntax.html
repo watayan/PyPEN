@@ -36,10 +36,10 @@ c[2] = 30   # aは[10,20,3]，bは[10,20,3]，cは[1,2,30]
         </div>
         <h2>変数</h2>
         <div class="part">
-        <p>変数名は次のいずれかである。</p>
+        <p>変数名は次のいずれかである（関数名も同様）。</p>
         <ul>
             <li>半角英字またはアンダースコアで始まり，半角英数字またはアンダースコアが0文字以上続く</li>
-            <li>全角文字（アラビア数字を除く）で始まるが，先頭が予約語（「もし」，「でない」など）でない（このような変数は日本語の予約語と隣り合わないように空白を入れる）</li>
+            <li>全角文字（アラビア数字を除く）で始まるが，先頭が予約語（「もし」，「でない」など）でない（このような変数は日本語の予約語と隣り合わないように，他のキーワードとの間に必ず空白を入れる）</li>
         </ul>
         <p>変数を宣言することはできない。値を代入した時点で変数は生成される。
             また，変数は型を持たない。
@@ -61,7 +61,7 @@ c[2] = 30   # aは[10,20,3]，bは[10,20,3]，cは[1,2,30]
         </p>
         <p>
             「《整数》個の《値》」でリストをつくることもできる。<br>
-            例：a=10個の0
+            例：a=10個の0 → a=[0,0,0,0,0,0,0,0,0,0]
         </p>
         </div>
         <h3>条件式</h3>
@@ -82,98 +82,6 @@ c[2] = 30   # aは[10,20,3]，bは[10,20,3]，cは[1,2,30]
         <h3>文字列結合</h3>
         <p class="part">"と"で文字列を結合することができる。数値は文字列に変換してから結合される。
             例："こん"と"にちは"→"こんにちは"。1と2→"12"</p>
-        <h3>組み込み関数</h3>
-        <div class="part">
-        <p>次のような関数を使うことができる。文字列の位置や番号は0から始まる。なお，関数と手続きの区別はなくなったので，今後はすべて関数として説明する。</p>
-        <table class="def_table">
-            <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
-            <tr><td>abs(《値》)</td><td>絶対値</td><td>abs(-3)→3</td></tr>
-            <tr><td>random()</td><td>実数の乱数</td><td>random()→0以上1未満の乱数（実数）</td></tr>
-            <tr><td>random(《整数》)</td><td>整数の乱数</td><td>random(5)→0以上5以下の乱数（整数）</td></tr>
-            <tr><td>ceil(《実数》)</td><td>小数部分切り上げ</td><td>ceil(3.14)→4</td></tr>
-            <tr><td>floor(《実数》)</td><td>小数部分切り捨て</td><td>floor(3.14)→3</td></tr>
-            <tr><td>round(《実数》)</td><td>小数部分四捨五入</td><td>round(3.14)→3</td></tr>
-            <tr><td>sin(《実数》)</td><td>三角関数のサイン（単位はラジアン）</td><td>sin(0)→0</td></tr>
-            <tr><td>cos(《実数》)</td><td>三角関数のコサイン（単位はラジアン）</td><td>cos(0)→1</td></tr>
-            <tr><td>tan(《実数》)</td><td>三角関数のタンジェント（単位はラジアン）</td><td>tan(0)→0</td></tr>
-            <tr><td>asin(《実数》)</td><td>逆三角関数のアークサイン（単位はラジアン）</td><td>asin(1)→1.5707963267948966</td></tr>
-            <tr><td>acos(《実数》)</td><td>逆三角関数のアークコサイン（単位はラジアン）</td><td>acos(0)→1.5707963267948966</td></tr>
-            <tr><td>atan(《実数》)</td><td>逆三角関数のアークタンジェント（単位はラジアン）</td><td>atan(1)→0.7853981633974483</td></tr>
-            <tr><td>atan2(《実数》,《実数》)</td><td>逆三角関数のアークタンジェント（単位はラジアン）</td><td>atan(1,0)→1.5707963267948966</td></tr>
-            <tr><td>sqrt(《実数》)</td><td>ルート</td><td>sqrt(2)→1.414…</td></tr>
-            <tr><td>log(《実数》)</td><td>自然対数</td><td>log(10)→2.302…</td></tr>
-            <tr><td>exp(《実数》)</td><td>指数関数（底は自然対数の底）</td><td>exp(1)→2.718…</td></tr>
-            <tr><td>pow(《実数》,《実数》)</td><td>累乗</td><td>pow(2,3)→8</td></tr>
-            <tr><td>length(《文字列》)</td><td>文字列の長さ（文字数）</td><td>length("こんにちは")→5</td></tr>
-            <tr><td>length(《リスト》)</td><td>リストの長さ</td><td>length([1,2,3,4,5])→5</td></tr>
-            <tr><td>append(《文字列》,《文字列》)</td><td>文字列結合</td><td>append("Wa","PEN")→"WaPEN"</td></tr>
-            <tr><td>substring(《文字列》,《開始位置》)</td><td>部分文字列（最後まで）</td><td>substring("こんにちは",2)→"にちは"</td></tr>
-            <tr><td>substring(《文字列》,《開始位置》,《長さ》)</td><td>部分文字列（長さ指定）</td><td>substring("こんにちは",2,1)→"に"</td></tr>
-            <tr><td>split(《文字列》)</td><td>文字列分割</td><td>split("abcd")→["a","b,"c","d"]（リスト）</td></tr>
-            <tr><td>split(《文字列》,《区切文字列》)</td><td>文字列分割</td><td>split("a:b:c:d",":")→["a","b,"c","d"]（リスト）</td></tr>
-            <tr><td>join(《文字列》,《リスト》)</td><td>文字列結合</td><td>join("-", ["a","b","c"])→"a-b-c"</td></tr>
-            <tr><td>extract(《文字列》,《区切文字列》,《番号》)</td><td>文字列分割（番号指定）</td><td>extract("a:b:c:d",":",2)→"c"</td></tr>
-            <tr><td>insert(《文字列》,《位置》,《文字列》)</td><td>文字列挿入</td><td>insert("こんは",2,"にち")→"こんにちは"</td></tr>
-            <tr><td>replace(《文字列》,《位置》,《長さ》,《文字列》)</td><td>文字列置換</td><td>replace("こんにちは",2,2,"ばん")→"こんばんは"</td></tr>
-            <tr><td>整数(《値》)</td><td>整数への変換</td><td>整数(3.5)→3，整数("3.14")→3</td></tr>
-            <tr><td>実数(《値》)</td><td>実数への変換</td><td>実数(3)→3.0，実数("3.14")→3.14</td></tr>
-            <tr><td>文字列(《値》)</td><td>文字列への変換</td><td>文字列(3.5)→"3.5"，文字列(1=1)→"true"</td></tr>
-            <tr><td>真偽(《値》)</td><td>真偽への変換</td><td>真偽(0)→false，真偽(1)→true</td></tr>
-            <tr><td>int(《値》)</td><td>整数への変換</td><td>int(3.5)→3，int("3.14")→3</td></tr>
-            <tr><td>float(《値》)</td><td>実数への変換</td><td>float(3)→3.0，float("3.14")→3.14</td></tr>
-            <tr><td>str(《値》)</td><td>文字列への変換</td><td>str(3.5)→"3.5"，str(1==1)→"true"</td></tr>
-            <tr><td>bool(《値》)</td><td>真偽への変換</td><td>bool(0)→false，bool(1)→true</td></tr>
-            <tr><td>pop(《リスト》)</td><td>リストの末尾を取り出して削除</td><td>a=[1,2,3]でpop(a)→3（aは[1,2]になる）</td></tr>
-            <tr><td>shift(《リスト》)</td><td>リストの先頭を取り出して削除</td><td>a=[1,2,3]でshift(a)→1（aは[2,3]になる）</td></tr>
-            <tr><td>push(《リスト》,《値》)</td><td>リストの末尾に値を追加</td><td>a=[1,2,3]でpush(a,4)→aは[1,2,3,4]になる</td></tr>
-            <tr><td>unshift(《リスト》,《値》)</td><td>リストの先頭に値を追加</td><td>a=[1,2,3]でunshift(a,4)→aは[4,1,2,3]になる</td></tr>
-            <tr><td>typeof(《値》)</td><td>値の型（整数，実数，文字列，真偽，リスト，辞書）</td><td>typeof(3)→"整数"</td></tr>
-            <tr><td>typeis(《値》,《型名》)</td><td>値がこの型かどうか</td><td>typeis(3,"実数")→False</td></tr>
-            <tr><td>range(《値》)</td><td>Pythonのrangeで生成される値のリスト。range(start, stop, step)にも対応</td><td>range(3)→[0,1,2]</td></tr>
-            <tr><td>match(《正規表現》,《文字列》)</td><td>マッチしたらマッチ部分とカッコで一致した部分のリストを返す。マッチしなければ空リスト。</td><td>b = match("(.*is)\sis a (.*)\.","This is a pen.")→["This is a pen.","This is","pen"]</td></tr>
-</td></tr>
-            </table>
-            <table class="def_table">
-                追加の関数を有効にしている場合は以下のものも使える。
-            <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
-            <tr><td>max(《複数の値》)</td><td>最大値</td><td>max(1,5,3)→5<br>max([1,5,3])→5（他の関数も同様）</td></tr>
-            <tr><td>min(《複数の値》)</td><td>最小値</td><td>min(1,5,3)→1</td></tr>
-            <tr><td>median(《複数の値》)</td><td>中央値</td><td>median(1,5,3)→3</td></tr>
-            <tr><td>sum(《複数の値》)</td><td>総和</td><td>sum(1,5,3)→9</td></tr>
-            <tr><td>prod(《複数の値》)</td><td>総積</td><td>prod(1,5,3)→15</td></tr>
-            <tr><td>sumprod(《複数の値》,《複数の値》)</td><td>積の和</td><td>sumprod([1,2,3],[4,5,6])→32</td></tr>
-            <tr><td>factorial(《非負整数》)</td><td>階乗</td><td>factorial(5)→120</td></tr>
-            <tr><td>comb(《非負整数》,《非負整数》)</td><td>組み合わせ</td><td>comb(6, 2)→15</td></tr>
-            <tr><td>perm(《非負整数》,《非負整数》)</td><td>順列</td><td>perm(6, 2)→30</td></tr>
-            <tr><td>mean(《複数の値》)</td><td>平均値</td><td>mean(1,5,3)→3.0</td></tr>
-            <tr><td>average(《複数の値》)</td><td>平均値</td><td>average(1,5,3)→3.0</td></tr>
-            <tr><td>pvariance(《複数の値》)</td><td>分散（nでわる）</td><td>pvariance(1,3,5)→2.666…</td></tr>
-            <tr><td>variance(《複数の値》)</td><td>分散（n-1でわる）</td><td>variance(1,3,5)→4.0</td></tr>
-            <tr><td>pstdev(《複数の値》)</td><td>標準偏差（nでわる）</td><td>pstdev(1,3,5)→1.632…</td></tr>
-            <tr><td>etdev(《複数の値》)</td><td>標準偏差（n-1でわる）</td><td>stdev(1,3,5)→2.0</td></tr>
-            <tr><td>pcovariance(《複数の値》,《複数の値》)</td><td>共分散（nでわる）</td><td>p([1,2,3],[4,5,6])→0.666…</td></tr>
-            <tr><td>covariance(《複数の値》,《複数の値》)</td><td>共分散（n-1でわる）</td><td>p([1,2,3],[4,5,6])→1.0</td></tr>
-            <tr><td>linear_regression(《複数の値》,《複数の値》)</td><td>回帰直線の傾きと切片のリスト</td><td>linear_regression([1,2,3],[3,4,6])→[1.5, 1.333…]</td></tr>
-            <tr><td>dnorm(《実数値》)</td><td>標準正規分布の確率密度関数の値</td><td>dnorm(0)→0.399</td></tr>
-            <tr><td>pnorm(《実数値》)</td><td>標準正規分布の累積分布関数の値</td><td>pnorm(1.96)→0.975</td></tr>
-            <tr><td>qnorm(《実数値》)</td><td>pnormの逆関数</td><td>qnorm(0.975)→1.96</td></tr>
-            <tr><td>correl(《複数の値》,《複数の値》)</td><td>相関係数</td><td>p([1,2,3],[4,5,6])→1.0</td></tr>
-            <tr><td>sorted(《リスト》)</td><td>ソートしたリストを返す（元のリストはそのまま）</td><td>sorted([3,1,2])→[1,2,3]</td></tr>
-            <tr><td>shuffled(《リスト》)</td><td>シャッフルしたリストを返す（元のリストはそのまま）</td><td>shuffled([3,1,2])→[2,3,1]など</td></tr>
-            <tr><td>reversed(《リスト》)</td><td>逆順のリストを返す（元のリストはそのまま）</td><td>reversed([3,1,2])→[2,1,3]</td></tr>
-            <tr><td>next_permutation(《リスト》)</td><td>辞書順で次の順番の順列（元のリストはそのまま。終了時は空リスト）</td><td>next_permutation([1,2,3])→[1,3,2]</td></tr>
-            <tr><td>ord(《文字》)</td><td>文字に対応する文字コード</td><td>ord('情')→24773</td></tr>
-            <tr><td>chr(《整数》)</td><td>文字コードに対応する文字</td><td>chr(24773)→'情'</td></tr>
-            <tr><td>gcd(《非負整数》,《非負整数》)</td><td>最大公約数</td><td>gcd(32, 48)→16</td></tr>
-            <tr><td>lcm(《非負整数》,《非負整数》)</td><td>最小公倍数</td><td>lcm(32, 48)→96</td></tr>
-            <tr><td>all(《リスト》)</td><td>複数のAND</td><td>all(True, True, False)→False</td></tr>
-            <tr><td>any(《リスト》)</td><td>複数のOR</td><td>any(True, True, False)→True</td></tr>
-            <tr><td>swap(《変数》,《変数》)</td><td>値を入れ替える</td><td>a = 3, b =4のときswap(a, b)→a=4, b = 3</td></tr>
-            <tr><td>sort(《リスト》)</td><td>ソートする</td><td>a =[3,1,2]でsort(a)→aは[1,2,3]になる</td></tr>
-            <tr><td>shuffle(《リスト》)</td><td>シャッフルする</td><td>a = [3,1,2]でshuffle(a)→aは[2,3,1]など</td></tr>
-            <tr><td>reverse(《リスト》)</td><td>逆順にする</td><td>a=[3,1,2]でreverse(a)→aは[2,1,3]になる</td></tr>
-            </table>
-        </div>
         <h2>代入</h2>
         <div class="part">
         <pre class="code">
@@ -310,54 +218,6 @@ for 《変数》 in 《リスト》：
         </p>
         <p>どのループについても"繰り返しを抜ける"命令で繰り返しから抜けることができる。</p>
         </div>
-        <h2>ファイル操作</h2>
-        <div class="part">
-        <table class="def_table" id="fileio">
-            <tr><th>関数・命令</th><th>意味</th></tr>
-            <tr><td>openr(《ファイル名》)</td><td>ファイルを読込用にオープンする。戻り値はファイル番号</td></tr>
-            <tr><td>openw(《ファイル名》)</td><td>ファイルを書込用にオープンする。戻り値はファイル番号</td></tr>
-            <tr><td>opena(《ファイル名》)</td><td>ファイルを追記用にオープンする。戻り値はファイル番号</td></tr>
-            <tr><td>getline(《ファイル番号》)</td><td>ファイルから1行読み込む。戻り値は文字列（改行含む）</td></tr>
-            <tr><td>getchar(《ファイル番号》)</td><td>ファイルから1文字読み込む。戻り値は文字列</td></tr>
-            <tr><td>putline(《ファイル番号》,《文字列》)</td><td>ファイルに文字列と改行を書き込む</td></tr>
-            <tr><td>putstr(《ファイル番号》,《文字列》)</td><td>ファイルに文字列を書き込む</td></tr>
-            <tr><td>close(《ファイル番号》)</td><td>ファイルをクローズする</td></tr>
-        </table>
-        <p>書込・追記用ファイルはクローズしないと保存しないことに注意。</p>
-        </div>
-        <h2>グラフィック関係などの命令</h2>
-        <div class="part">
-        <table class="def_table" id="function">
-            <tr><th>命令</th><th>英語表記</th><th>補足</th></tr>
-            <tr><td>描画領域開く(《幅》,《高さ》)</td><td>gOpenWindow</td><td>1つしか開けない</td></tr>
-            <tr><td>描画領域閉じる()</td><td>gCloseWindow</td><td></td></tr>
-            <tr><td>描画領域全消去()</td><td>gClearWindow</td><td></td></tr>
-            <tr><td>線色設定(《赤》,《緑》,《青》)</td><td>gSetLineColor</td><td>各色の数は0〜255</td></tr>
-            <tr><td>塗色設定(《赤》,《緑》,《青》)</td><td>gSetFillColor</td><td></td></tr>
-            <tr><td>文字色設定(《赤》,《緑》,《青》)</td><td>gSetTextColor</td><td></td></tr>
-            <tr><td>線太さ設定(《太さ》)</td><td>gSetLineWidth</td><td></td></tr>
-            <tr><td>文字サイズ設定(《サイズ》)</td><td>gSetTextSize</td><td></td></tr>
-            <tr><td>文字描画(《文字列》,《x》,《y》)</td><td>gDrawText</td><td>(x,y)は文字列の左下の座標</td></tr>
-            <tr><td>点描画(《x》,《y》)</td><td>gDrawPoint</td><td></td></tr>
-            <tr><td>線描画(《x1》,《y1》,《x2》,《y2》)</td><td>gDrawLine</td><td></td></tr>
-            <tr><td>矩形描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawBox</td><td>(x,y)は矩形の左上の座標</td></tr>
-            <tr><td>矩形塗描画(《x》,《y》,《幅》,《高さ》)</td><td>gFillBox</td><td></td></tr>
-            <tr><td>円描画(《x》,《y》,《半径》)</td><td>gDrawCircle</td><td>(x,y)は中心の座標</td></tr>
-            <tr><td>円塗描画(《x》,《y》,《半径》)</td><td>gFillCircle</td><td></td></tr>
-            <tr><td>楕円描画(《x》,《y》,《幅》,《高さ》)</td><td>gDrawOval</td><td>(x,y)は楕円に外接する長方形の左上の座標</td></tr>
-            <tr><td>楕円塗描画(《x》,《y》,《幅》,《高さ》)</td><td>gFillOval</td><td></td></tr>
-            <tr><td>弧描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)</td><td>gDrawArc</td><td>(x,y)は楕円に外接する長方形の左上の座標<br>角度の単位は度<br>閉じ方は0:閉じない，1:弦，2:半径</td></tr>
-            <tr><td>弧塗描画(《x》,《y》,《幅》,《高さ》,《開始角》,《終了角》,《閉じ方》)</td><td>gFillArc</td><td></td></tr>
-            <tr><td>棒グラフ描画(《幅》,《高さ》,《値のリスト》)</td><td>gBarplot</td><td>棒グラフ描画(100,100,[30,10,20])→<img src="barplot.png" alt="棒グラフ"></td></tr>
-            <tr><td>線グラフ描画(《幅》,《高さ》,《値のリスト》)</td><td>gLineplot</td><td>線グラフ描画(100,100,[[30,10,20],[10,30,20]])→<img src="lineplot.png" alt="棒グラフ"></td></tr>
-            <tr><td>グラフ描画(《レイアウト情報》,《値のリスト》)</td><td>gDrawGraph</td><td>使い方が難しいので<a href="graph.html">別マニュアル</a>で説明する</td></tr>
-            <tr><td>グラフ消去()</td><td>gClearGraph</td><td>gDrawGraphで表示したグラフを消去する</td></tr>
-            <!-- <tr><td>《ミリ秒数》 ミリ秒待つ</td><td></td><td>（今はタイミングがおかしい）</td></tr> -->
-            <tr><td>変数を確認する</td><td></td><td>全変数を表示する</td></tr>
-            <tr><td>何もしない</td><td></td><td>何もしない</td></tr>
-        </table>
-        <p>棒グラフ描画，線グラフ描画の《値のリスト》は《値のリストのリスト》でも良い。</p>
-        </div>
     <h2>関数の定義</h2>
     <div class="part">
     <p>注意：関数を定義したプログラムについては，フローチャートの実装がまだできていない。
@@ -379,6 +239,19 @@ def hoge(x)：
     <p>なお，関数は呼び出される前に定義しなくてはいけない。</p>
     </div>
     <p>Python風のインデントが合ってないとエラーになる。インデントする前の行末は"："が必要。</p>
+    <h2><a id="builtin_functions">組み込み関数</a></h2>
+    <div class="part">
+    <p>別途まとめることにした。</p>
+    <ul>
+        <li><a href="function_common.html">標準関数</a></li>
+        <li><a href="function_additional.html">標準関数に追加できる関数</a></li>
+        <li><a href="function_fileio.html">ファイルI/Oもどき</a></li>
+        <li><a href="function_graphic.html">グラフィック関係</a></li>
+        <li><a href="function_graph.html">グラフ関係</a></li>
+        <li><a href="function_sound.html">サウンド関係</a></li>
+    </ul>
+    </div>
+    <p>今後も追加していくつもりである。</p>
     </div>
     </body>
 </html>

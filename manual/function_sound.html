@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="index.css"/>
+        <link rel="icon" href="../pypen.ico"/>
+        <title>サウンド関係</title>
+    </head>
+    <body>
+        <div id="whole">
+        <h1>サウンド関係</h1>
+        <a href="syntax.html#builtin_functions">文法に戻る</a>
+        <div class="part">
+        <table class="def_table">
+            <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
+            <tr><td>samplingRate()</td><td>現在のサンプリングレートを取得する</td><td>samplingRate()→48000</td></tr>
+            <tr><td>playWave(《配列》)</td><td>配列の内容を音として再生する</td><td>playWave(array)</td></tr>
+            <tr><td>playWave(《配列》,《秒数》)</td><td>配列の内容を指定した秒数で音として再生する</td><td>playWave(array, 2)</td></tr>
+            <tr><td>micReady()</td><td>マイクを使う準備をする</td><td>micReady()</td></tr>
+            <tr><td>recordWave(《秒数》)</td><td>マイクから指定した秒数だけ音を録音する</td><td>recordWave(3)→array</td></tr>
+        </table>
+        </div>
+        <p>arrayは浮動小数点数の配列。</p>
+        </div>
+    </body>
+</html>

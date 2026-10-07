@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="index.css"/>
+        <link rel="icon" href="../pypen.ico"/>
+        <title>標準関数に追加できる関数</title>
+    </head>
+    <body>
+        <div id="whole">
+        <h1>標準関数に追加できる関数</h1>
+        <a href="syntax.html#builtin_functions">文法に戻る</a>
+        <div class="part">
+        <table class="def_table">
+            <tr><th>関数</th><th>意味</th><th>使用例</th></tr>
+            <tr><td>max(《複数の値》)</td><td>最大値</td><td>max(1,5,3)→5<br>max([1,5,3])→5（他の関数も同様）</td></tr>
+            <tr><td>min(《複数の値》)</td><td>最小値</td><td>min(1,5,3)→1</td></tr>
+            <tr><td>median(《複数の値》)</td><td>中央値</td><td>median(1,5,3)→3</td></tr>
+            <tr><td>sum(《複数の値》)</td><td>総和</td><td>sum(1,5,3)→9</td></tr>
+            <tr><td>prod(《複数の値》)</td><td>総積</td><td>prod(1,5,3)→15</td></tr>
+            <tr><td>sumprod(《複数の値》,《複数の値》)</td><td>積の和</td><td>sumprod([1,2,3],[4,5,6])→32</td></tr>
+            <tr><td>factorial(《非負整数》)</td><td>階乗</td><td>factorial(5)→120</td></tr>
+            <tr><td>comb(《非負整数》,《非負整数》)</td><td>組み合わせ</td><td>comb(6, 2)→15</td></tr>
+            <tr><td>perm(《非負整数》,《非負整数》)</td><td>順列</td><td>perm(6, 2)→30</td></tr>
+            <tr><td>mean(《複数の値》)</td><td>平均値</td><td>mean(1,5,3)→3.0</td></tr>
+            <tr><td>average(《複数の値》)</td><td>平均値</td><td>average(1,5,3)→3.0</td></tr>
+            <tr><td>pvariance(《複数の値》)</td><td>分散（nでわる）</td><td>pvariance(1,3,5)→2.666…</td></tr>
+            <tr><td>variance(《複数の値》)</td><td>分散（n-1でわる）</td><td>variance(1,3,5)→4.0</td></tr>
+            <tr><td>pstdev(《複数の値》)</td><td>標準偏差（nでわる）</td><td>pstdev(1,3,5)→1.632…</td></tr>
+            <tr><td>etdev(《複数の値》)</td><td>標準偏差（n-1でわる）</td><td>stdev(1,3,5)→2.0</td></tr>
+            <tr><td>pcovariance(《複数の値》,《複数の値》)</td><td>共分散（nでわる）</td><td>p([1,2,3],[4,5,6])→0.666…</td></tr>
+            <tr><td>covariance(《複数の値》,《複数の値》)</td><td>共分散（n-1でわる）</td><td>p([1,2,3],[4,5,6])→1.0</td></tr>
+            <tr><td>linear_regression(《複数の値》,《複数の値》)</td><td>回帰直線の傾きと切片のリスト</td><td>linear_regression([1,2,3],[3,4,6])→[1.5, 1.333…]</td></tr>
+            <tr><td>dnorm(《実数値》)</td><td>標準正規分布の確率密度関数の値</td><td>dnorm(0)→0.399</td></tr>
+            <tr><td>pnorm(《実数値》)</td><td>標準正規分布の累積分布関数の値</td><td>pnorm(1.96)→0.975</td></tr>
+            <tr><td>qnorm(《実数値》)</td><td>pnormの逆関数</td><td>qnorm(0.975)→1.96</td></tr>
+            <tr><td>correl(《複数の値》,《複数の値》)</td><td>相関係数</td><td>p([1,2,3],[4,5,6])→1.0</td></tr>
+            <tr><td>sorted(《リスト》)</td><td>ソートしたリストを返す（元のリストはそのまま）</td><td>sorted([3,1,2])→[1,2,3]</td></tr>
+            <tr><td>shuffled(《リスト》)</td><td>シャッフルしたリストを返す（元のリストはそのまま）</td><td>shuffled([3,1,2])→[2,3,1]など</td></tr>
+            <tr><td>reversed(《リスト》)</td><td>逆順のリストを返す（元のリストはそのまま）</td><td>reversed([3,1,2])→[2,1,3]</td></tr>
+            <tr><td>next_permutation(《リスト》)</td><td>辞書順で次の順番の順列（元のリストはそのまま。終了時は空リスト）</td><td>next_permutation([1,2,3])→[1,3,2]</td></tr>
+            <tr><td>ord(《文字》)</td><td>文字に対応する文字コード</td><td>ord('情')→24773</td></tr>
+            <tr><td>chr(《整数》)</td><td>文字コードに対応する文字</td><td>chr(24773)→'情'</td></tr>
+            <tr><td>gcd(《非負整数》,《非負整数》)</td><td>最大公約数</td><td>gcd(32, 48)→16</td></tr>
+            <tr><td>lcm(《非負整数》,《非負整数》)</td><td>最小公倍数</td><td>lcm(32, 48)→96</td></tr>
+            <tr><td>all(《リスト》)</td><td>複数のAND</td><td>all(True, True, False)→False</td></tr>
+            <tr><td>any(《リスト》)</td><td>複数のOR</td><td>any(True, True, False)→True</td></tr>
+            <tr><td>swap(《変数》,《変数》)</td><td>値を入れ替える</td><td>a = 3, b =4のときswap(a, b)→a=4, b = 3</td></tr>
+            <tr><td>sort(《リスト》)</td><td>ソートする</td><td>a =[3,1,2]でsort(a)→aは[1,2,3]になる</td></tr>
+            <tr><td>shuffle(《リスト》)</td><td>シャッフルする</td><td>a = [3,1,2]でshuffle(a)→aは[2,3,1]など</td></tr>
+            <tr><td>reverse(《リスト》)</td><td>逆順にする</td><td>a=[3,1,2]でreverse(a)→aは[2,1,3]になる</td></tr>
+        </table>
+        </div>
+        <p>設定次第でこれらの関数も使える。</p>
+        </div>
+    </body>
+</html>
