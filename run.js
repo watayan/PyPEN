@@ -94,9 +94,10 @@ class parsedFunction extends parsedCode
 	 * @constructor
 	 * @param {Array<Statement>} statementlist 
 	 */
-	constructor(statementlist, caller){
+	constructor(statementlist, caller, vtBreakflag){
 		super(statementlist);
 		this.caller = caller;
+		this.vtBreakflag = vtBreakflag;
 	}
 }
 
@@ -402,7 +403,7 @@ function setEditableflag(b)
 function load_builtin_functions()
 {
 	for(var funcname in builtin_functions)
-		varTables[0].vars[funcname] = builtin_functions[funcname];
+		varTables[0].vars[funcname] = builtin_functions[funcname].copy();
 }
 
 function run(clear = true)

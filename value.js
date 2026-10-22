@@ -1358,7 +1358,7 @@ class Variable extends SimpleValue
 		}
 		// else if(this.varname in myFuncs) return this._value = myFuncs[this.varname];
 		// else if(this.varname in definedFunction) return this._value = definedFunction[this.varname];
-		else this.throwRuntimeError(this.varname + "が定義されていません");
+		else this.throwRuntimeError(this.varname + "が定義されていません!");
 	}
 
 	getJSValue()
@@ -3050,7 +3050,7 @@ class CallFunction extends SimpleValue
 				fn.setParameter(a);
 				fn.setLocation(this.getLoc());
 				let statementlist = [fn];
-				code.unshift(new parsedFunction(statementlist, this));
+				code.unshift(new parsedFunction(statementlist, this, false));
 			}
 			else if(vt.vars[this.funcname] instanceof UserDefinedFunction)
 			{
@@ -3065,7 +3065,7 @@ class CallFunction extends SimpleValue
 				let statementlist = cloneStatementlist(fn.statementlist);
 				statementlist.push(new ReturnStatement(new NullValue(this.getLoc()), this.getLoc()));
 				// setCaller(statementlist, this);
-				let pf = new parsedFunction(statementlist, this);
+				let pf = new parsedFunction(statementlist, this, true);
 				code.unshift(pf);
 				varTables.unshift(vtlocal);
 			}

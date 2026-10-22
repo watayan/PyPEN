@@ -103,20 +103,13 @@ class ReturnStatement extends Statement {
 	constructor(value, loc) {
 		super(loc);
 		this.value = value;
-		this.flag = false;
 		this.state = 0;
 	}
 	clone()
 	{
 		let rtnv = new ReturnStatement(this.value.clone(), this.loc);
-		rtnv.flag  = this.flag;
 		return rtnv;
 	}
-	// setCaller(caller, flag)
-	// {
-	// 	this.caller = caller;
-	// 	this.flag = flag;
-	// }
 	run()
 	{
 		if(this.state == 0)
@@ -130,8 +123,8 @@ class ReturnStatement extends Statement {
 			if(code[0] instanceof parsedFunction)
 			{
 				code[0].caller.setValue(this.value.getValue()); // code[0].caller must be CallFunction instance.
+				if(code[0].vtBreakflag) varTables.shift();
 				code.shift();
-				if(this.flag) varTables.shift();
 			}
 			else throw new RuntimeError(this.first_line, "関数の中ではありません");
 			this.state = 0;
@@ -966,8 +959,9 @@ class ForInc extends Statement
 			throw new RuntimeError(this.first_line, "未完成のプログラムです");
 		if(this.state == 0)
 		{
-			code[0].stack.unshift({statementlist: [new Assign(this.variable, this.begin, null, this.loc)], index: 0});
-			code[0].stack.unshift({statementlist: [this.begin, this.end, this.step], index: 0});
+			// code[0].stack.unshift({statementlist: [new Assign(this.variable, this.begin, null, this.loc)], index: 0});
+			// code[0].stack.unshift({statementlist: [this.begin, this.end, this.step], index: 0});
+			code[0].stack.unshift({statementlist: [this.begin, this.end, this.step, new Assign(this.variable, this.begin, null, this.loc)], index: 0});
 			this.state = 1;
 		}
 		else
@@ -1145,7 +1139,8 @@ class ForIntervalInc extends Statement
 			{
 				// let variable = new Variable(this.variable.varname, this.variable.args,this.loc);
 				let condition = new Compare([this.variable,'<=', this.end], this.loc);	// IncとDecの違うところ
-				let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
+				//let loop = [this.variable, condition, new LoopBegin(condition, true, this.loc)];
+				let loop = [new LoopBegin(condition, true, this.loc)];
 				loop.push(new LoopBody(this.statementlist, this.loc));
 				loop.push(this.step);
 				loop.push(new Assign(this.variable, this.step, '+', this.loc));	// IncとDecの違うところ
