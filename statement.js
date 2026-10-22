@@ -61,7 +61,7 @@ class DefineStatement extends Statement {
 		super(loc);
 		this.params = params;
 		this.funcName = funcName;
-		myFuncs[funcName] = this;
+		varTables[0].vars[this.funcName] = builtin_functions[this.funcName];
 		this.statementlist = statementlist;
 	}
 	clone()
@@ -103,22 +103,20 @@ class ReturnStatement extends Statement {
 	constructor(value, loc) {
 		super(loc);
 		this.value = value;
-		this.caller = null;
 		this.flag = false;
 		this.state = 0;
 	}
 	clone()
 	{
 		let rtnv = new ReturnStatement(this.value.clone(), this.loc);
-		rtnv.caller  = this.caller;
 		rtnv.flag  = this.flag;
 		return rtnv;
 	}
-	setCaller(caller, flag)
-	{
-		this.caller = caller;
-		this.flag = flag;
-	}
+	// setCaller(caller, flag)
+	// {
+	// 	this.caller = caller;
+	// 	this.flag = flag;
+	// }
 	run()
 	{
 		if(this.state == 0)
@@ -131,7 +129,7 @@ class ReturnStatement extends Statement {
 			code[0].stack[0].index++;
 			if(code[0] instanceof parsedFunction)
 			{
-				this.caller.setValue(this.value.getValue());
+				code[0].caller.setValue(this.value.getValue()); // code[0].caller must be CallFunction instance.
 				code.shift();
 				if(this.flag) varTables.shift();
 			}
@@ -338,13 +336,20 @@ class Input extends Statement
 					var v = null;
 					if(this.type == typeOfValue.typeInt)
 					{
-						var v0 = BigInt(toHalf(vl, this.loc));
-						v = new IntValue([v0], this.loc, v0);
+						try{
+							var v0 = BigInt(toHalf(vl, this.loc));
+							v = new IntValue([v0], this.loc, v0);
+						}catch(e){
+							throw new RuntimeError(this.first_line, '入力値が整数に変換できません。');
+						}
 					}
 					else if(this.type == typeOfValue.typeFloat)
 					{
-						var v0 = Number(toHalf(vl, this.loc));
-						v = new FloatValue([v0], this.loc, v0);
+						try{
+							var v0 = Number(toHalf(vl, this.loc));
+							v = new FloatValue([v0], this.loc, v0);
+						}catch(e){
+							throw new RuntimeError(this.first_line, '入力値が浮動小数点数に変換できません。');							}
 					}
 					else if(this.type == typeOfValue.typeString) 
 					{
@@ -353,8 +358,12 @@ class Input extends Statement
 					}
 					else if(this.type == typeOfValue.typeBoolean) 
 					{
-						var v0 = toBool(vl);
-						v = new BooleanValue([v0], this.loc, v0);
+						try{
+							var v0 = toBool(vl);
+							v = new BooleanValue([v0], this.loc, v0);
+						}catch(e){
+							throw new RuntimeError(this.first_line, '入力値が真偽値に変換できません。');
+						}
 					}
 					if(v !== null)
 					{
@@ -390,7 +399,7 @@ function openInputWindow()
 	input_area.value = '';
 	input_area.readOnly = false;
 	input_area.focus();
-	document.getElementById("input_status").style.visibility = 'visible';
+	set_inputStatus(true, '入力待ち', 'black', 'yellow');
 	document.getElementById("sourceTextarea").readOnly = true;
 	editor.options.readOnly = true;
 	editor.getWrapperElement().classList.add("readonly");
@@ -400,7 +409,7 @@ function closeInputWindow()
 {
 	var val = document.getElementById("input_area").value;
 	document.getElementById("input_area").readOnly = true;
-	document.getElementById("input_status").style.visibility = 'hidden';
+	set_inputStatus(false, '', 'black','white');
 	return val;
 }
 

@@ -166,7 +166,6 @@
       if (state.lastToken == "." && stream.match(identifiers))
         return "property";
 
-      console.log(stream);
       if (stream.match(keywords) || stream.match(wordOperators))
         return "keyword";
 

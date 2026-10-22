@@ -16,11 +16,10 @@ const nameOfType=['','整数','実数','文字列','真偽','配列','辞書'];
 
 var code = null;		// コードを積む（関数単位で）
 var varTables = [];		// 変数テーブルを積む
-var myFuncs = {};		// プログラム中で定義される関数
+var builtin_functions = {};
 var run_flag = false, step_flag = false, editable_flag = true;
 var flowchart = null;
 var textarea = null;
-var context = null;
 var current_line = -1;
 var flowchart_display = false;
 var converting = false;
@@ -33,7 +32,17 @@ var fontsize = 16;
 var python_lib = {};
 var editor = null;
 var sleeping = null;
-var micStream = null;
+
+function restoreBuiltinFunctions()
+{
+	// builtin_functions = {};
+	// var preloaded = globalThis.preloaded_builtin_functions;
+	// if(preloaded && typeof preloaded === "object")
+	// {
+	// 	for(var key in preloaded)
+	// 		builtin_functions[key] = preloaded[key];
+	// }
+}
 
 /**
  * parsed...すべての親クラス
@@ -85,8 +94,9 @@ class parsedFunction extends parsedCode
 	 * @constructor
 	 * @param {Array<Statement>} statementlist 
 	 */
-	constructor(statementlist){
+	constructor(statementlist, caller){
 		super(statementlist);
+		this.caller = caller;
 	}
 }
 
@@ -135,7 +145,7 @@ function codeChange()
 	var code = editor.getDoc().getValue() + "\n";
 	textareaClear();
 	try{
-		myFuncs = {};
+		restoreBuiltinFunctions();
 		var dncl_code = python_to_dncl(code);
 		var parse = dncl.parse(dncl_code);
 		var flag = false; // 関数・手続き定義がないか調べる
@@ -339,35 +349,25 @@ function highlightLine(l)
 function reset(b = true)
 {
 	varTables = [new varTable()];
-	myFuncs = {};
+	restoreBuiltinFunctions();
 	current_line = -1;
 	if(b){
 		textareaClear();
 		highlightLine(-1);
-		var canvas = document.getElementById('canvas');
-		canvas.style.display = 'none';
-		document.getElementById('input_status').style.visibility = 'hidden';
-		context = null;
-		Plotly.purge(document.getElementById('graph'));
 	}
 	setRunflag(false);
 	code = null;
-	var input_area = document.getElementById('input_area');
-	input_area.readOnly = true;
-	input_area.value = '';
+	set_inputStatus(false, '', 'white');
 	sleeping = null;
-	if(micStream)
-	{
-		micStream.getTracks().forEach(track => track.stop());
-		micStream = null;
-	}
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';
-	filesystem.all_close();
-	filesystem.clear();
-	storage_list_update();
-	load_functions();
+	for(var f of setting.builtin_function)
+	{
+		var reset_function = 'reset_' + f;
+		if(reset_function && typeof reset_function === 'function') reset_function();
+	}
+	load_builtin_functions();
 }
 
 /**
@@ -399,19 +399,10 @@ function setEditableflag(b)
 	document.getElementById("urlButton").disabled = !b;
 }
 
-function load_functions()
+function load_builtin_functions()
 {
-	for(var funcname in defined_functions)
-		varTables[0].vars[funcname] = defined_functions[funcname];
-	for(var funcname in graphical_functions)
-		varTables[0].vars[funcname] = graphical_functions[funcname];
-	for(var funcname in sound_functions)
-		varTables[0].vars[funcname] = sound_functions[funcname];
-	if(setting.more_function == 1)
-	{
-		for(var funcname in more_functions)
-			varTables[0].vars[funcname] = more_functions[funcname];
-	}
+	for(var funcname in builtin_functions)
+		varTables[0].vars[funcname] = builtin_functions[funcname];
 }
 
 function run(clear = true)
@@ -761,7 +752,9 @@ function cmCtrlLeft(cm)
 
 onload = function()
 {
+	console.log('onload\n');
 	var code = getParam('code');
+	console.log('code: ' + code + '\n');
 	if(code)
 	{
 		editor.getDoc().setValue(code);
@@ -773,12 +766,21 @@ onload = function()
 	editor.refresh();
 	editor.focus();
 	storage_list_update();
+	for(var f of setting.builtin_function)
+    {
+        load_js('./function_' + f + '.js')
+        .then(()=>{
+            for(var key in functions)
+                builtin_functions[key] = functions[key];
+        });
+    }
 }
-
 
 function getParam(name)
 {
+	textareaAppend('getParam: ' + name +'\n');
 	var getparam = window.location.search;
+	textareaAppend('getParam: ' + name + ':' + getparam + '\n');
 	if(getparam)
 	{
 		var params = getparam.slice(1).split('&');
@@ -868,7 +870,7 @@ function makePython()
 	if(run_flag) return;
 	//textareaClear();
 	code = null;
-	myFuncs = {};
+	restoreBuiltinFunctions();
 	python_lib = {};
 	try{
 		// var code = document.getElementById("sourceTextarea").value + "\n";
@@ -968,7 +970,9 @@ editor.on("change", function()
 	editor.save();
 	makeDirty(true);
 });
+
 resultTextArea.style.width = document.getElementById('input_area').clientWidth + 'px';
+
 new ResizeObserver(function(){
 	var w = editor.getWrapperElement().width;
 	var h = resultTextArea.offsetHeight - 4;
@@ -1367,4 +1371,11 @@ document.getElementById('urlButton').onclick = function()
 	} 
 }
 
-
+function set_inputStatus(visible, text, color, background)
+{
+	var input_status = document.getElementById('input_status');
+    input_status.style.visibility = visible ? 'visible' : 'hidden';
+    input_status.innerText = text;
+	input_status.style.color = color;
+    input_status.style.background = background;
+}

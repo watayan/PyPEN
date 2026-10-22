@@ -16,10 +16,15 @@
     // 0 日本語
     // 1 英語
 
-    more_function: 1,
-    // 追加関数を有効にするかどうか
-    // 0 無効
-    // 1 有効
+    builtin_function: [
+        "common",
+        "extra",
+        "fileio",
+        "graphic",
+        "math",
+        "sound"
+    ],
+    // 読み込む組み込み関数定義ファイル
 
     flowchart_mode: 0,
     // 起動時にフローチャートを表示するかどうか

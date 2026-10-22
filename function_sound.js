@@ -1,4 +1,8 @@
-var sound_functions = {
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+var micStream = null;
+
+var functions = {
 	// サウンド関係
 	// samplingRate: サンプリングレートを取得
 	// playWave: 波形を再生
@@ -18,8 +22,9 @@ var sound_functions = {
 			source.buffer = myArrayBuffer;
 			source.connect(audioCtx.destination);
 			source.start();
+			set_inputStatus(true, ' 再生中 ', 'white', 'green');
 			sleeping = function(){ return true; };
-			source.onended = function(){ sleeping = null; };
+			source.onended = function(){ sleeping = null; set_inputStatus(false, '', 'black', 'white'); };
 			return new NullValue(loc);
 		}
 	}, null, null),
@@ -46,6 +51,7 @@ var sound_functions = {
 		var par1 = param[0].getValue();
 		if(par1 instanceof IntValue || par1 instanceof FloatValue)
 		{
+			set_inputStatus(true, ' 録音中 ', 'white', 'blue');
 			var duration = Number(par1.getJSValue());
 			const required_samples = audioCtx.sampleRate * duration;
 			var waveData = [];
@@ -67,6 +73,7 @@ var sound_functions = {
 					{
 						try{ source.disconnect(); } catch(e){};
 					}
+					set_inputStatus(false, '', 'black', 'white');
 				}
 				var source = audioCtx.createMediaStreamSource(micStream);
 				var processor = audioCtx.createScriptProcessor(2048, 1, 1);
@@ -100,3 +107,15 @@ var sound_functions = {
 	}, null, null),
 }
 
+
+function reset_sound()
+{
+	if(micStream)
+	{
+		micStream.getTracks().forEach(track => track.stop());
+		micStream = null;
+	}
+	micStream = null;
+}
+
+for(var key in functions) builtin_functions[key] = functions[key];

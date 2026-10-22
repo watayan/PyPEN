@@ -1066,7 +1066,7 @@ class FunctionValue extends Value
 	 */
 	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
-		this.throwRuntimeError("抽象クラスです");
+		this.throwRuntimeError("抽象クラスでclone()が呼ばれました");
 	}
 
 	/**
@@ -1074,7 +1074,6 @@ class FunctionValue extends Value
 	 */
 	_makeValue()
 	{
-		this.throwRuntimeError("抽象クラスです");
 	}
 
 	/**
@@ -1083,7 +1082,6 @@ class FunctionValue extends Value
 	 */
 	run()
 	{
-		this.throwRuntimeError("抽象クラスです");
 	}
 
 	/**
@@ -1099,7 +1097,7 @@ class FunctionValue extends Value
 	 */
 	getJSValue()	// 実際のJSの値を返す
 	{
-		return this._value.getJSValue();
+		return null;
 	}
 	/**
 	 * @abstract
@@ -1142,30 +1140,29 @@ class BuiltinFunction extends FunctionValue
 	{
 		super([], loc, value);
 		this.argc = argc; this.func = func; this.module = module; this.convert = convert;
-		this.caller = null;
-		this.parameters = null;
+		this.params = null;
 		Object.seal(this);
 	}
 	clone()		// 実体のあるすべてのサブクラスで実体を実装する
 	{
 		var rtnv = new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
-		rtnv.setParameter(this.parameters);
+		rtnv.setParameter(this.params);
 		return rtnv;
 	}
 	copy()
 	{
 		var rtnv = new BuiltinFunction(this.argc, this.func, this.module, this.convert, this.getLoc(), this._value);
-		rtnv.setParameter(this.parameters);
+		rtnv.setParameter(this.params);
 		return rtnv;
 	}
-	setCaller(caller)
-	{
-		this.caller = caller;
-	}
+	// setCaller(caller)
+	// {
+	// 	this.caller = caller;
+	// }
 
 	setParameter(params)
 	{
-		this.parameters = params;
+		this.params = params;
 	}
 	setLocation(loc)
 	{
@@ -1173,12 +1170,12 @@ class BuiltinFunction extends FunctionValue
 	}
 	run()
 	{
-		if((this.argc instanceof Array && this.argc[0] <= this.parameters.length && this.argc[1] >= this.parameters.length)
-			|| this.parameters.length == this.argc
+		if((this.argc instanceof Array && this.argc[0] <= this.params.length && this.argc[1] >= this.params.length)
+			|| this.params.length == this.argc
 			|| this.argc < 0)
 			{
 				code[0].stack[0].index++;
-				this.caller.setValue(this.func(this.parameters, this._loc));
+				code[0].caller.setValue(this.func(this.params, this._loc));
 				code.shift();
 			}
 		else throw new RuntimeError(this._loc.first_line, "引数の個数が違います");
@@ -1190,9 +1187,8 @@ class BuiltinFunction extends FunctionValue
 	 */
 	getJSValue()	// 実際のJSの値を返す
 	{
-		return this._value.getJSValue();
+		return null;
 	}
-
 	/**
 	 * @abstract
 	 * @returns {string}
@@ -1234,8 +1230,8 @@ class UserDefinedFunction extends FunctionValue
 	{
 		super([], loc, value);
 		this.params = params;
+		this.argc = this.params.length;
 		this.statementlist = statementlist;
-		this.caller = null;
 		this.state = 0;		
 		Object.seal(this);
 	}
@@ -1247,13 +1243,43 @@ class UserDefinedFunction extends FunctionValue
 	{
 		return new UserDefinedFunction(this.params, this.statementlist, this.getLoc(), this._value);
 	}
+	// _makeValue()
+	// {
+	// 	if((this.argc instanceof Array && this.argc[0] <= this.params.length && this.argc[1] >= this.params.length)
+	// 		|| this.params.length == this.argc
+	// 		|| this.argc < 0)
+	// 		{
+	// 			code[0].stack[0].index++;
+	// 			if(code[0].caller) code[0].caller.setValue(this.func(this.statementlist, this.params.length, this._loc));
+	// 			code.shift();
+	// 		}
+	// 	else throw new RuntimeError(this._loc.first_line, "引数の個数が違います" + this.params.length + this.argc);
+	// }
+	// setCaller(caller)
+	// {
+	// 	this.caller = caller;
+	// 	textareaAppend("Setting caller for user-defined function: " + constructor_name(this.caller) + "\n");
+	// }
+	run()
+	{
+		if((this.argc instanceof Array && this.argc[0] <= this.params.length && this.argc[1] >= this.params.length)
+			|| this.params.length == this.argc
+			|| this.argc < 0)
+			{
+				code[0].stack[0].index++;
+				if(code[0].caller) code[0].caller.setValue(this.func(this.statementlist, this.params.length, this._loc));
+				code.shift();
+			}
+		else throw new RuntimeError(this._loc.first_line, "引数の個数が違います" + this.params.length + this.argc);
+	}
+
 
 	/**
 	 * @returns {bigint|number|string|boolean|Array|Map}
 	 */
 	getJSValue()	// 実際のJSの値を返す
 	{
-		return this._value.getJSValue();
+		return null;
 	}
 
 	/**
@@ -3015,7 +3041,7 @@ class CallFunction extends SimpleValue
 			if(vt.vars[this.funcname] instanceof BuiltinFunction)
 			{
 				let fn = vt.vars[this.funcname].clone();
-				fn.setCaller(this, false);
+				// fn.setCaller(this, false);
 				var a = [];
 				for(var i of this.getArgs())
 				{
@@ -3024,11 +3050,12 @@ class CallFunction extends SimpleValue
 				fn.setParameter(a);
 				fn.setLocation(this.getLoc());
 				let statementlist = [fn];
-				code.unshift(new parsedFunction(statementlist));
+				code.unshift(new parsedFunction(statementlist, this));
 			}
 			else if(vt.vars[this.funcname] instanceof UserDefinedFunction)
 			{
 				let fn = vt.vars[this.funcname];
+				// fn.setCaller(this, false);
 				let vtlocal = new varTable();
 				let globalVarTable = varTables[varTables.length - 1];
 				for(let i of Object.keys(globalVarTable.vars)) 
@@ -3037,8 +3064,8 @@ class CallFunction extends SimpleValue
 					vtlocal.vars[fn.params[i].varname] = this.getArgs()[i].getValue();
 				let statementlist = cloneStatementlist(fn.statementlist);
 				statementlist.push(new ReturnStatement(new NullValue(this.getLoc()), this.getLoc()));
-				setCaller(statementlist, this);
-				let pf = new parsedFunction(statementlist);
+				// setCaller(statementlist, this);
+				let pf = new parsedFunction(statementlist, this);
 				code.unshift(pf);
 				varTables.unshift(vtlocal);
 			}
@@ -3785,23 +3812,24 @@ function getValueByArgs(v, args, loc)
 	return v;
 }
 
-function setCaller(statementlist, caller)
-{
-	for(let i = 0; i < statementlist.length; i++)
-	{
-		if(statementlist[i] instanceof ReturnStatement) 
-		{
-			statementlist[i].setCaller(caller, true);
-		}
-		else if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
-		else if(statementlist[i].state) setCaller(statementlist[i].state, caller);
-		else if(statementlist[i].blocks)
-		{
-			for(var j = 0; j < statementlist[i].blocks.length; j++)
-				setCaller(statementlist[i].blocks[j][1], caller);
-		}
-	}
-}
+// function setCaller(statementlist, caller)
+// {
+// 	textareaAppend("Setting caller for statement list: " + constructor_name(caller) + "\n");
+// 	for(let i = 0; i < statementlist.length; i++)
+// 	{
+// 		if(statementlist[i] instanceof ReturnStatement) 
+// 		{
+// 			statementlist[i].setCaller(caller, true);
+// 		}
+// 		else if(statementlist[i].statementlist) setCaller(statementlist[i].statementlist, caller);
+// 		else if(statementlist[i].state) setCaller(statementlist[i].state, caller);
+// 		else if(statementlist[i].blocks)
+// 		{
+// 			for(var j = 0; j < statementlist[i].blocks.length; j++)
+// 				setCaller(statementlist[i].blocks[j][1], caller);
+// 		}
+// 	}
+// }
 
 function cloneStatementlist(statementlist)
 {

@@ -18,8 +18,9 @@
 
 
 #input_status{
-	background: #ff0;
-	font-size: 50%;
+	color: white;
+	background: red;
+	font-size: 80%;
 }
 
 #input_area{
