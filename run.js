@@ -752,9 +752,7 @@ function cmCtrlLeft(cm)
 
 onload = function()
 {
-	console.log('onload\n');
 	var code = getParam('code');
-	console.log('code: ' + code + '\n');
 	if(code)
 	{
 		editor.getDoc().setValue(code);
@@ -778,9 +776,7 @@ onload = function()
 
 function getParam(name)
 {
-	textareaAppend('getParam: ' + name +'\n');
 	var getparam = window.location.search;
-	textareaAppend('getParam: ' + name + ':' + getparam + '\n');
 	if(getparam)
 	{
 		var params = getparam.slice(1).split('&');
