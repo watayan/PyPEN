@@ -447,7 +447,7 @@ function reset_graphic()
 	canvas.style.display = 'none';
 	document.getElementById('input_status').style.visibility = 'hidden';
 	context = null;
-	Plotly.purge(document.getElementById('graph'));
+	clearGraph();
 }
 
 for(var key in functions) builtin_functions[key] = functions[key];

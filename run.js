@@ -354,6 +354,11 @@ function reset(b = true)
 	if(b){
 		textareaClear();
 		highlightLine(-1);
+		for(var f of setting.builtin_function)
+		{
+			var reset_function = globalThis['reset_' + f];
+			if(reset_function && typeof reset_function === 'function') reset_function();
+		}
 	}
 	setRunflag(false);
 	code = null;
@@ -362,11 +367,6 @@ function reset(b = true)
 	timeouts = [];
 	selected_quiz_input = selected_quiz_output = 0;
 	output_str = '';
-	for(var f of setting.builtin_function)
-	{
-		var reset_function = 'reset_' + f;
-		if(reset_function && typeof reset_function === 'function') reset_function();
-	}
 	load_builtin_functions();
 }
 
