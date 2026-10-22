@@ -417,6 +417,71 @@ function drawGraph(layout, data, loc)
 	Plotly.newPlot(div, graph_data, graph_layout);
 };
 
+function val2obj(val)
+{
+	if(val instanceof Array)
+	{
+		var rtnv = [];
+		var l = val.length;
+		for(var i = 0; i < l; i++) rtnv.push(val2obj(val[i]));
+		return rtnv;
+	}
+	else if(val instanceof Map)
+	{
+		var rtnv = {};
+		for(var key of val.keys())
+			rtnv[key] = val2obj(val.get(key));
+		return rtnv;
+	}
+	else if(val instanceof IntValue)return Number(val.getJSValue());
+	else if(val instanceof ArrayValue) return val2obj(val.getJSValue());
+	else if(val instanceof DictionaryValue) return val2obj(val.getJSValue());
+	else if(val instanceof Value) return val.getJSValue();
+	else return val;
+}
+
+/**
+ * 
+ * @param {ArrayValue} a 
+ * @param {Location} loc 
+ */
+function array2values(a, loc)
+{
+	var rtnv = [];
+	var array = null;
+	if(a instanceof ArrayValue)
+	{
+		if(a.getJSValue()[0] instanceof ArrayValue)
+		{
+			for(var i = 0; i < a.getJSValue().length; i++)
+			{
+				var rtnv1 = [];
+				for(var j = 0; j < a.getJSValue()[i].getJSValue().length; j++)
+				{
+					var val = a.getJSValue()[i].getJSValue()[j].getValue();
+					if(val instanceof IntValue) rtnv1.push(Number(val.getJSValue()));
+					else rtnv1.push(val.getJSValue());
+				}
+				rtnv.push(rtnv1);
+			}
+		}
+		else 
+		{
+			var rtnv1 = [];
+			for(var j = 0; j < a.getJSValue().length; j++)
+			{
+				var val = a.getJSValue()[j].getValue();
+				if(val instanceof IntValue) rtnv1.push(Number(val.getJSValue()));
+				else rtnv1.push(val.getJSValue());
+			}
+			rtnv.push(rtnv1);
+		}
+		return rtnv;
+	}
+	else throw new RuntimeError(loc.first_line, "棒グラフ・線グラフには配列が必要です");
+}
+
+
 functions["描画領域開く"] 	= functions["gOpenWindow"];
 functions["描画領域全消去"] = functions['gClearWindow'];
 functions["描画領域閉じる"] = functions['gCloseWindow'];
